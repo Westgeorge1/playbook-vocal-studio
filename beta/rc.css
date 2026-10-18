@@ -103,7 +103,6 @@ body.rc-on .daw{display:none}
 .rcplay{min-width:44px}
 .rcchoose{background:var(--rcp);min-width:92px}.rctake.chosen .rcchoose{background:#1f5a3a;color:var(--rcgrn);border-color:var(--rcgrn)}
 .rcdel{background:#2a1a1a;color:#ff9a9a;border-color:#5a2a2a}
-.rcstars .star{min-width:22px;min-height:22px;font-size:15px;padding:0 1px}
 .rcempty{font:500 13px var(--body);color:var(--rcm);margin:2px 0}
 .rcdelun{background:var(--rcp);color:#ff9a9a;border-color:#5a2a2a;width:100%}
 .rcprog{display:grid;gap:7px;margin-top:6px}
@@ -187,3 +186,29 @@ body.has-steps:not(.rc-on) #rcSaved,body.has-steps:not(.rc-on) #rcUndo,body.has-
 /* 0.16.1: the browser's 'Prepared downloads' fallback box sits bottom-left on RECORD & COMP so it never covers 'Comp done → Go to POLISH' */
 @media (min-width:900px){body.rc-on #browserDownloads{right:auto!important;left:12px!important}}
 @media (max-width:899px){body.rc-on #browserDownloads{bottom:auto!important;top:8px!important}}
+/* ---------------------------------------------------------------- 0.17.0 fused recording controls */
+.rctog.rcsm{min-width:52px;padding:0 8px}
+.rcmicfield output{font:600 10px var(--mono,monospace);color:var(--rct);letter-spacing:0;margin-left:4px}
+.rcmicfield .rcmeter{width:110px}
+.rcgain{width:90px;accent-color:var(--rcacc)}
+.rcctl{grid-template-columns:1fr 1fr}
+.rcctl .rcredo{grid-column:1/-1}
+.rcloop[aria-pressed="true"]{background:#3a1d1d;color:#ffb3b3;border-color:#ff4d4d}
+.rcimport{background:var(--rcp2)}
+.rcdelrow{display:flex;align-items:center;gap:10px}.rcdelrow .rcdelun{flex:1;width:auto}.rcdelrow .rclink{white-space:nowrap}
+.rcmsm{font:500 10px var(--body);color:var(--rcm)}
+#rcImp{width:340px}
+/* POLISH comp bar */
+.polcomp{display:flex;align-items:center;gap:8px;font:600 11px var(--body);color:#9aa5b1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+@media (max-width:1500px){.rcmicfield .rcmeter{width:80px}.rcgain{width:70px}}
+@media (max-width:899px){
+  .rcphset{flex-wrap:wrap}
+  .rcphset .rctog{min-height:40px;min-width:96px}
+  .rcphset select{font:600 14px var(--body);color:var(--rcacc);background:var(--rcp2);border:1px solid var(--rcl);border-radius:6px;padding:6px;min-height:40px}
+  .rcphset .rcgain{width:170px;height:32px}
+  .rcctl{grid-template-columns:1fr 1fr}
+  .rcctl .rcredo{grid-column:1/-1}
+  .rcctl .rcprev{display:none}
+  .rcctl .rcnext{grid-column:1/-1}
+  #rcImp{width:calc(100vw - 16px)}
+}

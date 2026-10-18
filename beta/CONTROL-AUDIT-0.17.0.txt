@@ -1,0 +1,546 @@
+CONTROL AUDIT 0.16.1 -> 0.17.0 (every element id of 0.16.1 index.html + every POLISH menu action)
+PASS = still there, reachable and wired as before.  REPLACED = recording control moved to 1 RECORD & COMP (replacement checked to exist and be reachable).
+DROPPED = intentionally removed (reason given).  FAIL = problem.
+Totals: {"PASS": 406, "REPLACED": 106, "DROPPED": 29}   page errors 0.16.1/0.17: [[], []]
+
+rcSteps                  PASS      
+rcSong                   PASS      handlers: dblclick
+rcStep1                  PASS      handlers: click
+rcStep2                  PASS      handlers: click
+rcSaved                  PASS      handlers: click
+rcUndo                   PASS      handlers: click
+rcRedo                   PASS      handlers: click
+rcExport                 PASS      handlers: click
+rcMoreP                  PASS      state-dependent / hidden in both versions; handlers: click
+rcEngine                 PASS      
+rcView                   PASS      handlers: pointerdown
+rcStart                  PASS      handlers: click
+rcPlay                   PASS      handlers: click
+rcStop                   PASS      handlers: click
+rcRec                    PASS      handlers: click
+rcBars                   PASS      
+rcTime                   PASS      
+rcTempo                  PASS      handlers: click
+rcBpm                    PASS      
+rcKey                    PASS      
+rcCount                  PASS      handlers: change
+rcMeterBtn               PASS      handlers: click
+rcMeter                  PASS      
+rcClip                   PASS      handlers: click
+rcBacking                PASS      handlers: click
+rcHearComp               PASS      handlers: click
+rcMoreBtn                PASS      handlers: click
+rcLanes                  PASS      
+rcHeads                  PASS      
+rcTl                     PASS      
+rcCanvas                 PASS      handlers: contextmenu,dblclick,pointercancel,pointerdown,pointermove,pointerup
+rcAddBtn                 PASS      handlers: click
+rcJoinNote               PASS      
+rcStatus                 PASS      
+rcFlow                   PASS      
+rcPanel                  PASS      
+rcPartName               PASS      
+rcPartTakes              PASS      
+rcPartInfo               PASS      
+rcRename                 PASS      handlers: click
+rcDelPart                PASS      handlers: click
+rcAddPart2               PASS      handlers: click
+rcChips                  PASS      state-dependent / hidden in both versions; handlers: click
+rcMini                   PASS      state-dependent / hidden in both versions; handlers: pointercancel,pointerdown,pointermove,pointerup
+rcPlayP                  PASS      state-dependent / hidden in both versions; handlers: click
+rcBig                    PASS      handlers: click
+rcBigLabel               PASS      
+rcStopP                  PASS      state-dependent / hidden in both versions; handlers: click
+rcOrR                    PASS      
+rcMeterBtnP              PASS      state-dependent / hidden in both versions; handlers: click
+rcMeterP                 PASS      state-dependent / hidden in both versions
+rcClipP                  PASS      state-dependent / hidden in both versions; handlers: click
+rcRedoLast               PASS      handlers: click
+rcPrev                   PASS      handlers: click
+rcNext                   PASS      handlers: click
+rcTakes                  PASS      handlers: click,dblclick,pointerdown
+rcDelUn                  PASS      handlers: click
+rcProgText               PASS      
+rcSegs                   PASS      
+rcTodo                   PASS      
+rcExportP                PASS      state-dependent / hidden in both versions; handlers: click
+rcDoneP                  PASS      state-dependent / hidden in both versions; handlers: click
+rcDone                   PASS      handlers: click
+rcMore                   PASS      state-dependent / hidden in both versions; handlers: click
+rcAdd                    PASS      state-dependent / hidden in both versions
+rcAddNames               PASS      state-dependent / hidden in both versions
+rcAddName                PASS      state-dependent / hidden in both versions; handlers: keydown
+rcAddLen                 PASS      state-dependent / hidden in both versions; handlers: change
+rcAddWhere               PASS      state-dependent / hidden in both versions; handlers: change
+rcAddInfo                PASS      state-dependent / hidden in both versions
+rcAddCancel              PASS      state-dependent / hidden in both versions; handlers: click
+rcAddOk                  PASS      state-dependent / hidden in both versions; handlers: click
+daw                      PASS      
+dawSong                  PASS      
+dawSaved                 PASS      handlers: click
+guideBtn                 PASS      handlers: click
+guideCount               PASS      state-dependent / hidden in both versions
+chip                     PASS      
+busybar                  PASS      
+toStart                  PASS      handlers: click
+playBtn                  PASS      handlers: click
+playIcon                 PASS      
+playLabel                PASS      
+dawStop                  PASS      handlers: click
+dawRec                   REPLACED  REC on RECORD & COMP (#rcRec) / big button (#rcBig) (removed from the page)
+dawNext                  REPLACED  Next part ▶ (#rcNext) (removed from the page)
+dawLoop                  PASS      handlers: click
+dawClick                 REPLACED  CLICK (#rcClick) (removed from the page)
+dawCount                 REPLACED  COUNT-IN (#rcCount) (removed from the page)
+dawTime                  PASS      
+dawBars                  PASS      
+timeText                 PASS      
+progress                 PASS      handlers: pointerdown,pointermove
+progressFill             PASS      
+dawTempo                 PASS      handlers: click
+dawBpm                   PASS      
+dawKey                   PASS      
+dawMicMeter              REPLACED  MIC LEVEL meter (#rcMeterBtn) (removed from the page)
+dawOutMeter              PASS      
+dawRecStat               REPLACED  recording timer (#rcOrR) (removed from the page)
+dawMicChk                REPLACED  MIC LEVEL meter button = mic check (#rcMeterBtn), key I (removed from the page)
+dawClip                  REPLACED  CLIP light (#rcClip) (removed from the page)
+dawBigRec                DROPPED   separate phone REC MODE; the phone layout of RECORD & COMP has the big record button (#rcBig)
+abSeg                    PASS      
+dawUndo                  PASS      handlers: click
+dawRedo                  PASS      handlers: click
+dawUndoCtx               PASS      
+laneHeads                PASS      
+tlScroll                 PASS      handlers: scroll,wheel
+tlInner                  PASS      
+dawCanvas                REPLACED  still wired (contextmenu,pointercancel,pointerdown,pointermove,pointerup); removed listener dblclick: double-click on the POLISH take lanes / parts (rename a part, choose a take): take lanes left POLISH, do this on RECORD & COMP (#rcCanvas double-click)
+tlActions                PASS      
+phraseContinue           REPLACED  + Add part (after the last part) (#rcAddBtn) (kept hidden in the engine room so the 0.13 core keeps working)
+phraseAtPlayhead         REPLACED  + Add part › Starts at the playhead (#rcAddBtn) (kept hidden in the engine room so the 0.13 core keeps working)
+phraseApply              REPLACED  Comp done → Go to POLISH (#rcDone) and POLISH › Load my new comp (#polLoadComp) (kept hidden in the engine room so the 0.13 core keeps working)
+phraseLead               REPLACED  Settings ▾ › Pre-roll before IN (#rcMoreBtn) (kept hidden in the engine room so the 0.13 core keeps working)
+phraseFade               REPLACED  Settings ▾ › Join crossfade (#rcMoreBtn) (kept hidden in the engine room so the 0.13 core keeps working)
+tlMarker                 DROPPED   song marker button (see mkAdd)
+dawZoomOut               PASS      handlers: click
+dawZoomFit               PASS      handlers: click
+dawZoomIn                PASS      handlers: click
+dock                     PASS      handlers: pointerdown
+dockToggle               PASS      handlers: click
+dockNotes                PASS      
+notesCanvas              PASS      handlers: pointercancel,pointerdown,pointermove,pointerup
+noteInfo                 PASS      
+shapePanel               PASS      state-dependent / hidden in both versions
+pitchHz                  PASS      state-dependent / hidden in both versions
+pitchSub                 PASS      state-dependent / hidden in both versions
+notePane                 PASS      state-dependent / hidden in both versions
+noteKnobs                PASS      state-dependent / hidden in both versions
+intoPane                 PASS      state-dependent / hidden in both versions
+intoKnobs                PASS      state-dependent / hidden in both versions
+shapeHelp                PASS      state-dependent / hidden in both versions
+noteDown                 PASS      handlers: click
+noteUp                   PASS      handlers: click
+noteKeep                 PASS      handlers: click
+noteApprove              PASS      state-dependent / hidden in both versions; handlers: click
+noteReset                PASS      handlers: click
+noteSplit                PASS      handlers: click
+noteMerge                PASS      handlers: click
+loopPhrase               PASS      handlers: click
+nextUnsure               PASS      handlers: click
+undoBtn                  PASS      handlers: click
+redoBtn                  PASS      handlers: click
+resetAll                 PASS      handlers: click
+zoomOut                  PASS      handlers: click
+zoomIn                   PASS      handlers: click
+page-edit                PASS      
+editTabs                 PASS      
+editHelp                 PASS      
+editWaveTitle            PASS      
+editCanvas               PASS      handlers: pointercancel,pointerdown,pointermove,pointerup
+editScroll               PASS      state-dependent / hidden in both versions; handlers: input
+selStart                 PASS      handlers: change
+selEnd                   PASS      handlers: change
+editZoom                 PASS      handlers: click
+editFit                  PASS      handlers: click
+hearMain                 PASS      handlers: click
+hearRaw                  PASS      handlers: click
+hearFinal                PASS      handlers: click
+breathRack               PASS      
+breathKnobs              PASS      
+breathApply              PASS      handlers: click
+breathNext               PASS      handlers: click
+breathRemove             PASS      handlers: click
+timingRack               PASS      state-dependent / hidden in both versions
+timingKnobs              PASS      state-dependent / hidden in both versions
+timingApply              PASS      state-dependent / hidden in both versions; handlers: click
+timingRemove             PASS      state-dependent / hidden in both versions; handlers: click
+compRack                 PASS      state-dependent / hidden in both versions
+takeRec                  REPLACED  record on RECORD & COMP (#rcBig); a whole-song file still goes in via WAVE EDIT › Add a whole-song take (#fileTake) or Import take › start of the song (#rcImport) (removed from the page)
+takeRecLabel             REPLACED  see takeRec (#rcBig) (removed from the page)
+fileTakeCapture          DROPPED   “record a take with the phone recorder app” input in WAVE EDIT; record on RECORD & COMP instead, or Import take (#rcImport)
+fileTake                 PASS      state-dependent / hidden in both versions; handlers: change
+takeRecBox               REPLACED  see takeRec (#rcBig) (removed from the page)
+takeRecTime              REPLACED  see takeRec (#rcOrR) (removed from the page)
+takeRecMeter             REPLACED  see takeRec (#rcMeterBtn) (removed from the page)
+takeSel                  PASS      state-dependent / hidden in both versions; handlers: change
+takeCanvas               PASS      state-dependent / hidden in both versions; handlers: pointercancel,pointerdown,pointermove,pointerup
+srcStart                 PASS      state-dependent / hidden in both versions; handlers: change
+srcEnd                   PASS      state-dependent / hidden in both versions; handlers: change
+matchRange               PASS      state-dependent / hidden in both versions; handlers: click
+hearTake                 PASS      state-dependent / hidden in both versions; handlers: click
+compApply                PASS      state-dependent / hidden in both versions; handlers: click
+compRemove               PASS      state-dependent / hidden in both versions; handlers: click
+editList                 PASS      
+editUndo                 PASS      handlers: click
+editRedo                 PASS      handlers: click
+editStatus               PASS      
+dockRef                  PASS      
+referenceRack            PASS      
+referencePick            PASS      handlers: click
+fileReference            PASS      handlers: change
+referenceName            PASS      
+referenceStartA          PASS      handlers: input
+referenceStartB          PASS      handlers: input
+referenceLength          PASS      handlers: input
+referencePrepare         PASS      handlers: click
+referenceA               PASS      handlers: click
+referenceB               PASS      handlers: click
+referenceStop            PASS      handlers: click
+referenceStatus          PASS      
+referenceMetrics         PASS      
+recPanel                 REPLACED  container of the old REC tab (now inside the hidden engine room) (kept hidden in the engine room so the 0.13 core keeps working)
+recRedo                  REPLACED  ↺ Redo last take (#rcRedoLast) (removed from the page)
+recNext                  REPLACED  Next part ▶ (#rcNext) (removed from the page)
+recState                 REPLACED  status line and timer (#rcStatus, #rcOrR) (removed from the page)
+optCountIn               REPLACED  COUNT-IN (#rcCount); phone (#rcCountP) (kept hidden in the engine room so the 0.13 core keeps working)
+optCountBars             REPLACED  COUNT-IN (#rcCount); phone (#rcCountP) (kept hidden in the engine room so the 0.13 core keeps working)
+optClickVolVal           REPLACED  Settings ▾ › Click level (#rcMoreBtn) (kept hidden in the engine room so the 0.13 core keeps working)
+optClickVol              REPLACED  Settings ▾ › Click level (#rcMoreBtn) (kept hidden in the engine room so the 0.13 core keeps working)
+optMetro                 REPLACED  CLICK next to the count-in (#rcClick); phone (#rcClickP); key C (kept hidden in the engine room so the 0.13 core keeps working)
+clickBpm                 REPLACED  tempo readout (#rcBpm) (kept hidden in the engine room so the 0.13 core keeps working)
+optHearOld               REPLACED  HEAR MY COMP (#rcHearComp) (kept hidden in the engine room so the 0.13 core keeps working)
+optMonitor               REPLACED  HEAR ME (#rcMonitor); phone (#rcMonitorP) (kept hidden in the engine room so the 0.13 core keeps working)
+optMonVolVal             REPLACED  Settings ▾ › Hear-me level (#rcMoreBtn) (kept hidden in the engine room so the 0.13 core keeps working)
+optMonVol                REPLACED  Settings ▾ › Hear-me level (#rcMoreBtn) (kept hidden in the engine room so the 0.13 core keeps working)
+monWarn                  REPLACED  headphones warning shown when HEAR ME is turned on (#rcStatus) (kept hidden in the engine room so the 0.13 core keeps working)
+monLat                   DROPPED   delay figure; it is shown in the HEAR ME toast
+chkMeter                 REPLACED  MIC LEVEL meter (#rcMeterBtn) (kept hidden in the engine room so the 0.13 core keeps working)
+chkHold                  REPLACED  MIC LEVEL meter (#rcMeterBtn) (kept hidden in the engine room so the 0.13 core keeps working)
+chkPeak                  REPLACED  MIC LEVEL meter (#rcMeterBtn) (kept hidden in the engine room so the 0.13 core keeps working)
+chkClip                  REPLACED  CLIP light (#rcClip) (kept hidden in the engine room so the 0.13 core keeps working)
+chkToggle                REPLACED  click the MIC LEVEL meter = mic check on/off (#rcMeterBtn), key I (kept hidden in the engine room so the 0.13 core keeps working)
+chkAdvice                REPLACED  mic check window advice (#mcAdvice) and status line (#rcStatus) (kept hidden in the engine room so the 0.13 core keeps working)
+optMicGainVal            REPLACED  gain readout (#rcGainV) (kept hidden in the engine room so the 0.13 core keeps working)
+optMicGain               REPLACED  GAIN slider next to the meter (#rcGain); phone (#rcGainP) (kept hidden in the engine room so the 0.13 core keeps working)
+optMicFirst              REPLACED  Settings ▾ › Mic check before the first take (#rcMoreBtn) (kept hidden in the engine room so the 0.13 core keeps working)
+latInfo                  REPLACED  Settings ▾ › Latency test (shows the current value) (#rcMoreBtn) (kept hidden in the engine room so the 0.13 core keeps working)
+latMs                    REPLACED  Settings ▾ › Latency … ms (#rcMoreBtn) (kept hidden in the engine room so the 0.13 core keeps working)
+latCal                   REPLACED  Settings ▾ › Latency test (timing)… (#rcMoreBtn) (kept hidden in the engine room so the 0.13 core keeps working)
+latAuto                  REPLACED  Settings ▾ › Use the automatic latency (#rcMoreBtn) (kept hidden in the engine room so the 0.13 core keeps working)
+mkAdd                    DROPPED   song markers (you asked to remove them); markers in old projects stay in the data, not shown
+mkList                   DROPPED   song markers (see mkAdd)
+bkInfo                   REPLACED  saved light (#rcSaved) and backup reminder toasts (kept hidden in the engine room so the 0.13 core keeps working)
+optBackupEvery           REPLACED  Settings ▾ › Backup reminder (#rcMoreBtn) (kept hidden in the engine room so the 0.13 core keeps working)
+page-record              REPLACED  container of the old PHRASE tab (now inside the hidden engine room) (kept hidden in the engine room so the 0.13 core keeps working)
+phraseTitle              REPLACED  Song name at the top left (#rcSong, double-click to rename) (kept hidden in the engine room so the 0.13 core keeps working)
+phraseBaseInfo           DROPPED   status text of the old PHRASE tab; the COMP lane and COMP PROGRESS (#rcTodo) show what is used
+phraseBacking            REPLACED  Settings ▾ › Open backing track (#rcMoreBtn) (kept hidden in the engine room so the 0.13 core keeps working)
+phraseListenSong         REPLACED  Play (#rcPlay, Space) (kept hidden in the engine room so the 0.13 core keeps working)
+phraseStop               REPLACED  Stop (#rcStop) (kept hidden in the engine room so the 0.13 core keeps working)
+phraseBackingInfo        REPLACED  BACKING lane name + BACKING ON/OFF (#rcBacking) (kept hidden in the engine room so the 0.13 core keeps working)
+phraseTimeline           REPLACED  RECORD & COMP timeline (#rcCanvas); phone: part view (#rcMini) (kept hidden in the engine room so the 0.13 core keeps working)
+phraseCursorText         REPLACED  position readout (#rcTime) (kept hidden in the engine room so the 0.13 core keeps working)
+phraseCursor             REPLACED  click the ruler / timeline (#rcCanvas) to move the playhead (kept hidden in the engine room so the 0.13 core keeps working)
+phraseList               REPLACED  PARTS lane (#rcCanvas); phone: part chips (#rcChips) (kept hidden in the engine room so the 0.13 core keeps working)
+phraseLabel              REPLACED  + Add part box: name (#rcAddBtn) and Rename part (#rcRename) (kept hidden in the engine room so the 0.13 core keeps working)
+phraseStart              REPLACED  + Add part (#rcAddBtn), drag the part IN edge (#rcCanvas) (kept hidden in the engine room so the 0.13 core keeps working)
+phraseEnd                REPLACED  + Add part length (#rcAddBtn), drag the part OUT edge (#rcCanvas) (kept hidden in the engine room so the 0.13 core keeps working)
+phraseNew                REPLACED  + Add part (#rcAddBtn, #rcAddPart2) (kept hidden in the engine room so the 0.13 core keeps working)
+phraseBounds             REPLACED  drag the part edges (#rcCanvas); phone: red IN/OUT flags (#rcMini) (kept hidden in the engine room so the 0.13 core keeps working)
+phraseRecord             REPLACED  big Record button (#rcBig), REC (#rcRec), key R (kept hidden in the engine room so the 0.13 core keeps working)
+phraseRecordLabel        REPLACED  big button label (#rcBig) (kept hidden in the engine room so the 0.13 core keeps working)
+phraseRedoBtn            REPLACED  ↺ Redo last take (#rcRedoLast) (removed from the page)
+phraseNextBtn            REPLACED  Next part ▶ (#rcNext), Shift+R records the next part (removed from the page)
+phraseWarn               REPLACED  backing-end warning in the status line (#rcStatus) and a toast (kept hidden in the engine room so the 0.13 core keeps working)
+phraseRecBox             REPLACED  recording timer (#rcOrR) (kept hidden in the engine room so the 0.13 core keeps working)
+phraseRecTime            REPLACED  recording timer (#rcOrR) (kept hidden in the engine room so the 0.13 core keeps working)
+phraseRecMeter           REPLACED  MIC LEVEL meter (#rcMeterBtn) (kept hidden in the engine room so the 0.13 core keeps working)
+phraseRecNote            DROPPED   old help sentence; the HOW IT WORKS footer and Help › How recording works cover it
+phraseImport             REPLACED  ⤓ Import take… (#rcImport) (kept hidden in the engine room so the 0.13 core keeps working)
+phraseUnchoose           REPLACED  click ✓ Chosen in the take list (#rcTakes) or right-click a take › Un-choose (kept hidden in the engine room so the 0.13 core keeps working)
+phraseRemove             REPLACED  Delete part (#rcDelPart) (kept hidden in the engine room so the 0.13 core keeps working)
+phraseUndo               REPLACED  Undo (#rcUndo, Ctrl+Z) (kept hidden in the engine room so the 0.13 core keeps working)
+phraseRedo               REPLACED  Redo (#rcRedo, Ctrl+Shift+Z) (kept hidden in the engine room so the 0.13 core keeps working)
+phraseDelUnchosen        REPLACED  Delete unchosen takes (#rcDelUn) and …in all parts (#rcDelAll) (removed from the page)
+phraseFile               REPLACED  Import take file picker (#rcImport) (kept hidden in the engine room so the 0.13 core keeps working)
+phraseRecover            REPLACED  Settings ▾ › Download my last microphone recording (#rcMoreBtn) (kept hidden in the engine room so the 0.13 core keeps working)
+phraseStatus             REPLACED  status line (#rcStatus) (kept hidden in the engine room so the 0.13 core keeps working)
+phraseKey                REPLACED  Settings ▾ › Song key (for take suggestions) (#rcMoreBtn) (kept hidden in the engine room so the 0.13 core keeps working)
+phraseScale              REPLACED  Settings ▾ › Song key (for take suggestions) (#rcMoreBtn) (kept hidden in the engine room so the 0.13 core keeps working)
+phraseReference          REPLACED  right-click a take › Use as melody / timing reference (#rcCanvas) (kept hidden in the engine room so the 0.13 core keeps working)
+phraseCompareBeat        REPLACED  Settings ▾ › Hear backing when I play a take (#rcMoreBtn) (kept hidden in the engine room so the 0.13 core keeps working)
+phraseRecommendation     REPLACED  “suggested” note on the take in the take list (#rcTakes) (kept hidden in the engine room so the 0.13 core keeps working)
+phraseTakes              REPLACED  TAKES list (#rcTakes) and take lanes (#rcCanvas) (kept hidden in the engine room so the 0.13 core keeps working)
+phraseAssemblyInfo       REPLACED  COMP PROGRESS (#rcProgText, #rcTodo) (kept hidden in the engine room so the 0.13 core keeps working)
+phraseSave               REPLACED  Settings ▾ › Save project with every take, Ctrl+S (#rcMoreBtn) (kept hidden in the engine room so the 0.13 core keeps working)
+phraseSaveStatus         REPLACED  saved light (#rcSaved) (kept hidden in the engine room so the 0.13 core keeps working)
+page-clean               PASS      
+noiseBig                 PASS      
+noiseVerdict             PASS      
+humInfo                  PASS      
+musicWarn                PASS      state-dependent / hidden in both versions
+modeSeg                  PASS      
+modeHelp                 PASS      
+cleanKnobs               PASS      
+humSel                   PASS      handlers: change
+cleanOn                  PASS      handlers: change
+cleanAuto                PASS      handlers: click
+cleanCanvas              PASS      handlers: pointerdown
+cleanListen              PASS      
+page-tune                PASS      
+keySel                   PASS      handlers: change
+scaleSel                 PASS      handlers: change
+keyInfo                  PASS      
+useKey                   PASS      state-dependent / hidden in both versions; handlers: click
+styleSeg                 PASS      
+styleHelp                PASS      
+tuneKnobs                PASS      
+preserve                 PASS      handlers: change
+snapKey                  PASS      handlers: change
+protect                  PASS      handlers: change
+protectExpression        PASS      handlers: change
+keepInTune               PASS      handlers: change
+followSinging            PASS      handlers: change
+matchVol                 PASS      handlers: change
+rangeSeg                 PASS      
+learnRange               PASS      handlers: click
+rangeInfo                PASS      
+page-chain               PASS      
+presetSeg                PASS      
+presetHelp               PASS      
+resetPreset              PASS      handlers: click
+resetFinishing           PASS      
+chainOn                  PASS      handlers: change
+eqCanvas                 PASS      handlers: pointercancel,pointerdown,pointermove,pointerup
+bandInfo                 PASS      
+bandKnobs                PASS      
+tameKnobs                PASS      
+dynKnobs                 PASS      
+eq2On                    PASS      handlers: change
+eq2Knobs                 PASS      
+eq2Adv                   PASS      
+eq2FreqKnobs             PASS      state-dependent / hidden in both versions
+spaceKnobs               PASS      
+bpm                      PASS      handlers: change
+levelKnobs               PASS      
+limitOn                  PASS      handlers: change
+limitAuto                PASS      handlers: change
+limitKnobs               PASS      
+limitWarn                PASS      state-dependent / hidden in both versions
+chainReadout             PASS      
+detailPanel              PASS      
+detailSheet              PASS      handlers: keydown
+detailClose              PASS      handlers: click
+detailChain              PASS      handlers: change
+detailReset              PASS      handlers: click
+detailControls           PASS      
+detailEffect             PASS      handlers: change
+detailPrepare            PASS      handlers: click
+detailA                  PASS      handlers: click
+detailB                  PASS      handlers: click
+detailRemoved            PASS      handlers: click
+detailStop               PASS      handlers: click
+detailMono               PASS      handlers: change
+detailStatus             PASS      
+mixPanel                 PASS      
+mixBeatFader             PASS      handlers: input
+mixBeatVal               PASS      
+mixVocFader              PASS      handlers: change,input
+mixVocVal                PASS      
+mixFit                   PASS      handlers: change
+mixKnobs                 PASS      
+mixInfo                  PASS      
+sessionStatus            PASS      
+sessionOpen              PASS      handlers: click
+playbackStatus           PASS      
+outputSignal             PASS      
+tab-open                 PASS      state-dependent / hidden in both versions; handlers: click
+tab-record               REPLACED  step 1 RECORD & COMP (#rcStep1) 
+tab-edit                 PASS      state-dependent / hidden in both versions; handlers: click
+tab-clean                PASS      state-dependent / hidden in both versions; handlers: click
+tab-tune                 PASS      state-dependent / hidden in both versions; handlers: click
+tab-chain                PASS      state-dependent / hidden in both versions; handlers: click
+tab-save                 PASS      state-dependent / hidden in both versions; handlers: click
+sessionModal             PASS      handlers: pointerdown
+page-open                PASS      
+sessionRack              PASS      
+openRecord               REPLACED  Session window button “Record your vocal on 1 RECORD & COMP” (data-act=toRC) (removed from the page)
+newSession               PASS      handlers: click
+undoClear                PASS      state-dependent / hidden in both versions; handlers: click
+clearStatus              PASS      
+beatName                 PASS      
+beatInfo                 PASS      
+beatPick                 PASS      handlers: click
+beatPlay                 PASS      handlers: click
+fileBeat                 PASS      handlers: change
+beatOn                   PASS      handlers: change
+beatLevelText            PASS      
+beatLevel                PASS      handlers: input
+beatRemove               PASS      handlers: click
+songName                 PASS      
+vocalStatus              PASS      
+songInfo                 PASS      
+vocalPlay                PASS      handlers: click
+finalPlay                PASS      handlers: click
+clearVocal               PASS      handlers: click
+recBtn                   REPLACED  Session window → 1 RECORD & COMP (#rcBig); a whole vocal = one long part or punch-in while playing (kept hidden in the engine room so the 0.13 core keeps working)
+recLabel                 REPLACED  see recBtn (#rcBig) (kept hidden in the engine room so the 0.13 core keeps working)
+recBox                   REPLACED  see recBtn (#rcOrR) (kept hidden in the engine room so the 0.13 core keeps working)
+recTime                  REPLACED  see recBtn (#rcOrR) (kept hidden in the engine room so the 0.13 core keeps working)
+recMeter                 REPLACED  see recBtn (#rcMeterBtn) (kept hidden in the engine room so the 0.13 core keeps working)
+recNote                  DROPPED   old help sentence for whole-vocal recording
+recBlocked               REPLACED  microphone-blocked message on RECORD & COMP (#rcStatus) and toast (kept hidden in the engine room so the 0.13 core keeps working)
+captureBtn               PASS      handlers: click
+fileCapture              PASS      handlers: change
+captureNote              PASS      
+importKind               PASS      
+pickBtn                  PASS      handlers: click
+fileVocal                PASS      handlers: change
+projBtn                  PASS      handlers: click
+fileProject              PASS      handlers: change
+projStatus               PASS      
+saveModal                PASS      handlers: pointerdown
+page-save                PASS      
+saveProject              PASS      handlers: click
+saveStatus               PASS      
+customRack               PASS      
+stageQuick               PASS      
+stagesBefore             PASS      
+stagesChainHead          PASS      
+stagesChain              PASS      
+hearCustom               PASS      handlers: click
+hearFull                 PASS      handlers: click
+hearStop                 PASS      handlers: click
+saveCustom               PASS      handlers: click
+customStatus             PASS      
+sheetText                PASS      state-dependent / hidden in both versions
+resetRack                PASS      
+resetSettings            PASS      handlers: click
+resetConfirm             PASS      state-dependent / hidden in both versions
+resetYes                 PASS      state-dependent / hidden in both versions; handlers: click
+resetNo                  PASS      state-dependent / hidden in both versions; handlers: click
+settingsText             PASS      
+copySettings             PASS      handlers: click
+copyStatus               PASS      
+helpModal                PASS      handlers: pointerdown
+helpTitle                PASS      
+helpKeys                 PASS      
+helpHow                  PASS      
+helpAbout                PASS      
+engineInfo               PASS      
+micModal                 PASS      handlers: pointerdown
+mcMeter                  PASS      
+mcHold                   PASS      
+mcPeak                   PASS      
+mcClip                   PASS      handlers: click
+mcAdvice                 PASS      
+mcGainVal                PASS      
+mcGain                   PASS      handlers: input
+mcNoAsk                  PASS      
+mcGo                     PASS      handlers: click
+mcSkip                   PASS      handlers: click
+calModal                 PASS      handlers: pointerdown
+calLoop                  PASS      handlers: click
+calTapStart              PASS      handlers: click
+calTap                   PASS      handlers: pointerdown
+calDevice                PASS      
+calResult                PASS      
+calSave                  PASS      handlers: click
+bigRec                   DROPPED   phone REC MODE (see dawBigRec)
+brExit                   DROPPED   part of the phone REC MODE (you asked to remove it); the phone RECORD & COMP screen has the same jobs: big record (#rcBig), play (#rcPlayP), stop (#rcStopP), parts (#rcChips), takes (#rcTakes)
+brPhrase                 DROPPED   part of the phone REC MODE (you asked to remove it); the phone RECORD & COMP screen has the same jobs: big record (#rcBig), play (#rcPlayP), stop (#rcStopP), parts (#rcChips), takes (#rcTakes)
+brInfo                   DROPPED   part of the phone REC MODE (you asked to remove it); the phone RECORD & COMP screen has the same jobs: big record (#rcBig), play (#rcPlayP), stop (#rcStopP), parts (#rcChips), takes (#rcTakes)
+brUndo                   DROPPED   part of the phone REC MODE (you asked to remove it); the phone RECORD & COMP screen has the same jobs: big record (#rcBig), play (#rcPlayP), stop (#rcStopP), parts (#rcChips), takes (#rcTakes)
+brTime                   DROPPED   part of the phone REC MODE (you asked to remove it); the phone RECORD & COMP screen has the same jobs: big record (#rcBig), play (#rcPlayP), stop (#rcStopP), parts (#rcChips), takes (#rcTakes)
+brMeter                  DROPPED   part of the phone REC MODE (you asked to remove it); the phone RECORD & COMP screen has the same jobs: big record (#rcBig), play (#rcPlayP), stop (#rcStopP), parts (#rcChips), takes (#rcTakes)
+brClip                   DROPPED   part of the phone REC MODE (you asked to remove it); the phone RECORD & COMP screen has the same jobs: big record (#rcBig), play (#rcPlayP), stop (#rcStopP), parts (#rcChips), takes (#rcTakes)
+brRec                    DROPPED   part of the phone REC MODE (you asked to remove it); the phone RECORD & COMP screen has the same jobs: big record (#rcBig), play (#rcPlayP), stop (#rcStopP), parts (#rcChips), takes (#rcTakes)
+brRecLabel               DROPPED   part of the phone REC MODE (you asked to remove it); the phone RECORD & COMP screen has the same jobs: big record (#rcBig), play (#rcPlayP), stop (#rcStopP), parts (#rcChips), takes (#rcTakes)
+brPrev                   DROPPED   part of the phone REC MODE (you asked to remove it); the phone RECORD & COMP screen has the same jobs: big record (#rcBig), play (#rcPlayP), stop (#rcStopP), parts (#rcChips), takes (#rcTakes)
+brListen                 DROPPED   part of the phone REC MODE (you asked to remove it); the phone RECORD & COMP screen has the same jobs: big record (#rcBig), play (#rcPlayP), stop (#rcStopP), parts (#rcChips), takes (#rcTakes)
+brChoose                 DROPPED   part of the phone REC MODE (you asked to remove it); the phone RECORD & COMP screen has the same jobs: big record (#rcBig), play (#rcPlayP), stop (#rcStopP), parts (#rcChips), takes (#rcTakes)
+brNext                   DROPPED   part of the phone REC MODE (you asked to remove it); the phone RECORD & COMP screen has the same jobs: big record (#rcBig), play (#rcPlayP), stop (#rcStopP), parts (#rcChips), takes (#rcTakes)
+brPlay                   DROPPED   part of the phone REC MODE (you asked to remove it); the phone RECORD & COMP screen has the same jobs: big record (#rcBig), play (#rcPlayP), stop (#rcStopP), parts (#rcChips), takes (#rcTakes)
+brCancel                 DROPPED   part of the phone REC MODE (you asked to remove it); the phone RECORD & COMP screen has the same jobs: big record (#rcBig), play (#rcPlayP), stop (#rcStopP), parts (#rcChips), takes (#rcTakes)
+brClick                  DROPPED   part of the phone REC MODE (you asked to remove it); the phone RECORD & COMP screen has the same jobs: big record (#rcBig), play (#rcPlayP), stop (#rcStopP), parts (#rcChips), takes (#rcTakes)
+brStatus                 DROPPED   part of the phone REC MODE (you asked to remove it); the phone RECORD & COMP screen has the same jobs: big record (#rcBig), play (#rcPlayP), stop (#rcStopP), parts (#rcChips), takes (#rcTakes)
+ctxMenu                  PASS      state-dependent / hidden in both versions
+inlineEdit               PASS      state-dependent / hidden in both versions
+pvsRecTime               PASS      state-dependent / hidden in both versions
+toast                    PASS      state-dependent / hidden in both versions
+toastTitle               PASS      state-dependent / hidden in both versions
+toastText                PASS      state-dependent / hidden in both versions
+toastClose               PASS      state-dependent / hidden in both versions; handlers: click
+stepper                  PASS      state-dependent / hidden in both versions
+stepLabel                PASS      state-dependent / hidden in both versions
+stepMinus                PASS      state-dependent / hidden in both versions; handlers: keydown,pointercancel,pointerdown,pointerleave,pointerup
+stepValue                PASS      state-dependent / hidden in both versions
+stepPlus                 PASS      state-dependent / hidden in both versions; handlers: keydown,pointercancel,pointerdown,pointerleave,pointerup
+stepAuto                 PASS      state-dependent / hidden in both versions; handlers: click
+stepDone                 PASS      state-dependent / hidden in both versions; handlers: click
+guideSheet               PASS      handlers: pointerdown
+guideOn                  PASS      handlers: change
+guideClose               PASS      handlers: click
+guideConcern             PASS      handlers: change
+guideGoal                PASS      handlers: change
+guideBpm                 PASS      handlers: change
+guideSync                PASS      handlers: change
+tipBadge                 PASS      
+tipTitle                 PASS      
+tipReason                PASS      
+tipListen                PASS      
+tipChange                PASS      
+tipGainCost              PASS      
+gPreview                 PASS      handlers: click
+gCurrent                 PASS      handlers: click
+gSuggested               PASS      handlers: click
+gStop                    PASS      handlers: click
+gApply                   PASS      handlers: click
+gLater                   PASS      handlers: click
+gKeep                    PASS      handlers: click
+gOpen                    PASS      handlers: click
+gMsg                     PASS      
+gMeasured                PASS      
+gUndo                    PASS      handlers: click
+gReset                   PASS      handlers: click
+menu:session             PASS      still in the POLISH menus
+menu:newSession          PASS      still in the POLISH menus
+menu:custom              PASS      still in the POLISH menus
+menu:save                PASS      still in the POLISH menus
+menu:undo                PASS      still in the POLISH menus
+menu:redo                PASS      still in the POLISH menus
+menu:recRedo             REPLACED  ↺ Redo last take (#rcRedoLast)
+menu:recNext             REPLACED  Next part ▶ (#rcNext)
+menu:renamePhrase        REPLACED  Rename part (#rcRename)
+menu:delUnchosenAll      REPLACED  …in all parts (#rcDelAll)
+menu:markerAdd           DROPPED   song markers
+menu:reset               PASS      still in the POLISH menus
+menu:zin                 PASS      still in the POLISH menus
+menu:zout                PASS      still in the POLISH menus
+menu:zfit                PASS      still in the POLISH menus
+menu:tab:phrase          REPLACED  step 1 RECORD & COMP (#rcStep1)
+menu:tab:clean           PASS      still in the POLISH menus
+menu:tab:tune            PASS      still in the POLISH menus
+menu:tab:chain           PASS      still in the POLISH menus
+menu:tab:detail          PASS      still in the POLISH menus
+menu:tab:mix             PASS      still in the POLISH menus
+menu:dock:notes          PASS      still in the POLISH menus
+menu:dock:wave           PASS      still in the POLISH menus
+menu:dock:ref            PASS      still in the POLISH menus
+menu:dockToggle          PASS      still in the POLISH menus
+menu:tab:rec             REPLACED  step 1 RECORD & COMP (#rcStep1)
+menu:bigRec              DROPPED   phone REC MODE
+menu:micCheck            REPLACED  MIC LEVEL meter button (#rcMeterBtn), key I
+menu:calibrate           REPLACED  Settings ▾ › Latency test (#rcMoreBtn)
+menu:help                PASS      still in the POLISH menus
+menu:howto               PASS      still in the POLISH menus
+menu:about               PASS      still in the POLISH menus

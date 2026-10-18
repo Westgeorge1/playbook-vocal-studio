@@ -1,78 +1,68 @@
-PLAYBOOK VOCAL STUDIO — RECORD & TAKES (phone 0.15.0)
+RECORD & COMP — recording your song part by part (Playbook Vocal Studio 0.17.0)
 
-Open the browser app directly in Chrome. Wear headphones.
+The idea
+  Your song is split into PARTS (Intro, Verse 1, Chorus …). Each part gets as many TAKES as you like.
+  You CHOOSE the best take of each part (green ✓). The chosen takes are joined into one vocal: the COMP.
+  When every part is chosen, press "Comp done → Go to POLISH" to clean, tune and mix the comp.
 
-1. Open RECORD, then Load backing track. OPEN also has a backing-only preview
-   and its volume/mute controls. The microphone records only your voice; the
-   backing plays in your headphones. Speaker playback may bleed into the mic.
-2. Tap Continue from here to create your first phrase. Change Start and End
-   in seconds, give the phrase a name and tap Update this phrase's boundaries.
-   The default is eight seconds. A phrase can be 0.5–60 seconds long.
-3. Set a lead-in, then Record this phrase. Watch the countdown and mic meter.
-   You hear the backing and existing vocal before the phrase. The old vocal is
-   muted inside the phrase. Recording stops just after End. Stop and keep
-   attempt lets you finish early; incomplete attempts remain available.
-4. Tap Redo this part for another attempt. No earlier attempt is overwritten.
-   Alternatively import a phrase recording; its beginning is placed at Start.
-5. Listen to each take with or without backing. Playback levels are matched
-   for comparison. Use Alignment if a recording sounds early or late; positive
-   milliseconds move it later. Assembly level changes its final contribution.
-6. Set the song's key and scale if known. You can choose one attempt as a melody
-   and timing reference. Read the estimated pitch, clipping and background
-   measurements. The suggestion is advisory: choose the delivery you prefer.
-7. Tap Choose. The resume position moves to that phrase's end. Continue from
-   here starts the next phrase. You can tap the timeline or use the resume
-   slider to move elsewhere. Select any earlier phrase to redo it again.
-8. Hear assembled vocal + backing checks the whole sequence. Join fade softens
-   the edges (20 ms by default). Later-created phrases replace earlier ones in
-   overlaps. Unchosen regions retain the starting vocal or silence.
-9. Apply chosen takes to vocal loads the assembly into CLEAN, TUNE and CHAIN.
-   Current sound settings remain; note and performance edits on the previous
-   assembly reset. The source attempts stay in RECORD. Finish the sound, then
-   use SAVE to export the vocal or rough mix.
-10. Save project with every take downloads a complete song ZIP, including the
-    backing, original attempts, choices and resume position. Reopen it through
-    OPEN > Song project. Phone 0.13.0 or newer restores editable phrases;
-    desktop opens the assembled vocal. Browser autosave is also available but
-    is not a replacement for downloaded backups.
+1. Get ready
+  - Settings ▾ › Open backing track (the beat). BACKING ON/OFF hears it or not.
+  - Wear headphones. Sing a line and watch MIC LEVEL. If CLIP lights up, move back or lower GAIN
+    (the slider next to the meter). Click the meter (or press I) for a mic check without recording.
+  - Settings ▾ › Latency test: do it once per device and browser so takes land on the beat.
+    The latency is used for every take (normal, punch-in, loop).
 
-Clear take choice restores the starting vocal (or silence) for that phrase
-when you Apply again. Remove deletes an attempt/phrase from the workspace;
-Undo last change brings it back. OPEN's Clear vocal & takes removes all vocal
-work while keeping the backing. New session clears everything. Undo clear is
-available until a new vocal or recording replaces that undo point.
+2. Add parts
+  - "+ Add part": pick a name, a length in bars, and where it starts (after the last part or at the playhead).
+  - Drag a part's edges on the timeline (phone: the red IN / OUT flags) to change where it starts or ends.
+  - Rename part / Delete part are above the big button. Overlapping parts: the newer part wins in the comp.
 
-Keep the page visible while recording. Switching away stops and keeps the
-attempt. If decoding fails but microphone bytes exist, Download last microphone
-file for recovery saves them for another import. A storage warning means you
-should download a project immediately. Microphone permissions, sound output and
-latency vary by phone and headphones; the alignment control is provided for
-listening corrections.
+3. Record takes
+  - Select a part, press the big red button (or R, or REC). The backing starts a little before the part
+    (pre-roll; set it in Settings ▾), you can have a COUNT-IN of 1 or 2 bars and a CLICK (metronome, key C).
+    Recording stops by itself at the end of the part. Esc throws the take away.
+  - "↺ Redo last take" records the part again and replaces the last take (Undo brings it back).
+  - "Next part ▶" (or Shift+R to go there and record).
+  - HEAR ME: hear your own voice in the headphones while you record. Wired headphones only — with speakers
+    it can echo or howl and the speaker sound gets into your take.
 
-NEW IN 0.15 — FASTER RECORDING
-- R = Redo this phrase (another take). Shift+R = Next phrase (starts where the
-  selected phrase ends). Both are also buttons in PHRASE, REC and REC MODE.
-- Punch-in on the fly: press Play, then R where you want to start singing. The
-  beat keeps going. R again punches out (playback continues); Space punches out
-  and stops; Esc throws the take away. The take lands on the phrase at that
-  spot (it is extended if you sang longer) or makes a new "Punch" phrase.
-- Drag the red IN / OUT flags on the ruler to move the phrase start and end.
-- Loop recording: turn LOOP on (phrase or dragged ruler region), press Play,
-  then R. Every full pass becomes a new take on that phrase.
-- CLICK (metronome) and count-in (1/2/4 bars) use the BPM. The click is only in
-  your headphones; it is never recorded or exported.
-- MIC CHECK shows your level and a CLIP light before you record. MIC GAIN in
-  the REC tab is a digital boost/cut; browsers cannot change the phone's real
-  mic hardware level.
-- REC tab > Latency > Calibrate: once per phone + headphones. Tap along or use
-  a loopback test; the value is stored for that device and applied to new takes.
-  Bluetooth headphones usually need it most.
-- Hear old vocal while recording (on = 0.14 behaviour). Input monitoring (hear
-  yourself) is OFF by default: it adds a delay on most phones, so prefer wired
-  headphones if you turn it on.
-- Rate takes with stars, rename takes/phrases by double-clicking (long-press on
-  a phone), Delete unchosen takes to tidy up. Undo/Redo go back many steps.
-- Markers (M, + Marker) name song sections; drag them on the ruler.
-- The "saved" light in the menu bar shows autosave; you are reminded to Save
-  project as a ZIP after several new takes.
-- On a phone, REC MODE gives big buttons: Record, Listen, Choose, Next.
+4. Punch-in on the fly
+  - Press Play (Space). When the song reaches the spot, press R (or REC, or the big button — it now says
+    "Punch in here"). Recording starts right there, in the part under the playhead (a new "Punch m:ss" part
+    is made if there is none). Press R again to punch out: the song KEEPS PLAYING and you hear the new take.
+    Space punches out and stops. Esc cancels.
+  - The punched take is a new take of that part: your chosen take outside the punch, the new singing inside
+    it, with short fades (silence outside if the part had no chosen take yet). If the part already had a
+    chosen take, the punched take is chosen automatically; one Undo puts the old choice back.
+
+5. Loop recording
+  - Turn "⟲ Loop: ON" (key L) and press Record. The part plays round and round (after the pre-roll and
+    count-in). Every full pass becomes a new take. Press R / REC / Stop to finish; the pass you were in the
+    middle of is dropped. A part that runs past the end of the backing cannot loop (you get a warning).
+
+6. Import a take
+  - "⤓ Import take…": pick an audio file. "Lines up with the start of this part" puts the file's start at the
+    part's start. "With the start of the song (0:00)" is for a whole-song vocal exported from another app:
+    only this part's piece is kept. A file shorter than the part is kept but cannot be chosen.
+
+7. Choose and build the comp
+  - ▶ plays a take (with the backing if Settings ▾ › Hear backing when I play a take is ON).
+  - "✓ Choose" uses the take in the comp; click "✓ Chosen" again to un-choose it. Double-click a take works too.
+  - Right-click a take: listen, choose, rename, use as melody / timing reference, delete.
+  - "Delete unchosen takes" (this part) and "…in all parts".
+  - ▶ Play on the transport plays the comp (HEAR MY COMP ON) with the backing.
+  - Export comp (WAV) saves the joined vocal. "Comp done → Go to POLISH" sends it to POLISH.
+
+8. Saving
+  - Autosave keeps your session in the browser. The saved light shows it. Backup reminders tell you to save a
+    project file now and then (Settings ▾ › Backup reminder).
+  - Settings ▾ › Save project with every take (Ctrl+S) makes a ZIP with every take. Open it with
+    Settings ▾ › Open song project. Projects from 0.13–0.16 open; 0.17 projects open in 0.16 too.
+
+Keys on RECORD & COMP
+  R record / punch in / punch out   Shift+R next part and record   Space play / pause (stop while recording)
+  Home or Enter back to the start   N / P next / previous part      L Loop on/off   C click on/off   I mic check
+  Ctrl+Z / Ctrl+Shift+Z undo / redo   Ctrl+S save project   Esc cancel the recording   2 go to POLISH
+
+Limits
+  32 takes per part, 128 takes per song, 30 minutes of take audio, parts 0.5–60 s, song up to 15 minutes.

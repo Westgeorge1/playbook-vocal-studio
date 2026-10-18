@@ -1,8 +1,10 @@
-/* Playbook Vocal Studio 0.16.1 — recording workflow.
-   Punch-in on the fly, loop recording, count-in / metronome, mic check + gain, input monitoring,
-   latency calibration, markers, ratings / rename, delete-unchosen, big-button record mode,
+/* Playbook Vocal Studio 0.17.0 — recording engine behind the RECORD & COMP screen.
+   Punch-in on the fly (into the part under the playhead), loop recording (a take every pass), count-in /
+   metronome, mic check + gain, input monitoring, latency calibration, rename, delete-unchosen,
    autosave indicator and backup reminders.
-   Audio math is unchanged: new takes go through the existing phraseAddAudio / PhraseCore paths. */
+   0.17.0: the old POLISH recording controls (REC tab, PHRASE tab, phone REC MODE, markers, star ratings) are
+   gone from the screens; their code is removed here. Markers and ratings already in a project are kept in
+   the data untouched. Audio math is unchanged: new takes go through the existing phraseAddAudio / PhraseCore paths. */
 (function(){
 'use strict';
 const D=window.DAW;
@@ -27,9 +29,9 @@ async function capOpen(){
   Cap.opening=(async()=>{
     if(!navigator.mediaDevices?.getUserMedia)throw new Error('Microphone input is not available in this view. Open the page directly in Chrome or Safari.');
     const ctx=await resumeAudio();
-    if(!ctx.audioWorklet||!window.AudioWorkletNode)throw new Error('This browser has no AudioWorklet, so punch-in and loop recording are not available. Phrase recording (stopped transport) still works.');
+    if(!ctx.audioWorklet||!window.AudioWorkletNode)throw new Error('This browser has no AudioWorklet, so punch-in and loop recording are not available. Recording a part from the Record button still works.');
     capClose(true);
-    if(Cap.moduleCtx!==ctx){await ctx.audioWorklet.addModule('rec-worklet.js?v=0.16.1');Cap.moduleCtx=ctx;}
+    if(Cap.moduleCtx!==ctx){await ctx.audioWorklet.addModule('rec-worklet.js?v=0.17.0');Cap.moduleCtx=ctx;}
     const stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
     const tr=stream.getAudioTracks()[0];Cap.label=tr?.label||'microphone';LSset('pvs-mic-label',Cap.label);
     Cap.ctx=ctx;Cap.stream=stream;Cap.src=ctx.createMediaStreamSource(stream);Cap.gain=ctx.createGain();Cap.gain.gain.value=dbToGain(P.micGainDb);
@@ -61,13 +63,18 @@ function chunksBetween(list,f0,f1){ // returns {data,first} covering frames [f0,
 }
 PV.inputOpen=()=>capLive()&&(Cap.checking||!!R);
 PV.inputPeak=()=>Cap.peak;
+// 0.17.0: one meter source for the RECORD & COMP screen (was mirrored from the POLISH transport meter)
+const meterBuf=new Float32Array(1024);
+PV.meterPeak=()=>{if(rec&&rec.an&&!R){rec.an.getFloatTimeDomainData(meterBuf);let pk=0;for(const v of meterBuf){const a=v<0?-v:v;if(a>pk)pk=a;}if(pk>.98)rec.clip=true;return pk;}if(capLive()&&(Cap.checking||R))return Cap.peak;return -1;};
+PV.clipOn=()=>Cap.clip||!!(rec&&rec.clip);
+PV.clipReset=()=>{Cap.clip=false;Cap.hold=0;if(rec)rec.clip=false;syncPanel();};
 
 // ---- MediaRecorder paths (stopped-transport phrase, main recording, comp take): digital mic gain
 window.pvsRecStream=(ctx,mic,stream,an)=>{const tr=stream.getAudioTracks()[0];if(tr?.label){Cap.label=tr.label;LSset('pvs-mic-label',tr.label);}
   if(Math.abs(P.micGainDb)<.05||!ctx.createMediaStreamDestination)return stream;
   const g=ctx.createGain(),d=ctx.createMediaStreamDestination();g.gain.value=dbToGain(P.micGainDb);try{mic.disconnect(an);}catch(e){}mic.connect(g);g.connect(d);g.connect(an);return d.stream;};
 window.pvsRecVocalGain=()=>{if(!P.hearOld)return 0;return typeof dawVocalGain==='function'?dawVocalGain():1;};
-window.pvsRecScheduled=(r,ctx)=>{if(P.monitor)capOpen().then(applyMonitor).catch(()=>{});
+window.pvsRecScheduled=(r,ctx)=>{if(P.monitor){Cap.forRec=true;capOpen().then(applyMonitor).catch(()=>{});}
   const was=micChecked;micChecked=true;if(!was)syncPanel();};
 
 // ================================================================ latency
@@ -123,7 +130,7 @@ const Clk={last:-1,key:'',count:0,log:[]};
 PV.clicks=Clk;
 function songMap(){
   if(rec&&rec.target==='phrase'&&Number.isFinite(rec.clockStart)&&rec.phrase)return {key:'r'+rec.clockStart,T0:rec.clockStart,s0:rec.origin,loop:null,p:rec.phrase.p,rec:true};
-  if(playing&&actx&&(!loop||loop.daw))return {key:'p'+startTime+':'+startPos,T0:startTime,s0:startPos,loop:loop&&loop.daw?[loop.start,Math.min(loop.end,Math.max(loop.start+.05,loop.end))]:null,p:null,rec:!!rec};
+  if(playing&&actx&&(!loop||loop.daw||loop.rcComp))return {key:'p'+startTime+':'+startPos,T0:startTime,s0:startPos,loop:loop&&loop.daw?[loop.start,Math.min(loop.end,Math.max(loop.start+.05,loop.end))]:null,p:loop&&loop.rcPart||null,rec:!!rec};
   return null;
 }
 function beatsIn(m,A,B){ // song beats whose context time lies in [A,B)
@@ -171,7 +178,7 @@ async function punchStart(){
   if(R||rec)return;const ctx=audioCtx();if(!playing)return;
   try{capacityCheck(30);}catch(e){phraseMessage(e.message);toast('Cannot punch in',e.message);return;}
   const T0=ctx.currentTime,s0=currentPos();
-  R={mode:'punch',T0,s0,a:s0,chunks:[],clip:false,added:0,starting:true};
+  R={mode:'punch',T0,s0,a:s0,chunks:[],clip:false,added:0,starting:true,part:partUnder(s0)};
   S.recStarting=true;
   try{await capOpen();}catch(e){R=null;S.recStarting=false;renderOpen();toast('Punch-in needs the microphone',e.message);phraseMessage(e.message);return;}
   S.recStarting=false;
@@ -181,14 +188,14 @@ async function punchStart(){
   R.sink=c=>R.chunks.push(c);Cap.sinks.add(R.sink);R.starting=false;
   muteOldVocal(Math.max(ctx.currentTime,T0));
   rec=pseudoRec('punch');applyMonitor();renderOpen();syncPhraseUI();
-  phraseMessage('● Punch-in at '+fmt(s0)+' — press R to punch out (playback continues), Space to punch out and stop, Esc to cancel.');
+  phraseMessage('● Punch-in at '+fmt(s0)+(R.part?' on '+R.part.name:' (no part here yet: a new part will be made)')+' — press R to punch out (the song keeps playing), Space to punch out and stop, Esc to cancel.');
 }
 async function loopRecStart(){
   if(R||rec)return;const ctx=audioCtx();if(!playing||!loop||!loop.daw)return;
   const a=loop.start,b=loop.end,L=b-a;
   if(L<.5||L>60){toast('Loop recording','The loop must be 0.5–60 s long to record takes on every pass (it is '+L.toFixed(1)+' s).');return;}
   try{capacityCheck(L*4);}catch(e){toast('Cannot loop-record',e.message);return;}
-  R={mode:'loop',T0:ctx.currentTime,s0:a,a,b,L,chunks:[],clip:false,passes:0,added:0,next:null,phrase:null,starting:true,pending:Promise.resolve()};
+  R={mode:'loop',T0:ctx.currentTime,s0:a,a,b,L,chunks:[],clip:false,passes:0,added:0,next:null,phrase:loop.rcPart||null,starting:true,pending:Promise.resolve()};
   S.recStarting=true;
   try{await capOpen();}catch(e){R=null;S.recStarting=false;renderOpen();toast('Loop recording needs the microphone',e.message);return;}
   S.recStarting=false;if(!playing||!loop){R=null;renderOpen();return;}
@@ -219,9 +226,9 @@ async function stopRec(keep,stopTransport){
       let a=Math.max(r.s0,origin+.002),b=Math.min(s1,endAudio-.002);
       if(b-a<.5)throw new Error('Punch was shorter than 0.5 s — nothing was added.');
       if(b-a>60)b=a+60;
-      await addRecorded(seg.data,rate,origin,a,b,'punch');
-    }else{while(r.passStart(r.next+1)<=T1+.03)queuePass(r,r.next);await r.pending;if(!r.added)phraseMessage('Loop recording stopped before a full pass finished — nothing was added.');else phraseMessage('Loop recording: '+r.added+' new take'+(r.added===1?'':'s')+' on '+(r.phrase?.name||'the loop')+'. Listen, rate and choose.');}
-    if(r.clip)toast('Some peaks clipped','The take is kept. Move back from the mic or lower MIC GAIN (REC tab) and check the clipping figure before choosing.');
+      await addPunch(seg.data,rate,origin,a,b,r);
+    }else{while(r.passStart(r.next+1)<=T1+.03)queuePass(r,r.next);await r.pending;if(!r.added)phraseMessage('Loop recording stopped before a full pass finished — nothing was added.');else phraseMessage('Loop recording: '+r.added+' new take'+(r.added===1?'':'s')+' on '+(r.phrase?.name||'the loop')+'. Listen and choose the best one.');}
+    if(r.clip)toast('Some peaks clipped','The take is kept. Move back from the mic or lower the GAIN next to the mic meter, and check the clipping figure before choosing.');
   }catch(e){phraseMessage('Recording not added: '+e.message);}
   finally{capClose();renderOpen();syncPhraseUI();D.dirty=true;}
 }
@@ -250,21 +257,46 @@ async function addRecorded(data,rate,origin,a,b,mode){
   w.cursor=Math.min(899.5,p.end);syncPhraseUI();persist();D.dirty=true;return t;
 }
 
+// 0.17.0 punch-in on the fly: the take goes into the part under the playhead.
+// The new take covers the whole part: the part's chosen take (if any) with the punched section dropped in
+// (15 ms fades at both edges), or silence around the punch when nothing is chosen yet. If the part had a chosen
+// take, the new take is chosen in its place (one Undo goes back). No part there -> a new part is made (as before).
+function partUnder(t){const L=phraseWorkspace().phrases;let hit=null;for(const p of L)if(t>=p.start-1e-6&&t<p.end)hit=p; // later parts win, like the comp
+  if(hit)return hit;let next=null;for(const p of L)if(p.start>t&&p.start-t<=.5&&(!next||p.start<next.start))next=p;return next;} // pressed a moment early
+PV.partUnder=partUnder;
+async function addPunch(data,rate,origin,a,b,r){
+  const w=phraseWorkspace(),p=r.part&&w.phrases.includes(r.part)?r.part:null;
+  if(!p)return addRecorded(data,rate,origin,a,b,'punch');
+  const pa=Math.max(a,p.start),pb=Math.min(b,p.end);
+  if(pb-pa<.3)throw new Error('The punch did not reach into '+p.name+' long enough (less than 0.3 s) — nothing was added.');
+  if(p.takes.length>=32)throw new Error(p.name+' already has 32 takes. Delete some takes first.');
+  const W=w.rate,[mono]=await phraseResample([data],rate,W),base=p.takes.find(t=>t.id===p.selected),useBase=!!(base&&PhraseCore.covers(base,p));
+  const pad=.25,o=Math.max(-9.9,+(p.start-pad).toFixed(4)),n=Math.round((p.end+pad-o)*W),nc=useBase?base.channels.length:1,out=Array.from({length:nc},()=>new Float32Array(n));
+  if(useBase){const off=Math.round((o-PhraseCore.origin(base))*W),g=Math.pow(10,(base.gainDb||0)/20);for(let c=0;c<nc;c++){const src=base.channels[c],dst=out[c];for(let i=0;i<n;i++){const j=off+i;if(j>=0&&j<src.length)dst[i]=src[j]*g;}}}
+  const F=Math.max(1,Math.round(.015*W)),ia=Math.round((pa-o)*W),ib=Math.round((pb-o)*W),mo=Math.round((origin-o)*W);
+  for(let i=Math.max(0,ia);i<Math.min(n,ib);i++){const j=i-mo;if(j<0||j>=mono.length)continue;const wt=Math.min(1,(i-ia)/F,(ib-1-i)/F);if(wt<=0)continue;for(let c=0;c<nc;c++)out[c][i]=out[c][i]*(1-wt)+mono[j]*wt;}
+  w.selected=p.id;await phraseAddAudio(p,out,W,o,null);
+  const t=p.takes.at(-1);t.punch={from:+pa.toFixed(3),to:+pb.toFixed(3),over:useBase?base.name:null};
+  if(useBase)p.selected=t.id;
+  const cut=a<p.start-.05||b>p.end+.05;
+  phraseChanged('Punched in '+fmt(pa)+'–'+fmt(pb)+' on '+p.name+' → '+t.name+(useBase?' ('+base.name+' with that bit replaced). '+t.name+' is now chosen; Undo or choose '+base.name+' to go back.':' (silence around the punch — no take was chosen on this part yet).')+(cut?' Only the part between its IN and OUT was kept; drag the OUT flag to make the part longer before punching past it.':''));
+  w.cursor=Math.min(899.5,p.end);persist();D.dirty=true;return t;}
+
 // ================================================================ the R / Shift+R logic
-function pastBackingText(p){if(!p||!S.beat)return '';const d=S.beat.duration;if(p.end<=d+.01)return '';return p.start>=d?'This phrase starts after the backing track ends ('+fmt(d)+'): you will hear no backing.':'This phrase runs past the end of the backing track ('+fmt(d)+'): the last '+(p.end-d).toFixed(1)+' s has no backing.';}
-function warnPast(p){const t=pastBackingText(p);if(t)toast('Phrase past the backing end',t,5000);}
+function pastBackingText(p){if(!p||!S.beat)return '';const d=S.beat.duration;if(p.end<=d+.01)return '';return p.start>=d?p.name+' starts after the backing track ends ('+fmt(d)+'): you will hear no backing.':p.name+' runs past the end of the backing track ('+fmt(d)+'): the last '+(p.end-d).toFixed(1)+' s has no backing.';}
+function warnPast(p){const t=pastBackingText(p);if(t)toast('Part past the backing end',t,5000);}
+PV.pastBackingText=pastBackingText;
 function gate(fn){if(!P.micFirst||micChecked){fn();return;}micModalOpen(fn);}
 function redoPhrase(){const w=phraseWorkspace();let p=selectedPhrase();if(!p){$('phraseLabel').value='';phraseNew(w.cursor);p=selectedPhrase();if(!p)return;}
-  warnPast(p);if(D.tab!=='rec')dawTab('phrase',true);requestAnimationFrame(()=>{if(!$('phraseRecord').disabled)$('phraseRecord').click();});}
+  warnPast(p);requestAnimationFrame(()=>{if(!$('phraseRecord').disabled)$('phraseRecord').click();});}
 function nextPhrase(){const w=phraseWorkspace(),p=selectedPhrase();let start=p?(w.cursor>p.end+.05?w.cursor:p.end):w.cursor;start=Math.min(899,Math.round(start*1000)/1000);
   const after=w.phrases.filter(q=>q.start>start+.5).sort((x,y)=>x.start-y.start)[0];let end=Math.min(900,start+8);if(after&&after.start<end&&after.start-start>=.5)end=after.start;
   $('phraseLabel').value='';$('phraseStart').value=start;$('phraseEnd').value=end;phraseNew();const np=selectedPhrase();if(!np||np===p&&p)return;redoPhrase();}
 PV.record=(shift)=>{
   if(R){if(!R.starting)stopRec(true,false);return;}
   if(rec){if(rec.mr.state!=='inactive')rec.mr.stop();return;}
-  if(!D.armed){toast('Vocal track not armed','Press the red ● on the VOCAL lane to arm it for recording.');return;}
   if(S.micBlocked||phraseBusy()||S.recStarting)return;
-  if(!shift&&playing&&(!loop||loop.daw)){if(loop&&loop.daw)loopRecStart();else punchStart();return;}
+  if(!shift&&playing&&(!loop||loop.daw||loop.rcComp)){if(loop&&loop.daw)loopRecStart();else punchStart();return;}
   if(playing||playPending){if(loop)endLoop();stopPlayback();}
   gate(()=>shift?nextPhrase():redoPhrase());
 };
@@ -276,44 +308,30 @@ async function finishLoopPassFor(owner,c){const lat=pvsLatency(),pre=.15,post=.1
   const seg=chunksBetween(owner.chunks,Math.round((ps-pre+lat)*rate),Math.round((ps+owner.L+post+lat)*rate));if(!seg||seg.data.length<rate*.3)return;
   const origin=owner.a+(seg.first/rate-lat-ps);await addRecorded(seg.data,rate,origin,owner.a,owner.b,'loop');}
 
-// ================================================================ markers
-function markers(){const w=phraseWorkspace();return Array.isArray(w.markers)?w.markers:[];}
-function setMarkers(list,msg){phraseBackup();const w=phraseWorkspace();w.markers=list.slice(0,200).sort((a,b)=>a.t-b.t);syncPhraseUI();persist();syncPanel();D.dirty=true;if(msg)phraseMessage(msg);}
-PV.markerAdd=(t,name)=>{if(phraseBusy()&&!R)return;const pos=Number.isFinite(t)?t:(playing?D.playheadTime():position);const w=phraseWorkspace();const list=markers();
-  if(list.some(m=>Math.abs(m.t-pos)<.05))return;w.markerSeq=(w.markerSeq||list.length)+1;const id='m'+Date.now().toString(36)+Math.floor(Math.random()*1e4);
-  setMarkers([...list,{id,t:+Math.max(0,Math.min(899.5,pos)).toFixed(3),name:name||'Marker '+w.markerSeq}],'Marker added at '+fmt(pos)+'. Double-click it on the ruler strip to rename.');return id;};
-PV.markerMove=(id,t)=>setMarkers(markers().map(m=>m.id===id?{...m,t:+t.toFixed(3)}:m));
-PV.markerRename=(id,name)=>{name=String(name||'').trim().slice(0,40);if(!name)return;setMarkers(markers().map(m=>m.id===id?{...m,name}:m));};
-PV.markerDelete=id=>setMarkers(markers().filter(m=>m.id!==id),'Marker removed. Undo brings it back.');
-PV.markerJump=dir=>{const pos=playing?D.playheadTime():position,list=markers();const m=dir<0?[...list].reverse().find(m=>m.t<pos-.25):list.find(m=>m.t>pos+.05);if(m){D.seekTo(m.t);phraseMessage('▸ '+m.name+' · '+fmt(m.t));}else if(dir<0)D.seekTo(0);};
-PV.markerMenu=(m,x,y)=>menu(x,y,[['Jump to '+m.name,()=>D.seekTo(m.t)],['Rename…',()=>PV.inlineRename('marker',null,m,x,y)],['Delete marker',()=>PV.markerDelete(m.id)]]);
-
-// ================================================================ takes: rate, rename, delete unchosen
+// ================================================================ takes: rename, delete unchosen (star ratings: kept in old projects' data, no longer shown)
 function findTake(id){for(const p of phraseWorkspace().phrases){const t=p.takes.find(t=>t.id===id);if(t)return {p,t};}return null;}
-PV.rate=(id,n)=>{const f=findTake(id);if(!f)return;f.t.rating=f.t.rating===n?0:Math.max(0,Math.min(5,n|0));syncPhraseUI();persist();D.dirty=true;};
 PV.renameTake=(id,name)=>{const f=findTake(id);name=String(name||'').trim().slice(0,60);if(!f||!name||name===f.t.name)return;phraseBackup();f.t.name=name;syncPhraseUI();persist();D.dirty=true;phraseMessage('Take renamed to “'+name+'”.');};
-PV.renamePhrase=(id,name)=>{const p=phraseWorkspace().phrases.find(p=>p.id===id);name=String(name||'').trim().slice(0,80);if(!p||!name||name===p.name)return;phraseBackup();p.name=name;if(phraseWorkspace().selected===id)$('phraseLabel').value=name;syncPhraseUI();persist();D.dirty=true;phraseMessage('Phrase renamed to “'+name+'”.');};
-PV.renamePhrasePrompt=()=>{const p=selectedPhrase();if(!p)return;const r=$('dawCanvas').getBoundingClientRect(),L=D.lanes().find(l=>l.k==='voc');PV.inlineRename('phrase',p,null,r.left+Math.max(10,Math.min(r.width-200,D.x(p.start)+10)),r.top+L.y+20);};
+PV.renamePhrase=(id,name)=>{const p=phraseWorkspace().phrases.find(p=>p.id===id);name=String(name||'').trim().slice(0,80);if(!p||!name||name===p.name)return;phraseBackup();p.name=name;if(phraseWorkspace().selected===id)$('phraseLabel').value=name;syncPhraseUI();persist();D.dirty=true;phraseMessage('Part renamed to “'+name+'”.');};
 PV.deleteUnchosen=(all)=>{if(phraseBusy())return;const w=phraseWorkspace(),list=all?w.phrases:[selectedPhrase()].filter(Boolean);
-  const n=list.reduce((n,p)=>n+p.takes.filter(t=>t.id!==p.selected).length,0);if(!n){phraseMessage(all?'No unchosen takes in any phrase.':'This phrase has no unchosen takes.');return;}
+  const n=list.reduce((n,p)=>n+p.takes.filter(t=>t.id!==p.selected).length,0);if(!n){phraseMessage(all?'No unchosen takes in any part.':'This part has no unchosen takes.');return;}
   const unchosenPhrases=list.filter(p=>!p.selected&&p.takes.length).length;
-  if(!confirm('Delete '+n+' unchosen take'+(n===1?'':'s')+(all?' in all phrases':' in “'+list[0].name+'”')+'?'+(unchosenPhrases?'\n\n'+unchosenPhrases+' phrase'+(unchosenPhrases===1?' has':'s have')+' no chosen take, so all of its takes go.':'')+'\n\nUndo (Ctrl+Z) can bring them back.'))return;
+  if(!confirm('Delete '+n+' unchosen take'+(n===1?'':'s')+(all?' in all parts':' in “'+list[0].name+'”')+'?'+(unchosenPhrases?'\n\n'+unchosenPhrases+' part'+(unchosenPhrases===1?' has':'s have')+' no chosen take, so all of its takes go.':'')+'\n\nUndo (Ctrl+Z) can bring them back.'))return;
   phraseBackup();for(const p of list){p.takes=p.takes.filter(t=>t.id===p.selected);if(p.reference&&!p.takes.some(t=>t.id===p.reference))p.reference=null;}
   phraseChanged(n+' unchosen take'+(n===1?'':'s')+' deleted. Undo restores them.');};
 PV.setBounds=(p,a,b)=>{if(phraseBusy())return;if(phraseWorkspace().selected!==p.id)phraseSelect(p.id);$('phraseStart').value=+a.toFixed(2);$('phraseEnd').value=+b.toFixed(2);$('phraseLabel').value=p.name;$('phraseBounds').click();warnPast(p);};
-PV.takeMenu=(p,t,x,y)=>{const items=[['▶ Listen',()=>phraseListen(t.id)],[p.selected===t.id?'✓ Chosen':'✓ Choose',()=>phraseChoose(t.id)],['stars',t],['Rename…',()=>PV.inlineRename('take',p,t,x,y)],['Remove take',()=>phraseRemoveTake(t.id)],['Delete unchosen takes',()=>PV.deleteUnchosen(false)]];menu(x,y,items);};
-PV.phraseMenu=(p,x,y)=>menu(x,y,[['Rename phrase…',()=>PV.inlineRename('phrase',p,null,x,y)],['⟲ Redo this phrase (R)',()=>PV.record(false)],['⏭ Next phrase (Shift+R)',()=>PV.record(true)],['Loop this phrase',()=>{D.region=null;$('dawLoop').click();}],['Delete unchosen takes',()=>PV.deleteUnchosen(false)],['Remove phrase…',()=>$('phraseRemove').click()]]);
-function menu(x,y,items){const m=$('ctxMenu');m.innerHTML='';for(const [label,fn] of items){if(label==='stars'){const t=fn,row=document.createElement('div');row.className='ctxstars';row.innerHTML='<span>Rate</span>'+[1,2,3,4,5].map(i=>'<button class="star'+(i<=(t.rating||0)?' on':'')+'" data-r="'+i+'" aria-label="'+i+' stars">★</button>').join('');for(const b of qa('button',row))b.onclick=()=>{PV.rate(t.id,+b.dataset.r);closeCtx();};m.appendChild(row);continue;}
+PV.takeMenu=(p,t,x,y)=>{const items=[['▶ Listen',()=>window.RC?RC.audition(t.id):phraseListen(t.id)],[p.selected===t.id?'Un-choose this take':'✓ Choose',()=>p.selected===t.id?phraseUnchoose():phraseChoose(t.id)],['Rename…',()=>PV.inlineRename('take',p,t,x,y)],[p.reference===t.id?'Stop using as melody reference':'Use as melody / timing reference',()=>{const r=$('phraseReference');if(phraseWorkspace().selected!==p.id)phraseSelect(p.id);r.value=p.reference===t.id?'':t.id;r.dispatchEvent(new Event('change'));}],['Delete take',()=>phraseRemoveTake(t.id)],['Delete unchosen takes',()=>PV.deleteUnchosen(false)]];menu(x,y,items);};
+PV.phraseMenu=(p,x,y,extra)=>menu(x,y,[['Rename part…',()=>PV.inlineRename('phrase',p,null,x,y)],['● Record this part (R)',()=>window.RC?RC.record():PV.record(false)],...(extra||[]),['Delete unchosen takes',()=>PV.deleteUnchosen(false)],['Delete part…',()=>$('phraseRemove').click()]]);
+function menu(x,y,items){const m=$('ctxMenu');m.innerHTML='';for(const [label,fn] of items){
     const b=document.createElement('button');b.setAttribute('role','menuitem');b.textContent=label;b.onclick=()=>{closeCtx();fn();};m.appendChild(b);}
   m.hidden=false;const r=m.getBoundingClientRect();m.style.left=Math.max(4,Math.min(innerWidth-r.width-4,x))+'px';m.style.top=Math.max(4,Math.min(innerHeight-r.height-4,y))+'px';(q('button',m)||m).focus();}
 function closeCtx(){$('ctxMenu').hidden=true;}
 document.addEventListener('pointerdown',e=>{if(!$('ctxMenu').hidden&&!e.target.closest('#ctxMenu'))closeCtx();},true);
 PV.inlineRename=(kind,p,obj,x,y)=>{closeCtx();const inp=$('inlineEdit');const cur=kind==='phrase'?p.name:kind==='take'?obj.name:obj.name;inp.value=cur;inp.hidden=false;
   inp.style.left=Math.max(4,Math.min(innerWidth-224,x-20))+'px';inp.style.top=Math.max(4,Math.min(innerHeight-40,y-16))+'px';inp.focus();inp.select();
-  const done=ok=>{inp.onkeydown=null;inp.onblur=null;inp.hidden=true;if(!ok)return;const v=inp.value;if(kind==='phrase')PV.renamePhrase(p.id,v);else if(kind==='take')PV.renameTake(obj.id,v);else PV.markerRename(obj.id,v);};
+  const done=ok=>{inp.onkeydown=null;inp.onblur=null;inp.hidden=true;if(!ok)return;const v=inp.value;if(kind==='phrase')PV.renamePhrase(p.id,v);else if(kind==='take')PV.renameTake(obj.id,v);};
   inp.onkeydown=e=>{e.stopPropagation();if(e.key==='Enter'){e.preventDefault();done(true);}else if(e.key==='Escape'){e.preventDefault();done(false);}};inp.onblur=()=>done(true);};
 
-// ================================================================ mic check (transport, REC tab, pre-record modal)
+// ================================================================ mic check (RECORD & COMP meter, pre-record modal)
 let mcAfter=null;
 async function micCheckOn(on){
   if(on){Cap.checking=true;Cap.clip=false;Cap.hold=0;try{await capOpen();}catch(e){Cap.checking=false;toast('Mic check',e.message);syncPanel();return false;}applyMonitor();}
@@ -330,22 +348,6 @@ function levelUI(pk,hold,clip,ids){const lv=x=>Math.max(0,Math.min(100,(20*Math.
   const db=20*Math.log10(hold+1e-6);$(ids[2]).textContent=hold<.001?'— dBFS':db.toFixed(1)+' dBFS peak';$(ids[3]).classList.toggle('on',clip);
   return hold<.001?'No signal yet. Check the mic is allowed and selected.':clip?'CLIPPING — move back from the mic or lower the gain, then click CLIP to reset.':db>-6?'Hot: peaks above −6 dBFS. Back off a little for safety.':db<-30?'Quiet: move closer or raise MIC GAIN.':'Good level.';}
 
-// ================================================================ big-button phone record mode
-PV.bigMode=on=>{$('bigRec').hidden=!on;document.body.classList.toggle('bigrec-on',!!on);if(typeof dawCloseMenus==='function')dawCloseMenus();syncBig();};
-$('dawBigRec').onclick=()=>PV.bigMode(true);$('brExit').onclick=()=>PV.bigMode(false);
-$('brRec').onclick=()=>PV.record(false);$('brNext').onclick=()=>PV.record(true);$('brCancel').onclick=()=>PV.cancel();
-$('brUndo').onclick=()=>phraseHistory(-1);$('brClick').onclick=()=>PV.toggle('metro');
-$('brPlay').onclick=()=>{if(R){PV.stop(true);return;}if(!$('playBtn').disabled)$('playBtn').click();};
-$('brPrev').onclick=()=>{const w=phraseWorkspace(),i=w.phrases.findIndex(p=>p.id===w.selected);const sorted=[...w.phrases].sort((a,b)=>a.start-b.start),j=sorted.findIndex(p=>p.id===w.selected);const p=sorted[Math.max(0,j-1)];if(p)phraseSelect(p.id);};
-$('brListen').onclick=()=>{const p=selectedPhrase(),t=p?.takes.at(-1);if(t)phraseListen(t.id);};
-$('brChoose').onclick=()=>{const p=selectedPhrase(),t=p?.takes.at(-1);if(t)phraseChoose(t.id);};
-function syncBig(){if($('bigRec').hidden)return;const p=selectedPhrase(),w=phraseWorkspace();
-  $('brPhrase').textContent=p?p.name:'No phrase yet — RECORD makes one at the resume line';
-  $('brInfo').textContent=p?fmt(p.start)+'–'+fmt(p.end)+' · '+p.takes.length+' take'+(p.takes.length===1?'':'s')+(p.selected?' · chosen: '+(p.takes.find(t=>t.id===p.selected)?.name||''):''):'';
-  const recording=!!rec;$('brRec').classList.toggle('on',recording);$('brRecLabel').textContent=recording?'STOP · KEEP':playing?'PUNCH IN':p&&p.takes.length?'REDO PHRASE':'RECORD';
-  $('brCancel').hidden=!recording;$('brNext').disabled=recording;$('brPrev').disabled=recording;$('brListen').disabled=recording||!p?.takes.length;$('brChoose').disabled=recording||!p?.takes.length;$('brUndo').disabled=recording||!phraseUndoStack.length;
-  $('brClick').setAttribute('aria-pressed',P.metro);$('brStatus').textContent=$('phraseStatus').textContent;$('brPlay').textContent=R?'■ Punch out + stop':playing?'■ Stop':'▶ Play / punch';}
-
 // ================================================================ autosave indicator + backup reminders
 const BK=Object.assign({since:0,lastBackup:0,lastNag:0},LS('pvs-backup',{}));const saveBK=()=>LSset('pvs-backup',BK);
 const sessionStart=Date.now();let savedAt=0,saveState='idle';
@@ -356,7 +358,7 @@ window.phraseAddAudio=async function(){const r=await origAdd.apply(this,argument
 const origSaveProject=window.saveProject;
 if(typeof origSaveProject==='function')window.saveProject=async function(){const r=await origSaveProject.apply(this,arguments);if(!/fail|could not|couldn|not saved|error/i.test($('saveStatus').textContent||'')){BK.since=0;BK.lastBackup=Date.now();saveBK();syncSaved();}return r;};
 function maybeNag(){const every=+P.backupEvery||0;if(!every||BK.since<every)return;if(Date.now()-BK.lastNag<10*60000)return;BK.lastNag=Date.now();saveBK();
-  toast('Back up your takes',BK.since+' new takes since your last project download. Browser storage can be cleared by the phone — File › Save project with every take (Ctrl+S).',9000);}
+  toast('Back up your takes',BK.since+' new takes since your last project download. Browser storage can be cleared by the phone — Settings ▾ › Save project with every take (Ctrl+S).',9000);}
 PV._nag=maybeNag;PV._bk=BK;
 function syncSaved(){const el=$('dawSaved');if(!el)return;const tm=d=>new Date(d).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
   el.className='savedind '+saveState+(BK.since>=(+P.backupEvery||Infinity)?' nag':'');
@@ -375,15 +377,12 @@ $('optClickVol').value=Math.round(P.clickVol*100);$('optClickVol').oninput=()=>{
 $('optMonVol').value=Math.round(P.monitorVol*100);$('optMonVol').oninput=()=>{P.monitorVol=+$('optMonVol').value/100;savePrefs();applyMonitor();syncPanel();};
 $('optMicGain').oninput=()=>setGain(+$('optMicGain').value);$('mcGain').oninput=()=>setGain(+$('mcGain').value);
 $('optBackupEvery').value=String(P.backupEvery);$('optBackupEvery').onchange=()=>{P.backupEvery=+$('optBackupEvery').value;savePrefs();syncSaved();};
-$('chkToggle').onclick=()=>PV.micCheck();$('dawMicChk').onclick=()=>PV.micCheck();
-for(const id of ['dawClip','chkClip','mcClip','brClip'])$(id).onclick=()=>{Cap.clip=false;Cap.hold=0;if(rec)rec.clip=false;syncPanel();};
-$('dawClick').onclick=()=>PV.toggle('metro');$('dawCount').onclick=()=>PV.toggle('countIn');
+$('chkToggle').onclick=()=>PV.micCheck();
+for(const id of ['chkClip','mcClip'])$(id).onclick=()=>PV.clipReset();
 PV.toggle=k=>{P[k]=!P[k];savePrefs();syncPanel();if(k==='metro')phraseMessage('Metronome '+(P.metro?'on':'off')+' (headphones only, never recorded).');if(k==='countIn')phraseMessage('Count-in '+(P.countIn?P.countBars+' bar'+(P.countBars>1?'s':''):'off')+'.');};
-$('recRedo').onclick=()=>PV.record(false);$('recNext').onclick=()=>PV.record(true);$('phraseRedoBtn').onclick=()=>PV.record(false);$('phraseNextBtn').onclick=()=>PV.record(true);
-$('dawNext').onclick=()=>PV.record(true);$('phraseDelUnchosen').onclick=()=>PV.deleteUnchosen(false);
-$('mkAdd').onclick=()=>PV.markerAdd();$('tlMarker').onclick=()=>PV.markerAdd();
 $('latMs').onchange=()=>{const v=+$('latMs').value;if(Number.isFinite(v)&&v>=0&&v<=800)latStore(v,'manual');};
 $('latAuto').onclick=()=>{delete Lat[latKey()];if(Lat.__last===latKey())delete Lat.__last;LSset('pvs-latency',Lat);syncPanel();};
+PV.latAuto=()=>$('latAuto').click();PV.latInfo=()=>$('latInfo').textContent;
 $('latCal').onclick=()=>PV.calOpen();$('calLoop').onclick=calLoopback;$('calTapStart').onclick=calTapStart;
 $('calTap').addEventListener('pointerdown',e=>{e.preventDefault();calTapHit(e);});
 document.addEventListener('keydown',e=>{if(!$('calModal').hidden&&tap&&(e.key==='t'||e.key==='T'||e.key===' ')){e.preventDefault();e.stopPropagation();calTapHit(e);}},true);
@@ -392,39 +391,24 @@ function syncPanel(){
   $('optCountIn').checked=P.countIn;$('optMetro').checked=P.metro;$('optHearOld').checked=P.hearOld;$('optMonitor').checked=P.monitor;$('optMicFirst').checked=P.micFirst;
   $('optClickVolVal').textContent=Math.round(P.clickVol*100)+'%';$('optMonVolVal').textContent=Math.round(P.monitorVol*100)+'%';$('clickBpm').textContent=bpm();
   for(const id of ['optMicGain','mcGain'])if(document.activeElement!==$(id))$(id).value=P.micGainDb;const gtxt=(P.micGainDb>0?'+':'')+P.micGainDb+' dB';$('optMicGainVal').textContent=gtxt;$('mcGainVal').textContent=gtxt;
-  $('dawClick').setAttribute('aria-pressed',P.metro);$('dawCount').setAttribute('aria-pressed',P.countIn);$('dawCount').textContent=P.countIn?P.countBars+(P.countBars>1?' BARS':' BAR'):'NO CI';
-  $('dawMicChk').setAttribute('aria-pressed',Cap.checking);$('chkToggle').setAttribute('aria-pressed',Cap.checking);$('chkToggle').textContent=Cap.checking?'Stop mic check':'Start mic check';
+  $('chkToggle').setAttribute('aria-pressed',Cap.checking);$('chkToggle').textContent=Cap.checking?'Stop mic check':'Start mic check';
   const e=latEntry(),auto=Math.round(autoLatency()*1000);$('monLat').textContent=Math.round(pvsLatency()*1000+10);
   $('latInfo').textContent=(e?'Using '+e.ms+' ms ('+e.method+(e.detail?', '+e.detail:'')+', '+e.date+')':'Using automatic estimate: '+auto+' ms (browser output + base latency; the input side is not reported by browsers)')+' for '+latKey()+'.';
   if(document.activeElement!==$('latMs'))$('latMs').value=Math.round(pvsLatency()*1000);
-  const list=markers();$('mkList').innerHTML=list.map(m=>'<div class="mk"><button class="btn small" data-mjump="'+m.id+'">'+fmt(m.t)+'</button><input type="text" maxlength="40" value="'+phraseEsc(m.name)+'" data-mname="'+m.id+'" aria-label="Marker name"><button class="btn small" data-mdel="'+m.id+'" aria-label="Delete marker">×</button></div>').join('')||'<p class="hint">No markers yet.</p>';
-  for(const b of qa('[data-mjump]',$('mkList')))b.onclick=()=>{const m=markers().find(m=>m.id===b.dataset.mjump);if(m)D.seekTo(m.t);};
-  for(const b of qa('[data-mdel]',$('mkList')))b.onclick=()=>PV.markerDelete(b.dataset.mdel);
-  for(const i of qa('[data-mname]',$('mkList')))i.onchange=()=>PV.markerRename(i.dataset.mname,i.value);
-  const st=R?(R.mode==='punch'?'● PUNCH recording from '+fmt(R.s0):'● LOOP recording · pass '+(R.passes+1)+' · '+R.added+' take(s) added'):rec?'● Recording':playing?(loop&&loop.daw?'Looping — R records one take per pass':'Playing — R punches in at the playhead'):'Stopped — R redoes the selected phrase, Shift+R records the next one';$('recState').textContent=st;
-  syncSaved();syncBig();
+  syncSaved();
 }
 PV.syncPanel=syncPanel;PV.prefs=P;PV.cap=Cap;PV.latKey=latKey;
-// take cards: stars + inline rename; undo/redo buttons; past-backing warning
+// past-backing warning text for the (hidden) phrase engine status
 const origSync=window.syncPhraseUI;
-window.syncPhraseUI=function(){const r=origSync.apply(this,arguments);if(!phraseReady)return r;const locked=phraseBusy();
-  for(const b of qa('#phraseTakes [data-rate]')){b.disabled=locked;b.onclick=()=>PV.rate(b.dataset.id,+b.dataset.rate);}
-  for(const i of qa('#phraseTakes [data-rename]')){i.disabled=locked;i.onchange=()=>PV.renameTake(i.dataset.rename,i.value);i.onkeydown=e=>{if(e.key==='Enter')i.blur();};}
-  const u=phraseUndoStack.length,rd=phraseRedoStack.length;$('phraseUndo').textContent='Undo ('+u+')';$('phraseRedo').hidden=!rd;$('phraseRedo').disabled=locked||!rd;$('phraseRedo').textContent='Redo ('+rd+')';
-  const p=selectedPhrase();$('phraseDelUnchosen').disabled=locked||!p||!p.takes.some(t=>t.id!==p.selected);
-  for(const id of ['phraseRedoBtn','recRedo'])$(id).disabled=!!S.micBlocked||locked&&!rec;for(const id of ['phraseNextBtn','recNext','dawNext'])$(id).disabled=!!S.micBlocked||locked;
-  const warn=pastBackingText(p);$('phraseWarn').hidden=!warn;$('phraseWarn').textContent=warn?'⚠ '+warn:'';
-  syncBig();return r;};
+window.syncPhraseUI=function(){const r=origSync.apply(this,arguments);if(!phraseReady)return r;const p=selectedPhrase();
+  const warn=pastBackingText(p);$('phraseWarn').hidden=!warn;$('phraseWarn').textContent=warn?'⚠ '+warn:'';return r;};
 PV.frame=now=>{
+  // 0.17.0 fix: input monitoring opened for a normal take is switched off and released when that take ends (it stayed on before)
+  if(Cap.forRec&&!rec&&!S.recStarting){Cap.forRec=false;applyMonitor();capClose();}
   if(rec){const t=R?(R.mode==='punch'?'PUNCH '+fmt(R.s0)+'→'+fmt(D.playheadTime()):'LOOP pass '+(R.passes+1)+' · '+R.added+' takes'):null;if(t)$('pvsRecTime').textContent=t;}
-  const clip=Cap.clip||!!(rec&&rec.clip);$('dawClip').classList.toggle('on',clip);
-  if(!$('recPanel').hidden||!$('micModal').hidden){const adv=levelUI(Cap.peak,Cap.hold,clip,['chkMeter','chkHold','chkPeak','chkClip']);$('chkAdvice').textContent=Cap.checking||R?adv:'Start the mic check to see your level before recording.';
-    if(!$('micModal').hidden)$('mcAdvice').textContent=levelUI(Cap.peak,Cap.hold,clip,['mcMeter','mcHold','mcPeak','mcClip']);}
-  if(!$('bigRec').hidden){let pk=Cap.peak;if(rec&&rec.an&&!R){const b=new Float32Array(512);rec.an.getFloatTimeDomainData(b);pk=0;for(const v of b)pk=Math.max(pk,Math.abs(v));}
-    $('brMeter').style.width=Math.max(0,Math.min(100,(20*Math.log10(pk+1e-6)+60)/60*100))+'%';$('brMeter').style.background=pk>.98?'var(--red)':pk>.5?'var(--amber)':'var(--green)';$('brClip').classList.toggle('on',clip);
-    $('brTime').textContent=$('dawTime').textContent.slice(0,-2)+(rec&&rec.ids&&$(rec.ids.time)?'  ·  '+$(rec.ids.time).textContent.split(' · ')[0]:'');
-    if(now-(PV._bs||0)>300){PV._bs=now;syncBig();}}
-  if(now-(PV._ps||0)>500){PV._ps=now;if(!$('recPanel').hidden)syncPanel();else{$('dawClick').setAttribute('aria-pressed',P.metro);}}
+  const clip=PV.clipOn();
+  if(!$('micModal').hidden)$('mcAdvice').textContent=levelUI(Cap.peak,Cap.hold,clip,['mcMeter','mcHold','mcPeak','mcClip']);
+  if(now-(PV._ps||0)>500){PV._ps=now;syncPanel();}
 };
 // stop & keep a punch/loop when the page is hidden; R is not active across reloads
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'&&R)stopRec(true,true);});
