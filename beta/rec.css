@@ -1,4 +1,4 @@
-/* Playbook Vocal Studio 0.16.0 — recording workflow additions */
+/* Playbook Vocal Studio 0.16.1 — recording workflow additions */
 .tbtn.next{width:52px;gap:2px;font-size:15px;color:var(--fg)}
 .tbtn.next .dot.sm{width:10px;height:10px;border-radius:50%;background:var(--rec,#ff4a4f);display:inline-block}
 .tbtn.tog{width:auto;padding:0 10px;font:700 12px var(--display);letter-spacing:.06em}

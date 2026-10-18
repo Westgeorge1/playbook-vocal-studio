@@ -1,4 +1,4 @@
-/* Playbook Vocal Studio 0.16.0 — RECORD & COMP screen.
+/* Playbook Vocal Studio 0.16.1 — RECORD & COMP screen.
    A simplified front for the existing 0.15 phrase / take system:
      part  = phrase (S.phrases.phrases[]),  take = phrase take,  chosen take = phrase.selected,
      comp  = PhraseCore.compose(workspace) (same join fade as before),  POLISH = phraseApply() + the 0.15 tabs.
@@ -56,7 +56,7 @@ function compChannels(){const w=W(),k=compKey(w);
 RC.compChannels=compChannels;
 
 // ---------------------------------------------------------------- playback
-function padTo(chs,rate,sec){const n=Math.ceil(sec*rate);if(!chs||chs[0].length>=n)return chs;return chs.map(c=>{const a=new Float32Array(n);a.set(c);return a;});}
+function padTo(chs,rate,sec){const n=Math.ceil(sec*rate);if(!chs||chs[0].length>=n)return chs;if(compCache.padSrc===chs&&compCache.padN===n)return compCache.pad;const out=chs.map(c=>{const a=new Float32Array(n);a.set(c);return a;});compCache.padSrc=chs;compCache.padN=n;compCache.pad=out;return out;}
 async function playFrom(at){
   if(rec||S.recStarting||S.loading)return false;const w=W();
   const comp=PV.prefs.hearOld?compChannels():null;
@@ -88,6 +88,9 @@ function rcRecord(){
   if(S.micBlocked){toast('Microphone blocked','Allow the microphone for this page in the browser, then try again.');return;}
   if(S.recStarting||phraseBusy())return;
   const p=sel();if(!p){openAdd(true);rcMsg('Add a part first (for example Intro or Verse 1), then press Record.');return;}
+  // 0.16.1: explain the take limits in plain words before trying (the old message only said "remove unused takes")
+  const all=W().phrases.reduce((n,q)=>n+q.takes.length,0);
+  if(p.takes.length>=32||all>=128){const m=p.takes.length>=32?p.name+' already has 32 takes, the most one part can hold. Delete the takes you do not want (Del, or “Delete unchosen takes”), then record again.':'This song already has 128 takes, the most one project can hold. Save the project (Ctrl+S), then use “Delete unchosen takes” to make room.';rcMsg(m);toast('Take limit reached',m,9000);return;}
   if(playing||playPending){if(loop)endLoop();stopPlayback();}
   restoreAfterAudition();
   if(!D.armed){D.armed=true;}
@@ -122,7 +125,9 @@ function addBounds(where,bars){const w=W(),bar=barSec();let start;
 function addPart(name,bars,where){if(phraseBusy())return null;const [a,b]=addBounds(where||'end',bars||8);
   if(!(b-a>=.5)){toast('No room here','Move the playhead or make the next part shorter first.');return null;}
   const n0=W().phrases.length;$('phraseLabel').value=name||nameFor('Part');$('phraseStart').value=a;$('phraseEnd').value=b;phraseNew();
-  if(W().phrases.length===n0)return null;const p=sel();RC.aud=null;rcMsg(p.name+' added ('+fmtShort(a)+'–'+fmtShort(b)+'). Press Record (R) to record it. Drag its edges to change the length.');RC.dirty=true;return p;}
+  if(W().phrases.length===n0)return null;const p=sel();RC.aud=null;rcMsg(p.name+' added ('+fmtShort(a)+'–'+fmtShort(b)+'). Press Record (R) to record it. Drag its edges to change the length.');
+  const ov=W().phrases.filter(q=>q!==p&&Math.min(q.end,b)-Math.max(q.start,a)>.05);if(ov.length)toast('This part overlaps '+ov.map(q=>q.name).join(', '),'The comp is one vocal line: where parts overlap, the newer part replaces the older one. For harmonies or ad-libs on top, export this comp first and record them in a new session. Drag the edges (or Undo) if this was a mistake.',10000);
+  RC.dirty=true;return p;}
 RC.addPart=addPart;RC.nameFor=nameFor;
 function renamePart(p){p=p||sel();if(!p)return;const r=$('rcView').hidden?null:(narrow()?$('rcPartName'):$('rcCanvas')).getBoundingClientRect();
   let x=r?r.left+20:100,y=r?r.top+20:100;if(r&&!narrow()){const L=lanes().find(l=>l.k==='parts');x=r.left+Math.max(10,Math.min(r.width-220,X(p.start)+8));y=r.top+L.y+24;}
@@ -269,7 +274,10 @@ cv.addEventListener('pointerdown',e=>{if(e.button)return;closePops();D.ctx='phra
 cv.addEventListener('pointermove',e=>{const h=hit(e);
   if(RC.drag&&e.buttons){RC.drag.t=clampEdge(RC.drag.p,RC.drag.which,snap(h.t,e.shiftKey));RC.dirty=true;return;}
   if(h.l&&(h.l.k==='parts'||h.l.k==='ruler')&&!h.right&&edgeAt(h.x,h.l.k))cv.style.cursor='ew-resize';else cv.style.cursor=h.l&&(h.l.k==='take'||h.l.k==='parts')?'pointer':'default';});
-function endDrag(e){const d=RC.drag;RC.drag=null;if(!d)return;if(Math.abs(d.t-d.p[d.which])>.005&&(!e||Math.abs(e.clientX-d.x0)>2)){const a=d.which==='start'?d.t:d.p.start,b=d.which==='end'?d.t:d.p.end;PV.setBounds(d.p,a,b);rcMsg(d.p.name+' now '+fmtShort(a)+'–'+fmtShort(b)+'. Undo puts it back.');}RC.dirty=true;}
+function endDrag(e){const d=RC.drag;RC.drag=null;if(!d)return;if(Math.abs(d.t-d.p[d.which])>.005&&(!e||Math.abs(e.clientX-d.x0)>2)){const a=d.which==='start'?d.t:d.p.start,b=d.which==='end'?d.t:d.p.end,had=d.p.selected,ht=d.p.takes.find(t=>t.id===had);PV.setBounds(d.p,a,b);
+    // 0.16.1: say so when the new length is longer than the chosen take (the app un-chooses it; it used to happen silently)
+    if(had&&!d.p.selected){const m=(ht?ht.name:'The chosen take')+' does not reach the new '+(d.which==='start'?'IN':'OUT')+' point of '+d.p.name+', so it is no longer chosen. Undo puts it back, or record a new take for the longer part.';rcMsg(m);toast('Take no longer chosen',m,8000);}
+    else rcMsg(d.p.name+' now '+fmtShort(a)+'–'+fmtShort(b)+'. Undo puts it back.');}RC.dirty=true;}
 cv.addEventListener('pointerup',endDrag);cv.addEventListener('pointercancel',()=>{RC.drag=null;RC.dirty=true;});
 cv.addEventListener('dblclick',e=>{const h=hit(e);if(!h.l)return;
   if(h.l.k==='parts'){const p=partAt(h.t);if(p){selectPart(p);PV.inlineRename('phrase',p,null,e.clientX,e.clientY);}return;}
@@ -298,7 +306,7 @@ function sync(force){const s=signature();if(!force&&s===RC.sig)return;RC.sig=s;R
   if(p&&RC.aud&&!p.takes.some(t=>t.id===RC.aud))RC.aud=p.takes.find(t=>t.id===p.selected)?.id||null;
   const idx=p?L.indexOf(p):-1;$('rcPanel').style.setProperty('--pc',p?partColor(p,idx):'#3a4450');
   $('rcPartName').textContent=p?p.name.toUpperCase():'NO PART YET';$('rcPartTakes').textContent=p?'—  '+p.takes.length+' take'+(p.takes.length===1?'':'s'):'';
-  $('rcPartInfo').textContent=p?partInfo(p):'Add your first part (for example Intro or Verse 1). Then press Record.';
+  $('rcPartInfo').textContent=p?partInfo(p):S.loading&&!L.length?'Opening your saved session… one moment.':'Add your first part (for example Intro or Verse 1). Then press Record.';
   for(const id of ['rcRename','rcDelPart'])$(id).disabled=!p||locked;$('rcAddPart2').disabled=locked;
   const next=p?phraseNextTakeName(p).replace('Take ','take '):'';
   $('rcBigLabel').innerHTML=recording()?'Stop<br>keep take':S.recStarting?'Starting…':p?'Record<br>'+esc(next):'Add a<br>part';
@@ -321,12 +329,12 @@ function sync(force){const s=signature();if(!force&&s===RC.sig)return;RC.sig=s;R
   // chips (phone)
   $('rcChips').innerHTML=L.map((q,i)=>'<button role="listitem" class="rcchip'+(q.id===w.selected?' on':'')+(q.selected?' done':'')+'" data-pid="'+esc(q.id)+'" style="--cc:'+partColor(q,i)+'">'+(q.selected?'✓ ':'')+esc(q.name)+'</button>').join('')+'<button class="rcchip add" data-pid="+">+ Add</button>';
   for(const b of qa('#rcChips button'))b.disabled=locked;
-  const cur=q('#rcChips .on');if(cur&&narrow())cur.scrollIntoView({block:'nearest',inline:'nearest'});
+  const cur=q('#rcChips .on');if(cur&&narrow()&&RC.chipSel!==w.selected){RC.chipSel=w.selected;const box=$('rcChips'),l=cur.offsetLeft-box.offsetLeft,r=l+cur.offsetWidth;if(l<box.scrollLeft)box.scrollLeft=Math.max(0,l-8);else if(r>box.scrollLeft+box.clientWidth)box.scrollLeft=r-box.clientWidth+8;}
   // flow highlight
   const stage=!L.length||!p?1:!p.takes.length?2:!p.selected?3:n===L.length?4:2;for(const el of qa('#rcFlow .rcfs'))el.classList.toggle('cur',+el.dataset.fs===stage);
   $('rcUndo').disabled=!phraseUndoStack.length||locked;$('rcRedo').disabled=!phraseRedoStack.length||locked;
   $('rcUndo').title='Undo ('+phraseUndoStack.length+' step'+(phraseUndoStack.length===1?'':'s')+') · Ctrl+Z';$('rcRedo').title='Redo ('+phraseRedoStack.length+') · Ctrl+Shift+Z';
-  $('rcJoinNote').textContent='× marks = smooth crossfades at the joins (no clicks) · join fade '+w.fadeMs+' ms';
+  $('rcJoinNote').textContent='× marks = smooth joins (no clicks): each part fades out / in over '+w.fadeMs+' ms at the join';
   const lk=lanes().map(l=>l.k+(l.i??'')).join('|')+'|'+Math.round(songDur());if(lk!==RC.layoutKey){RC.layoutKey=lk;layout();}
 }
 $('rcTakes').addEventListener('pointerdown',()=>{RC.listPress=true;});window.addEventListener('pointerup',()=>{if(RC.listPress)setTimeout(()=>{RC.listPress=false;RC.sig='';},0);},true);window.addEventListener('pointercancel',()=>{RC.listPress=false;RC.sig='';},true);
@@ -344,7 +352,7 @@ $('rcRename').onclick=()=>renamePart();$('rcDelPart').onclick=deletePart;$('rcAd
 $('rcPlay').onclick=rcPlay;$('rcPlayP').onclick=rcPlay;$('rcStop').onclick=rcStop;$('rcStopP').onclick=rcStop;$('rcStart').onclick=rcToStart;
 $('rcUndo').onclick=()=>{phraseHistory(-1);RC.sig='';};$('rcRedo').onclick=()=>{phraseHistory(1);RC.sig='';};
 $('rcExport').onclick=exportComp;$('rcExportP').onclick=exportComp;$('rcDone').onclick=compDone;$('rcDoneP').onclick=compDone;
-$('rcCount').onchange=()=>{const v=+$('rcCount').value;$('optCountIn').checked=v>0;$('optCountIn').dispatchEvent(new Event('change'));if(v>0){$('optCountBars').value=String(v);$('optCountBars').dispatchEvent(new Event('change'));}rcMsg(v?'Count-in: '+v+' bar'+(v>1?'s':'')+' of clicks before each take (headphones only).':'Count-in off.');RC.sig='';};
+$('rcCount').onchange=()=>{const v=+$('rcCount').value;$('optCountIn').checked=v>0;$('optCountIn').dispatchEvent(new Event('change'));if(v>0){$('optCountBars').value=String(v);$('optCountBars').dispatchEvent(new Event('change'));}rcMsg(v?'Count-in: '+v+' bar'+(v>1?'s':'')+' of clicks before each take (headphones only).':'Count-in off.');RC.sig='';if(document.activeElement===$('rcCount'))$('rcCount').blur();};
 $('rcBacking').onclick=()=>{if($('beatOn').disabled||!S.beat){toast('No backing track','Open one from More ▾ › Open backing track.');return;}$('beatOn').checked=!$('beatOn').checked;$('beatOn').dispatchEvent(new Event('change'));if(playing&&RC.playMode){const t=D.playheadTime();stopAll();playFrom(t);}RC.dirty=true;};
 $('rcHearComp').onclick=()=>{$('optHearOld').checked=!PV.prefs.hearOld;$('optHearOld').dispatchEvent(new Event('change'));if(playing&&RC.playMode){const t=D.playheadTime();stopAll();playFrom(t);}rcMsg(PV.prefs.hearOld?'Hear my comp ON: you hear your chosen takes while you play and record.':'Hear my comp OFF: backing only while you play and record.');};
 for(const id of ['rcClip','rcClipP'])$(id).onclick=()=>$('dawClip').click();
@@ -354,6 +362,15 @@ $('rcSaved').onclick=()=>$('dawSaved').click();
 $('rcSong').ondblclick=()=>{const w=W(),v=prompt('Song name',w.title&&w.title!=='My phrase recording'?w.title:'');if(v!=null&&v.trim()){$('phraseTitle').value=v.trim();$('phraseTitle').dispatchEvent(new Event('change'));}};
 $('rcView').addEventListener('pointerdown',()=>{D.ctx='phrase';},true);
 function rcMsg(t){$('rcStatus').textContent=t;RC.msgAt=performance.now();}
+// 0.16.1: plain-English microphone errors (the browser's own words were shown: "Permission denied …", "Requested device not found …")
+function micHelp(t){t=String(t||'');const phone=narrow();
+  if(/permission denied|notallowederror|permission dismissed|not allowed by the user/i.test(t))return 'The microphone is blocked for this page. '+(phone?'Tap the lock icon next to the web address › Permissions › Microphone › Allow':'Click the lock icon at the left of the web address, set Microphone to Allow')+', then press Record again.';
+  if(/requested device not found|notfounderror|devicesnotfound|no microphone/i.test(t))return 'No microphone found. Plug in your mic or headset'+(phone?'':' (or pick it in Windows Sound settings)')+', then press Record again.';
+  if(/notreadableerror|could not start audio source|device in use|trackstarterror/i.test(t))return 'The microphone is busy in another app (a call, Zoom, WhatsApp…). Close that app, then press Record again.';
+  return null;}
+RC.micHelp=micHelp;
+{const orig=window.phraseMessage;window.phraseMessage=function(t){const h=micHelp(t);return orig.call(this,h||t);};}
+{const origT=window.toast;if(typeof origT==='function')window.toast=function(title,body,...r){const h=micHelp(body);return origT.call(this,title,h||body,...r);};}
 RC.msg=rcMsg;
 
 // ---------------------------------------------------------------- Add part popover
@@ -448,6 +465,7 @@ window.addEventListener('keydown',e=>{if(RC.step!=='rc')return;
   if(qa('.modal').some(m=>!m.hidden)||!$('bigRec').hidden)return;
   const k=e.key,stop=()=>{e.preventDefault();e.stopImmediatePropagation();};
   if((k==='r'||k==='R')&&!e.shiftKey){stop();if(!e.repeat)rcRecord();return;}
+  if((k==='r'||k==='R')&&e.shiftKey){stop();if(!e.repeat&&!recording()&&!busy()){const L=sorted(),i=L.findIndex(p=>p.id===W().selected);if(i>=0&&i<L.length-1){selectPart(L[i+1]);rcRecord();}else openAdd(true);}return;}
   if(k===' '&&!recording()){stop();rcPlay();return;}
   if(k==='Home'){stop();rcToStart();return;}
   if(k==='Enter'&&!e.target.closest('button,a,summary,select,[role=button],[tabindex]')){stop();rcToStart();return;}

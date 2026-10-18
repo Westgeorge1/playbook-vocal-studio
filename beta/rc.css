@@ -1,4 +1,4 @@
-/* Playbook Vocal Studio 0.16.0 — RECORD & COMP screen + two-step switch */
+/* Playbook Vocal Studio 0.16.1 — RECORD & COMP screen + two-step switch */
 :root{--steps-h:56px;--rcbg:#0d1117;--rcp:#1a2028;--rcp2:#242c36;--rcl:#33404d;--rct:#e6e9ec;--rcm:#8d98a5;--rcd:#5d6873;--rcacc:#f0a030;--rcred:#ff4d4d;--rcgrn:#3ddc84;--rcteal:#3cc6c9}
 body.has-steps .daw{height:calc(100vh - var(--steps-h));height:calc(100dvh - var(--steps-h))}
 body.rc-on .daw{display:none}
@@ -47,7 +47,7 @@ body.rc-on .daw{display:none}
 .rcmorehint{font:500 10px/1.5 var(--body);color:var(--rcd)}
 .rcbody{display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:12px;padding:10px 12px;min-height:0}
 .rcleft{display:flex;flex-direction:column;min-height:0;gap:6px}
-.rclanes{display:grid;grid-template-columns:170px minmax(0,1fr);overflow-y:auto;overflow-x:hidden;min-height:120px;flex:0 1 auto;border:1px solid #1c242e;border-radius:8px;background:#0b0f14}
+.rclanes{display:grid;grid-template-columns:170px minmax(0,1fr);overflow-y:auto;overflow-x:hidden;min-height:120px;flex:0 0 auto;max-height:calc(100% - 96px);border:1px solid #1c242e;border-radius:8px;background:#0b0f14}
 .rcheads{display:grid;align-content:start}
 .rch{display:flex;flex-direction:column;justify-content:center;padding:0 10px;border-bottom:1px solid #070a0e;background:var(--rcp);border-right:1px solid var(--rcl);overflow:hidden}
 .rch b{font:700 13px var(--body);color:var(--rct)}.rch b.acc{color:var(--rcacc)}.rch b.grn{color:var(--rcgrn)}.rch b.mut{color:var(--rcm);font-weight:600}
@@ -58,7 +58,7 @@ body.rc-on .daw{display:none}
 .rcaddbtn{position:absolute;font:600 12px var(--body);color:var(--rcm);background:var(--rcp2);border:1px solid var(--rcl);border-radius:6px;cursor:pointer}
 .rcaddbtn:hover{color:var(--rct);border-color:var(--rcacc)}
 .rcjoinnote{font:500 11px var(--body);color:var(--rcm);text-align:right;padding-right:110px}
-.rcbelow{flex:1 1 auto;min-height:0;overflow:auto;display:grid;align-content:start;gap:8px;background:#11161d;border:1px solid var(--rcl);border-radius:10px;padding:10px 14px}
+.rcbelow{flex:1 1 auto;min-height:56px;overflow:auto;display:grid;align-content:start;gap:8px;background:#11161d;border:1px solid var(--rcl);border-radius:10px;padding:10px 14px}
 .rcstatus{font:500 14px var(--body);color:var(--rct);background:#0b0f14;border-left:3px solid var(--rcacc);padding:7px 10px;border-radius:4px;min-height:20px}
 .rcflowwrap{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:20px}
 .rchelp h3,.rcflow h3{font:700 12px var(--body);letter-spacing:.06em;color:var(--rcacc);margin:2px 0 8px}
@@ -184,3 +184,6 @@ body.has-steps:not(.rc-on) #rcSaved,body.has-steps:not(.rc-on) #rcUndo,body.has-
   .rcbrand b{font-size:15px}
   .rcsaved{max-width:74px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 }
+/* 0.16.1: the browser's 'Prepared downloads' fallback box sits bottom-left on RECORD & COMP so it never covers 'Comp done → Go to POLISH' */
+@media (min-width:900px){body.rc-on #browserDownloads{right:auto!important;left:12px!important}}
+@media (max-width:899px){body.rc-on #browserDownloads{bottom:auto!important;top:8px!important}}

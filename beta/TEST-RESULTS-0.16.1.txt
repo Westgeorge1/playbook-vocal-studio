@@ -1,0 +1,29 @@
+Playbook Vocal Studio 0.16.1 - test results (18 Oct 2026, final code)
+
+Earlier suites re-run on 0.16.1 (tests-0.16.1/regress):
+  0.16 feature tests (incl. 0.15 <-> 0.16 project round trips)  110 / 110 pass
+  0.15 feature tests                                            85 / 85 pass
+  smoke test                                                    61 / 61 pass
+  control audit 0.15 -> 0.16.1 (POLISH)       437 controls, 0 missing
+  control audit 0.14 -> 0.16.1 (POLISH)       352 controls, 0 missing
+  (audit on the RECORD & COMP start screen lists 244 POLISH controls as
+   "not visible"; identical on 0.16.0 - they live behind 2 POLISH by design)
+
+New scenario runs (tests-0.16.1, Chrome headless, voice-like fake mic):
+  A1366  laptop 1366x768, full 7-part song, 24 takes, export, reload   35 / 35
+  A1920  big screen 1920x1080, same song                               35 / 35
+  B      races, errors, stress (32 takes on a part), no backing        27 / 27
+  C      mic blocked, no mic, 44.1 kHz sound card, live beta check     10 / 10
+  P      phones 390x844 and 360x800 with touch                         22 / 22
+  D      the 0.16.1 fixes                                              11 / 11
+  Total new checks: 140 / 140
+
+Measured: export equals the chosen takes at their part positions (max error
+7.3e-8); no clicks at joins; each join dips to 0.037 of the level for ~5 ms
+(20 ms fade out + 20 ms fade in, engine behaviour since 0.13); 60 fps with 43
+takes; autosaved 47 MB session back about 6.7 s after reload.
+
+Live beta (https://westgeorge1.github.io/playbook-vocal-studio/beta/) before
+republish: HTTPS, no 4xx/5xx, no console errors, title 0.16.0.
+
+Not tested: real phones, real microphones, Bluetooth, Safari/iPhone.

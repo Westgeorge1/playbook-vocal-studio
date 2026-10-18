@@ -1,4 +1,4 @@
-/* Playbook Vocal Studio 0.16.0 — recording workflow.
+/* Playbook Vocal Studio 0.16.1 — recording workflow.
    Punch-in on the fly, loop recording, count-in / metronome, mic check + gain, input monitoring,
    latency calibration, markers, ratings / rename, delete-unchosen, big-button record mode,
    autosave indicator and backup reminders.
@@ -29,7 +29,7 @@ async function capOpen(){
     const ctx=await resumeAudio();
     if(!ctx.audioWorklet||!window.AudioWorkletNode)throw new Error('This browser has no AudioWorklet, so punch-in and loop recording are not available. Phrase recording (stopped transport) still works.');
     capClose(true);
-    if(Cap.moduleCtx!==ctx){await ctx.audioWorklet.addModule('rec-worklet.js?v=0.16.0');Cap.moduleCtx=ctx;}
+    if(Cap.moduleCtx!==ctx){await ctx.audioWorklet.addModule('rec-worklet.js?v=0.16.1');Cap.moduleCtx=ctx;}
     const stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
     const tr=stream.getAudioTracks()[0];Cap.label=tr?.label||'microphone';LSset('pvs-mic-label',Cap.label);
     Cap.ctx=ctx;Cap.stream=stream;Cap.src=ctx.createMediaStreamSource(stream);Cap.gain=ctx.createGain();Cap.gain.gain.value=dbToGain(P.micGainDb);
@@ -151,7 +151,10 @@ function clockTick(){
 setInterval(clockTick,25);
 // longer lead-in when the count-in is on
 const origOptions=window.phraseRecordOptions;
-window.phraseRecordOptions=function(){const o=origOptions.apply(this,arguments);const ci=P.countIn?P.countBars*barSec():0;if(ci>0)o.start=Math.min(o.start,o.p.start-ci-.15);return o;};
+window.phraseRecordOptions=function(){const o=origOptions.apply(this,arguments);const ci=P.countIn?P.countBars*barSec():0;if(ci>0)o.start=Math.min(o.start,o.p.start-ci-.15);
+  // 0.16.1: a take may start at most 10 s before 0:00 (project rule). Slow songs with a 2-bar count-in on a part at 0:00 plus
+  // Bluetooth-size latency went past it and the take was thrown away ('Invalid take position'). Start the lead-in a little later instead.
+  o.start=Math.max(o.start,-9.9+Math.max(0,pvsLatency()));return o;};
 PV.preRoll=()=>{const w=S.phrases;return Math.max(w?w.lead:2,P.countIn?P.countBars*barSec():0);};
 
 // ================================================================ punch-in on the fly + loop recording
