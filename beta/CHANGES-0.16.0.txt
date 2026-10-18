@@ -1,0 +1,93 @@
+PLAYBOOK VOCAL STUDIO 0.16.0 — RECORD & COMP screen (2026-10-18)
+Built from 0.15.0. Nothing was taken out. The sound engine is unchanged.
+
+WHAT IS NEW, IN PLAIN WORDS
+The app now opens on a simple screen called "1 RECORD & COMP". It is made
+for one job: record your song part by part, sing each part as many times as
+you like, pick the best take of each part, and join them into one vocal.
+When that is done, press "Comp done → Go to POLISH" and you are in the
+0.15 screen you already know (Clean · Tune · Chain · Mix).
+
+THE TWO STEPS (top of the screen)
+  1 RECORD & COMP   the new simple screen (opens first every time)
+  2 POLISH          the full 0.15 studio, exactly as before
+  Also at the top: "saved" light (autosave), Undo, Redo, Export comp (WAV).
+
+RECORD & COMP — WHAT EACH AREA DOES
+  Transport   start, play, stop, big REC, bar/beat and time, BPM and key,
+              count-in (Off / 1 bar / 2 bars), mic level with CLIP light,
+              Backing ON/OFF, Hear my comp ON/OFF, More ▾.
+  Parts strip the song cut into named, coloured parts (Intro, Verse 1,
+              Chorus, Bridge, Outro...). "+ Add part" adds one (pick a name
+              and a length in bars). Drag a part's edge to make it longer
+              or shorter (snaps to the beat; hold Shift for free). Double-click
+              a part to rename it. The selected part shows red IN / OUT flags
+              and the pre-roll shading.
+  Take lanes  every take stacked under its part. Green with ✓ = the take
+              you chose. Grey = spares. Click a take to hear it, double-click
+              to choose it. Right-click for the full take menu (stars,
+              rename, remove...). Empty parts show "not recorded".
+  COMP lane   your chosen takes joined into one vocal, with the same smooth
+              join fade as before (× marks the joins). Click it to play the
+              comp from there. Play = the whole comp with the backing.
+  Part panel  big "Record take N" button (or press R), Redo last take,
+              Previous / Next part, the take list (Play, Choose, Del),
+              "Delete unchosen takes" (asks first), comp progress
+              ("X of Y parts chosen") and "Still to do".
+
+RECORDING A TAKE
+  Pick a part and press Record (or R). The backing starts just before the
+  part (pre-roll), the count-in clicks if it is on, recording runs from IN
+  to OUT and stops by itself. Your latency setting is applied as before.
+  The new take is selected so you can listen straight away.
+  Redo last take: records again and replaces the last take; if you change
+  your mind, one Undo brings the old take back.
+  Undo / Redo work for recording, choosing, deleting, renaming and resizing.
+
+EXPORT AND POLISH
+  Export comp (WAV) saves ONE vocal file (24-bit, the whole song from 0:00)
+  named "<song> - comp vocal.wav", and loads the same comp into POLISH.
+  Comp done → Go to POLISH sends the comp (asks first if some parts have no
+  chosen take, or if the comp changed since you last sent it) and opens CLEAN.
+
+EVERYTHING ELSE IS STILL THERE — under More ▾
+  Loop recording, Punch in now (while playing), Metronome, Hear myself
+  (monitoring), Mic level check, Mic gain, Latency test, Phone REC MODE,
+  Star ratings on takes, Add song marker, Import a take from a file,
+  Un-choose, Rename / Delete part, Delete unchosen takes in all parts,
+  Pre-roll length, Join crossfade, BPM, Backing ON/OFF, Hear my comp,
+  Audition takes with the backing, Open backing track, Save / Open project,
+  Open the REC tab in POLISH, Keyboard shortcuts.
+  All of the 0.15 buttons, tabs, menus and shortcuts still work in POLISH.
+
+KEYS ON RECORD & COMP
+  R record a take · Space play / pause · Home or Enter back to start
+  N next part · P previous part · L loop recording · 2 go to POLISH
+  Ctrl+Z undo · Ctrl+Shift+Z redo · Ctrl+S save project · Esc closes menus
+
+PHONE
+  Same screen in a phone layout: part chips (swipe), a small view of the part
+  with draggable IN / OUT flags, the big round Record button, Play / Stop,
+  Redo, Next part, the take list, progress, Export comp and Go to POLISH.
+
+GOOD TO KNOW
+  - "Hear my comp" OFF plays only the backing, and also turns off hearing
+    your old vocal while you record (the same switch as 0.15 "Hear old vocal").
+  - Punch-in that does not cover a whole part makes its own small part
+    called "Punch m:ss" (same rule as 0.15).
+  - A link ending in ?step=polish opens straight on POLISH.
+
+PROJECTS
+  Same project format (version 9). Projects from 0.15 open in 0.16 as parts
+  with their takes, stars and markers. Projects saved by 0.16 open in 0.15.
+  Parts are the same thing as 0.15 "phrases". Part colours come from the
+  name, so nothing new is stored.
+
+FILES
+  new   rc.js, rc.css     the RECORD & COMP screen
+  edit  index.html        version 0.16.0, the new screen's markup, help text
+  same  daw.css, phrase-core.js, worker.js, phrase-worker.js, engine-wasm.*
+        (byte-identical to 0.15.0)
+  same  daw.js, rec.js, rec.css, rec-worklet.js (only the version number
+        text changed from 0.15.0 to 0.16.0)
+  new   tests-0.16/       build patch, new tests, 0.15 tests re-run on 0.16

@@ -1,4 +1,4 @@
-Playbook Vocal Studio phone 0.15.0 (DAW layout + recording upgrade)
+Playbook Vocal Studio phone 0.16.0 (RECORD & COMP screen + DAW layout)
 
 Open in Chrome:
 https://playbook-vocal-studio-phone.vascogeorge544-vg.chatgpt.site
@@ -12,3 +12,5 @@ All 12 automated suites passed; two source review/debug passes completed. Physic
 0.14.0: new DAW-style screen (menu bar, transport, timeline with take lanes, inspector, editor dock, keyboard shortcuts; press ? for shortcuts). Every 0.13 control is still there; see CHANGES-0.14.0.txt for where each one moved. 
 
 0.15.0: true punch-in on the fly (R while playing), draggable IN/OUT flags on the ruler, Redo-this-phrase (R) and Next-phrase (Shift+R), multi-step Undo/Redo for takes and phrases, count-in and metronome, mic level check with clip warning, star ratings and Delete unchosen takes, loop recording (a new take every pass), latency calibration, song markers, big-button REC MODE for phones, optional input monitoring, mic gain, autosave indicator and backup reminders. Everything from 0.14 is still there and 0.13/0.14 projects open unchanged. See CHANGES-0.15.0.txt and the new REC tab. The hosted link above is still 0.13.0 until you upload this folder.
+
+0.16.0: the app now opens on 1 RECORD & COMP — a simple screen for recording the song part by part, several takes per part, choosing the best take of each part and joining them into one vocal (the comp). Press "Comp done → Go to POLISH" (or click 2 POLISH at the top) for the full 0.15 studio: Clean, Tune, Chain, Mix. Extras such as loop recording, punch-in, metronome, monitoring, latency test and REC MODE are under More ▾ and still in POLISH. See CHANGES-0.16.0.txt.

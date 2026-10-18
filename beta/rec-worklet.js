@@ -1,4 +1,4 @@
-/* Playbook Vocal Studio 0.15.0 — microphone capture worklet.
+/* Playbook Vocal Studio 0.16.0 — microphone capture worklet.
    Copies the (mono) microphone input in blocks of 2048 frames and stamps each block with the
    AudioContext frame it was rendered at, so takes recorded during playback can be placed on the
    song timeline sample-accurately. It never alters the audio. */

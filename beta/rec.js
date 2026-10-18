@@ -1,4 +1,4 @@
-/* Playbook Vocal Studio 0.15.0 — recording workflow.
+/* Playbook Vocal Studio 0.16.0 — recording workflow.
    Punch-in on the fly, loop recording, count-in / metronome, mic check + gain, input monitoring,
    latency calibration, markers, ratings / rename, delete-unchosen, big-button record mode,
    autosave indicator and backup reminders.
@@ -29,7 +29,7 @@ async function capOpen(){
     const ctx=await resumeAudio();
     if(!ctx.audioWorklet||!window.AudioWorkletNode)throw new Error('This browser has no AudioWorklet, so punch-in and loop recording are not available. Phrase recording (stopped transport) still works.');
     capClose(true);
-    if(Cap.moduleCtx!==ctx){await ctx.audioWorklet.addModule('rec-worklet.js?v=0.15.0');Cap.moduleCtx=ctx;}
+    if(Cap.moduleCtx!==ctx){await ctx.audioWorklet.addModule('rec-worklet.js?v=0.16.0');Cap.moduleCtx=ctx;}
     const stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
     const tr=stream.getAudioTracks()[0];Cap.label=tr?.label||'microphone';LSset('pvs-mic-label',Cap.label);
     Cap.ctx=ctx;Cap.stream=stream;Cap.src=ctx.createMediaStreamSource(stream);Cap.gain=ctx.createGain();Cap.gain.gain.value=dbToGain(P.micGainDb);

@@ -2,7 +2,7 @@
 <html lang="en">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Playbook Vocal Studio 0.15.0 · DAW</title>
+<title>Playbook Vocal Studio 0.16.0 · DAW</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,500..800&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
@@ -233,9 +233,104 @@ nav.steps button { flex:1 0 64px; min-height:48px; }
 .phrase-take .metrics { font:13px/1.65 var(--mono); color:var(--muted); }
 .phrase-take.suggested { color:var(--gold); }
 </style>
-<link rel="stylesheet" href="daw.css?v=0.15.0">
-<link rel="stylesheet" href="rec.css?v=0.15.0">
+<link rel="stylesheet" href="daw.css?v=0.16.0">
+<link rel="stylesheet" href="rec.css?v=0.16.0">
+<link rel="stylesheet" href="rc.css?v=0.16.0">
 <link rel="icon" href="data:,">
+
+<!-- 0.16.0 RECORD & COMP: two-step switch (always visible) -->
+<div class="rcsteps" id="rcSteps">
+  <div class="rcbrand"><b>Playbook Vocal Studio</b><span id="rcSong" title="Double-click to rename the song">New session · lead vocal</span></div>
+  <div class="rcswitch" role="tablist" aria-label="Steps">
+    <button id="rcStep1" role="tab" data-step="rc" aria-selected="true"><b>1</b> RECORD &amp; COMP</button><span class="rcsep" aria-hidden="true">›</span>
+    <button id="rcStep2" role="tab" data-step="polish" aria-selected="false"><b>2</b> POLISH <small>(Clean · Tune · Chain · Mix)</small></button>
+  </div>
+  <div class="rctopright">
+    <div class="rcsaved" id="rcSaved" role="status" aria-live="polite" title="Autosave on this browser"></div>
+    <button class="rcbtn" id="rcUndo" title="Undo the last recording, choice or delete (Ctrl+Z)">↶ <span>Undo</span></button>
+    <button class="rcbtn" id="rcRedo" title="Redo (Ctrl+Shift+Z)">↷ <span>Redo</span></button>
+    <button class="rcbtn rcgreen rcexport" id="rcExport" title="Join your chosen takes into one vocal WAV, download it and send it to POLISH">Export comp (WAV)</button>
+    <button class="rcbtn rcmorebtn rcphone" id="rcMoreP" aria-haspopup="true" title="More recording tools">More ▾</button>
+    <span class="rcengine" id="rcEngine">Engine starting…</span>
+  </div>
+</div>
+<section class="rcview" id="rcView" aria-label="Record and comp">
+  <div class="rctbar rcdesk" role="region" aria-label="Recording transport">
+    <button class="rct" id="rcStart" title="Back to the start (Home)" aria-label="Back to the start">|◀</button>
+    <button class="rct" id="rcPlay" title="Play / pause (Space). Plays the backing with your comp." aria-label="Play">▶</button>
+    <button class="rct" id="rcStop" title="Stop (press again: back to the start)" aria-label="Stop">■</button>
+    <button class="rct rcrec" id="rcRec" title="Record a take on the selected part (R)"><span class="dot"></span> REC</button>
+    <div class="rcclock"><div id="rcBars">bar 1 · beat 1</div><small id="rcTime">00:00.0 / 00:00.0</small></div>
+    <button class="rcclock rcinfo" id="rcTempo" title="Tempo and key. Click to change the tempo (More ▾)"><span id="rcBpm">75 BPM</span>&nbsp;&nbsp;4/4<br><span id="rcKey">Key —</span></button>
+    <label class="rcfield"><span>COUNT-IN</span><select id="rcCount" aria-label="Count-in before recording"><option value="0">Off</option><option value="1">1 bar</option><option value="2">2 bars</option></select></label>
+    <div class="rcfield"><span>MIC LEVEL</span><div class="rcmicrow"><button class="rcmeter" id="rcMeterBtn" title="Click to start or stop a mic level check"><i id="rcMeter"></i></button><button class="cliplight" id="rcClip" title="Lights up if your voice was too loud (clipping). Click to reset.">CLIP</button></div></div>
+    <div class="rcfield"><span>BACKING</span><button class="rctog" id="rcBacking" aria-pressed="true" title="Hear the backing track while you play and record">ON</button></div>
+    <div class="rcfield"><span>HEAR MY COMP</span><button class="rctog" id="rcHearComp" aria-pressed="true" title="Hear your chosen takes while you play and record (OFF = backing only)">ON</button></div>
+    <button class="rcbtn rcmorebtn" id="rcMoreBtn" aria-haspopup="true">More ▾</button>
+    <div class="rcmorehint">loop rec · stars · markers<br>metronome · monitor · latency</div>
+  </div>
+  <div class="rcbody">
+    <div class="rcleft rcdesk">
+      <div class="rclanes" id="rcLanes">
+        <div class="rcheads" id="rcHeads"></div>
+        <div class="rctl" id="rcTl"><canvas id="rcCanvas" aria-label="Song timeline: click a part to select it, drag its edges to resize, click a take to hear it, double-click a take to choose it"></canvas><button class="rcaddbtn" id="rcAddBtn" title="Add a new part to the song">+ Add part</button></div>
+      </div>
+      <div class="rcjoinnote" id="rcJoinNote">× marks = smooth crossfades at the joins (no clicks)</div>
+      <div class="rcbelow">
+        <div class="rcstatus" id="rcStatus" role="status" aria-live="polite">Pick a part, then press Record.</div>
+        <div class="rcflowwrap">
+          <div class="rchelp"><h3>WHAT EACH AREA DOES</h3><ol>
+            <li>Two-step switch: record &amp; comp first, then POLISH. Autosave, Undo/Redo, Export comp.</li>
+            <li>Transport: play, stop, RECORD, position, count-in, mic level + CLIP light, backing / comp on-off.</li>
+            <li>Parts strip: the song in parts. Click one; red IN / OUT flags = where recording starts and stops. Drag a part's edge to make it longer or shorter. Double-click to rename.</li>
+            <li>Take lanes: every try stacked under its part. Green ✓ = the take you chose; grey = spares. Click a take to hear it, double-click to choose it.</li>
+            <li>Comp lane: your chosen takes joined into one continuous vocal, with smooth crossfades.</li>
+            <li>Part panel: big record button, redo, next / previous part, play-choose-delete each take, progress.</li></ol></div>
+          <div class="rcflow" id="rcFlow"><h3>THE FLOW</h3>
+            <div class="rcfs" data-fs="1"><b>1</b><span>Pick a part</span><small>Verse 1, Chorus…</small></div>
+            <div class="rcfs" data-fs="2"><b>2</b><span>Record takes</span><small>R = record, Redo</small></div>
+            <div class="rcfs" data-fs="3"><b>3</b><span>Choose best</span><small>green ✓ per part</small></div>
+            <div class="rcfs go" data-fs="4"><b>4</b><span>POLISH</span><small>clean · tune · mix</small></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <aside class="rcpanel" id="rcPanel" aria-label="Selected part">
+      <div class="rcptop"></div>
+      <div class="rcphead"><h2 id="rcPartName">NO PART YET</h2><span id="rcPartTakes"></span></div>
+      <div class="rcpinfo" id="rcPartInfo">Add a part to start.</div>
+      <div class="rcpedit"><button class="rclink" id="rcRename">Rename part</button><button class="rclink" id="rcDelPart">Delete part</button><button class="rclink" id="rcAddPart2">+ Add part</button></div>
+      <div class="rcchips rcphone" id="rcChips" role="list" aria-label="Parts"></div>
+      <div class="rcswipe rcphone">swipe for more parts →</div>
+      <canvas class="rcmini rcphone" id="rcMini" aria-label="This part: drag the red IN or OUT flag to change where recording starts or stops"></canvas>
+      <div class="rcrecrow">
+        <button class="rcbtn rcphone rcside" id="rcPlayP">▶ Play</button>
+        <button class="rcbig" id="rcBig" title="Record a take on this part (R)"><span class="ring"><span class="dot"></span><span class="lab" id="rcBigLabel">Record<br>take 1</span></span></button>
+        <button class="rcbtn rcphone rcside" id="rcStopP">■ Stop</button>
+      </div>
+      <div class="rcorr" id="rcOrR">or press <b>R</b></div>
+      <div class="rcmicp rcphone"><span>MIC</span><button class="rcmeter" id="rcMeterBtnP" title="Tap to check your mic level"><i id="rcMeterP"></i></button><button class="cliplight" id="rcClipP">CLIP</button></div>
+      <div class="rcctl"><button class="rcbtn rcredo" id="rcRedoLast" title="Record this part again and throw away the last take (Undo brings it back)">↺ Redo last take</button><button class="rcbtn rcprev" id="rcPrev">◀ Previous part</button><button class="rcbtn rcnext" id="rcNext">Next part ▶</button></div>
+      <h3 class="rcsub">TAKES</h3>
+      <div class="rctakes" id="rcTakes"></div>
+      <button class="rcbtn rcdelun" id="rcDelUn">Delete unchosen takes (0)</button>
+      <div class="rcprog"><div class="rcproghead"><h3 class="rcsub">COMP PROGRESS</h3><b id="rcProgText">0 of 0 parts chosen</b></div><div class="rcsegs" id="rcSegs"></div><div class="rctodo" id="rcTodo"></div></div>
+      <div class="rcpfoot rcphone"><button class="rcbtn rcgreen" id="rcExportP">Export comp</button><button class="rcbtn rcgo" id="rcDoneP">Go to POLISH ▶</button></div>
+      <div class="rctip rcphone">Tip: pick a part, tap Record, sing, choose the best take.</div>
+    </aside>
+  </div>
+  <footer class="rcfoot rcdesk"><div><h3>HOW IT WORKS</h3><p>Select a part → press Record (or R) → backing plays from just before the part, recording stops at the end. Choose the best take. When every part is chosen → Go to POLISH.</p></div><button class="rcbtn rcgo" id="rcDone">Comp done → Go to POLISH ▶</button></footer>
+</section>
+<div class="rcpop rcmore" id="rcMore" role="menu" aria-label="More recording tools" hidden></div>
+<div class="rcpop rcadd" id="rcAdd" role="dialog" aria-label="Add a part" hidden>
+  <h3>ADD A PART</h3>
+  <div class="rcnames" id="rcAddNames"><button data-n="Intro">Intro</button><button data-n="Verse">Verse</button><button data-n="Pre-chorus">Pre-chorus</button><button data-n="Chorus">Chorus</button><button data-n="Bridge">Bridge</button><button data-n="Outro">Outro</button></div>
+  <label class="rcrow">Name <input type="text" id="rcAddName" maxlength="40" placeholder="e.g. Verse 2"></label>
+  <label class="rcrow">Length <select id="rcAddLen"><option value="1">1 bar</option><option value="2">2 bars</option><option value="4">4 bars</option><option value="8" selected>8 bars</option><option value="12">12 bars</option><option value="16">16 bars</option></select></label>
+  <label class="rcrow">Starts <select id="rcAddWhere"><option value="end">after the last part</option><option value="play">at the playhead</option></select></label>
+  <p class="rcaddinfo" id="rcAddInfo"></p>
+  <div class="rcaddbtns"><button class="rcbtn" id="rcAddCancel">Cancel</button><button class="rcbtn rcgo" id="rcAddOk">Add part</button></div>
+</div>
 
 <div class="daw" id="daw">
 <header class="menubar" role="menubar">
@@ -309,7 +404,7 @@ nav.steps button { flex:1 0 64px; min-height:48px; }
 <button role="menuitem" data-act="howto">How recording works</button>
 <button role="menuitem" data-act="about">About this engine</button></div></div>
   </nav>
-  <div class="apptitle"><b>Playbook Vocal Studio 0.15</b> <span id="dawSong">·</span></div>
+  <div class="apptitle"><b>Playbook Vocal Studio 0.16</b> <span id="dawSong">·</span></div>
   <div class="savedind" id="dawSaved" role="status" aria-live="polite" title="Autosave on this browser"></div><div class="headright"><button class="guidebtn" id="guideBtn" aria-haspopup="dialog" aria-controls="guideSheet">✦ SMART GUIDE <span class="count" id="guideCount"></span></button><div class="chip" id="chip">Starting the engine...</div></div>
 </header>
 <div class="busybar" id="busybar"><i></i></div>
@@ -826,7 +921,7 @@ nav.steps button { flex:1 0 64px; min-height:48px; }
   </section>
 </div></div>
 <div class="modal" id="helpModal" role="dialog" aria-label="Help" hidden><div class="mbox small"><div class="mhead"><h2 id="helpTitle">KEYBOARD SHORTCUTS</h2><button class="closebtn" data-close aria-label="Close">×</button></div>
-<div id="helpKeys" class="rack"><table class="keys">
+<div id="helpKeys" class="rack"><p class="note"><b>1 RECORD &amp; COMP screen:</b> <kbd>R</kbd> record a take on the selected part (R again = stop and keep) · <kbd>Space</kbd> play / pause your comp with the backing · <kbd>N</kbd> / <kbd>P</kbd> next / previous part · <kbd>L</kbd> loop-record the part · <kbd>2</kbd> go to POLISH · <kbd>Esc</kbd> cancel the take · <kbd>Ctrl Z</kbd> undo. The keys below are for the <b>2 POLISH</b> screen.</p><table class="keys">
 <tr><td><kbd>Space</kbd></td><td>Play / pause</td></tr><tr><td><kbd>Enter</kbd> / <kbd>Home</kbd></td><td>Back to start</td></tr>
 <tr><td><kbd>R</kbd></td><td>Stopped: redo the selected phrase (new take). Playing: punch in at the playhead; R again punches out. LOOP on: one take per pass</td></tr><tr><td><kbd>Shift R</kbd></td><td>Record the next phrase (starts after the selected one)</td></tr><tr><td><kbd>Space</kbd> while recording</td><td>Stop and keep the take (punch: also stops playback)</td></tr><tr><td><kbd>Esc</kbd> while recording</td><td>Cancel the take — nothing is added</td></tr><tr><td><kbd>M</kbd> · <kbd>,</kbd> <kbd>.</kbd></td><td>Add a song marker · jump to previous / next marker</td></tr><tr><td><kbd>C</kbd> · <kbd>K</kbd> · <kbd>I</kbd></td><td>Metronome click · count-in on/off · mic level check</td></tr>
 <tr><td><kbd>L</kbd></td><td>Loop the ruler region, else the selected phrase, else 4 bars</td></tr>
@@ -836,7 +931,7 @@ nav.steps button { flex:1 0 64px; min-height:48px; }
 <tr><td><kbd>+</kbd> / <kbd>−</kbd></td><td>Zoom the timeline</td></tr><tr><td><kbd>Ctrl/⌘ S</kbd></td><td>Save project with every take</td></tr>
 <tr><td><kbd>?</kbd></td><td>This help · <kbd>Esc</kbd> closes menus and windows</td></tr></table>
 <p class="note">Shortcuts are ignored while you type in a box. On the timeline: click = move playhead and resume line, drag the ruler = loop region, click a phrase = select it, click a take = listen, double-click a take (or its lane’s Choose) = choose it, right-click / long-press a take or phrase = rate, rename, delete. Drag the red IN / OUT flags on the ruler strip to move the selected phrase’s punch-in and punch-out; the shaded part before IN is the pre-roll / count-in.</p></div>
-<div id="helpHow" class="rack" hidden><p>1. File › Open backing track. Wear headphones.<br>2. Click the timeline where you want to start, then <strong>Continue from here</strong> (or press R).<br>3. Press the red record button. Watch the countdown; recording stops just after the phrase end.<br>4. Record again for more takes. Each take appears in a take lane under VOCAL. Click a take to hear it, double-click (or Choose) to pick it.<br>5. Continue with the next phrase. When done, <strong>Apply chosen takes</strong>, then shape the sound with CLEAN, TUNE and CHAIN, and SAVE / EXPORT.</p><p><strong>New in 0.15.</strong> <b>R</b> redoes the selected phrase, <b>Shift+R</b> records the next one. While the song plays, <b>R punches in</b> right where you are (the beat keeps going) and R again punches out; Space punches out and stops. With <b>LOOP</b> on, R records a new take on every pass. <b>Esc</b> throws away the take being recorded. Turn on the <b>count-in</b> / <b>CLICK</b> in the transport or the REC tab (headphones only, never recorded). Use <b>MIC CHECK</b> before you sing, and <b>REC tab › Latency › Calibrate</b> once per phone/headphones so takes line up. Rate takes with stars, rename them, and use <b>Delete unchosen takes</b> to tidy up. Undo / Redo now go back many steps. On a phone, <b>● REC MODE</b> gives you big buttons.</p><p class="note">Full instructions: RECORD-AND-TAKES.txt.</p></div>
+<div id="helpHow" class="rack" hidden><p><strong>New in 0.16 — RECORD &amp; COMP.</strong> The app opens on step <b>1 RECORD &amp; COMP</b>: 1) <b>+ Add part</b> (Intro, Verse 1, Chorus…) and drag its edges to fit the song. 2) Click a part and press the big red <b>Record take</b> button (or R): the backing starts just before the part (pre-roll and count-in) and recording stops by itself at the end. 3) Record as many takes as you like; they stack under the part. Click a take to hear it, then <b>Choose</b> the best one (green ✓). <b>Redo last take</b> replaces the last try; <b>Del</b> and <b>Delete unchosen takes</b> tidy up; Undo brings anything back. 4) The <b>COMP</b> lane joins your chosen takes with smooth crossfades. <b>Comp done → Go to POLISH</b> sends that one vocal to CLEAN, TUNE, CHAIN and MIX. <b>Export comp (WAV)</b> downloads it. Loop recording, stars, markers, metronome, monitoring, latency test and phone REC MODE are under <b>More ▾</b>. Everything below still works on step 2 POLISH.</p><p>1. File › Open backing track. Wear headphones.<br>2. Click the timeline where you want to start, then <strong>Continue from here</strong> (or press R).<br>3. Press the red record button. Watch the countdown; recording stops just after the phrase end.<br>4. Record again for more takes. Each take appears in a take lane under VOCAL. Click a take to hear it, double-click (or Choose) to pick it.<br>5. Continue with the next phrase. When done, <strong>Apply chosen takes</strong>, then shape the sound with CLEAN, TUNE and CHAIN, and SAVE / EXPORT.</p><p><strong>New in 0.15.</strong> <b>R</b> redoes the selected phrase, <b>Shift+R</b> records the next one. While the song plays, <b>R punches in</b> right where you are (the beat keeps going) and R again punches out; Space punches out and stops. With <b>LOOP</b> on, R records a new take on every pass. <b>Esc</b> throws away the take being recorded. Turn on the <b>count-in</b> / <b>CLICK</b> in the transport or the REC tab (headphones only, never recorded). Use <b>MIC CHECK</b> before you sing, and <b>REC tab › Latency › Calibrate</b> once per phone/headphones so takes line up. Rate takes with stars, rename them, and use <b>Delete unchosen takes</b> to tidy up. Undo / Redo now go back many steps. On a phone, <b>● REC MODE</b> gives you big buttons.</p><p class="note">Full instructions: RECORD-AND-TAKES.txt.</p></div>
 <div id="helpAbout" hidden>    <div class="rack">
       <h2>Same engine as the desktop app</h2>
       <p>This page runs the 0.12.1 engine of the Windows app and the FL Studio plugin: Voice focus cleaning, performance edits, tuning, the vocal chain and the Smart Guide. Everything stays on your phone; nothing is uploaded.</p>
@@ -1019,7 +1114,7 @@ async function saveDownload(filename, data) {
 })(globalThis);
 
 "use strict";
-// Playbook Vocal Studio 0.15.0 (phone, DAW layout). The engine in worker.js holds the session (the same C++ as the
+// Playbook Vocal Studio 0.16.0 (phone, DAW layout). The engine in worker.js holds the session (the same C++ as the
 // desktop app); this page draws it, plays it, and sends the desktop app's parameter ids back.
 // ---------------------------------------------------------------- constants
 const KEYS = ["C","C# / Db","D","D# / Eb","E","F","F# / Gb","G","G# / Ab","A","A# / Bb","B"];
@@ -1055,7 +1150,7 @@ let clearedSession = null;
 const songSeconds = () => S.original ? S.original.length / S.rate : 0;
 
 // ---------------------------------------------------------------- engine (worker)
-const worker = new Worker("worker.js?v=0.15.0");
+const worker = new Worker("worker.js?v=0.16.0");
 let reqId = 0, engineFailure = null; const pending = {};
 worker.onmessage = ({ data: m }) => {
   if (m.type === "ready") $("engineInfo").textContent = "Engine: 0.12.1 WebAssembly, the same audio code as the Windows app, with Voice focus.";
@@ -2526,7 +2621,7 @@ async function saveProject() {
   const base = safeName(phraseOnly?phraseWorkspace().title:S.name), srcName = base + " - phone source.wav", src = wavFloat(phraseWorkspaceAudio||S.audio[5]||S.main, phraseOnly?phraseWorkspace().rate:S.rate), files = [{ name: srcName, data: src }];
   const takes = S.takes.slice(1).map((t, i) => { const name = base + " - take " + (i + 1) + ".wav", data = wavFloat(S.takeChannels[i+1]||t, S.rate); files.push({ name, data }); return { file: name, bytes: data.length, trim: 0, pad: 0 }; });
   const g = S.guide || {}, P = { ...S.P, chMixFit: S.mix.fit ? 1 : 0, chMixOver: S.mix.over, chMixRoom: S.mix.room };
-  const root = { format: "Playbook Vocal Studio", version: 9, savedBy: "Playbook Vocal Studio 0.15.0 (phone DAW)",
+  const root = { format: "Playbook Vocal Studio", version: 9, savedBy: "Playbook Vocal Studio 0.16.0 (phone DAW)",
     smartGuide: { enabled: !!S.guidePrefs.enabled, concern: S.guidePrefs.concern || 0, goal: S.guidePrefs.goal, bpm: S.guidePrefs.bpm, tempoSync: !!S.guidePrefs.sync, locked: g.locked || [], dismissed: g.dismissed || {} },
     performance: S.st?.edits||{breaths:[],timing:[],comp:[]}, notePerformance: S.st?.edits||{breaths:[],timing:[],comp:[]}, alternateTakes: takes,
     source: srcName, sourceBytes: src.length, trim: 0, pad: 0, take: false };
@@ -2536,7 +2631,7 @@ async function saveProject() {
   if(typeof phraseProjectPack==="function")phraseProjectPack(root,files);
   root.exportStages = S.exportMask;
   files.unshift({ name: base + ".pbv", data: new TextEncoder().encode(JSON.stringify(root, null, 1)) });
-  files.push({ name: "READ-ME.txt", data: new TextEncoder().encode("Playbook Vocal Studio song project (saved on the phone, 0.15.0).\r\n\r\nOn the laptop: extract this ZIP into its own folder, keep the files together, then use Open project in the Windows app or FL Studio plugin (0.9.8 or newer) and choose " + base + ".pbv.\r\nPhrase attempts and backing are included. Edit phrases in phone 0.13.0 or newer; desktop opens the assembled vocal only.\r\nOn the phone: SONG PROJECT > Open a song project, then pick this ZIP.\r\n") });
+  files.push({ name: "READ-ME.txt", data: new TextEncoder().encode("Playbook Vocal Studio song project (saved on the phone, 0.16.0).\r\n\r\nOn the laptop: extract this ZIP into its own folder, keep the files together, then use Open project in the Windows app or FL Studio plugin (0.9.8 or newer) and choose " + base + ".pbv.\r\nPhrase attempts and backing are included. Edit phrases in phone 0.13.0 or newer; desktop opens the assembled vocal only.\r\nOn the phone: SONG PROJECT > Open a song project, then pick this ZIP.\r\n") });
   try { const result = await saveDownload(base + " - song project.zip", zip(files)); st.textContent = result + ": " + base + " - song project.zip. " + whereSaved(); toast(result, base + " - song project.zip. " + whereSaved()); }
   catch (err) { st.textContent = err && err.code === "declined" ? "Not saved." : "Couldn't save: " + (err && err.message || "unknown problem") + "."; }
 }
@@ -2840,7 +2935,7 @@ function phraseAdjust(id,field,value){if(phraseBusy())return;const p=selectedPhr
 function phraseSafeGain(channels){let peak=0;for(const c of channels)for(const x of c)peak=Math.max(peak,Math.abs(x));return peak>.891251?.891251/peak:1;}
 async function phraseListen(id){if(phraseBusy())return;try{const w=phraseWorkspace(),p=selectedPhrase();let channels,start=0,end,rate=w.rate,gain=1;if(id){const t=p?.takes.find(t=>t.id===id);if(!t)return;const excerpt=PhraseCore.audition(t,p);channels=excerpt;start=p.start;end=channels[0].length/rate;gain=PhraseCore.matchGains(p)[id]||phraseSafeGain(channels);}else{channels=PhraseCore.compose(w);end=channels[0].length/rate;gain=phraseSafeGain(channels);start=0;}if(!end)throw new Error('No audio in this phrase.');endLoop();loop={phrase:true,chs:channels,rate,gain,start:0,end,noBeat:!$('phraseCompareBeat').checked,beatOffset:start,oneShot:true};const ok=await startPlayback(0);phraseMessage(ok?(id?'Playing attempt at a matched level':'Playing assembled vocal')+($('phraseCompareBeat').checked&&S.beat?' with backing.':'.'):'Audio could not start. '+$('playbackStatus').textContent);}catch(e){phraseMessage(e.message);}}
 function phraseFailWorker(error){if(phraseWorker)phraseWorker.terminate();phraseWorker=null;for(const j of phraseJobs.values()){clearTimeout(j.timer);j.reject(new Error(error));}phraseJobs.clear();}
-function phraseWorkerRequest(t,p){return new Promise((resolve,reject)=>{if(!phraseWorker){phraseWorker=new Worker('phrase-worker.js?v=0.15.0');phraseWorker.onmessage=({data:m})=>{const j=phraseJobs.get(m.id);if(!j)return;clearTimeout(j.timer);phraseJobs.delete(m.id);m.error?j.reject(new Error(m.error)):j.resolve(m.profile);};phraseWorker.onerror=e=>phraseFailWorker(e.message||'Take analysis stopped. Retry analysis.');phraseWorker.onmessageerror=()=>phraseFailWorker('Take analysis returned unreadable data.');}const id=++phraseSerial,channels=t.channels.map(c=>c.slice());phraseJobs.set(id,{resolve,reject,timer:setTimeout(()=>phraseFailWorker('Take analysis timed out. Your recording is kept; retry analysis.'),120000)});try{phraseWorker.postMessage({id,take:{...t,channels,profile:null},phrase:{start:p.start,end:p.end}},channels.map(c=>c.buffer));}catch(e){const j=phraseJobs.get(id);clearTimeout(j.timer);phraseJobs.delete(id);reject(e);}});}
+function phraseWorkerRequest(t,p){return new Promise((resolve,reject)=>{if(!phraseWorker){phraseWorker=new Worker('phrase-worker.js?v=0.16.0');phraseWorker.onmessage=({data:m})=>{const j=phraseJobs.get(m.id);if(!j)return;clearTimeout(j.timer);phraseJobs.delete(m.id);m.error?j.reject(new Error(m.error)):j.resolve(m.profile);};phraseWorker.onerror=e=>phraseFailWorker(e.message||'Take analysis stopped. Retry analysis.');phraseWorker.onmessageerror=()=>phraseFailWorker('Take analysis returned unreadable data.');}const id=++phraseSerial,channels=t.channels.map(c=>c.slice());phraseJobs.set(id,{resolve,reject,timer:setTimeout(()=>phraseFailWorker('Take analysis timed out. Your recording is kept; retry analysis.'),120000)});try{phraseWorker.postMessage({id,take:{...t,channels,profile:null},phrase:{start:p.start,end:p.end}},channels.map(c=>c.buffer));}catch(e){const j=phraseJobs.get(id);clearTimeout(j.timer);phraseJobs.delete(id);reject(e);}});}
 function phraseAnalyze(t,p){const token={};t.analysisToken=token;t.profile=null;t.analysisError=null;phraseJobQueue=phraseJobQueue.then(async()=>{if(t.analysisToken!==token||!S.phrases?.phrases.includes(p)||!p.takes.includes(t))return;try{const profile=await phraseWorkerRequest(t,p);if(t.analysisToken===token)t.profile=profile;}catch(e){if(t.analysisToken===token)t.analysisError=e.message;}finally{if(t.analysisToken===token){delete t.analysisToken;syncPhraseUI();persist();}}});return phraseJobQueue;}
 function phraseAnalyzeMissing(){for(const p of phraseWorkspace().phrases)for(const t of p.takes)if(!t.profile&&!t.analysisToken)phraseAnalyze(t,p);}
 async function phraseAddAudio(p,channels,rate,origin,name){const w=phraseWorkspace();if(!w.phrases.includes(p))throw new Error('That phrase no longer exists.');if(p.takes.length>=32)throw new Error('This phrase has 32 attempts. Save the project and remove unused attempts first.');const converted=await phraseResample(channels,rate,w.rate),t={id:'t'+w.nextId++,name:name||phraseNextTakeName(p),rate:w.rate,channels:converted,origin,offsetMs:0,gainDb:0,profile:null};const trial={...w,phrases:w.phrases.map(q=>q===p?{...p,takes:[...p.takes,t]}:q)};PhraseCore.validate(trial);phraseBackup();p.takes.push(t);phraseNoteTakeName(p,t);clearedSession=null;phraseChanged(t.name+' added — '+p.takes.length+' attempt'+(p.takes.length===1?'':'s')+'. Listen, then tap Choose.');phraseAnalyze(t,p);}
@@ -2866,5 +2961,6 @@ phraseBind();
 
 </script>
 
-<script src="daw.js?v=0.15.0"></script>
-<script src="rec.js?v=0.15.0"></script>
+<script src="daw.js?v=0.16.0"></script>
+<script src="rec.js?v=0.16.0"></script>
+<script src="rc.js?v=0.16.0"></script>

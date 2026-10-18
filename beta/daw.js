@@ -1,4 +1,4 @@
-/* Playbook Vocal Studio 0.15.0 — DAW layout controller (0.15: punch strip, markers, take menu, recording keys).
+/* Playbook Vocal Studio 0.16.0 — DAW layout controller (0.15: punch strip, markers, take menu, recording keys).
    Wires the timeline, transport, menus, tabs and shortcuts to the unchanged 0.13 functions
    (startPlayback, phraseSelect, phraseChoose, phraseListen, startRecording via #phraseRecord, …).
    No audio math lives here: only monitor gains (mute / solo / vocal fader) for playback. */

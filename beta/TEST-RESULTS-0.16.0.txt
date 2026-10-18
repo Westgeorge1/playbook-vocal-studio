@@ -1,0 +1,316 @@
+PLAYBOOK VOCAL STUDIO 0.16.0 — TEST RESULTS (2026-10-18)
+Tested in headless Google Chrome with a fake microphone (Chrome test device:
+a repeating beep), on a desktop window (1600x1000 / 1440x900) and a phone-size
+touch window (390x844). Not tested on a real phone, a real mic or Bluetooth.
+
+SUMMARY
+  New RECORD & COMP tests (tests-0.16/test16.py) ......... 110 of 110 passed
+  0.15 feature tests re-run on 0.16 (regress/test15) ..... 85 of 85 passed
+  0.15 smoke test re-run on 0.16 (regress/smoke15) ....... 61 of 61 passed
+  Control audit 0.15 -> 0.16: 437 control ids, 0 missing, 0 lost handlers, 0 unreachable
+  Control audit 0.14 -> 0.16: 352 control ids, 0 missing, 0 lost handlers, 0 unreachable
+  Sound engine files: byte-identical to 0.15.0 (phrase-core.js, worker.js,
+  phrase-worker.js, engine-wasm.*, daw.css). daw.js, rec.js, rec.css and
+  rec-worklet.js differ only in the version number text.
+
+HOW THE OLD TESTS WERE RUN ON 0.16
+  0.16 opens on RECORD & COMP, so the 0.15 tests open 0.16 with ?step=polish
+  (the same as clicking "2 POLISH"). Only these test edits were made: the
+  port/URL, the expected version text 0.16.0, the screenshot folder, the
+  output file paths, and one helper scrolls the existing track list before
+  clicking a lower lane (the step bar takes ~63 px at the top, so in a 900 px
+  window the 2nd take lane sits just below the visible area until you scroll).
+  An extra audit with 0.16 left on RECORD & COMP (informational) shows the 0.15
+  controls are all present and wired there too, just hidden until POLISH.
+
+PROJECT COMPATIBILITY (inside test16)
+  - 0.16 save -> reopen in 0.16: parts, takes and choices identical
+  - 0.16 project -> opens in the 0.15 app: identical, no errors
+  - project saved by the real 0.15.0 app -> opens in 0.16 as parts with takes,
+    stars and 2 markers kept
+  - project format still version 9; nothing new is required
+
+THINGS FOUND AND FIXED DURING TESTING
+  - Play pressed after the playhead was past the end of the song now starts from
+    the top (it used to stop at once).
+  - "Punch in now" from More works while the comp is playing (it now switches to
+    plain playback first, as punch-in needs).
+  - The take list no longer rebuilds in the middle of a click (a click could be
+    lost when take analysis finished at that moment).
+  - Phone: song title no longer overlaps the saved light; drag of the IN/OUT
+    flags no longer throws an error on some touch events.
+  - The help line uses the full width; POLISH hides the step bar copies of
+    saved / Undo / Redo because POLISH has its own.
+
+LIMITS / NOT TESTED
+  - No real phone, real microphone, headphones or Bluetooth were used.
+  - The fake mic only beeps, so TUNE finds no sung notes on it (same in 0.15);
+    the TUNE check only confirms POLISH analysed the comp.
+  - Latency compensation was checked with a set 50 ms value; the latency test
+    itself needs a real mic and speaker (loopback), not possible with a fake mic.
+  - Browser recording start times can vary slightly between devices.
+  - "Hear my comp" also controls hearing the old vocal while recording.
+  - A punch-in that does not cover a whole part makes its own small part
+    ("Punch m:ss"), same rule as 0.15.
+
+NEW TEST LIST (test16.py)
+  PASS  0.16.0 version text (title, menu bar, project savedBy)
+  PASS  opens on 1 RECORD & COMP (default)
+  PASS  two-step switch labels
+  PASS  every RECORD & COMP desktop control is on screen
+  PASS  backing waveform lane shows the backing name
+  PASS  More ▾ opens the extras menu
+  PASS  More › Pre-roll sets the lead-in (same setting as PHRASE)
+  PASS  count-in selector Off -> REC prefs
+  PASS  + Add part (Intro, 1 bar) creates a part at the song start
+  PASS  parts follow each other; names Intro, Verse 1, Chorus
+  PASS  parts are the existing phrases (same data)
+  PASS  parts strip colours by name (verse blue, chorus orange)
+  PASS  Rename part (inline)
+  PASS  Undo rename
+  PASS  double-click a part on the strip opens rename
+  PASS  drag a part edge on the strip resizes it (snaps to the beat)
+  PASS  drag the red IN flag on the ruler moves the part start
+  PASS  both edge drags are undoable
+  PASS  selected part shows IN/OUT and info (bars, pre-roll, count-in)
+  PASS  Delete part asks first (Cancel keeps it)
+  PASS  Delete part after OK
+  PASS  big button reads "Record take 1"
+  PASS  R opens the mic check before the very first take
+  PASS  recording starts from the pre-roll before IN
+  PASS  take stops by itself at OUT and lands in the part (Take 1)
+  PASS  latency compensation applied to the take (origin = start - 50 ms)
+  PASS  new take is auto-selected for audition
+  PASS  take 2 with the big button
+  PASS  take 3 with the transport REC
+  PASS  take 4 with the R key
+  PASS  takes stack under the part: Take 1..4, 4 take lanes
+  PASS  panel title "INTRO — 4 takes" and "Record take 5"
+  PASS  count-in honoured: recording starts one bar before IN and clicks play
+  PASS  Verse 1 take 1 recorded
+  PASS  Choose in the take list -> chosen (green ✓ Chosen)
+  PASS  Undo choose
+  PASS  Redo choose
+  PASS  click a take on its lane -> audition (plays that take)
+  PASS  ▶ on the playing take stops it (■)
+  PASS  ▶ in the take list plays the take
+  PASS  Redo last take replaces Take 4 with Take 5
+  PASS  one Undo brings Take 4 back (and removes Take 5)
+  PASS  Del removes a take
+  PASS  Ctrl+Z restores it
+  PASS  Delete unchosen shows the count (3)
+  PASS  Delete unchosen asks first (Cancel keeps all)
+  PASS  Delete unchosen keeps only the chosen take
+  PASS  Undo brings the unchosen takes back
+  PASS  progress 1 of 3, still to do lists Verse 1 and Chorus
+  PASS  Next part ▶ -> Verse 1
+  PASS  Verse 1 take 2
+  PASS  double-click a take lane chooses it
+  PASS  N key = next part (Chorus)
+  PASS  P key = previous part
+  PASS  Chorus take 1
+  PASS  Chorus take 2
+  PASS  not-recorded placeholders exist before recording (desktop draws dashed boxes)
+  PASS  progress 3 of 3, all chosen
+  PASS  Next part on the last part offers + Add next part
+  PASS  COMP = the chosen takes joined by the existing assembly (identical samples, join fade 20 ms)
+  PASS  comp has sound in every part
+  PASS  two joins (× crossfade marks) between three chosen parts
+  PASS  Play = full comp with the backing
+  PASS  Hear my comp OFF -> backing only (and old-vocal off while recording)
+  PASS  Backing OFF -> comp only
+  PASS  Play again pauses
+  PASS  |◀ back to start
+  PASS  click the COMP lane plays the comp from there
+  PASS  Space plays / pauses on RECORD & COMP
+  PASS  Export comp downloads one vocal WAV (My vocal - comp vocal.wav)
+  PASS  exported WAV has the right length (whole song from 0:00, 460800 frames)
+  PASS  exported WAV is not silent
+  PASS  POLISH receives the comp (engine vocal = comp)
+  PASS  Comp done → Go to POLISH: resends the changed comp (asks) and opens CLEAN
+  PASS  POLISH shows the 0.15 interface (menu bar, transport, inspector tabs)
+  PASS  TUNE opens on the comp (engine analysed it; the fake-mic beep has no sung notes, same as 0.15)
+  PASS  switch back to 1 RECORD & COMP keeps everything
+  PASS  More › Metronome toggles the click (menu stays open)
+  PASS  More › Star ratings shows stars on takes
+  PASS  rate a take 4★ from the list
+  PASS  More › Add song marker
+  PASS  More › Hear myself (monitoring) toggles
+  PASS  More › Mic level check shows the live level in the transport meter
+  PASS  More › Mic gain
+  PASS  More › Join crossfade changes the comp fade
+  PASS  More › Latency test opens calibration
+  PASS  More › Phone REC MODE opens
+  PASS  More › Keyboard shortcuts lists the RECORD & COMP keys
+  PASS  More › Loop recording: one take per pass on this part
+  PASS  More › Punch in now (while playing) still works (take punched in)
+  PASS  Undo removes the last recorded take
+  PASS  key 2 goes to POLISH
+  PASS  project ZIP: same format version 9, saved by 0.16.0, no new required fields
+  PASS  no console errors (desktop RECORD & COMP run)
+  PASS  save / reopen in 0.16: parts, takes and choices come back
+  PASS  reopened project shows on RECORD & COMP (progress + comp)
+  PASS  0.16 project opens in 0.15 (parts = phrases, takes, choices)
+  PASS  a project saved by 0.15.0 opens in 0.16 as parts with their takes
+  PASS  0.15 project: stars, markers kept; take lanes built
+  PASS  phone: RECORD & COMP layout (chips, part view, big record; no desktop timeline)
+  PASS  phone: no horizontal overflow
+  PASS  phone: part chips with ✓ for chosen parts
+  PASS  phone: tap a chip selects the part
+  PASS  phone: touch-friendly sizes (record ≥ 120 px, buttons ≥ 40 px)
+  PASS  phone: tap Record records a take on the part
+  PASS  phone: Choose
+  PASS  phone: drag the OUT flag on the part view shortens the part
+  PASS  phone: More ▾ menu fits the screen
+  PASS  phone: POLISH shows the 0.15 phone interface
+  PASS  no console errors (phone run)
+
+0.15 FEATURE TESTS ON 0.16 (regress/test15_on016.py)
+  PASS  0.16.0 version text
+  PASS  input monitoring is off by default
+  PASS  mic check opens before the first take (R)
+  PASS  mic check: live level from the fake mic
+  PASS  Looks good -> recording starts
+  PASS  take 1 recorded and named "Take 1"
+  PASS  R (stopped) = redo this phrase -> Take 2
+  PASS  after removing Take 1, next take is "Take 3" (never repeats)
+  PASS  lane header shows take names, lanes numbered separately
+  PASS  two removals -> 0 takes
+  PASS  Ctrl+Z twice restores BOTH removed takes (multi-step)
+  PASS  Ctrl+Shift+Z redoes one step
+  PASS  undo history depth shown (takes u/r)
+  PASS  PHRASE panel Undo/Redo buttons show counts
+  PASS  star rating on take card (4★)
+  PASS  rename take inline on its card
+  PASS  double-click phrase region opens inline rename
+  PASS  phrase renamed inline
+  PASS  right-click take -> context menu (listen/choose/rate/rename/remove)
+  PASS  rate 5★ from the take menu
+  PASS  Delete unchosen takes (confirm) keeps only the chosen take
+  PASS  Undo restores deleted unchosen takes
+  PASS  Shift+R = next phrase: new phrase after this one is recorded
+  PASS  next phrase starts at the previous phrase end, its first take is Take 1
+  PASS  Remove phrase asks for confirmation (Cancel keeps it)
+  PASS  Remove phrase after OK
+  PASS  Undo brings the removed phrase back
+  PASS  drag the red IN flag on the ruler moves punch-in
+  PASS  drag the OUT flag moves punch-out
+  PASS  flag drags are undoable
+  PASS  Space while recording stops and keeps the take
+  PASS  Esc while recording cancels the take (nothing added)
+  PASS  count-in: lead-in becomes 1 bar from BPM
+  PASS  count-in clicks play during the lead-in (headphones only)
+  PASS  C toggles the metronome; clicks follow BPM during playback
+  PASS  metronome off -> no clicks
+  PASS  click is routed to the speakers/headphones only (not into the mic capture or export graph)
+  PASS  hear-old-vocal ON: backing + old vocal around the phrase
+  PASS  hear-old-vocal OFF: backing only
+  PASS  VOCAL M respected while recording
+  PASS  VOCAL S respected while recording (backing muted)
+  PASS  R during playback punches in at the playhead without stopping the beat
+  PASS  R again punches out; playback keeps running
+  PASS  punch creates a phrase at the punched range with a complete take
+  PASS  second punch over the same part adds a take to that phrase (extends if longer); Space punches out and stops
+  PASS  Esc cancels a punch take
+  PASS  loop recording: one new take per completed pass on the loop phrase
+  PASS  loop keeps playing after loop-record stops
+  PASS  warning when a phrase runs past the backing end
+  PASS  M adds song markers
+  PASS  . / , jump to next / previous marker
+  PASS  double-click marker renames it inline
+  PASS  right-click marker -> Delete
+  PASS  MIC CHECK opens the input and shows the level in the transport
+  PASS  clip warning lights (fake mic beep + 12 dB gain)
+  PASS  mic gain −12 dB applied (GainNode) and clipping clears
+  PASS  input monitoring on/off routes mic -> headphones (with latency warning)
+  PASS  MIC CHECK off closes the mic
+  PASS  mic gain also applies to phrase recording (MediaRecorder records the gained stream)
+  PASS  loopback onset detector finds a 47 ms round trip in a synthetic capture
+  PASS  loopback test runs with the fake mic and reports a result or a clear retry message
+  PASS  tap-along test estimates latency from taps
+  PASS  calibration stored per device (localStorage, keyed by mic + platform)
+  PASS  calibrated latency is applied to new takes
+  PASS  autosave indicator shows the last browser save
+  PASS  backup reminder after N new takes (toast + amber indicator)
+  PASS  project download resets the reminder
+  PASS  project ZIP stores markers, ratings, take names and take counters (optional fields)
+  PASS  help lists the new shortcuts
+  PASS  no console errors (desktop feature run)
+  PASS  0.15 project reopens with names, ratings and markers
+  PASS  input monitoring stays off after reload
+  PASS  0.15 project opens in the 0.14 app (extra fields ignored)
+  PASS  a project saved by 0.14.0 opens in 0.16.0
+  PASS  take numbering continues after the highest existing name
+  PASS  phone: no horizontal overflow with the new controls
+  PASS  phone: REC MODE button visible
+  PASS  phone: big-button record mode opens full screen
+  PASS  phone: big RECORD asks for the mic check first
+  PASS  phone: big RECORD records the phrase
+  PASS  phone: take appears in record mode after auto punch-out
+  PASS  phone: big button again = redo; tap during recording = stop & keep
+  PASS  phone: Choose last take from record mode
+  PASS  phone: long-press a take opens the take menu
+  PASS  no console errors (phone)
+
+0.15 SMOKE TEST ON 0.16 (regress/smoke15_on016.py)
+  PASS  engine ready
+  PASS  sample.mp3 loaded as backing
+  PASS  transport Play starts playback
+  PASS  output meter moves while playing
+  PASS  Stop stops playback
+  PASS  second Stop returns to start
+  PASS  Space plays
+  PASS  Space pauses
+  PASS  Home back to start
+  PASS  timeline click seeks playhead + resume line
+  PASS  L loops (4 bars from playhead)
+  PASS  L again ends loop
+  PASS  ruler drag sets loop region
+  PASS  L loops the ruler region
+  PASS  key 1 -> PHRASE inspector tab
+  PASS  key 2 -> CLEAN inspector tab
+  PASS  key 3 -> TUNE inspector tab
+  PASS  key 4 -> CHAIN inspector tab
+  PASS  key 5 -> DETAIL inspector tab
+  PASS  key 6 -> MIX inspector tab
+  PASS  key 7 -> REC inspector tab
+  PASS  dock tab notes
+  PASS  dock tab wave
+  PASS  dock tab ref
+  PASS  File menu opens
+  PASS  File › Session opens classic OPEN panel
+  PASS  SAVE / EXPORT opens export window
+  PASS  ? opens shortcut help
+  PASS  Esc closes help
+  PASS  Smart Guide opens
+  PASS  legacy showPage("record") maps
+  PASS  legacy showPage("edit") maps
+  PASS  legacy showPage("clean") maps
+  PASS  legacy showPage("tune") maps
+  PASS  legacy showPage("chain") maps
+  PASS  legacy showPage("save") maps
+  PASS  R creates a phrase at the resume line and starts recording (fake mic)
+  PASS  mic meter live while recording (max over 3 s)
+  PASS  take 1 created after auto punch-out
+  PASS  record button records take 2 (redo)
+  PASS  Stop during recording keeps attempt (take 2)
+  PASS  take analysis finished
+  PASS  take lanes = 2
+  PASS  click take region = Listen
+  PASS  double-click take = Choose
+  PASS  Ctrl+Z undoes the take choice (takes context)
+  PASS  Ctrl+Shift+Z redoes it
+  PASS  lane Choose button (take 2; incomplete takes are refused as in 0.13)
+  PASS  Apply chosen takes builds the vocal
+  PASS  play assembled vocal + backing (FINAL)
+  PASS  vocal mute (monitor)
+  PASS  vocal solo mutes backing
+  PASS  backing mute = Include backing switch
+  PASS  Ctrl+S saves project with every take (download)
+  PASS  no console errors (desktop)
+  PASS  phone: no horizontal page overflow (390 px)
+  PASS  phone: timeline scrolls horizontally
+  PASS  phone: tap Play
+  PASS  phone: transport sticky at top after scrolling
+  PASS  phone: transport stays visible when scrolled
+  PASS  no console errors (phone)
