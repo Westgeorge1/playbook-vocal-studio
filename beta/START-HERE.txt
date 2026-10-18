@@ -1,0 +1,14 @@
+Playbook Vocal Studio phone 0.15.0 (DAW layout + recording upgrade)
+
+Open in Chrome:
+https://playbook-vocal-studio-phone.vascogeorge544-vg.chatgpt.site
+
+Use RECORD for phrase recording, multiple attempts and take selection. Read RECORD-AND-TAKES.txt.
+
+For your own hosting, serve all files together over HTTPS. Opening index.html directly as a local file cannot reliably run workers or microphone capture. The WASM effects engine remains 0.12.1.
+
+All 12 automated suites passed; two source review/debug passes completed. Physical phone microphone, audibility and touch testing remains outstanding; see VALIDATION.txt.
+
+0.14.0: new DAW-style screen (menu bar, transport, timeline with take lanes, inspector, editor dock, keyboard shortcuts; press ? for shortcuts). Every 0.13 control is still there; see CHANGES-0.14.0.txt for where each one moved. 
+
+0.15.0: true punch-in on the fly (R while playing), draggable IN/OUT flags on the ruler, Redo-this-phrase (R) and Next-phrase (Shift+R), multi-step Undo/Redo for takes and phrases, count-in and metronome, mic level check with clip warning, star ratings and Delete unchosen takes, loop recording (a new take every pass), latency calibration, song markers, big-button REC MODE for phones, optional input monitoring, mic gain, autosave indicator and backup reminders. Everything from 0.14 is still there and 0.13/0.14 projects open unchanged. See CHANGES-0.15.0.txt and the new REC tab. The hosted link above is still 0.13.0 until you upload this folder.
