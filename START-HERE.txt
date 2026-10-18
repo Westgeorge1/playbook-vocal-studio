@@ -1,0 +1,12 @@
+Playbook Vocal Studio phone 0.14.0 (DAW layout)
+
+Open in Chrome:
+https://playbook-vocal-studio-phone.vascogeorge544-vg.chatgpt.site
+
+Use RECORD for phrase recording, multiple attempts and take selection. Read RECORD-AND-TAKES.txt.
+
+For your own hosting, serve all files together over HTTPS. Opening index.html directly as a local file cannot reliably run workers or microphone capture. The WASM effects engine remains 0.12.1.
+
+All 12 automated suites passed; two source review/debug passes completed. Physical phone microphone, audibility and touch testing remains outstanding; see VALIDATION.txt.
+
+0.14.0: new DAW-style screen (menu bar, transport, timeline with take lanes, inspector, editor dock, keyboard shortcuts; press ? for shortcuts). Every 0.13 control is still there; see CHANGES-0.14.0.txt for where each one moved. The hosted link above is still 0.13.0 until you upload this folder.

@@ -1,0 +1,91 @@
+Playbook Vocal Studio phone 0.13.0 — 2026-10-18
+
+Scope
+New Record & Takes workspace for phrase-by-phrase recording, repeated attempts,
+manual selection assisted by raw-audio measurements, and assembled vocals.
+The C++/WASM effects engine is unchanged from 0.12.1. Windows remains 0.12.1.
+
+Review and debug pass 1 — audio and data integrity
+Completed source review of recorder routing, sample positions, composition,
+analyzer scoring, restoration and portable projects. Fixed:
+- Slightly incomplete takes were allowed to masquerade as full coverage.
+  Coverage now requires every sample in the selected phrase.
+- Captured lead-in noise and missing imported lead-ins produced unequal scoring.
+  Comparisons now use the same available metrics for all attempts.
+- Stale phrase assemblies could be exported. Ordinary and custom exports now
+  request Apply after changed choices; project saving applies pending choices.
+- Malformed offsets/key values and unsafe identities needed validation.
+- Independent analysis boot/errors need rejection and timeout recovery.
+Validated sample positions, mono/stereo preservation, fades, overlaps, unchanged
+originals, correct raw WASM pitch measurements, quiet/uncertain/incomplete takes,
+ties, clipping, background contrast, optional reference and maximum 60 s phrases.
+
+Review and debug pass 2 — usability, recovery and regressions
+Completed source review of user actions, mobile memory costs, asynchronous
+lifecycle, interrupted recordings, last-choice removal and project recovery.
+Fixed:
+- Clearing the final choice could retain an old assembled vocal. Re-applying
+  now restores the base or silence, including when all phrases are removed.
+- Incomplete take previews lost their position. They now keep leading silence.
+- Undo/autosave copied every audio buffer repeatedly. Workspace snapshots now
+  share immutable original PCM and copy metadata; the browser persists its copy.
+- Undo was hidden, timeline instructions did not match its behavior, and redraws
+  could interrupt alignment editing. Controls/instructions now agree.
+- Recording decode failures discarded recoverable microphone bytes. A recovery
+  download keeps those bytes available until another recording/session replaces
+  them. Permission errors unlock retry. Leaving the visible page stops a phrase.
+- Browser storage failures were silent. They now request a project backup.
+- Saved analyzer profiles could be stale or supplied externally. Restoring a
+  project recomputes raw measurements. Late results cannot overwrite new offsets.
+
+Automated verification
+Run: python3 tests/run_phone_tests.py docs/phone-v0.13.0-tests.log
+12/12 production regression suites passed. See the adjacent full log.
+- phrase_core_tests.js: exact samples outside replacements, fades, stereo,
+  overlap order, incomplete coverage, bounds, alignment, rank eligibility,
+  ties/fair comparisons, measurement math and metadata-only Undo copies.
+- phrase_worker_tests.js: production independent worker with actual shipped
+  WASM; raw on-pitch vs detuned/clipped audio, error recovery, stereo and 60 s.
+- phrase_session_tests.js: production handlers with real main WASM; add/choose,
+  visible attempts, resume position, no automatic selection, remove/Undo,
+  phrase-only IndexedDB persistence, exact float audio project packing,
+  missing-file rejection, matched preview, Apply/settings preservation,
+  Clear/Undo, mic-only recording, backing/lead-in, automatic punch-out,
+  early stop, permissions, complete ZIP save-clear-reopen, last-choice removal,
+  failed decode recovery, storage failure and stale analysis results.
+- phone_session_tests.js: original import/playback, stereo, audio resume,
+  cancellation, failures, backing-only playback, clear/Undo and recorder paths.
+- song_change_ui_tests.js, reference_ui_tests.js, reference_wasm_tests.js:
+  pending edit isolation, reference A/B, stereo/export/project preservation.
+- detail_ui_regressions.js, vocal_detail_wasm_tests.js, detail_render_review.js:
+  all five effects, busy/readiness states, A/B rendering, omitted-stage exports,
+  finite changed audio, settings sheets and Reset/Undo.
+- phone_fixes_tests.js: browser/host download fallback and reset settings.
+- phrase_markup_tests.py: generated production script syntax, unique HTML IDs,
+  required controls/pages/assets and byte-identical shared analysis core.
+
+Verification limits
+No controlled browser or physical phone was available. DOM/device/storage APIs
+are simulated in Node; the main and analyzer DSP use the real shipped WASM.
+This does not establish physical audibility, touch layout, browser permission
+behavior, Bluetooth latency, interrupted OS audio or long-session phone memory.
+No native Windows/plugin code changed or new Windows binary was built.
+
+Analyzer limits
+Technical suggestion, not an artistic verdict. Pitch is distance from stable
+note centres to the selected scale, or rounded centres from a chosen reference
+when note counts agree. It cannot know the intended melody without a reference,
+judge lyrics/emotion, or guarantee correct note correspondence. It does not
+penalize vibrato movement. Noise is measured from captured lead-in; no lead-in
+means no background estimate. Fewer than two eligible takes or a close result
+produces no winner. Manual choice remains authoritative.
+
+Timing/storage limits
+Browser input/output latency compensation is approximate. Use headphones and
+listen; adjust per-take alignment +/-500 ms. Phrase spans are 0.5–60 seconds,
+song positions 0–15 minutes, up to 32 attempts per phrase and 128 total,
+30 minutes of attempt audio or 128 MiB of workspace source PCM, whichever comes
+first. Browser autosave is device/profile-specific and can be cleared by the
+browser. Download a song project regularly; it includes every original attempt,
+chosen takes, resume position and backing track. Phone 0.13.0+ edits the phrase
+workspace. Older desktop versions open the assembled vocal only.

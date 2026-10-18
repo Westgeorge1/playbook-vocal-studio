@@ -1,0 +1,492 @@
+PLAYBOOK VOCAL STUDIO 0.14.0 — DAW LAYOUT (2026-10-18)
+
+Based on phone 0.13.0. Layout/markup/CSS/wiring only. worker.js, phrase-core.js, phrase-worker.js and the WASM engine (0.12.1) are byte-identical to 0.13.0.
+New files: daw.css, daw.js, tests-daw/ (audit + smoke scripts and results), screens/.
+
+WHAT'S NEW
+- Top menu bar: File (backing, import, phone recorder, project, session window, new/clear/undo clear, Save/Export with every quick save + custom export, project with every take, recovery), Edit (context Undo/Redo, phrase actions, comp take, reset settings), View (zoom, tabs, dock, Smart Guide), Help (shortcuts, how recording works, about).
+- Transport: back-to-start, play/pause, NEW Stop (2nd press = back to 0:00; stops a recording and keeps the attempt), big Record (records selected phrase; if that phrase is already chosen and the resume line is past it, starts the next phrase there), NEW Loop (ruler region › selected phrase › 4 bars from the playhead), clock in ms + bar/beat (from CHAIN BPM, 4/4), BPM + key display (TUNE key), MIC + OUT meters, listen switch, context-aware Undo/Redo (takes / wave edit / sound & notes).
+- Timeline: ruler with bars and times, playhead, gold resume line; click = seek + set resume, drag ruler = loop region (right-click clears); BACKING lane waveform + M/S/level; VOCAL lane (applied vocal waveform, phrase regions with name, ✓ when chosen, take count, chosen take waveform) + M/S/level/record-arm; Take 1..N lanes with each phrase’s attempts (score %, CHOSEN, SUGGESTED, INCOMPLETE, ‘analysing…’); Comp take lanes for EDIT takes; zoom −/Fit/+, Ctrl+wheel zoom, horizontal scroll.
+- Bottom dock: NOTE EDITOR, WAVE EDIT, COMPARE REFERENCE (collapsible).
+- Right inspector: PHRASE, CLEAN, TUNE, CHAIN, DETAIL, MIX + SAVE / EXPORT.
+- Shortcuts (ignored while typing): Space, Enter/Home, R, L, Ctrl/⌘+Z, Ctrl/⌘+Shift+Z / Ctrl+Y, Ctrl/⌘+S, 1–6, +/−, ?, Esc.
+- Phone (<900 px): sticky compact transport, lanes scroll sideways, inspector and dock become full-width tab panels below.
+
+CHANGES TO THE 0.13 SCRIPT (index.html)
+- Version strings 0.13.0 -> 0.14.0 (title, worker cache keys, project 'savedBy', READ-ME text). Project format is unchanged (version 9).
+- startPlayback: vocal and backing gains are multiplied by the DAW monitor gains (mute / solo / vocal fader). These only apply to normal playback and the new DAW loop. Matched take, guide, detail, reference and custom A/B comparisons are untouched. Recording monitoring is untouched apart from the existing backing switch and level.
+- Backing level slider: live gain also respects backing solo-mute.
+- showPage() is replaced at runtime by daw.js: record->PHRASE, edit->WAVE EDIT, clean/tune/chain->tabs, save->export window; 'open' stays on the timeline.
+
+TWO TAKES SYSTEMS (requested merge)
+The two engines are kept separate, because merging their data was too risky:
+- Phrase takes (RECORD, phrase-core) are drawn as the Take 1..N lanes and are chosen on the timeline.
+- EDIT comp takes (worker engine, whole-song takes used passage by passage) are drawn as separate 'Comp take N' lanes in the same area. Clicking one opens it in WAVE EDIT › TAKES/COMP, where 'Use selected take' works as before.
+Merging them would mean changing project formats and engine state, so it was not done.
+
+MONITOR MIX NOTES
+- Backing M = the existing 'Include backing during playback & recording' switch, so it also mutes the backing in your headphones while recording. Backing level = the existing headphone level.
+- Vocal fader (0-150 %), vocal M/S and backing S change what you hear only. They are not saved and not exported. The exported loudness is set by VOCAL LEVEL on CHAIN, and the rough mix uses the CHAIN 'Mix with your beat' settings as before.
+
+FEATURE MAPPING (0.13 -> 0.14)
+- OPEN · Session: Record & Takes button / New empty session / Undo clear / status
+    -> File › Session & tracks window (also “My tracks” in the status bar); New session + Clear vocal + Undo clear also in File menu
+- OPEN · Backing: Load / Play backing only / Remove
+    -> File › Open backing track; Session window (Play backing only, Remove); BACKING lane shows the waveform
+- OPEN · Include backing switch
+    -> BACKING lane M button and MIX › Backing M (same switch); original switch in Session window
+- OPEN · Headphone level slider
+    -> BACKING lane slider and MIX › Backing fader (drive the same control); original slider in Session window
+- OPEN · Vocal: Play original / Play final / Clear vocal & takes
+    -> Session window; BEFORE/FINAL listen switch + Play in the transport
+- OPEN · Record my vocal (whole song) + timer/meter/blocked warning
+    -> Session window (unchanged). Transport ● records phrases (RECORD logic)
+- OPEN · Use my phone’s recorder / Import as / Import vocal / voice-memo help
+    -> File menu + Session window
+- OPEN · Compare with a reference (all controls, table)
+    -> Dock › COMPARE REFERENCE
+- OPEN · Song project open
+    -> File › Open song project…; Session window
+- OPEN · Engine info
+    -> Help › About this engine
+- RECORD · Song name, base info, Load backing, Hear assembled, Stop playback/keep attempt
+    -> Inspector › PHRASE
+- RECORD · Phrase timeline canvas
+    -> Replaced by the main timeline; the old canvas is kept as an ‘Overview’ in PHRASE
+- RECORD · Resume slider
+    -> PHRASE; clicking the main timeline also sets it (gold dashed line)
+- RECORD · Continue from here / Use playback position
+    -> Bar under the lanes (Edit menu too)
+- RECORD · Phrase list buttons
+    -> PHRASE (and click a phrase region on the VOCAL lane)
+- RECORD · Phrase name/Start/End, Mark new, Update boundaries
+    -> PHRASE (Mark new phrase also under the lanes)
+- RECORD · Lead-in, Join fade
+    -> Bar under the lanes
+- RECORD · Record this phrase / Redo + timer/meter
+    -> PHRASE + transport ● (R key) + MIC meter + red record line on the timeline
+- RECORD · Import attempt, Clear take choice, Remove phrase, Undo last change
+    -> PHRASE + Edit menu; Undo also in the transport (takes context)
+- RECORD · Recovery download
+    -> PHRASE + File › Download last microphone file
+- RECORD · Key/scale/melody reference/compare-with-backing/suggestion
+    -> PHRASE
+- RECORD · Take cards (Listen, Choose, Analyse again, Remove, Alignment, Assembly level, metrics)
+    -> PHRASE; also take lanes: click = Listen, double-click / lane Choose = Choose, score shown on region
+- RECORD · Apply chosen takes / Save project with every take
+    -> Bar under the lanes + PHRASE + File/Edit menus; Ctrl+S saves project
+- EDIT · Breaths / Timing / Takes-Comp, waveform, selection, zoom, hear, saved edits, undo/redo
+    -> Dock › WAVE EDIT (all original controls)
+- EDIT · Comp takes (record another take, phone recorder take, add take, use passages)
+    -> Dock › WAVE EDIT › TAKES/COMP; each comp take also drawn as a ‘Comp take N’ lane (click = open it in WAVE EDIT); Edit › Record another comp take
+- CLEAN · all
+    -> Inspector › CLEAN (key 2)
+- TUNE · Key & style, knobs, switches, range
+    -> Inspector › TUNE (key 3)
+- TUNE · Note editor + tools + Undo/Redo/Reset all/zoom
+    -> Dock › NOTE EDITOR
+- CHAIN · presets, reset, chain on, EQ, tame, dynamics, second EQ, echo & space, BPM & note buttons, level/limiter
+    -> Inspector › CHAIN (key 4); BPM shown in transport (click it to edit)
+- CHAIN · Mix with your beat (fit, ABOVE BEAT, MAKE ROOM, info)
+    -> Inspector › MIX (key 6) with new Backing/Vocal faders + M/S
+- SAVE · Quick saves (8), Custom export, A/B, settings sheet, Reset all settings, Desktop settings + Copy
+    -> SAVE / EXPORT button (window) + File › Save/Export items
+- Smart Guide sheet
+    -> ✦ SMART GUIDE button (menu bar) + View menu
+- Vocal Detail sheet
+    -> Inspector › DETAIL (key 5); every ‘Vocal Detail’ button opens it
+- Transport: back to start, play/pause, progress bar, time, BEFORE/CLEANED/TUNED/FINAL, playback status, output signal
+    -> Top transport (status/output text in the status bar)
+- Toast, knob step editor
+    -> Unchanged pop-ups
+- Step tabs OPEN…SAVE
+    -> Kept hidden in the page (still wired); replaced by inspector/dock tabs, menus and windows
+
+VERIFICATION
+The original automated suites (tests/run_phone_tests.py, 12 suites) were NOT in the 0.13.0 zip, so they could not be re-run.
+Headless Chrome (Playwright, google-chrome, fake microphone) was used against `python3 -m http.server`.
+
+A. Functional smoke test (tests-daw/smoke.py) — 60 checks, 0 failed
+  [PASS] engine ready — Load a vocal or backing track to begin.
+  [PASS] sample.mp3 loaded as backing — 11.459977324263038
+  [PASS] transport Play starts playback — 1.479297052154195
+  [PASS] output meter moves while playing — 35.4363%
+  [PASS] Stop stops playback — 1.5083219954648528
+  [PASS] second Stop returns to start
+  [PASS] Space plays
+  [PASS] Space pauses
+  [PASS] Home back to start
+  [PASS] timeline click seeks playhead + resume line — [5.000000351180416, 5.000000351180416]
+  [PASS] L loops (4 bars from playhead) — [3.2, 11.459977324263038, True]
+  [PASS] L again ends loop
+  [PASS] ruler drag sets loop region — [2.000000035118042, 5.999999578583502]
+  [PASS] L loops the ruler region — [2.000000035118042, 5.999999578583502]
+  [PASS] key 1 -> PHRASE inspector tab
+  [PASS] key 2 -> CLEAN inspector tab
+  [PASS] key 3 -> TUNE inspector tab
+  [PASS] key 4 -> CHAIN inspector tab
+  [PASS] key 5 -> DETAIL inspector tab
+  [PASS] key 6 -> MIX inspector tab
+  [PASS] dock tab notes
+  [PASS] dock tab wave
+  [PASS] dock tab ref
+  [PASS] File menu opens
+  [PASS] File › Session opens classic OPEN panel
+  [PASS] SAVE / EXPORT opens export window
+  [PASS] ? opens shortcut help
+  [PASS] Esc closes help
+  [PASS] Smart Guide opens
+  [PASS] legacy showPage("record") maps
+  [PASS] legacy showPage("edit") maps
+  [PASS] legacy showPage("clean") maps
+  [PASS] legacy showPage("tune") maps
+  [PASS] legacy showPage("chain") maps
+  [PASS] legacy showPage("save") maps
+  [PASS] R creates a phrase at the resume line and starts recording (fake mic) — [[2.000000035118042, 10.000000035118042]]
+  [PASS] mic meter live while recording (max over 3 s) — 100
+  [PASS] take 1 created after auto punch-out — Recording kept. Some input peaks were loud; check the clipping analysis before choosing.
+  [PASS] record button records take 2 (redo)
+  [PASS] Stop during recording keeps attempt (take 2) — Recording kept, but it ended before the phrase was complete. Adjust End or redo this part.
+  [PASS] take analysis finished — ['ok', 'This take does not reach the phrase.']
+  [PASS] take lanes = 2
+  [PASS] click take region = Listen — Playing attempt at a matched level with backing.
+  [PASS] double-click take = Choose — Take 1 chosen. Continue from 0:10.0 or record another attempt.
+  [PASS] Ctrl+Z undoes the take choice (takes context) — phrase
+  [PASS] Ctrl+Shift+Z redoes it
+  [PASS] lane Choose button (take 2; incomplete takes are refused as in 0.13)
+  [PASS] Apply chosen takes builds the vocal — Assembled vocal applied. Use Clean, Tune and Chain, then Save.
+  [PASS] play assembled vocal + backing (FINAL)
+  [PASS] vocal mute (monitor)
+  [PASS] vocal solo mutes backing
+  [PASS] backing mute = Include backing switch
+  [PASS] Ctrl+S saves project with every take (download) — My phrase recording - song project.zip
+  [PASS] no console errors (desktop) — []
+  [PASS] phone: no horizontal page overflow (390 px) — [390, 390]
+  [PASS] phone: timeline scrolls horizontally
+  [PASS] phone: tap Play
+  [PASS] phone: transport sticky at top after scrolling
+  [PASS] phone: transport stays visible when scrolled — 46
+  [PASS] no console errors (phone) — []
+
+B. Control audit (tests-daw/audit.py). Every element id in 0.13.0 (311) was checked in 0.14.0: it must exist, keep every event-listener type it had in 0.13 (read through the Chrome DevTools protocol), and be visible once its panel / tab / window is opened whenever it was visible on its 0.13 page.
+   PASS = exists, wired, reachable. REPLACED = old step tab kept hidden and still wired; its destination was verified in A ('legacy showPage' checks).
+   'state-dependent' = hidden in both versions until the app state shows it (for example Undo clear, recovery download, recording boxes).
+guideBtn               PASS  handlers: click
+guideCount             PASS  state-dependent/hidden in both (same as 0.13)
+chip                   PASS  
+busybar                PASS  
+sessionStatus          PASS  
+sessionOpen            PASS  handlers: click
+tab-open               REPLACED  old step tab kept in DOM (hidden, still wired); navigation now via File › Session & tracks / “My tracks”
+tab-record             REPLACED  old step tab kept in DOM (hidden, still wired); navigation now via PHRASE inspector tab (key 1)
+tab-edit               REPLACED  old step tab kept in DOM (hidden, still wired); navigation now via WAVE EDIT dock tab
+tab-clean              REPLACED  old step tab kept in DOM (hidden, still wired); navigation now via CLEAN tab (key 2)
+tab-tune               REPLACED  old step tab kept in DOM (hidden, still wired); navigation now via TUNE tab (key 3) + NOTE EDITOR dock
+tab-chain              REPLACED  old step tab kept in DOM (hidden, still wired); navigation now via CHAIN tab (key 4)
+tab-save               REPLACED  old step tab kept in DOM (hidden, still wired); navigation now via SAVE / EXPORT button / File › Save-Export
+page-open              PASS  
+sessionRack            PASS  
+openRecord             PASS  handlers: click
+newSession             PASS  handlers: click
+undoClear              PASS  state-dependent/hidden in both (same as 0.13); handlers: click
+clearStatus            PASS  
+beatName               PASS  
+beatInfo               PASS  
+beatPick               PASS  handlers: click
+beatPlay               PASS  handlers: click
+fileBeat               PASS  handlers: change
+beatOn                 PASS  handlers: change
+beatLevelText          PASS  
+beatLevel              PASS  handlers: input
+beatRemove             PASS  handlers: click
+songName               PASS  
+vocalStatus            PASS  
+songInfo               PASS  
+vocalPlay              PASS  handlers: click
+finalPlay              PASS  handlers: click
+clearVocal             PASS  handlers: click
+recBtn                 PASS  handlers: click
+recLabel               PASS  
+recBox                 PASS  state-dependent/hidden in both (same as 0.13)
+recTime                PASS  state-dependent/hidden in both (same as 0.13)
+recMeter               PASS  state-dependent/hidden in both (same as 0.13)
+recNote                PASS  state-dependent/hidden in both (same as 0.13)
+recBlocked             PASS  state-dependent/hidden in both (same as 0.13)
+captureBtn             PASS  handlers: click
+fileCapture            PASS  handlers: change
+captureNote            PASS  
+importKind             PASS  
+pickBtn                PASS  handlers: click
+fileVocal              PASS  handlers: change
+referenceRack          PASS  
+referencePick          PASS  handlers: click
+fileReference          PASS  handlers: change
+referenceName          PASS  
+referenceStartA        PASS  handlers: input
+referenceStartB        PASS  handlers: input
+referenceLength        PASS  handlers: input
+referencePrepare       PASS  handlers: click
+referenceA             PASS  handlers: click
+referenceB             PASS  handlers: click
+referenceStop          PASS  handlers: click
+referenceStatus        PASS  
+referenceMetrics       PASS  
+projBtn                PASS  handlers: click
+fileProject            PASS  handlers: change
+projStatus             PASS  
+engineInfo             PASS  
+page-record            PASS  
+phraseTitle            PASS  handlers: change
+phraseBaseInfo         PASS  
+phraseBacking          PASS  handlers: click
+phraseListenSong       PASS  handlers: click
+phraseStop             PASS  handlers: click
+phraseBackingInfo      PASS  
+phraseTimeline         PASS  handlers: pointerdown
+phraseCursorText       PASS  
+phraseCursor           PASS  handlers: input
+phraseContinue         PASS  handlers: click
+phraseAtPlayhead       PASS  handlers: click
+phraseList             PASS  
+phraseLabel            PASS  
+phraseStart            PASS  
+phraseEnd              PASS  
+phraseNew              PASS  handlers: click
+phraseBounds           PASS  handlers: click
+phraseLead             PASS  handlers: change
+phraseFade             PASS  handlers: change
+phraseRecord           PASS  handlers: click
+phraseRecordLabel      PASS  
+phraseRecBox           PASS  state-dependent/hidden in both (same as 0.13)
+phraseRecTime          PASS  state-dependent/hidden in both (same as 0.13)
+phraseRecMeter         PASS  state-dependent/hidden in both (same as 0.13)
+phraseRecNote          PASS  state-dependent/hidden in both (same as 0.13)
+phraseImport           PASS  handlers: click
+phraseUnchoose         PASS  handlers: click
+phraseRemove           PASS  handlers: click
+phraseUndo             PASS  state-dependent/hidden in both (same as 0.13); handlers: click
+phraseFile             PASS  handlers: change
+phraseRecover          PASS  state-dependent/hidden in both (same as 0.13); handlers: click
+phraseStatus           PASS  
+phraseKey              PASS  handlers: change
+phraseScale            PASS  handlers: change
+phraseReference        PASS  handlers: change
+phraseCompareBeat      PASS  
+phraseRecommendation   PASS  
+phraseTakes            PASS  
+phraseAssemblyInfo     PASS  
+phraseApply            PASS  handlers: click
+phraseSave             PASS  handlers: click
+phraseSaveStatus       PASS  
+page-edit              PASS  
+editTabs               PASS  
+editHelp               PASS  
+editWaveTitle          PASS  
+editCanvas             PASS  handlers: pointercancel,pointerdown,pointermove,pointerup
+editScroll             PASS  state-dependent/hidden in both (same as 0.13); handlers: input
+selStart               PASS  handlers: change
+selEnd                 PASS  handlers: change
+editZoom               PASS  handlers: click
+editFit                PASS  handlers: click
+hearMain               PASS  handlers: click
+hearRaw                PASS  handlers: click
+hearFinal              PASS  handlers: click
+breathRack             PASS  
+breathKnobs            PASS  
+breathApply            PASS  handlers: click
+breathNext             PASS  handlers: click
+breathRemove           PASS  handlers: click
+timingRack             PASS  state-dependent/hidden in both (same as 0.13)
+timingKnobs            PASS  state-dependent/hidden in both (same as 0.13)
+timingApply            PASS  state-dependent/hidden in both (same as 0.13); handlers: click
+timingRemove           PASS  state-dependent/hidden in both (same as 0.13); handlers: click
+compRack               PASS  state-dependent/hidden in both (same as 0.13)
+takeRec                PASS  state-dependent/hidden in both (same as 0.13); handlers: click
+takeRecLabel           PASS  state-dependent/hidden in both (same as 0.13)
+fileTakeCapture        PASS  state-dependent/hidden in both (same as 0.13); handlers: change
+fileTake               PASS  state-dependent/hidden in both (same as 0.13); handlers: change
+takeRecBox             PASS  state-dependent/hidden in both (same as 0.13)
+takeRecTime            PASS  state-dependent/hidden in both (same as 0.13)
+takeRecMeter           PASS  state-dependent/hidden in both (same as 0.13)
+takeSel                PASS  state-dependent/hidden in both (same as 0.13); handlers: change
+takeCanvas             PASS  state-dependent/hidden in both (same as 0.13); handlers: pointercancel,pointerdown,pointermove,pointerup
+srcStart               PASS  state-dependent/hidden in both (same as 0.13); handlers: change
+srcEnd                 PASS  state-dependent/hidden in both (same as 0.13); handlers: change
+matchRange             PASS  state-dependent/hidden in both (same as 0.13); handlers: click
+hearTake               PASS  state-dependent/hidden in both (same as 0.13); handlers: click
+compApply              PASS  state-dependent/hidden in both (same as 0.13); handlers: click
+compRemove             PASS  state-dependent/hidden in both (same as 0.13); handlers: click
+editList               PASS  
+editUndo               PASS  handlers: click
+editRedo               PASS  handlers: click
+editStatus             PASS  
+page-clean             PASS  
+noiseBig               PASS  
+noiseVerdict           PASS  
+humInfo                PASS  
+musicWarn              PASS  state-dependent/hidden in both (same as 0.13)
+modeSeg                PASS  
+modeHelp               PASS  
+cleanKnobs             PASS  
+humSel                 PASS  handlers: change
+cleanOn                PASS  handlers: change
+cleanAuto              PASS  handlers: click
+cleanCanvas            PASS  handlers: pointerdown
+cleanListen            PASS  
+page-tune              PASS  
+keySel                 PASS  handlers: change
+scaleSel               PASS  handlers: change
+keyInfo                PASS  
+useKey                 PASS  state-dependent/hidden in both (same as 0.13); handlers: click
+styleSeg               PASS  
+styleHelp              PASS  
+tuneKnobs              PASS  
+preserve               PASS  handlers: change
+snapKey                PASS  handlers: change
+protect                PASS  handlers: change
+protectExpression      PASS  handlers: change
+keepInTune             PASS  handlers: change
+followSinging          PASS  handlers: change
+matchVol               PASS  handlers: change
+rangeSeg               PASS  
+learnRange             PASS  handlers: click
+rangeInfo              PASS  
+notesCanvas            PASS  handlers: pointercancel,pointerdown,pointermove,pointerup
+noteInfo               PASS  
+shapePanel             PASS  state-dependent/hidden in both (same as 0.13)
+pitchHz                PASS  state-dependent/hidden in both (same as 0.13)
+pitchSub               PASS  state-dependent/hidden in both (same as 0.13)
+notePane               PASS  state-dependent/hidden in both (same as 0.13)
+noteKnobs              PASS  state-dependent/hidden in both (same as 0.13)
+intoPane               PASS  state-dependent/hidden in both (same as 0.13)
+intoKnobs              PASS  state-dependent/hidden in both (same as 0.13)
+shapeHelp              PASS  state-dependent/hidden in both (same as 0.13)
+noteDown               PASS  handlers: click
+noteUp                 PASS  handlers: click
+noteKeep               PASS  handlers: click
+noteApprove            PASS  state-dependent/hidden in both (same as 0.13); handlers: click
+noteReset              PASS  handlers: click
+noteSplit              PASS  handlers: click
+noteMerge              PASS  handlers: click
+loopPhrase             PASS  handlers: click
+nextUnsure             PASS  handlers: click
+undoBtn                PASS  handlers: click
+redoBtn                PASS  handlers: click
+resetAll               PASS  handlers: click
+zoomOut                PASS  handlers: click
+zoomIn                 PASS  handlers: click
+page-chain             PASS  
+presetSeg              PASS  
+presetHelp             PASS  
+resetPreset            PASS  handlers: click
+resetFinishing         PASS  
+chainOn                PASS  handlers: change
+eqCanvas               PASS  handlers: pointercancel,pointerdown,pointermove,pointerup
+bandInfo               PASS  
+bandKnobs              PASS  
+tameKnobs              PASS  
+dynKnobs               PASS  
+eq2On                  PASS  handlers: change
+eq2Knobs               PASS  
+eq2Adv                 PASS  
+eq2FreqKnobs           PASS  state-dependent/hidden in both (same as 0.13)
+spaceKnobs             PASS  
+bpm                    PASS  handlers: change
+mixFit                 PASS  handlers: change
+mixKnobs               PASS  
+mixInfo                PASS  
+levelKnobs             PASS  
+limitOn                PASS  handlers: change
+limitAuto              PASS  handlers: change
+limitKnobs             PASS  
+limitWarn              PASS  state-dependent/hidden in both (same as 0.13)
+chainReadout           PASS  
+page-save              PASS  
+saveProject            PASS  handlers: click
+saveStatus             PASS  
+customRack             PASS  
+stageQuick             PASS  
+stagesBefore           PASS  
+stagesChainHead        PASS  
+stagesChain            PASS  
+hearCustom             PASS  handlers: click
+hearFull               PASS  handlers: click
+hearStop               PASS  handlers: click
+saveCustom             PASS  handlers: click
+customStatus           PASS  
+sheetText              PASS  state-dependent/hidden in both (same as 0.13)
+resetRack              PASS  
+resetSettings          PASS  handlers: click
+resetConfirm           PASS  state-dependent/hidden in both (same as 0.13)
+resetYes               PASS  state-dependent/hidden in both (same as 0.13); handlers: click
+resetNo                PASS  state-dependent/hidden in both (same as 0.13); handlers: click
+settingsText           PASS  
+copySettings           PASS  handlers: click
+copyStatus             PASS  
+toast                  PASS  state-dependent/hidden in both (same as 0.13)
+toastTitle             PASS  state-dependent/hidden in both (same as 0.13)
+toastText              PASS  state-dependent/hidden in both (same as 0.13)
+toastClose             PASS  state-dependent/hidden in both (same as 0.13); handlers: click
+stepper                PASS  state-dependent/hidden in both (same as 0.13)
+stepLabel              PASS  state-dependent/hidden in both (same as 0.13)
+stepMinus              PASS  state-dependent/hidden in both (same as 0.13); handlers: keydown,pointercancel,pointerdown,pointerleave,pointerup
+stepValue              PASS  state-dependent/hidden in both (same as 0.13)
+stepPlus               PASS  state-dependent/hidden in both (same as 0.13); handlers: keydown,pointercancel,pointerdown,pointerleave,pointerup
+stepAuto               PASS  state-dependent/hidden in both (same as 0.13); handlers: click
+stepDone               PASS  state-dependent/hidden in both (same as 0.13); handlers: click
+guideSheet             PASS  
+guideOn                PASS  handlers: change
+guideClose             PASS  handlers: click
+guideConcern           PASS  handlers: change
+guideGoal              PASS  handlers: change
+guideBpm               PASS  handlers: change
+guideSync              PASS  handlers: change
+tipBadge               PASS  
+tipTitle               PASS  
+tipReason              PASS  
+tipListen              PASS  
+tipChange              PASS  
+tipGainCost            PASS  
+gPreview               PASS  handlers: click
+gCurrent               PASS  handlers: click
+gSuggested             PASS  handlers: click
+gStop                  PASS  handlers: click
+gApply                 PASS  handlers: click
+gLater                 PASS  handlers: click
+gKeep                  PASS  handlers: click
+gOpen                  PASS  handlers: click
+gMsg                   PASS  
+gMeasured              PASS  
+gUndo                  PASS  handlers: click
+gReset                 PASS  handlers: click
+detailSheet            PASS  handlers: keydown
+detailClose            PASS  handlers: click
+detailChain            PASS  handlers: change
+detailReset            PASS  handlers: click
+detailControls         PASS  
+detailEffect           PASS  handlers: change
+detailPrepare          PASS  handlers: click
+detailA                PASS  handlers: click
+detailB                PASS  handlers: click
+detailRemoved          PASS  handlers: click
+detailStop             PASS  handlers: click
+detailMono             PASS  handlers: change
+detailStatus           PASS  
+playbackStatus         PASS  
+outputSignal           PASS  
+progress               PASS  handlers: pointerdown,pointermove
+progressFill           PASS  
+toStart                PASS  handlers: click
+playBtn                PASS  handlers: click
+playIcon               PASS  
+playLabel              PASS  
+timeText               PASS  
+abSeg                  PASS  
+
+NOT VERIFIED / RISKS
+- A real microphone, audibility, Bluetooth latency and real touch use on a phone were not tested. Recording was smoke-tested with Chrome's fake microphone (a beep) only.
+- The analyzer gives the fake-mic beep no score ('—'), because it has no stable sung notes. Scores on real singing were not seen.
+- The take-lane score is the analyzer's internal 0-100 ranking value, shown only to help you choose; it is not a quality verdict. The full measurements are still on the PHRASE take cards.
+- Timeline waveforms come from the applied vocal before timing edits, so after big timing edits they can be slightly off. Audio is not affected.
+- Page fonts still load from Google Fonts, as in 0.13; offline, the app falls back to system fonts.
+- The vocal fader, mute and solo are kept only for the current session.

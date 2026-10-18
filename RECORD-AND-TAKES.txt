@@ -1,0 +1,50 @@
+PLAYBOOK VOCAL STUDIO — RECORD & TAKES (phone 0.13.0)
+
+Open the browser app directly in Chrome. Wear headphones.
+
+1. Open RECORD, then Load backing track. OPEN also has a backing-only preview
+   and its volume/mute controls. The microphone records only your voice; the
+   backing plays in your headphones. Speaker playback may bleed into the mic.
+2. Tap Continue from here to create your first phrase. Change Start and End
+   in seconds, give the phrase a name and tap Update this phrase's boundaries.
+   The default is eight seconds. A phrase can be 0.5–60 seconds long.
+3. Set a lead-in, then Record this phrase. Watch the countdown and mic meter.
+   You hear the backing and existing vocal before the phrase. The old vocal is
+   muted inside the phrase. Recording stops just after End. Stop and keep
+   attempt lets you finish early; incomplete attempts remain available.
+4. Tap Redo this part for another attempt. No earlier attempt is overwritten.
+   Alternatively import a phrase recording; its beginning is placed at Start.
+5. Listen to each take with or without backing. Playback levels are matched
+   for comparison. Use Alignment if a recording sounds early or late; positive
+   milliseconds move it later. Assembly level changes its final contribution.
+6. Set the song's key and scale if known. You can choose one attempt as a melody
+   and timing reference. Read the estimated pitch, clipping and background
+   measurements. The suggestion is advisory: choose the delivery you prefer.
+7. Tap Choose. The resume position moves to that phrase's end. Continue from
+   here starts the next phrase. You can tap the timeline or use the resume
+   slider to move elsewhere. Select any earlier phrase to redo it again.
+8. Hear assembled vocal + backing checks the whole sequence. Join fade softens
+   the edges (20 ms by default). Later-created phrases replace earlier ones in
+   overlaps. Unchosen regions retain the starting vocal or silence.
+9. Apply chosen takes to vocal loads the assembly into CLEAN, TUNE and CHAIN.
+   Current sound settings remain; note and performance edits on the previous
+   assembly reset. The source attempts stay in RECORD. Finish the sound, then
+   use SAVE to export the vocal or rough mix.
+10. Save project with every take downloads a complete song ZIP, including the
+    backing, original attempts, choices and resume position. Reopen it through
+    OPEN > Song project. Phone 0.13.0 or newer restores editable phrases;
+    desktop opens the assembled vocal. Browser autosave is also available but
+    is not a replacement for downloaded backups.
+
+Clear take choice restores the starting vocal (or silence) for that phrase
+when you Apply again. Remove deletes an attempt/phrase from the workspace;
+Undo last change brings it back. OPEN's Clear vocal & takes removes all vocal
+work while keeping the backing. New session clears everything. Undo clear is
+available until a new vocal or recording replaces that undo point.
+
+Keep the page visible while recording. Switching away stops and keeps the
+attempt. If decoding fails but microphone bytes exist, Download last microphone
+file for recovery saves them for another import. A storage warning means you
+should download a project immediately. Microphone permissions, sound output and
+latency vary by phone and headphones; the alignment control is provided for
+listening corrections.

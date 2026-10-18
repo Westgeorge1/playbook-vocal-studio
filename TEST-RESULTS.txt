@@ -1,0 +1,109 @@
+=== phone_session_tests.js (exit 0) ===
+PASS real WAV import → real WASM → visible new filename, stereo buffers and ready controls
+PASS playback waits for audio resume, routes original stereo samples and shows output signal
+PASS cancellation and denied audio do not leave false Playing state or start late audio
+PASS replacing a shorter vocal leaves removed-noise mode, clears loops and restarts at zero
+PASS decode and engine errors stay visible, keep the previous filename and permit retry
+PASS clear vocal keeps backing; beat-only/global Play work without vocals; Undo restores audio
+PASS new empty session removes all tracks and persisted vocal; Undo restores all tracks
+PASS an older delayed autosave cannot resurrect a cleared session
+PASS microphone alone feeds recorder; backing feeds headphones; live level, meter, Stop and loaded take work
+PASS microphone rejection allows retry and never starts backing playback
+PASS import/clear/record controls unlock after effects processing finishes
+PASS failed worker startup rejects pending/new operations instead of hanging at Loading
+PASS phone session workflow (simulated browser devices; actual WASM audio processing)
+
+=== phrase_core_tests.js (exit 0) ===
+PASS selected mono phrase overlays stereo base, outside samples identical, edge fades and originals preserved
+PASS overlap precedence, unchosen attempts excluded and even 10 ms missing coverage rejected
+PASS boundaries, alignment, nonfinite settings and mixed rates validated
+PASS clean vs detuned/clipped/noisy ranking, fair missing-noise comparison, ties, pending/error/silent/uncertain/incomplete takes and melody reference
+PASS measured energy, lead-in background, clipped samples and stable note filtering
+PASS aligned previews retain leading silence; Undo copies metadata without duplicating immutable audio
+
+=== phrase_worker_tests.js (exit 0) ===
+PASS independent production WASM worker detects raw note centres and recommends clean on-pitch take over detuned/clipped takes
+PASS maximum 60-second phrase analysis completes with finite measurements
+PASS worker recovers after invalid take and analyzes stereo; 17.0 s for four phrases
+
+=== phrase_session_tests.js (exit 0) ===
+PASS phrase creation, visible new attempts, explicit choosing and resume cursor; analysis never overrides choice
+PASS remove/Undo and phrase-only IndexedDB round-trip preserve attempts, selection, resume position and backing
+PASS portable project embeds exact float samples for every attempt and backing; rejects missing audio
+PASS matched take preview routes correct raw samples and backing through shared stoppable transport
+PASS chosen assembly enters real engine; sound settings retained and stale performance edits reset
+PASS Clear and Undo include the whole phrase workspace
+PASS phrase recording schedules lead-in against backing, isolates mic, exposes Stop, retains early-stop audio and releases devices
+PASS automatic punch-out stops, releases microphone and retains a complete take
+PASS permission denial is recoverable; continuing creates next phrase and retains previous attempts
+PASS complete production song ZIP save → clear → open restores engine vocal, phrases, every attempt and backing
+PASS clearing the last choice can rebuild silence and cannot silently export the old take
+PASS failed recording decode keeps downloadable microphone audio and unlocks retry
+PASS malformed workspace rejected before replacing current song; storage errors visibly request project backup
+PASS stale in-flight analysis cannot overwrite a take after alignment changes
+
+=== song_change_ui_tests.js (exit 0) ===
+Old comparison cleared: true new finished vocal doubler: 0
+PASS song import cancels old pending edits and old comparison playback
+
+=== reference_ui_tests.js (exit 0) ===
+PASS reference buttons audition matched audio without beat
+PASS passage changes stop stale playback and clear stale measurements
+PASS stale in-flight reference measurements cannot become playable
+PASS pending vocal changes immediately invalidate reference A/B
+Reference prepare disabled while pending: true available after processing: true
+
+=== reference_wasm_tests.js (exit 0) ===
+PASS stereo float WAV project round-trip is sample-exact
+PASS all five exported stems retain stereo channels, including original
+PASS Finished Vocal retains exact stereo samples through import, clean, tune and FINAL
+PASS alternate take retains both channels
+PASS reference comparison measures stereo, matches volume and leaves song settings/audio unchanged
+PASS restored Finished Vocal session remains sample-exact stereo
+PASS mono import cannot retain a stale right channel
+PASS mono/stereo reference auditions match while source LUFS measurements remain correct
+
+=== detail_ui_regressions.js (exit 0) ===
+PASS A/B available for ready audio
+PASS A/B disabled as soon as a parameter is pending
+PASS A/B becomes available after an effect parameter finishes rendering
+PASS switch stays enabled while processing: chRepairOn
+PASS switch stays enabled while processing: chRoomReduceOn
+PASS switch stays enabled while processing: chPrecisionOn
+PASS switch stays enabled while processing: chReverbDuckOn
+PASS switch stays enabled while processing: chDoubleOn
+PASS A/B becomes available after Undo or another busy operation
+PASS Hear removed excludes the backing track
+PASS A/B keeps normal backing-track behavior
+PASS Mono switches the current comparison without stopping it
+PASS closing Vocal Detail stops its comparison
+0 failures
+
+=== vocal_detail_wasm_tests.js (exit 0) ===
+PASS shipped worker effect 0 : finite A/B + removal, changed audio, saved switch unchanged
+PASS shipped worker effect 1 : finite A/B + removal, changed audio, saved switch unchanged
+PASS shipped worker effect 2 : finite A/B + removal, changed audio, saved switch unchanged
+PASS shipped worker effect 3 : finite A/B + removal, changed audio, saved switch unchanged
+PASS shipped worker effect 4 : finite A/B + removal, changed audio, saved switch unchanged
+PASS custom full export equals FINAL and saved sheet describes all five effects
+PASS Reset/Undo restores all five effect switches in the shipped worker
+
+=== detail_render_review.js (exit 0) ===
+PASS effect 0 A/B equals ordinary disabled/enabled render with note edits { da: 0, db: 0 }
+PASS effect 0 export omission equals disabled render { dc: 0 }
+PASS effect 1 A/B equals ordinary disabled/enabled render with note edits { da: 0, db: 0 }
+PASS effect 1 export omission equals disabled render { dc: 0 }
+PASS effect 2 A/B equals ordinary disabled/enabled render with note edits { da: 0, db: 0 }
+PASS effect 2 export omission equals disabled render { dc: 0 }
+PASS effect 3 A/B equals ordinary disabled/enabled render with note edits { da: 0, db: 0 }
+PASS effect 3 export omission equals disabled render { dc: 0 }
+PASS effect 4 A/B equals ordinary disabled/enabled render with note edits { da: 0, db: 0 }
+PASS effect 4 export omission equals disabled render { dc: 0 }
+0 failures
+
+=== phone_fixes_tests.js (exit 0) ===
+PASS WebAssembly reset/Undo/Redo: sound, guide choices and export selection
+PASS download contract: browser Blob link, host save, cancellation respected
+
+=== phrase_markup_tests.py (exit 0) ===
+PASS generated production HTML: unique IDs, all phrase controls/pages wired, complete script syntax, matching worker core and required assets
