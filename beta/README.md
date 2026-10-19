@@ -1,5 +1,7 @@
-# Playbook Vocal Studio 0.23.0 — song recording, stage 3 of the 0.18.3 feature merge
+# Playbook Vocal Studio 0.23.1 — song recording, stage 3 of the 0.18.3 feature merge
 
+- **0.23.1:** autosave survives an immediate reload or a killed tab; the downloads box is a
+  small toast that folds to a chip and never covers the transport (CHANGES-0.23.1.txt).
 - **Fix A:** choosing a shorter take for one section now replaces only that time range; the
   earlier (e.g. whole-song) take keeps playing everywhere else. Delete unchosen never removes
   a take still in use and lists what it will delete.

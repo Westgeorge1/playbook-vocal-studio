@@ -1,0 +1,21 @@
+PLAYBOOK VOCAL STUDIO 0.23.1 — CHANGES (fixes on 0.23.0; beta link only)
+
+1. AUTOSAVE IS DURABLE
+- A change made just before a reload, or just before the tab was closed or killed, could be
+  lost: the full browser save waited 800 ms and the small backup journal was only written
+  when the page closed normally.
+- Now the journal (song arrangement: choices, sections, mutes, levels, settings — no audio)
+  is written synchronously on every change, and again on beforeunload, freeze and when the
+  tab is hidden. It is kept after recovery until the next full save is written. The full
+  save waits 250 ms instead of 800 ms. POLISH audio always comes from the full save.
+- Test: tests-0.23/durable231.py (real UI, 1366 and 390): change then reload at once; tab
+  crashed straight after a change. 0.23.1 6/6; 0.23.0 5/6 (lost the change after a crash).
+
+2. DOWNLOADS BOX NO LONGER COVERS THE CONTROLS
+- The "prepared downloads" box is now a small toast. On phones it sits at the bottom, never
+  over the transport or the top buttons. After 6 s it folds to a small "⬇ Downloads" chip;
+  tap it to see the link again. Test: tests-0.23/downloads231.py (390 and 1366) 8/8.
+
+3. TEST ROBUSTNESS
+- t21 at 390 sometimes timed out clicking the status line to give the page keyboard focus
+  (the line re-renders). It now focuses the page without a click. 3/3 reruns pass.
