@@ -1,3 +1,9 @@
+NOTE FOR 0.22.0 AND OLDER VERSIONS
+A project saved by 0.22.0 opens in 0.18.3 with the Lead vocal and its parts
+(one part per song section, with their takes and the chosen take). Harmony,
+double and ad-lib tracks are NOT shown in 0.18.3 or earlier; open the project
+in 0.20.0 or newer to get every track. The sections below describe 0.18.3.
+
 PLAYBOOK VOCAL STUDIO 0.20.0 — START HERE
 
 THE SIMPLE WORKFLOW

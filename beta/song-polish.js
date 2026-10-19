@@ -8,7 +8,7 @@ const C=SongCore,$=id=>document.getElementById(id),copy=x=>structuredClone(x);
 const MAX_BYTES=256*1024*1024;
 let binding=null,switching=false,lastError='',allowStep=false;
 const bar=document.createElement('div');bar.id='trackPolishBar';bar.hidden=true;
-bar.innerHTML='<label>Polishing <select id="polishTrack" aria-label="Vocal track to polish"></select></label><button id="polishSong">▶ Hear song</button><button id="polishExportSong">Export song</button><button id="polishReturn">← Song & vocals</button><label><input type="checkbox" id="polishBypass"> Use dry vocal</label><span id="polishTrackStatus" role="status" aria-live="polite"></span><p>Clean, Tune, edits and effects apply to this vocal only. Play and Mix below audition this track with its fitted backing. Hear song and Export song use all lanes and the song mixer.</p>';
+bar.innerHTML='<label>Polishing <select id="polishTrack" aria-label="Vocal track to polish"></select></label><button id="polishSong">▶ Hear song</button><button id="polishExportSong" title="Every export: the song, the vocal mix, stems, or only this vocal">Export song</button><button id="polishReturn">← Song & vocals</button><label><input type="checkbox" id="polishBypass"> Use dry vocal</label><span id="polishTrackStatus" role="status" aria-live="polite"></span><p>Clean, Tune, edits and effects apply to this vocal only. Play and Mix below audition this track with its fitted backing. Hear song and Export song use all lanes and the song mixer.</p>';
 $('rcSteps').append(bar);
 const W=()=>S.song,T=()=>binding&&W()?.tracks.find(t=>t.id===binding.id);
 function snapshot(){
@@ -108,7 +108,7 @@ async function unpack(w,files){
 }
 $('polishTrack').onchange=()=>open($('polishTrack').value);
 $('polishReturn').onclick=()=>RC.go('rc');
-$('polishExportSong').onclick=()=>{capture();RC.go('rc');SongStudio.exportAudio();};
+$('polishExportSong').onclick=()=>{capture();const id=T()?.id;RC.go('rc');SongStudio.exportAudio({vocal:id});};
 $('polishSong').onclick=async()=>{if(SongStudio.state().playing){SongStudio.stopPlay();render();return;}capture();try{await SongStudio.play(0);}catch(e){notify(e.message,true);}render();};
 $('polishBypass').onchange=()=>{const t=T();if(!t?.polish)return;const bypass=$('polishBypass').checked;SongStudio.edit(()=>{t.polish={...t.polish,bypass};},bypass?'Dry vocal enabled. Processing settings are kept.':'Processed vocal enabled.');render();};
 for(const b of document.querySelectorAll('.savebtn'))b.textContent='EXPORT THIS VOCAL ▾';

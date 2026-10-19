@@ -1,4 +1,4 @@
-/* Playbook Vocal Studio 0.21.0 — recording engine behind the RECORD & COMP screen.
+/* Playbook Vocal Studio 0.22.0 — recording engine behind the RECORD & COMP screen.
    Punch-in on the fly (into the part under the playhead), loop recording (a take every pass), count-in /
    metronome, mic check + gain, input monitoring, latency calibration, rename, delete-unchosen,
    autosave indicator and backup reminders.
@@ -46,7 +46,7 @@ async function capOpen(){
     const ctx=await resumeAudio();
     if(!ctx.audioWorklet||!window.AudioWorkletNode)throw new Error('This browser has no AudioWorklet, so punch-in and loop recording are not available. Recording a part from the Record button still works.');
     capClose(true);
-    if(Cap.moduleCtx!==ctx){await ctx.audioWorklet.addModule('rec-worklet.js?v=0.21.0');Cap.moduleCtx=ctx;}
+    if(Cap.moduleCtx!==ctx){await ctx.audioWorklet.addModule('rec-worklet.js?v=0.22.0');Cap.moduleCtx=ctx;}
     const stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
     const tr=stream.getAudioTracks()[0];Cap.label=tr?.label||'microphone';LSset('pvs-mic-label',Cap.label);
     Cap.ctx=ctx;Cap.stream=stream;Cap.src=ctx.createMediaStreamSource(stream);Cap.gain=ctx.createGain();Cap.gain.gain.value=dbToGain(P.micGainDb);
@@ -554,7 +554,7 @@ const origAdd=window.phraseAddAudio;
 window.phraseAddAudio=async function(){const r=await origAdd.apply(this,arguments);BK.since++;saveBK();maybeNag();return r;};
 const origSaveProject=window.saveProject;
 // 0.17.2: the result of a project backup is shown where you are (RECORD & COMP status line + a toast), also on a phone
-if(typeof origSaveProject==='function')window.saveProject=async function(){$('saveStatus').textContent='';const r=await origSaveProject.apply(this,arguments);const msg=(r&&r.msg)||$('saveStatus').textContent||'',bad=r&&typeof r.ok==='boolean'?!r.ok:(!msg||/fail|could not|couldn|not saved|error|first|wait/i.test(msg)); // 0.21.0: the explicit result decides
+if(typeof origSaveProject==='function')window.saveProject=async function(){$('saveStatus').textContent='';const r=await origSaveProject.apply(this,arguments);const msg=(r&&r.msg)||$('saveStatus').textContent||'',bad=r&&typeof r.ok==='boolean'?!r.ok:(!msg||/fail|could not|couldn|not saved|error|first|wait/i.test(msg)); // 0.18.3: the explicit result decides
   if(!bad&&r?.status==='saved'){BK.since=0;BK.lastBackup=Date.now();saveBK();syncSaved();}
   PV.lastSave={ok:!bad,status:r&&r.status||(bad?'failed':'saved'),msg};if(msg)phraseMessage((bad?'Project backup: ':r?.status==='requested'?'Project backup prepared — ':'Project backup saved — ')+msg);if(bad&&msg)toast(/^Not saved/.test(msg)?'Project backup cancelled':'Project backup not saved',msg,8000);return r||PV.lastSave;};
 PV.autosaveText=()=>{const tm=d=>new Date(d).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});return saveState==='fail'?'⚠ The last autosave failed.':savedAt?'Last autosaved at '+tm(savedAt)+'.':'Automatic after every change.';};

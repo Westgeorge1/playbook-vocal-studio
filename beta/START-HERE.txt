@@ -1,4 +1,4 @@
-PLAYBOOK VOCAL STUDIO 0.21.0 — START HERE
+PLAYBOOK VOCAL STUDIO 0.22.0 — START HERE
 
 THE SIMPLE WORKFLOW
 
@@ -19,13 +19,22 @@ THE SIMPLE WORKFLOW
    ⟲ Loop (or L) records the selection round and round without gaps; every pass
    becomes an attempt. Press Stop when you have enough. Esc cancels a recording.
 
-3. Label your song.
-   Add Intro, Verse, Chorus, Bridge or Outro in Song sections. These labels help
-   you navigate; they do not cut or move your recordings.
+3. Record part by part (optional).
+   Add Intro, Verse, Chorus, Bridge or Outro in Song sections. Click a section (or
+   Next part ▶) and press ● Record part. Keep singing past the end if you like: the
+   part grows to fit. Tick "Stop at part end" if you want it to stop by itself.
+   Every take is kept. Rate takes with the stars; "Suggested" and "Why suggested?"
+   show which take the check prefers and why. Choose the one you want.
+   Redo last take re-sings the newest take; Delete unchosen takes tidies up.
+   Edit on a take trims it, changes its level, adds fades or moves its timing.
+   Nothing is cut from the recording; Undo puts it back.
+   With / Without in the transport chooses whether you hear the backing.
 
 4. Add backing vocals.
    Press + Add vocal track. Name it Harmony, Double, Ad-libs, or anything you like.
    Record and fix phrases on that lane. Your lead and other lanes stay separate.
+   OLDER VERSIONS: a project backup opened in 0.18.3 or earlier shows only the
+   Lead vocal and its parts. Open it in 0.20.0 or newer to get every track.
 
 5. POLISH each voice.
    Press Polish on a vocal lane. Clean, Tune, note edits and effects now belong

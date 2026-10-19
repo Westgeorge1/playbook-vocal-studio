@@ -1,4 +1,32 @@
-# Playbook Vocal Studio 0.21.0 — song recording, stage 1 of the 0.18.3 feature merge
+# Playbook Vocal Studio 0.22.0 — song recording, stage 2 of the 0.18.3 feature merge
+
+0.22.0 keeps the multi-lane Song & Vocals screen (SongCore / SongStudio is still the
+only microphone owner) and brings back the 0.18.3 part workflow:
+
+- Part flow from song sections: pick a part, ● Record part, ◀ Previous part / Next part ▶,
+  Redo last take, Delete unchosen takes. "Stop at part end" is OFF by default: recording
+  runs until you press Stop and the part grows to fit (never past the next part).
+- Take stars (1–5, yours) and a Suggested badge with "Why suggested?", using the same
+  phrase-core check as 0.18.3, run for every attempt. It runs again after any edit,
+  Undo or Redo.
+- Take editor behind an Edit button on each take: trim start/end, level, fade in/out,
+  timing. Nothing is cut from the recording; Undo/Redo work.
+- Start card on an empty session: Record a vocal / Import a vocal / Open a project /
+  + Add backing. The long help is behind a Help link.
+- With / Without backing switch in the transport.
+- Compatibility: project ZIPs also carry 0.18.3 parts data (the Lead vocal as a whole
+  vocal plus one part per section). **Older versions (0.18.3 and earlier) open only the
+  Lead vocal and its parts; other vocal tracks need 0.20.0 or newer.** The app says so
+  when you back up a project with more than one vocal track. Old projects keep their
+  star ratings, check results, key/scale and reference take when they are opened.
+- POLISH tidy: one Undo/Redo pair, one export entry (Export song, which also offers
+  "Only this vocal"), a one-row POLISH bar at 1024, no saved-notice overlap on phones,
+  phone Song screen compact (Hear backing on the first screen).
+
+See `CHANGES-0.22.0.txt` and `TEST-RESULTS-0.22.0.txt`.
+
+## Earlier notes (0.21.0)
+
 
 0.21.0 builds on the 0.20.0 multi-lane Song & Vocals design (SongCore / SongStudio is
 the only microphone owner) and brings back the first set of 0.18.3 recording tools on

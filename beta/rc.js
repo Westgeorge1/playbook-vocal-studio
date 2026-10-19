@@ -1,4 +1,4 @@
-/* Playbook Vocal Studio 0.21.0 — RECORD & COMP screen: the one place where you record.
+/* Playbook Vocal Studio 0.22.0 — RECORD & COMP screen: the one place where you record.
      part  = phrase (S.phrases.phrases[]),  take = phrase take,  chosen take = phrase.selected,
      comp  = PhraseCore.compose(workspace) (same join fade as before),  POLISH = phraseApply() + CLEAN/TUNE/CHAIN/DETAIL/MIX.
    0.17.0 fused the old POLISH recording tools in here as first-class controls:
@@ -549,7 +549,7 @@ function moreItems(){const P=PV.prefs,w=W();
   ['hearComp','Hear my comp while playing / recording'+tg(P.hearOld),null],
   ['h','FILES'],
   ['autosave','Autosave (this browser only)',(PV.autosaveText?PV.autosaveText():'Automatic after every change.')+' Not a backup: the browser can clear it.',true],
-  ['saveProj','Back up project (.zip with every take) · Ctrl+S',canSaveProject(true)===true?'A file you keep and can open again later. POLISH edits are kept as they are.':canSaveProject(true),canSaveProject()!==true], // 0.21.0: the same rule as saveProject
+  ['saveProj','Back up project (.zip with every take) · Ctrl+S',canSaveProject(true)===true?'A file you keep and can open again later. POLISH edits are kept as they are.':canSaveProject(true),canSaveProject()!==true], // 0.18.3: the same rule as saveProject
   ['openProj','Open song project…',null],
   ['export','Export comp audio (WAV)','Only the joined vocal as a sound file — not a project backup.'],
   ['keys','Keyboard shortcuts',null],

@@ -126,7 +126,7 @@ body.song-studio .rcsteps{flex-wrap:wrap;height:auto}
 body.song-studio .daw{grid-template-columns:minmax(0,1fr);min-width:0}
 @media(min-width:900px) and (max-width:1100px){body.song-studio .menubar{flex-wrap:wrap;min-width:0}body.song-studio .menubar .apptitle{min-width:0;flex-basis:120px}body.song-studio .menubar .menus{flex-wrap:wrap}body.song-studio .statusbar{flex-wrap:wrap}}
 
-/* 0.21.0 — recording helpers, grid readout, tidy transport */
+/* 0.22.0 — recording helpers, grid readout, tidy transport */
 .sg-transport{position:static}
 .sg-lane:not(.sg-ruler){height:176px}.sg-lane:not(.sg-ruler) .sg-wave{height:175px}
 .sg-barbeat{font:600 15px var(--mono,monospace);font-variant-numeric:tabular-nums;color:#a9ddff;min-width:64px;padding:3px 6px;border:1px solid #2c4154;border-radius:6px}
@@ -138,3 +138,41 @@ body.song-studio .daw{grid-template-columns:minmax(0,1fr);min-width:0}
 #songStudio [aria-pressed="true"]#sgMonitor{background:#5a3d16!important;border-color:#f5c875!important;color:#fff!important}
 .sg-keys{border-collapse:collapse;font-size:12px;color:var(--song-muted);margin-top:6px}.sg-keys td{padding:3px 8px 3px 0;vertical-align:top}.sg-keys kbd{font:11px var(--mono,monospace);border:1px solid #3a4d5f;border-radius:4px;padding:1px 5px;color:#e2ecf3;white-space:nowrap}
 @media(max-width:600px){.sg-lane:not(.sg-ruler){height:212px}.sg-lane:not(.sg-ruler) .sg-wave{height:211px}.sg-barbeat{font-size:13px;min-width:54px}.sg-rtools{flex:1 1 100%}.sg-tempo{display:none}}
+
+/* 0.22.0 part flow, takes, start card, With/Without */
+.sg-part{margin-top:10px;padding:10px;border:1px solid #2f4a52;border-radius:8px;background:#0f1a1f;display:grid;gap:8px}
+.sg-part small{color:#9daaaa}
+.sg-rec{background:#a8323d;color:#fff;border-color:#c24450}
+.sg-stars{display:inline-flex;gap:2px}.sg-star{min-width:28px;padding:2px 4px;color:#55636a;background:transparent;border:1px solid transparent}.sg-star.on{color:#f5c64a}
+.sg-suggest{font-size:11px;padding:1px 6px;border-radius:9px;background:#2d5a45;color:#bff0d5;margin-left:4px}
+.sg-why-table{overflow-x:auto}.sg-why-table table{border-collapse:collapse;font-size:12px}.sg-why-table th,.sg-why-table td{padding:3px 6px;border-bottom:1px solid #2a3a40;text-align:left}
+.sg-editor{display:grid;grid-template-columns:1fr;gap:4px}.sg-editor input{width:7em}
+.sg-start{margin:10px 0;padding:14px;border:1px dashed #4a6a72;border-radius:10px;background:#101c21}.sg-start h2{margin:0 0 8px;font-size:16px}
+.sg-link{background:none;border:none;color:#8fd3ff;text-decoration:underline;padding:2px 4px;cursor:pointer}
+.sg-seg{display:inline-flex}.sg-seg button{border-radius:0}.sg-seg button:first-child{border-radius:6px 0 0 6px}.sg-seg button:last-child{border-radius:0 6px 6px 0}.sg-seg button[aria-pressed="true"]{background:#2d5a45;color:#fff}
+.sg-helplist li{margin:4px 0}
+/* 0.22.0 POLISH tidy and phone reach */
+body.song-studio #undoBtn,body.song-studio #redoBtn{display:none}
+body.song-studio .savebtn{display:none!important}
+body.song-studio.sg-onsong #rcExport{display:none}
+#trackPolishBar{order:99}
+@media(max-width:1279px){#trackPolishBar p{display:none}#trackPolishBar{padding:6px 10px;gap:6px}#trackPolishBar select,#trackPolishBar button{min-height:32px;padding:4px 8px}
+ body.song-studio .apptitle{display:none}body.song-studio .tlisten>span{display:none}body.song-studio .tundo .ctx{display:none}}
+@media(max-width:600px){
+ body.song-studio #dawSaved{position:static;display:inline-block;margin:0 4px;max-width:120px}
+ #songStudio .sg-filebar button,#songStudio .sg-tools button{min-height:30px;padding:3px 8px;font-size:12px}
+ #songStudio .sg-tools label{font-size:12px}#songStudio .sg-tools{gap:4px}
+ #songStudio .sg-sectionbar .sg-help{display:none}#songStudio .sg-sectionbar{padding:8px}
+ #songStudio .sg-status{font-size:12px;padding:6px 8px;margin:6px 0}
+ #songStudio .sg-part .sg-row{gap:4px}#songStudio .sg-part button{min-height:32px;padding:3px 7px;font-size:12px}
+ #songStudio .sg-lane-head label{font-size:11px}
+}
+@media (max-width:899px){body.song-studio #trackPolishBar{grid-column:1/-1;grid-row:3}}
+@media(max-width:600px){
+ #songStudio{display:flex;flex-direction:column}#songStudio>*{flex-shrink:0}
+ #songStudio>.sg-tools{order:5}#songStudio>.sg-scroll{order:6}#songStudio>.sg-selection,#songStudio>.sg-takes,#songStudio>.sg-settings,#songStudio>*:not(.sg-top):not(.sg-transport):not(#sgStatus):not(#sgStart):not(.sg-sectionbar):not(#sgTimeline):not(.sg-tools):not(.sg-scroll){order:7}
+ #songStudio .sg-transport button,#songStudio .sg-transport select{min-height:34px;padding:3px 8px;font-size:13px}
+ #songStudio .sg-top{gap:4px}#songStudio .sg-filebar{gap:4px}
+ #songStudio .sg-lane:not(.sg-ruler):nth-child(2){height:150px}#songStudio .sg-lane:not(.sg-ruler):nth-child(2) .sg-wave{height:149px}
+ #songStudio .sg-lane:nth-child(2) .sg-lane-head .sg-help{display:none}
+}
