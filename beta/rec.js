@@ -1,4 +1,4 @@
-/* Playbook Vocal Studio 0.22.0 — recording engine behind the RECORD & COMP screen.
+/* Playbook Vocal Studio 0.23.0 — recording engine behind the RECORD & COMP screen.
    Punch-in on the fly (into the part under the playhead), loop recording (a take every pass), count-in /
    metronome, mic check + gain, input monitoring, latency calibration, rename, delete-unchosen,
    autosave indicator and backup reminders.
@@ -46,7 +46,7 @@ async function capOpen(){
     const ctx=await resumeAudio();
     if(!ctx.audioWorklet||!window.AudioWorkletNode)throw new Error('This browser has no AudioWorklet, so punch-in and loop recording are not available. Recording a part from the Record button still works.');
     capClose(true);
-    if(Cap.moduleCtx!==ctx){await ctx.audioWorklet.addModule('rec-worklet.js?v=0.22.0');Cap.moduleCtx=ctx;}
+    if(Cap.moduleCtx!==ctx){await ctx.audioWorklet.addModule('rec-worklet.js?v=0.23.0');Cap.moduleCtx=ctx;}
     const stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
     const tr=stream.getAudioTracks()[0];Cap.label=tr?.label||'microphone';LSset('pvs-mic-label',Cap.label);
     Cap.ctx=ctx;Cap.stream=stream;Cap.src=ctx.createMediaStreamSource(stream);Cap.gain=ctx.createGain();Cap.gain.gain.value=dbToGain(P.micGainDb);

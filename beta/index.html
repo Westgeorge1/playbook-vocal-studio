@@ -2,7 +2,7 @@
 <html lang="en">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Playbook Vocal Studio 0.22.0 · DAW</title>
+<title>Playbook Vocal Studio 0.23.0 · DAW</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,500..800&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
@@ -233,10 +233,10 @@ nav.steps button { flex:1 0 64px; min-height:48px; }
 .phrase-take .metrics { font:13px/1.65 var(--mono); color:var(--muted); }
 .phrase-take.suggested { color:var(--gold); }
 </style>
-<link rel="stylesheet" href="daw.css?v=0.22.0">
-<link rel="stylesheet" href="rec.css?v=0.22.0">
-<link rel="stylesheet" href="rc.css?v=0.22.0">
-<link rel="stylesheet" href="studio.css?v=0.22.0">
+<link rel="stylesheet" href="daw.css?v=0.23.0">
+<link rel="stylesheet" href="rec.css?v=0.23.0">
+<link rel="stylesheet" href="rc.css?v=0.23.0">
+<link rel="stylesheet" href="studio.css?v=0.23.0">
 <link rel="icon" href="data:,">
 
 <!-- 0.16.0 RECORD & COMP: two-step switch (always visible) -->
@@ -261,7 +261,7 @@ nav.steps button { flex:1 0 64px; min-height:48px; }
     <button class="rct" id="rcStart" title="Back to the start (Home)" aria-label="Back to the start">|◀</button>
     <button class="rct" id="rcPlay" title="Play / pause (Space). Plays the backing with your comp." aria-label="Play">▶</button>
     <button class="rct" id="rcStop" title="Stop (press again: back to the start)" aria-label="Stop">■</button>
-    <button class="rct rcrec" id="rcRec" title="Record (R). Stopped: record the selected part. Playing: punch in right here; R again punches out and the song keeps playing."><span class="dot"></span> REC</button>
+    <button class="rct rcrec" id="rcRec" title="Record (R). Stopped: record the selected section. Playing: punch in right here; R again punches out and the song keeps playing."><span class="dot"></span> REC</button>
     <div class="rcfield rcbackfield"><span>BACKING</span><div class="rcseg" role="group" aria-label="Record with or without the backing track" title="With backing: you hear the backing track while you play and record. Without: you hear only the click, your comp and yourself (works with no backing loaded)."><button id="rcWith" aria-pressed="true">With</button><button id="rcWithout" aria-pressed="false">Without</button></div></div>
     <div class="rcclock"><div id="rcBars">bar 1 · beat 1</div><small id="rcTime">00:00.0 / 00:00.0</small></div>
     <button class="rcclock rcinfo" id="rcTempo" title="Tempo and key. Click to change the tempo (Settings ▾)"><span id="rcBpm">75 BPM</span>&nbsp;&nbsp;4/4<br><span id="rcKey">Key —</span></button>
@@ -275,48 +275,48 @@ nav.steps button { flex:1 0 64px; min-height:48px; }
     <div class="rcleft rcdesk">
       <div class="rclanes" id="rcLanes">
         <div class="rcheads" id="rcHeads"></div>
-        <div class="rctl" id="rcTl"><canvas id="rcCanvas" aria-label="Song timeline: click a part to select it, drag its edges to resize, click a take to hear it, double-click a take to choose it"></canvas><button class="rcaddbtn" id="rcAddBtn" title="Add a new part to the song">+ Add part</button></div>
+        <div class="rctl" id="rcTl"><canvas id="rcCanvas" aria-label="Song timeline: click a section to select it, drag its edges to resize, click a take to hear it, double-click a take to choose it"></canvas><button class="rcaddbtn" id="rcAddBtn" title="Add a new section to the song">+ Add section</button></div>
       </div>
       <div class="rcpanrow" id="rcPanRow" hidden><input type="range" id="rcPan" min="0" max="1000" step="1" value="0" aria-label="Scroll the zoomed timeline"></div>
       <div class="rcjoinnote" id="rcJoinNote">× marks = smooth joins (no clicks)</div>
       <div class="rcbelow">
-        <div class="rcstatus" id="rcStatus" role="status" aria-live="polite">Pick a part, then press Record.</div>
+        <div class="rcstatus" id="rcStatus" role="status" aria-live="polite">Pick a section, then press Record.</div>
         <details class="rchelpbox" id="rcHelpBox" open><summary>Help: what each area does and the flow</summary>
         <div class="rcflowwrap">
           <div class="rchelp"><h3>WHAT EACH AREA DOES</h3><ol>
             <li>Two-step switch: record &amp; comp first, then POLISH. Autosave, Undo/Redo, Export comp.</li>
             <li>Transport: play, stop, RECORD, position, count-in + CLICK, mic level + CLIP light + gain, HEAR ME (monitoring), backing / comp on-off. While the song plays, REC (or R) punches in right where you are.</li>
-            <li>Parts strip: the song in parts. Click one; red IN / OUT flags = where the part starts and ends. Recording keeps going until you press Stop; if you sing past OUT, the part grows to fit (turn “Stop at part end” ON to stop at OUT). Drag a part's edge to make it longer or shorter. Double-click to rename.</li>
-            <li>Take lanes: every try stacked under its part. Green ✓ = the take you chose; grey = spares. Click a take to hear it, double-click to choose it.</li>
+            <li>Sections strip: the song in sections. Click one; red IN / OUT flags = where the section starts and ends. Recording keeps going until you press Stop; if you sing past OUT, the section grows to fit (turn “Stop at section end” ON to stop at OUT). Drag a section's edge to make it longer or shorter. Double-click to rename.</li>
+            <li>Take lanes: every try stacked under its section. Green ✓ = the take you chose; grey = spares. Click a take to hear it, double-click to choose it.</li>
             <li>Comp lane: your chosen takes joined into one continuous vocal, with a short smooth fade at each join (no clicks).</li>
-            <li>Part panel: big record button, Redo, Loop (a new take every pass), Import a take, next / previous part, play-choose-delete each take, progress.</li></ol></div>
+            <li>Section panel: big record button, Redo, Loop (a new take every pass), Import a take, next / previous section, play-choose-delete each take, progress.</li></ol></div>
           <div class="rcflow" id="rcFlow"><h3>THE FLOW</h3>
-            <div class="rcfs" data-fs="1"><b>1</b><span>Pick a part</span><small>Verse 1, Chorus…</small></div>
+            <div class="rcfs" data-fs="1"><b>1</b><span>Pick a section</span><small>Verse 1, Chorus…</small></div>
             <div class="rcfs" data-fs="2"><b>2</b><span>Record takes</span><small>R · punch-in · loop</small></div>
-            <div class="rcfs" data-fs="3"><b>3</b><span>Choose best</span><small>green ✓ per part</small></div>
+            <div class="rcfs" data-fs="3"><b>3</b><span>Choose best</span><small>green ✓ per section</small></div>
             <div class="rcfs go" data-fs="4"><b>4</b><span>POLISH</span><small>clean · tune · mix</small></div>
           </div>
         </div>
         </details>
       </div>
     </div>
-    <aside class="rcpanel" id="rcPanel" aria-label="Selected part">
+    <aside class="rcpanel" id="rcPanel" aria-label="Selected section">
       <div class="rcptop"></div>
       <div class="rcphead"><h2 id="rcPartName">NO PART YET</h2><span id="rcPartTakes"></span></div>
-      <div class="rcpinfo" id="rcPartInfo">Add a part to start.</div>
+      <div class="rcpinfo" id="rcPartInfo">Add a section to start.</div>
       <div class="rcstart" id="rcStartCard" role="group" aria-labelledby="rcStartT" hidden><h3 id="rcStartT">START A SONG</h3>
-        <button class="rcbtn rcstartb" id="rcsRecord"><b>● Record a vocal</b><small>Name the first part (Verse 1, Chorus…), then sing.</small></button>
+        <button class="rcbtn rcstartb" id="rcsRecord"><b>● Record a vocal</b><small>Name the first section (Verse 1, Chorus…), then sing.</small></button>
         <button class="rcbtn rcstartb" id="rcsImport"><b>Import a vocal</b><small>One finished vocal file for the whole song.</small></button>
         <button class="rcbtn rcstartb" id="rcsOpen"><b>Open a project</b><small>A song project (.zip) you backed up before.</small></button>
         <button class="rcbtn rcstartb rcstartalt" id="rcsBacking"><b>+ Add backing</b><small>The music you sing to. Optional; it is never recorded.</small></button></div>
-      <div class="rcpedit"><button class="rclink" id="rcRename">Rename part</button><button class="rclink" id="rcDelPart">Delete part</button><button class="rclink" id="rcAddPart2">+ Add part</button></div>
-      <div class="rcchips rcphone" id="rcChips" role="list" aria-label="Parts"></div>
-      <div class="rcswipe rcphone">swipe for more parts →</div>
-      <canvas class="rcmini rcphone" id="rcMini" aria-label="This part: drag the red IN or OUT flag to change where the part starts or ends"></canvas>
-      <div class="rczoom rcphone" id="rcZoomP" role="group" aria-label="Zoom"><button data-z="out" title="Zoom out" aria-label="Zoom out">−</button><button data-z="in" title="Zoom in" aria-label="Zoom in">+</button><button data-z="part" title="Fit the selected part">Part</button><button data-z="song" title="Fit the whole song">Song</button><button data-z="hand" aria-pressed="false" title="Hand: drag to scroll instead of moving flags" aria-label="Hand">✋</button></div>
+      <div class="rcpedit"><button class="rclink" id="rcRename">Rename section</button><button class="rclink" id="rcDelPart">Delete section</button><button class="rclink" id="rcAddPart2">+ Add section</button></div>
+      <div class="rcchips rcphone" id="rcChips" role="list" aria-label="Sections"></div>
+      <div class="rcswipe rcphone">swipe for more sections →</div>
+      <canvas class="rcmini rcphone" id="rcMini" aria-label="This section: drag the red IN or OUT flag to change where the section starts or ends"></canvas>
+      <div class="rczoom rcphone" id="rcZoomP" role="group" aria-label="Zoom"><button data-z="out" title="Zoom out" aria-label="Zoom out">−</button><button data-z="in" title="Zoom in" aria-label="Zoom in">+</button><button data-z="part" title="Fit the selected section">Section</button><button data-z="song" title="Fit the whole song">Song</button><button data-z="hand" aria-pressed="false" title="Hand: drag to scroll instead of moving flags" aria-label="Hand">✋</button></div>
       <div class="rcrecrow">
         <button class="rcbtn rcphone rcside" id="rcPlayP">▶ Play</button>
-        <button class="rcbig" id="rcBig" title="Record a take on this part (R)"><span class="ring"><span class="dot"></span><span class="lab" id="rcBigLabel">Record<br>take 1</span></span></button>
+        <button class="rcbig" id="rcBig" title="Record a take on this section (R)"><span class="ring"><span class="dot"></span><span class="lab" id="rcBigLabel">Record<br>take 1</span></span></button>
         <button class="rcbtn rcphone rcside" id="rcStopP">■ Stop</button>
       </div>
       <div class="rcorr" id="rcOrR">or press <b>R</b></div>
@@ -325,33 +325,33 @@ nav.steps button { flex:1 0 64px; min-height:48px; }
       <div class="rcmicp rcphone rcphset"><select id="rcCountP" aria-label="Count-in"><option value="0">No count-in</option><option value="1">Count-in 1 bar</option><option value="2">Count-in 2 bars</option></select><button class="rctog" id="rcClickP" aria-pressed="false">CLICK</button><button class="rctog" id="rcMonitorP" aria-pressed="false">HEAR ME</button></div>
       <div class="rcmicp rcphone rcphset rcbackp"><span>BACKING</span><div class="rcseg" role="group" aria-label="Record with or without the backing track"><button id="rcWithP" aria-pressed="true">With</button><button id="rcWithoutP" aria-pressed="false">Without</button></div><button class="rctog" id="rcBackMenuP" aria-haspopup="true" aria-label="Backing track menu: load, replace, remove, level" title="Load, replace or remove the backing track">Track ▾</button></div>
       <div class="rcmicp rcphone rcphset"><span>GAIN</span><input type="range" class="rcgain" id="rcGainP" min="-12" max="24" step="1" value="0" aria-label="Mic gain in dB"><output id="rcGainVP">0 dB</output></div>
-      <div class="rcctl"><button class="rcbtn rcredo" id="rcRedoLast" title="Record this part again and throw away the last take (Undo brings it back)">↺ Redo last take</button><button class="rcbtn rcstopend" id="rcStopEnd" aria-pressed="false" title="OFF (normal): a take keeps recording until you press Stop, and the part grows if you sing past OUT. ON: recording stops by itself at the part's OUT flag.">⏹ Stop at part end: OFF</button><button class="rcbtn rcloop" id="rcLoop" aria-pressed="false" title="Loop recording (L): the part plays round and round and every full pass becomes a new take">⟲ Loop: OFF</button><button class="rcbtn rcimport" id="rcImport" title="Bring in a take you recorded somewhere else (audio file)">⤓ Import take…</button><button class="rcbtn rcprev" id="rcPrev">◀ Previous part</button><button class="rcbtn rcnext" id="rcNext">Next part ▶</button></div>
+      <div class="rcctl"><button class="rcbtn rcredo" id="rcRedoLast" title="Record this section again and throw away the last take (Undo brings it back)">↺ Redo last take</button><button class="rcbtn rcstopend" id="rcStopEnd" aria-pressed="false" title="OFF (normal): a take keeps recording until you press Stop, and the section grows if you sing past OUT. ON: recording stops by itself at the section's OUT flag.">⏹ Stop at section end: OFF</button><button class="rcbtn rcloop" id="rcLoop" aria-pressed="false" title="Loop recording (L): the section plays round and round and every full pass becomes a new take">⟲ Loop: OFF</button><button class="rcbtn rcimport" id="rcImport" title="Bring in a take you recorded somewhere else (audio file)">⤓ Import take…</button><button class="rcbtn rcprev" id="rcPrev">◀ Previous section</button><button class="rcbtn rcnext" id="rcNext">Next section ▶</button></div>
       <h3 class="rcsub">TAKES</h3>
       <div class="rctakes" id="rcTakes"></div>
-      <div class="rcdelrow"><button class="rcbtn rcdelun" id="rcDelUn">Delete unchosen takes (0)</button><button class="rclink" id="rcDelAll" title="Delete every take that is not chosen, in every part (Undo brings them back)">…in all parts</button></div>
-      <div class="rcprog"><div class="rcproghead"><h3 class="rcsub">COMP PROGRESS</h3><button class="rctog rcphone rcvocp" id="rcVocalMenuP" aria-haspopup="true" title="Import a whole vocal, play it, or clear it">Vocal ▾</button><b id="rcProgText">0 of 0 parts chosen</b></div><div class="rcsegs" id="rcSegs"></div><div class="rctodo" id="rcTodo"></div></div>
+      <div class="rcdelrow"><button class="rcbtn rcdelun" id="rcDelUn">Delete unchosen takes (0)</button><button class="rclink" id="rcDelAll" title="Delete every take that is not chosen, in every section (Undo brings them back)">…in all sections</button></div>
+      <div class="rcprog"><div class="rcproghead"><h3 class="rcsub">COMP PROGRESS</h3><button class="rctog rcphone rcvocp" id="rcVocalMenuP" aria-haspopup="true" title="Import a whole vocal, play it, or clear it">Vocal ▾</button><b id="rcProgText">0 of 0 sections chosen</b></div><div class="rcsegs" id="rcSegs"></div><div class="rctodo" id="rcTodo"></div></div>
       <div class="rcpfoot rcphone"><button class="rcbtn rcgreen" id="rcExportP">Export comp</button><button class="rcbtn rcgo" id="rcDoneP">Go to POLISH ▶</button></div>
-      <div class="rctip rcphone">Tip: pick a part, tap Record, sing, choose the best take. While the song plays, the red button punches in right where you are.</div>
+      <div class="rctip rcphone">Tip: pick a section, tap Record, sing, choose the best take. While the song plays, the red button punches in right where you are.</div>
     </aside>
   </div>
-  <footer class="rcfoot rcdesk"><div><h3>HOW IT WORKS <button class="rclink rchelplink" id="rcHelpLink" aria-controls="rcHelpBox" aria-expanded="false">Help</button></h3><p id="rcHowText">Select a part → press Record (or R) → the backing plays from just before the part and you record until you press Stop (R or Space). Sing past the OUT flag and the part grows to fit; “Stop at part end: ON” stops at OUT instead. Or press Play and hit R anywhere to punch in (R again punches out). Choose the best take. When every part is chosen → Go to POLISH.</p></div><button class="rcbtn rcgo" id="rcDone">Comp done → Go to POLISH ▶</button></footer>
+  <footer class="rcfoot rcdesk"><div><h3>HOW IT WORKS <button class="rclink rchelplink" id="rcHelpLink" aria-controls="rcHelpBox" aria-expanded="false">Help</button></h3><p id="rcHowText">Select a section → press Record (or R) → the backing plays from just before the section and you record until you press Stop (R or Space). Sing past the OUT flag and the section grows to fit; “Stop at section end: ON” stops at OUT instead. Or press Play and hit R anywhere to punch in (R again punches out). Choose the best take. When every section is chosen → Go to POLISH.</p></div><button class="rcbtn rcgo" id="rcDone">Comp done → Go to POLISH ▶</button></footer>
 </section>
 <div class="rcpop rcmore" id="rcMore" role="menu" aria-label="More recording tools" hidden></div>
 <div class="rcpop rcmore rclanemenu" id="rcLaneMenu" role="menu" aria-label="Lane menu" hidden></div>
-<div class="rcpop rcadd" id="rcAdd" role="dialog" aria-label="Add a part" hidden>
+<div class="rcpop rcadd" id="rcAdd" role="dialog" aria-label="Add a section" hidden>
   <h3>ADD A PART</h3>
   <div class="rcnames" id="rcAddNames"><button data-n="Intro">Intro</button><button data-n="Verse">Verse</button><button data-n="Pre-chorus">Pre-chorus</button><button data-n="Chorus">Chorus</button><button data-n="Bridge">Bridge</button><button data-n="Outro">Outro</button></div>
   <label class="rcrow">Name <input type="text" id="rcAddName" maxlength="40" placeholder="e.g. Verse 2"></label>
   <label class="rcrow">Length <select id="rcAddLen"><option value="1">1 bar</option><option value="2">2 bars</option><option value="4">4 bars</option><option value="8" selected>8 bars</option><option value="12">12 bars</option><option value="16">16 bars</option></select></label>
-  <label class="rcrow">Starts <select id="rcAddWhere"><option value="end">after the last part</option><option value="play">at the playhead</option></select></label>
+  <label class="rcrow">Starts <select id="rcAddWhere"><option value="end">after the last section</option><option value="play">at the playhead</option></select></label>
   <p class="rcaddinfo" id="rcAddInfo"></p>
-  <div class="rcaddbtns"><button class="rcbtn" id="rcAddCancel">Cancel</button><button class="rcbtn rcgo" id="rcAddOk">Add part</button></div>
+  <div class="rcaddbtns"><button class="rcbtn" id="rcAddCancel">Cancel</button><button class="rcbtn rcgo" id="rcAddOk">Add section</button></div>
 </div>
 <div class="rcpop rcadd" id="rcImp" role="dialog" aria-label="Import a take" hidden>
   <h3>IMPORT A TAKE</h3>
-  <p class="rcaddinfo" id="rcImpInfo">The file becomes a new take of the selected part.</p>
-  <label class="rcrow">Lines up <select id="rcImpWhere"><option value="part">with the start of this part</option><option value="song">with the start of the song (0:00)</option></select></label>
-  <p class="rcaddinfo">Pick “start of the song” for a whole-song vocal you exported from 0:00 (FL Studio, another app); only this part's piece is used.</p>
+  <p class="rcaddinfo" id="rcImpInfo">The file becomes a new take of the selected section.</p>
+  <label class="rcrow">Lines up <select id="rcImpWhere"><option value="part">with the start of this section</option><option value="song">with the start of the song (0:00)</option></select></label>
+  <p class="rcaddinfo">Pick “start of the song” for a whole-song vocal you exported from 0:00 (FL Studio, another app); only this section's piece is used.</p>
   <div class="rcaddbtns"><button class="rcbtn" id="rcImpCancel">Cancel</button><button class="rcbtn rcgo" id="rcImpOk">Choose file…</button></div>
   <input type="file" id="rcImpFile" accept="audio/*,video/mp4,.m4a,.mp3,.wav,.aac,.flac,.ogg,.opus,.webm,.3gp" hidden>
 </div>
@@ -407,7 +407,7 @@ nav.steps button { flex:1 0 64px; min-height:48px; }
 <button role="menuitem" data-act="howto">How recording works</button>
 <button role="menuitem" data-act="about">About this engine</button></div></div>
   </nav>
-  <div class="apptitle"><b>Playbook Vocal Studio 0.22.0</b> <span id="dawSong">·</span></div>
+  <div class="apptitle"><b>Playbook Vocal Studio 0.23.0</b> <span id="dawSong">·</span></div>
   <div class="savedind" id="dawSaved" role="status" aria-live="polite" title="Autosave on this browser"></div><div class="headright"><button class="guidebtn" id="guideBtn" aria-haspopup="dialog" aria-controls="guideSheet">✦ SMART GUIDE <span class="count" id="guideCount"></span></button><div class="chip" id="chip">Starting the engine...</div></div>
 </header>
 <div class="busybar" id="busybar"><i></i></div>
@@ -417,7 +417,7 @@ nav.steps button { flex:1 0 64px; min-height:48px; }
     <button class="tbtn" title="Back to start (Home / Enter)" id="toStart" aria-label="Back to the start"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M5 4h3v16H5zM20 4v16L9 12z"/></svg></button>
     <button class="tbtn play" title="Play / pause (Space)" id="playBtn"><svg viewBox="0 0 24 24" id="playIcon"><path fill="currentColor" d="M7 4l13 8-13 8z"/></svg><span id="playLabel">Play</span></button>
     <button class="tbtn" id="dawStop" title="Stop (press again: back to start)" aria-label="Stop"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M6 6h12v12H6z"/></svg></button>
-    <button class="tbtn loop" id="dawLoop" aria-pressed="false" title="Loop for listening (L): the ruler region you dragged, else the part under the playhead, else 4 bars">LOOP</button>
+    <button class="tbtn loop" id="dawLoop" aria-pressed="false" title="Loop for listening (L): the ruler region you dragged, else the section under the playhead, else 4 bars">LOOP</button>
   </div>
   <div class="tclock"><div class="tc-main" id="dawTime">0:00.000</div><div class="tc-sub"><span id="dawBars">bar 1 · beat 1</span> · <div class="time" id="timeText">0:00.0 / 0:00</div></div><div class="progress" id="progress" aria-label="Song position"><i id="progressFill"></i></div></div>
   <button class="tinfo" id="dawTempo" title="Tempo is set on CHAIN, key on TUNE"><span id="dawBpm">75 BPM</span> <span>4/4</span><br><span id="dawKey">Key —</span></button>
@@ -716,7 +716,7 @@ nav.steps button { flex:1 0 64px; min-height:48px; }
 <section class="page" id="page-open">
     <div class="rack" id="sessionRack">
       <h2>Your recording session</h2>
-      <p>Load the backing track here. All recording happens on <strong>1 RECORD &amp; COMP</strong> (part by part, several takes, choose the best). You can also import a finished or raw vocal to polish.</p>
+      <p>Load the backing track here. All recording happens on <strong>1 RECORD &amp; COMP</strong> (section by section, several takes, choose the best). You can also import a finished or raw vocal to polish.</p>
       <button class="btn primary wide" data-act="toRC">Record your vocal on 1 RECORD &amp; COMP</button>
       <div class="row"><button class="btn" id="newSession">New empty session</button><button class="btn" id="undoClear" hidden>Undo clear</button></div>
       <p class="note" id="clearStatus" aria-live="polite">A new session clears the vocal, extra takes, backing track and reference.</p>
@@ -746,7 +746,7 @@ nav.steps button { flex:1 0 64px; min-height:48px; }
         <p class="note" id="captureNote">For singing over the backing track, use 1 RECORD &amp; COMP. The separate phone recorder may pause this page’s backing track.</p>
         <label class="field"><span>IMPORT AS</span><select id="importKind"><option value="0">Raw vocal — clean and tune</option><option value="1">Finished vocal — preserve my sound</option></select></label><p class="note">Finished vocal starts with cleaning, tuning and effects bypassed. Stereo and original level are kept. Add a separate reference below to compare without replacing your song.</p>
         <button class="btn primary wide" id="pickBtn">Import vocal WAV / audio</button>
-        <p class="note">Importing here replaces the vocal in POLISH (your parts and takes on RECORD &amp; COMP stay). Save your project first if you want to keep it.</p>
+        <p class="note">Importing here replaces the vocal in POLISH (your sections and takes on RECORD &amp; COMP stay). Save your project first if you want to keep it.</p>
         <input type="file" id="fileVocal" accept="audio/*,video/mp4,.m4a,.mp3,.wav,.aac,.flac,.ogg,.opus,.webm,.3gp">
         <details class="how">
           <summary>Where are my voice memos?</summary>
@@ -773,7 +773,7 @@ nav.steps button { flex:1 0 64px; min-height:48px; }
       <h2>Save to your phone</h2>
       <p>Each save is a ZIP holding a 24-bit WAV, the same quality as the desktop app's export. Open it with your Files app, or move it to your laptop and drop the WAV at the very start of your FL Studio playlist. It starts at 0:00, so it lines up with the beat.</p>
       <div class="savelist">
-        <div class="saveitem"><div><b>Song project</b><p>All vocal tracks, attempts, sections and each track’s POLISH settings in one ZIP. Reopen in version 0.20.0 or newer for every track. Older versions (0.18.3) open only the Lead vocal and its parts.</p></div><button class="btn primary" id="saveProject">Save</button></div>
+        <div class="saveitem"><div><b>Song project</b><p>All vocal tracks, attempts, sections and each track’s POLISH settings in one ZIP. Reopen in version 0.20.0 or newer for every track. Older versions (0.18.3) open only the Lead vocal and its sections.</p></div><button class="btn primary" id="saveProject">Save</button></div>
         <div class="saveitem"><div><b>Final vocal</b><p>All your edits, cleaned, tuned and through the vocal chain (stereo, with its echo and reverb). Drop it on your beat.</p></div><button class="btn primary" data-save="final">Save</button></div>
         <div class="saveitem"><div><b>Tuned vocal (dry)</b><p>All edits, cleaned and tuned, no vocal chain. Use it if you'll add your own effects in FL Studio.</p></div><button class="btn" data-save="tuned">Save</button></div>
         <div class="saveitem"><div><b>Cleaned vocal</b><p>All edits and breath reduction, cleaned, not tuned.</p></div><button class="btn" data-save="cleaned">Save</button></div>
@@ -823,7 +823,7 @@ nav.steps button { flex:1 0 64px; min-height:48px; }
 <tr><td><kbd>Ctrl/⌘ S</kbd></td><td>Back up the project</td></tr></table>
 <p class="note"><b>2 POLISH screen</b></p><table class="keys">
 <tr><td><kbd>Space</kbd></td><td>Play / pause</td></tr><tr><td><kbd>Enter</kbd> / <kbd>Home</kbd></td><td>Back to start</td></tr>
-<tr><td><kbd>L</kbd></td><td>Loop for listening: the ruler region, else the part under the playhead, else 4 bars</td></tr>
+<tr><td><kbd>L</kbd></td><td>Loop for listening: the ruler region, else the section under the playhead, else 4 bars</td></tr>
 <tr><td><kbd>1</kbd>–<kbd>5</kbd></td><td>Clean · Tune · Chain · Detail · Mix</td></tr>
 <tr><td><kbd>Ctrl/⌘ Z</kbd>, <kbd>Ctrl/⌘ Shift Z</kbd>, <kbd>Ctrl Y</kbd></td><td>Undo / redo (in the area you last worked: wave edit or sound/notes)</td></tr>
 <tr><td><kbd>+</kbd> / <kbd>−</kbd></td><td>Zoom the timeline</td></tr><tr><td><kbd>Ctrl/⌘ S</kbd></td><td>Save project with every take</td></tr>
@@ -839,7 +839,7 @@ nav.steps button { flex:1 0 64px; min-height:48px; }
 <p class="note">Use headphones to avoid backing leaking into the mic. Recording from playback uses lead-in; use a selected phrase for an exact replacement. Full instructions: START-HERE.txt.</p></div>
 <div id="helpAbout" hidden>    <div class="rack">
       <h2>Same engine as the desktop app</h2>
-      <p>Playbook Vocal Studio app version 0.22.0. It runs audio engine version 0.12.1 of the Windows app and the FL Studio plugin: Voice focus cleaning, performance edits, tuning, the vocal chain and the Smart Guide. Everything stays on your phone; nothing is uploaded.</p>
+      <p>Playbook Vocal Studio app version 0.23.0. It runs audio engine version 0.12.1 of the Windows app and the FL Studio plugin: Voice focus cleaning, performance edits, tuning, the vocal chain and the Smart Guide. Everything stays on your phone; nothing is uploaded.</p>
       <p class="note" id="engineInfo"></p>
     </div></div>
 </div></div>
@@ -880,12 +880,12 @@ nav.steps button { flex:1 0 64px; min-height:48px; }
       <label class="field"><span>PHRASE NAME</span><input id="phraseLabel" type="text" maxlength="80" placeholder="Verse 1 · line 1"></label>
       <div class="selrow"><label class="field"><span>START (SECONDS)</span><input id="phraseStart" type="number" min="0" max="899.5" step="0.1" value="0"></label><label class="field"><span>END (SECONDS)</span><input id="phraseEnd" type="number" min="0.5" max="900" step="0.1" value="8"></label></div>
       <div class="btnrow"><button class="btn" id="phraseNew">Mark a new phrase</button><button class="btn" id="phraseBounds">Update this phrase’s boundaries</button></div>
-      <button class="btn rec wide" id="phraseRecord"><span class="dot"></span><span id="phraseRecordLabel">Redo this part · record a take</span></button>
+      <button class="btn rec wide" id="phraseRecord"><span class="dot"></span><span id="phraseRecordLabel">Redo this section · record a take</span></button>
             <p class="note warnline" id="phraseWarn" hidden></p>
       <div class="recbox" id="phraseRecBox" hidden><div id="phraseRecTime" class="rectime">0:00</div><div class="meter"><i id="phraseRecMeter"></i></div><p id="phraseRecNote" class="note"></p></div>
       <div class="btnrow"><button class="btn" id="phraseImport">Import an attempt for this phrase</button><button class="btn" id="phraseUnchoose">Clear take choice</button><button class="btn" id="phraseRemove">Remove phrase</button><button class="btn" id="phraseUndo" hidden>Undo last change</button><button class="btn" id="phraseRedo" hidden>Redo</button></div>
       <input id="phraseFile" type="file" accept="audio/*,.wav,.mp3,.m4a,.flac">
-      <p class="note">Wear headphones. The backing plays from the lead-in; the existing vocal is heard before and after the selected phrase. Recording runs until you press Stop (or stops just after End when “Stop at part end” is ON). At 0:00, a short count-in gives you time to begin. Imported attempts start at the phrase’s Start. Keep this page visible while recording; leaving it stops and keeps the attempt. If a take feels early or late, adjust its Alignment below.</p>
+      <p class="note">Wear headphones. The backing plays from the lead-in; the existing vocal is heard before and after the selected phrase. Recording runs until you press Stop (or stops just after End when “Stop at section end” is ON). At 0:00, a short count-in gives you time to begin. Imported attempts start at the phrase’s Start. Keep this page visible while recording; leaving it stops and keeps the attempt. If a take feels early or late, adjust its Alignment below.</p>
       <button class="btn" id="phraseRecover" hidden>Download last microphone file for recovery</button>
       <p id="phraseStatus" class="track-status" role="status" aria-live="polite">Choose Continue from here to mark your first phrase.</p>
     </div>
@@ -917,7 +917,7 @@ nav.steps button { flex:1 0 64px; min-height:48px; }
     <div class="rack">
       <h2>What you hear while recording</h2>
       <label class="switch"><input type="checkbox" id="optHearOld" checked> Hear the old vocal while recording (lead-in, around the phrase, before a punch-in)</label>
-      <p class="note">Inside the part being recorded the old vocal is always silent. VOCAL / BACKING mute and solo on the lanes now also apply while recording.</p>
+      <p class="note">Inside the section being recorded the old vocal is always silent. VOCAL / BACKING mute and solo on the lanes now also apply while recording.</p>
       <label class="switch"><input type="checkbox" id="optMonitor"> Input monitoring — hear your own mic</label>
       <label class="field"><span>MONITOR LEVEL <output id="optMonVolVal">80%</output></span><input type="range" id="optMonVol" min="0" max="100" value="80"></label>
       <p class="note warnline" id="monWarn">Off by default. Wired headphones only: through speakers it will howl. Browsers add delay to what you hear (about <span id="monLat">—</span> ms here); if it sounds like an echo, turn it off and use your headphones’ own monitoring.</p>
@@ -1003,8 +1003,8 @@ nav.steps button { flex:1 0 64px; min-height:48px; }
   </div>
 </div>
 
-<link rel="stylesheet" href="song-studio.css?v=0.22.0">
-<script src="song-core.js?v=0.22.0"></script>
+<link rel="stylesheet" href="song-studio.css?v=0.23.0">
+<script src="song-core.js?v=0.23.0"></script>
 <script>
 // Generated by web/generate-detail-ui.py from VocalDetailSettings.h.
 const DETAIL_PARAMS=[{"id":"chRepairOn","name":"Click / plosive repair","unit":"","low":0.0,"high":1.0,"step":1.0,"initial":0.0,"group":0,"toggle":true,"advanced":false},{"id":"chRepairClicks","name":"Click sensitivity","unit":"%","low":0.0,"high":100.0,"step":1.0,"initial":35.0,"group":0,"toggle":false,"advanced":false},{"id":"chRepairPlosives","name":"Plosive reduction","unit":"%","low":0.0,"high":100.0,"step":1.0,"initial":40.0,"group":0,"toggle":false,"advanced":false},{"id":"chRoomReduceOn","name":"Gentle de-reverb","unit":"","low":0.0,"high":1.0,"step":1.0,"initial":0.0,"group":1,"toggle":true,"advanced":false},{"id":"chRoomReduce","name":"Room-tail reduction","unit":"%","low":0.0,"high":100.0,"step":1.0,"initial":30.0,"group":1,"toggle":false,"advanced":false},{"id":"chRoomDecay","name":"Room decay estimate","unit":"ms","low":100.0,"high":700.0,"step":10.0,"initial":300.0,"group":1,"toggle":false,"advanced":true},{"id":"chPrecisionOn","name":"Precision dynamic EQ","unit":"","low":0.0,"high":1.0,"step":1.0,"initial":0.0,"group":2,"toggle":true,"advanced":false},{"id":"chPrecisionMud","name":"Mud maximum cut","unit":"dB","low":0.0,"high":6.0,"step":0.1,"initial":3.0,"group":2,"toggle":false,"advanced":false},{"id":"chPrecisionNasal","name":"Nasal maximum cut","unit":"dB","low":0.0,"high":6.0,"step":0.1,"initial":3.0,"group":2,"toggle":false,"advanced":false},{"id":"chPrecisionHarsh","name":"Harsh maximum cut","unit":"dB","low":0.0,"high":6.0,"step":0.1,"initial":3.0,"group":2,"toggle":false,"advanced":false},{"id":"chPrecisionMudHz","name":"Mud frequency","unit":"Hz","low":120.0,"high":600.0,"step":1.0,"initial":250.0,"group":2,"toggle":false,"advanced":true},{"id":"chPrecisionNasalHz","name":"Nasal frequency","unit":"Hz","low":500.0,"high":1800.0,"step":1.0,"initial":900.0,"group":2,"toggle":false,"advanced":true},{"id":"chPrecisionHarshHz","name":"Harsh frequency","unit":"Hz","low":1800.0,"high":6500.0,"step":10.0,"initial":3200.0,"group":2,"toggle":false,"advanced":true},{"id":"chPrecisionQ","name":"Band width (Q)","unit":"","low":0.5,"high":4.0,"step":0.05,"initial":1.3,"group":2,"toggle":false,"advanced":true},{"id":"chPrecisionTrigger","name":"Rise above usual balance","unit":"dB","low":0.0,"high":8.0,"step":0.1,"initial":2.0,"group":2,"toggle":false,"advanced":true},{"id":"chPrecisionAttack","name":"EQ attack","unit":"ms","low":2.0,"high":40.0,"step":1.0,"initial":8.0,"group":2,"toggle":false,"advanced":true},{"id":"chPrecisionRelease","name":"EQ release","unit":"ms","low":40.0,"high":400.0,"step":5.0,"initial":120.0,"group":2,"toggle":false,"advanced":true},{"id":"chReverbDuckOn","name":"Reverb ducking","unit":"","low":0.0,"high":1.0,"step":1.0,"initial":0.0,"group":3,"toggle":true,"advanced":false},{"id":"chReverbDuck","name":"Reverb dip","unit":"dB","low":0.0,"high":18.0,"step":0.5,"initial":9.0,"group":3,"toggle":false,"advanced":false},{"id":"chReverbRelease","name":"Reverb recovery","unit":"ms","low":100.0,"high":800.0,"step":10.0,"initial":300.0,"group":3,"toggle":false,"advanced":true},{"id":"chReverbPre","name":"Reverb pre-delay","unit":"ms","low":0.0,"high":100.0,"step":1.0,"initial":22.0,"group":3,"toggle":false,"advanced":true},{"id":"chDoubleOn","name":"Vocal doubler","unit":"","low":0.0,"high":1.0,"step":1.0,"initial":0.0,"group":4,"toggle":true,"advanced":false},{"id":"chDoubleMix","name":"Double blend","unit":"%","low":0.0,"high":25.0,"step":1.0,"initial":12.0,"group":4,"toggle":false,"advanced":false},{"id":"chDoubleWidth","name":"Double width","unit":"%","low":0.0,"high":100.0,"step":1.0,"initial":80.0,"group":4,"toggle":false,"advanced":false},{"id":"chDoubleCents","name":"Double variation","unit":"cents","low":0.0,"high":12.0,"step":0.5,"initial":6.0,"group":4,"toggle":false,"advanced":true},{"id":"chDoubleDelay","name":"Double separation","unit":"ms","low":12.0,"high":35.0,"step":1.0,"initial":22.0,"group":4,"toggle":false,"advanced":true}];
@@ -1113,7 +1113,7 @@ async function saveDownload(filename, data) {
 })(globalThis);
 
 "use strict";
-// Playbook Vocal Studio 0.22.0 (phone, DAW layout). The engine in worker.js holds the session (the same C++ as the
+// Playbook Vocal Studio 0.23.0 (phone, DAW layout). The engine in worker.js holds the session (the same C++ as the
 // desktop app); this page draws it, plays it, and sends the desktop app's parameter ids back.
 // ---------------------------------------------------------------- constants
 const KEYS = ["C","C# / Db","D","D# / Eb","E","F","F# / Gb","G","G# / Ab","A","A# / Bb","B"];
@@ -1150,8 +1150,8 @@ const songSeconds = () => S.original ? S.original.length / S.rate : 0;
 
 // ---------------------------------------------------------------- engine (worker)
 // 0.17.2: the app and the audio engine have separate version numbers
-var APP_VERSION="0.22.0",ENGINE_VERSION="0.12.1";
-const worker = new Worker("worker.js?v=0.22.0");
+var APP_VERSION="0.23.0",ENGINE_VERSION="0.12.1";
+const worker = new Worker("worker.js?v=0.23.0");
 let reqId = 0, engineFailure = null; const pending = {};
 worker.onmessage = ({ data: m }) => {
   if (m.type === "ready") $("engineInfo").textContent = "App version: "+APP_VERSION+" · Audio engine version: "+ENGINE_VERSION+" (WebAssembly, the same audio code as the Windows app, with Voice focus).";
@@ -2319,7 +2319,7 @@ function syncGuide() {
   $("guideOn").checked = S.guidePrefs.enabled; $("guideGoal").value = String(S.guidePrefs.goal); $("guideConcern").value = String(S.guidePrefs.concern || 0); $("guideBpm").value = S.guidePrefs.bpm; $("guideSync").checked = S.guidePrefs.sync;
   if (t) {
     $("tipBadge").textContent = t.kind + "  ·  Tip 1 of " + g.tips.length; $("tipTitle").textContent = t.title; $("tipReason").textContent = t.reason; $("tipListen").textContent = t.listen ? "How to listen: " + t.listen : "";
-    $("tipChange").textContent = t.changes.length ? t.changes.map(c => PARAM_NAMES[c.parameter] + ": " + changeValue(c.parameter, c.from) + " → " + changeValue(c.parameter, c.value)).join("  •  ") : "Listen and review this part yourself.";
+    $("tipChange").textContent = t.changes.length ? t.changes.map(c => PARAM_NAMES[c.parameter] + ": " + changeValue(c.parameter, c.from) + " → " + changeValue(c.parameter, c.value)).join("  •  ") : "Listen and review this section yourself.";
     $("tipGainCost").innerHTML = t.gain || t.cost ? (t.gain ? "<div><b>You get:</b> " + t.gain + "</div>" : "") + (t.cost ? "<div><b>It may cost:</b> " + t.cost + "</div>" : "") : "";
   } else {
     $("tipBadge").textContent = S.guidePrefs.enabled ? "SMART GUIDE" : "SMART GUIDE PAUSED";
@@ -2636,7 +2636,7 @@ async function saveProject() {
   if(typeof phraseProjectPack==="function")await phraseProjectPack(root,files);
   root.exportStages = S.exportMask;
   files.unshift({ name: base + ".pbv", data: new TextEncoder().encode(JSON.stringify(root, null, 1)) });
-  files.push({ name: "READ-ME.txt", data: new TextEncoder().encode("Playbook Vocal Studio song project (saved on the phone, 0.22.0).\r\n\r\nOn the laptop: extract this ZIP into its own folder, keep the files together, then use Open project in the Windows app or FL Studio plugin (0.9.8 or newer) and choose " + base + ".pbv.\r\nOpen multitrack projects in Playbook Vocal Studio 0.22.0 or newer to retain separate tracks, sections and attempts. Older apps open only the last POLISH vocal and will lose the multitrack data if you save over this project. Keep this original ZIP.\r\nOn the phone: SONG PROJECT > Open a song project, then pick this ZIP.\r\n") });
+  files.push({ name: "READ-ME.txt", data: new TextEncoder().encode("Playbook Vocal Studio song project (saved on the phone, 0.23.0).\r\n\r\nOn the laptop: extract this ZIP into its own folder, keep the files together, then use Open project in the Windows app or FL Studio plugin (0.9.8 or newer) and choose " + base + ".pbv.\r\nOpen multitrack projects in Playbook Vocal Studio 0.23.0 or newer to retain separate tracks, sections and attempts. Older apps open only the last POLISH vocal and will lose the multitrack data if you save over this project. Keep this original ZIP.\r\nOn the phone: SONG PROJECT > Open a song project, then pick this ZIP.\r\n") });
   let data;try{data=zip(files);}catch(err){return done(false,"failed","Couldn't save: the project could not be prepared ("+(err&&err.message||"unknown problem")+").");}
   try { const result = await saveDownload(base + " - song project.zip", data); const r=done(true,result==="Saved"?"saved":"requested",result + ": " + base + " - song project.zip. " + whereSaved()); toast(result, base + " - song project.zip. " + whereSaved()); return r; }
   catch (err) { return err && err.code === "declined" ? done(false,"cancelled","Not saved.") : done(false,"failed","Couldn't save: " + (err && err.message || "unknown problem") + "."); }
@@ -2967,7 +2967,7 @@ function phraseAdjust(id,field,value){if(phraseBusy())return;const p=selectedPhr
 function phraseSafeGain(channels){let peak=0;for(const c of channels)for(const x of c)peak=Math.max(peak,Math.abs(x));return peak>.891251?.891251/peak:1;}
 async function phraseListen(id){if(phraseBusy())return;try{const w=phraseWorkspace(),p=selectedPhrase();let channels,start=0,end,rate=w.rate,gain=1;if(id){const t=p?.takes.find(t=>t.id===id);if(!t)return;const excerpt=PhraseCore.audition(t,p);channels=excerpt;start=p.start;end=channels[0].length/rate;gain=PhraseCore.matchGains(p)[id]||phraseSafeGain(channels);}else{channels=PhraseCore.compose(w);end=channels[0].length/rate;gain=phraseSafeGain(channels);start=0;}if(!end)throw new Error('No audio in this phrase.');endLoop();loop={phrase:true,chs:channels,rate,gain,start:0,end,noBeat:!$('phraseCompareBeat').checked,beatOffset:start,oneShot:true};const ok=await startPlayback(0);phraseMessage(ok?(id?'Playing attempt at a matched level':'Playing assembled vocal')+($('phraseCompareBeat').checked&&S.beat?' with backing.':'.'):'Audio could not start. '+$('playbackStatus').textContent);}catch(e){phraseMessage(e.message);}}
 function phraseFailWorker(error){if(phraseWorker)phraseWorker.terminate();phraseWorker=null;for(const j of phraseJobs.values()){clearTimeout(j.timer);j.reject(new Error(error));}phraseJobs.clear();}
-function phraseWorkerRequest(t,p){return new Promise((resolve,reject)=>{if(!phraseWorker){phraseWorker=new Worker('phrase-worker.js?v=0.22.0');phraseWorker.onmessage=({data:m})=>{const j=phraseJobs.get(m.id);if(!j)return;clearTimeout(j.timer);phraseJobs.delete(m.id);m.error?j.reject(new Error(m.error)):j.resolve(m.profile);};phraseWorker.onerror=e=>phraseFailWorker(e.message||'Take analysis stopped. Retry analysis.');phraseWorker.onmessageerror=()=>phraseFailWorker('Take analysis returned unreadable data.');}const id=++phraseSerial,channels=t.channels.map(c=>c.slice());phraseJobs.set(id,{resolve,reject,timer:setTimeout(()=>phraseFailWorker('Take analysis timed out. Your recording is kept; retry analysis.'),120000)});try{phraseWorker.postMessage({id,take:{...t,channels,profile:null},phrase:{start:p.start,end:p.end}},channels.map(c=>c.buffer));}catch(e){const j=phraseJobs.get(id);clearTimeout(j.timer);phraseJobs.delete(id);reject(e);}});}
+function phraseWorkerRequest(t,p){return new Promise((resolve,reject)=>{if(!phraseWorker){phraseWorker=new Worker('phrase-worker.js?v=0.23.0');phraseWorker.onmessage=({data:m})=>{const j=phraseJobs.get(m.id);if(!j)return;clearTimeout(j.timer);phraseJobs.delete(m.id);m.error?j.reject(new Error(m.error)):j.resolve(m.profile);};phraseWorker.onerror=e=>phraseFailWorker(e.message||'Take analysis stopped. Retry analysis.');phraseWorker.onmessageerror=()=>phraseFailWorker('Take analysis returned unreadable data.');}const id=++phraseSerial,channels=t.channels.map(c=>c.slice());phraseJobs.set(id,{resolve,reject,timer:setTimeout(()=>phraseFailWorker('Take analysis timed out. Your recording is kept; retry analysis.'),120000)});try{phraseWorker.postMessage({id,take:{...t,channels,profile:null},phrase:{start:p.start,end:p.end}},channels.map(c=>c.buffer));}catch(e){const j=phraseJobs.get(id);clearTimeout(j.timer);phraseJobs.delete(id);reject(e);}});}
 function phraseAnalyze(t,p){const token={};t.analysisToken=token;t.profile=null;t.analysisError=null;phraseJobQueue=phraseJobQueue.then(async()=>{if(t.analysisToken!==token||!S.phrases?.phrases.includes(p)||!p.takes.includes(t))return;try{const profile=await phraseWorkerRequest(t,p);if(t.analysisToken===token){t.profile=profile;t.profileKey=phraseProfileKey(t,p);}}catch(e){if(t.analysisToken===token)t.analysisError=e.message;}finally{if(t.analysisToken===token){delete t.analysisToken;syncPhraseUI();persist();}}});return phraseJobQueue;}
 // 0.18.3 (review 06): a check result belongs to one part span and take position; Undo / Redo / trim / split that change them run it again
 function phraseProfileKey(t,p){return [p.start,p.end,t.origin,t.offsetMs||0,t.channels[0]?.length||0].join(',');}
@@ -2975,7 +2975,7 @@ function phraseAnalyzeMissing(){for(const p of phraseWorkspace().phrases)for(con
 async function phraseAddAudio(p,channels,rate,origin,name){const w=phraseWorkspace();if(!w.phrases.includes(p))throw new Error('That phrase no longer exists.');if(p.takes.length>=32)throw new Error('This phrase has 32 attempts. Save the project and remove unused attempts first.');const converted=await phraseResample(channels,rate,w.rate),t={id:'t'+w.nextId++,name:name||phraseNextTakeName(p),rate:w.rate,channels:converted,origin,offsetMs:0,gainDb:0,profile:null};const trial={...w,phrases:w.phrases.map(q=>q===p?{...p,takes:[...p.takes,t]}:q)};PhraseCore.validate(trial);phraseBackup();p.takes.push(t);phraseNoteTakeName(p,t);clearedSession=null;phraseChanged(t.name+' added — '+p.takes.length+' attempt'+(p.takes.length===1?'':'s')+'. Listen, then tap Choose.');phraseAnalyze(t,p);}
 function phraseRecordOptions(){const p=selectedPhrase(),w=phraseWorkspace();if(!p)throw new Error('Add a phrase first.');if(p.takes.length>=32||w.phrases.reduce((n,p)=>n+p.takes.length,0)>=128)throw new Error('Save the project and remove unused takes before recording more.');const captured=w.phrases.reduce((n,p)=>n+p.takes.reduce((n,t)=>n+t.channels[0].length/w.rate,0),0);const bytes=(w.base?w.base.channels.reduce((n,c)=>n+c.byteLength,0):0)+w.phrases.reduce((n,p)=>n+p.takes.reduce((n,t)=>n+t.channels.reduce((n,c)=>n+c.byteLength,0),0),0);if(bytes+(p.end-p.start+w.lead+.8)*w.rate*8>PhraseCore.MAX_BYTES)throw new Error('Save the project and remove unused attempts before recording more; this phone workspace is near its 128 MB audio limit.');if(captured+p.end-p.start+w.lead+.8>PhraseCore.MAX_TOTAL)throw new Error('The project is near its 30-minute take limit. Save and remove unused takes first.');return {p,w,start:p.start-w.lead-.15,end:p.end+.3};}
 function phraseScheduleRecording(r,ctx){const o=r.phrase;r.origin=o.start;r.nodes=[];r.monitorSources=[];r.clockStart=ctx.currentTime;const schedule=(buffer,gain,from,to)=>{from=Math.max(0,from);to=Math.min(to,buffer.duration);if(to<=from)return;const s=ctx.createBufferSource(),g=ctx.createGain();s.buffer=buffer;g.gain.value=gain;s.connect(g).connect(ctx.destination);s.start(r.clockStart+from-o.start,from,to-from);r.monitorSources.push(s);r.nodes.push(g);return g;};const bg=1,vg=typeof pvsRecVocalGain==='function'?pvsRecVocalGain():1;if(S.beat&&$('beatOn').checked&&bg>0)r.beatGain=schedule(S.beat,S.beatLevel*bg,o.start,o.free?Infinity:o.end);if(vg>0){const channels=PhraseCore.compose(o.w);const b=bufferOf(channels,o.w.rate);const gain=phraseSafeGain(channels)*vg;schedule(b,gain,o.start,o.p.start);if(!o.free)schedule(b,gain,o.p.end,o.end);}$('phraseRecNote').textContent='Headphones: '+(r.beatGain?'backing':'no backing')+(vg>0?' + existing vocal outside this phrase':' · old vocal off')+'. Microphone: new attempt only.';if(typeof pvsRecScheduled==='function')pvsRecScheduled(r,ctx);r.limit=setTimeout(()=>{if(rec===r&&r.mr.state!=='inactive'){r.autoStop=o.free?'cap':'end';r.mr.stop();}},(o.free?o.cap:(o.end-o.start))*1000);}
-async function phraseFinishRecording(r,channels,rate){const ctx=audioCtx(),latency=typeof pvsLatency==='function'?pvsLatency():Math.max(0,(ctx.outputLatency||0)+(ctx.baseLatency||0));await phraseAddAudio(r.phrase.p,channels,rate,r.origin-latency,phraseNextTakeName(r.phrase.p));const t=r.phrase.p.takes.at(-1);if(!PhraseCore.covers(t,r.phrase.p))phraseMessage('Recording kept, but it ended before the phrase was complete. Adjust End or redo this part.');else if(r.clip)phraseMessage('Recording kept. Some input peaks were loud; check the clipping analysis before choosing.');showPage('record');}
+async function phraseFinishRecording(r,channels,rate){const ctx=audioCtx(),latency=typeof pvsLatency==='function'?pvsLatency():Math.max(0,(ctx.outputLatency||0)+(ctx.baseLatency||0));await phraseAddAudio(r.phrase.p,channels,rate,r.origin-latency,phraseNextTakeName(r.phrase.p));const t=r.phrase.p.takes.at(-1);if(!PhraseCore.covers(t,r.phrase.p))phraseMessage('Recording kept, but it ended before the phrase was complete. Adjust End or redo this section.');else if(r.clip)phraseMessage('Recording kept. Some input peaks were loud; check the clipping analysis before choosing.');showPage('record');}
 async function phraseApply(){if(phraseBusy())return false;const w=phraseWorkspace();if(!w.base&&w.applied<0&&!w.phrases.some(p=>p.selected)){phraseMessage('Choose at least one take before applying your assembled vocal.');return false;}S.phraseWorking=true;syncPhraseUI();try{const pcm=PhraseCore.compose(w),last=sessionSnapshot()||{};S.phraseApplying=true;if(S.main)await restoreSession({...last,v:5,name:w.title||'Assembled vocal',rate:w.rate,pcm,takes:[],notes:[],edits:{breaths:[],timing:[],comp:[]},phrases:w});else await openVocal(pcm,w.rate,w.title||'Assembled vocal',false);S.phrases=w;w.applied=w.revision;w.appliedSig=phraseCompSig(w);w.appliedDur=PhraseCore.duration(w);S.loadedNotice='Assembled vocal loaded — '+w.phrases.filter(p=>p.selected).length+' chosen phrases.';persist();phraseMessage('Assembled vocal applied. Use Clean, Tune and Chain, then Save.');return true;}catch(e){phraseMessage('Could not apply: '+e.message);return false;}finally{S.phraseApplying=false;S.phraseWorking=false;syncPhraseUI();renderOpen();}}
 function phraseSnapshot(last){const w=S.phrases;if(!last&&!w?.phrases.length&&!S.song&&!S.beat&&!S.recoveryFiles?.length)return null;const result={...(last||{name:w?.title||'Recording session',rate:w?.rate||S.rate,pcm:null,P:{...S.P}}),v:5,song:S.song?SongCore.clone(S.song):null,recordBacking:$('beatOn').checked,phrases:w?PhraseCore.clone(w):null,recoveryFiles:(S.recoveryFiles||[]).slice()};if(!last){const g=S.guide||{};result.guide={...S.guidePrefs,locked:[...(g.locked||[])],dismissed:{...(g.dismissed||{})}};result.mix={...S.mix};}/* 0.18.3 (review 03): tempo and the other song settings are kept without a whole vocal too */if(result.phrases)for(const p of result.phrases.phrases)for(const t of p.takes)delete t.analysisToken;result.backing=S.beat?{name:S.beatName,rate:S.beat.sampleRate,channels:Array.from({length:S.beat.numberOfChannels},(_,i)=>S.beat.getChannelData(i)),level:S.beatLevel,on:$('beatOn').checked}:null;return result;}
 function phraseRestoreData(last){if(last.phrases){PhraseCore.validate(last.phrases);if(!S.phraseApplying)for(const p of last.phrases.phrases)for(const t of p.takes){delete t.analysisToken;t.profile=null;t.analysisError=null;}}if(last.backing)PhraseCore.audio(last.backing);S.phrases=last.phrases||null;if(Array.isArray(last.recoveryFiles))S.recoveryFiles=last.recoveryFiles.slice();phraseHistoryReset();if(Object.prototype.hasOwnProperty.call(last,'backing')){S.beat=last.backing?bufferOf(last.backing.channels,last.backing.rate):null;S.beatName=last.backing?.name||'';S.beatLevel=last.backing?.level??.8;$('beatOn').checked=last.backing?.on!==false;$('beatLevel').value=S.beatLevel*100;$('beatLevelText').textContent=Math.round(S.beatLevel*100)+'%';S.fitBeat=null;sendBeat();}if(typeof last.recordBacking==='boolean')$('beatOn').checked=last.recordBacking;if(!S.songApplying){if(window.SongStudio)SongStudio.restore(last);else S.song=last.song?SongCore.clone(last.song):null;}phraseAnalyzeMissing();syncPhraseUI();}
@@ -2989,18 +2989,18 @@ function syncPhraseUI(){if(!phraseReady)return;const w=phraseWorkspace(),p=selec
   if(!$('phraseTakes').contains(document.activeElement)&&$('phraseTakes').innerHTML!==takesHTML)$('phraseTakes').innerHTML=takesHTML;
   for(const b of $('phraseTakes').querySelectorAll('[data-action]')){b.disabled=locked;b.onclick=()=>{const id=b.dataset.id;({listen:phraseListen,choose:phraseChoose,remove:phraseRemoveTake,retry:id=>{const t=p.takes.find(t=>t.id===id);if(t){phraseAnalyze(t,p);syncPhraseUI();}}})[b.dataset.action](id);};}for(const input of $('phraseTakes').querySelectorAll('[data-field]')){input.disabled=locked;input.onchange=()=>phraseAdjust(input.dataset.id,input.dataset.field,+input.value);}
   for(const id of ['phraseTitle','phraseLead','phraseFade','phraseCursor','phraseContinue','phraseAtPlayhead','phraseNew','phraseStart','phraseEnd','phraseLabel','phraseBacking','phraseKey','phraseScale','phraseReference','phraseCompareBeat'])$(id).disabled=locked;
-  for(const id of ['phraseBounds','phraseImport','phraseRemove','phraseUnchoose'])$(id).disabled=locked||!p;$('phraseUndo').hidden=!phraseUndo;$('phraseUndo').disabled=locked||!phraseUndo;$('phraseRecord').disabled=!!S.micBlocked||(!rec&&(locked||!p))||!!(rec&&rec.target!=='phrase');$('phraseStop').textContent=rec?.target==='phrase'?'Stop and keep attempt':'Stop playback';$('phraseRecover').hidden=!S.phraseRecovery;$('phraseRecordLabel').textContent=rec?.target==='phrase'?'Stop and keep attempt':p?.takes.length?'Redo this part':'Record this phrase';$('phraseApply').disabled=locked||(!w.base&&w.applied<0&&!w.phrases.some(p=>p.selected));$('phraseSave').disabled=canSaveProject()!==true;$('phraseSave').title=canSaveProject(true)===true?'Back up project (.zip with every take)':canSaveProject(true);$('phraseListenSong').disabled=locked||!w.base&&!w.phrases.some(p=>p.selected);$('phraseAssemblyInfo').textContent=w.phrases.filter(p=>p.selected).length+' of '+w.phrases.length+' phrases chosen. '+(w.applied===w.revision?'Sent to POLISH.':'Press Comp done (or Load my new comp in POLISH) to send this comp to POLISH.');phraseDraw();}
+  for(const id of ['phraseBounds','phraseImport','phraseRemove','phraseUnchoose'])$(id).disabled=locked||!p;$('phraseUndo').hidden=!phraseUndo;$('phraseUndo').disabled=locked||!phraseUndo;$('phraseRecord').disabled=!!S.micBlocked||(!rec&&(locked||!p))||!!(rec&&rec.target!=='phrase');$('phraseStop').textContent=rec?.target==='phrase'?'Stop and keep attempt':'Stop playback';$('phraseRecover').hidden=!S.phraseRecovery;$('phraseRecordLabel').textContent=rec?.target==='phrase'?'Stop and keep attempt':p?.takes.length?'Redo this section':'Record this phrase';$('phraseApply').disabled=locked||(!w.base&&w.applied<0&&!w.phrases.some(p=>p.selected));$('phraseSave').disabled=canSaveProject()!==true;$('phraseSave').title=canSaveProject(true)===true?'Back up project (.zip with every take)':canSaveProject(true);$('phraseListenSong').disabled=locked||!w.base&&!w.phrases.some(p=>p.selected);$('phraseAssemblyInfo').textContent=w.phrases.filter(p=>p.selected).length+' of '+w.phrases.length+' phrases chosen. '+(w.applied===w.revision?'Sent to POLISH.':'Press Comp done (or Load my new comp in POLISH) to send this comp to POLISH.');phraseDraw();}
 function phraseBind(){phraseReady=true;$('phraseTimeline').addEventListener('pointerdown',e=>{if(phraseBusy())return;const r=$('phraseTimeline').getBoundingClientRect(),w=phraseWorkspace(),duration=Math.max(PhraseCore.duration(w),S.beat?.duration||0,8);w.cursor=Math.max(0,Math.min(899.5,(e.clientX-r.left)/r.width*duration));syncPhraseUI();persist();});for(const [id,values] of [['phraseKey',KEYS],['phraseScale',SCALES]])$(id).innerHTML=values.map((s,i)=>'<option value="'+i+'">'+s+'</option>').join('');/* 0.17.0: the Session window's Record button is now 'Go to 1 RECORD & COMP' (data-act=toRC) */$('phraseBacking').onclick=()=>$('fileBeat').click();$('phraseNew').onclick=()=>phraseNew();$('phraseContinue').onclick=()=>{if(!phraseBusy()){$('phraseLabel').value='';phraseNew(phraseWorkspace().cursor);}};$('phraseAtPlayhead').onclick=()=>{if(!phraseBusy()){$('phraseLabel').value='';phraseNew(Math.min(899.5,Math.max(0,currentPos()+(loop?.phrase?loop.beatOffset||0:0))));}};$('phraseBounds').onclick=()=>{if(phraseBusy())return;const p=selectedPhrase();if(!p)return;try{const start=+$('phraseStart').value,end=+$('phraseEnd').value;PhraseCore.span(start,end);phraseBackup();Object.assign(p,{start,end,name:$('phraseLabel').value.trim()||p.name});for(const t of p.takes)phraseAnalyze(t,p);if(p.selected&&!PhraseCore.covers(p.takes.find(t=>t.id===p.selected),p))p.selected=null;phraseChanged('Phrase boundaries updated. Check each take before choosing.');}catch(e){phraseMessage(e.message);}};$('phraseUnchoose').onclick=phraseUnchoose;$('phraseRemove').onclick=()=>{if(phraseBusy())return;const rp=selectedPhrase();if(!rp)return;if(!confirm('Remove phrase “'+rp.name+'” and its '+rp.takes.length+' take'+(rp.takes.length===1?'':'s')+'?\n\nUndo (Ctrl+Z) can bring it back.'))return;phraseBackup();const w=phraseWorkspace();w.phrases=w.phrases.filter(p=>p.id!==w.selected);w.selected=w.phrases.at(-1)?.id||null;phraseChanged('Phrase removed. Undo restores its attempts.');};$('phraseUndo').onclick=()=>phraseHistory(-1);$('phraseRedo').onclick=()=>phraseHistory(1);$('phraseRecord').onclick=()=>{if(rec?.target==='phrase'){if(rec.mr.state!=='inactive')rec.mr.stop();return;}try{const options=phraseRecordOptions();startRecording('phrase',options);}catch(e){phraseMessage(e.message);}};$('phraseImport').onclick=()=>$('phraseFile').click();$('phraseFile').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f||phraseBusy())return;const p=selectedPhrase();if(!p)return;S.phraseWorking=true;syncPhraseUI();try{const b=await decodeFile(f);if(b.duration>70)throw new Error('Import one phrase attempt under 70 seconds. Use Open for a whole song.');await phraseAddAudio(p,toChannels(b),b.sampleRate,p.start,f.name);}catch(e){phraseMessage('Attempt not added: '+e.message);}finally{S.phraseWorking=false;syncPhraseUI();}};$('phraseListenSong').onclick=()=>phraseListen();$('phraseRecover').onclick=async()=>{const b=S.phraseRecovery;if(!b)return;try{const ext=/mp4|m4a/.test(b.type)?'m4a':/wav/.test(b.type)?'wav':/ogg/.test(b.type)?'ogg':'webm';await saveDownload('Recovered microphone attempt.'+ext,b);phraseMessage('Microphone file saved. You can import it again for this phrase.');}catch(e){phraseMessage('Recovery download failed: '+e.message);}};$('phraseStop').onclick=()=>{if(rec?.target==='phrase'){if(rec.mr.state!=='inactive')rec.mr.stop();}else{endLoop();stopPlayback();phraseMessage('Stopped.');}};$('phraseApply').onclick=phraseApply;$('phraseSave').onclick=async()=>{await saveProject();$('phraseSaveStatus').textContent=$('saveStatus').textContent;};$('phraseTitle').onchange=()=>{phraseWorkspace().title=$('phraseTitle').value.trim().slice(0,120)||'My phrase recording';phraseChanged();};for(const [id,field,min,max] of [['phraseLead','lead',0,5],['phraseFade','fadeMs',0,100]])$(id).onchange=()=>{const v=+$(id).value;if(!Number.isFinite(v))return;phraseBackup();phraseWorkspace()[field]=Math.max(min,Math.min(max,v));phraseChanged();};$('phraseCursor').oninput=()=>{phraseWorkspace().cursor=+$('phraseCursor').value;$('phraseCursorText').textContent=fmt(phraseWorkspace().cursor);phraseDraw();persist();};for(const [id,field] of [['phraseKey','key'],['phraseScale','scale']])$(id).onchange=()=>{phraseWorkspace()[field]=+$(id).value;syncPhraseUI();persist();};$('phraseReference').onchange=()=>{const p=selectedPhrase();if(p){p.reference=$('phraseReference').value||null;syncPhraseUI();persist();}};window.addEventListener('resize',()=>{if(!$('page-record').hidden)phraseDraw();});document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'){if(rec?.target==='phrase'&&rec.mr.state!=='inactive')rec.mr.stop();cancelPersist();const snapshot=sessionSnapshot();if(snapshot)writeRemembered(snapshot).catch(e=>{$('phraseSaveStatus').textContent='Browser save failed. Download a song project: '+e.message;});}});syncPhraseUI();}
 phraseBind();
 
 </script>
 
-<script src="daw.js?v=0.22.0"></script>
-<script src="recovery.js?v=0.22.0"></script>
-<script src="rec.js?v=0.22.0"></script>
-<script src="rc.js?v=0.22.0"></script>
-<script src="edit-core.js?v=0.22.0"></script>
-<script src="studio.js?v=0.22.0"></script>
+<script src="daw.js?v=0.23.0"></script>
+<script src="recovery.js?v=0.23.0"></script>
+<script src="rec.js?v=0.23.0"></script>
+<script src="rc.js?v=0.23.0"></script>
+<script src="edit-core.js?v=0.23.0"></script>
+<script src="studio.js?v=0.23.0"></script>
 
-<script src="song-studio.js?v=0.22.0"></script>
-<script src="song-polish.js?v=0.22.0"></script>
+<script src="song-studio.js?v=0.23.0"></script>
+<script src="song-polish.js?v=0.23.0"></script>

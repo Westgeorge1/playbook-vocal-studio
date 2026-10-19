@@ -1,4 +1,4 @@
-/* Playbook Vocal Studio 0.22.0 — take editor, lane menus, backing remove/undo and Recovered audio.
+/* Playbook Vocal Studio 0.23.0 — take editor, lane menus, backing remove/undo and Recovered audio.
    Features from the third-party 0.18.1 build, rebuilt to fit the tidy RECORD & COMP screen:
    - the take editor opens only from the Edit button on a take (modal);
    - BACKING ▾ and VOCAL ▾ are small menus on the lane headers (phone: Backing ▾ / Vocal ▾ in the part panel);

@@ -1,4 +1,4 @@
-/* Playbook Vocal Studio 0.22.0 — RECORD & COMP screen: the one place where you record.
+/* Playbook Vocal Studio 0.23.0 — RECORD & COMP screen: the one place where you record.
      part  = phrase (S.phrases.phrases[]),  take = phrase take,  chosen take = phrase.selected,
      comp  = PhraseCore.compose(workspace) (same join fade as before),  POLISH = phraseApply() + CLEAN/TUNE/CHAIN/DETAIL/MIX.
    0.17.0 fused the old POLISH recording tools in here as first-class controls:

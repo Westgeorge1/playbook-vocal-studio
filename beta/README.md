@@ -1,4 +1,24 @@
-# Playbook Vocal Studio 0.22.0 — song recording, stage 2 of the 0.18.3 feature merge
+# Playbook Vocal Studio 0.23.0 — song recording, stage 3 of the 0.18.3 feature merge
+
+- **Fix A:** choosing a shorter take for one section now replaces only that time range; the
+  earlier (e.g. whole-song) take keeps playing everywhere else. Delete unchosen never removes
+  a take still in use and lists what it will delete.
+- **Fix B:** projects from 0.18.3, 0.20, 0.21 and 0.22 open with their POLISH intact (no false
+  "Update needed"); a real change keeps edits outside the changed range and lists the rest.
+- "Section" wording everywhere; "With backing / Vocals only"; on phones POLISH shows
+  Clean / Tune / Chain before the note editor.
+- **Split a take** in the take editor (at the playhead or a chosen time). Both sides keep
+  every attempt, the chosen take, stars and reference; both are checked again; Undo/Redo.
+- **Reference take**: Use as reference / Clear reference in the take editor or ⋯ menu.
+  The check compares the other takes with it for melody and timing, as in 0.18.3. Kept in
+  projects and in the 0.18.3 parts data.
+- **Key and scale** in Recording settings, shown in the transport, the same key as POLISH
+  TUNE (changing either changes both).
+
+See `CHANGES-0.23.0.txt` and `TEST-RESULTS-0.23.0.txt`.
+
+## Earlier notes (0.22.0)
+
 
 0.22.0 keeps the multi-lane Song & Vocals screen (SongCore / SongStudio is still the
 only microphone owner) and brings back the 0.18.3 part workflow:

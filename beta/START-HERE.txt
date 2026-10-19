@@ -1,4 +1,4 @@
-PLAYBOOK VOCAL STUDIO 0.22.0 — START HERE
+PLAYBOOK VOCAL STUDIO 0.23.0 — START HERE
 
 THE SIMPLE WORKFLOW
 
@@ -28,6 +28,9 @@ THE SIMPLE WORKFLOW
    Redo last take re-sings the newest take; Delete unchosen takes tidies up.
    Edit on a take trims it, changes its level, adds fades or moves its timing.
    Nothing is cut from the recording; Undo puts it back.
+   Split here (in Edit) cuts the range in two at the playhead; both halves keep
+   every take. Use as reference marks the take the others are compared with.
+   Set the song Key and Scale in Recording settings; POLISH TUNE uses the same key.
    With / Without in the transport chooses whether you hear the backing.
 
 4. Add backing vocals.

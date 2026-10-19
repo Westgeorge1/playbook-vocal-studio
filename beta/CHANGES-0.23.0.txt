@@ -1,0 +1,67 @@
+PLAYBOOK VOCAL STUDIO 0.23.0 — CHANGES (stage 3 of the 0.18.3 merge)
+Built on 0.22.0. SongCore / SongStudio remain the only microphone owner. Engine files are
+byte-identical (ENGINE-SHA256.txt). Published to the beta link only.
+
+BUG FIX A — CHOOSING A SHORTER TAKE NO LONGER SILENCES THE REST OF THE SONG
+- Before (0.22.0): record a whole-song take, then choose a shorter take for the Intro. The
+  whole-song take was deselected, so every later section went silent.
+- Now: choosing a take for a section or phrase replaces only that time range on that lane.
+  The earlier take stays chosen and keeps playing everywhere else (short fades at the joins).
+- Auto-choose after recording a section never deselects audio outside that section.
+- "Delete unchosen takes…" never deletes a take that is still chosen anywhere in the song,
+  and the confirmation lists every take it will delete.
+- Test: tests-0.23/rangesafe23.test.cjs — 0.22.0 core 2/8 (fails), 0.23.0 8/8.
+
+BUG FIX B — OPENING OLDER OR UNCHANGED PROJECTS KEEPS POLISH
+- Before (0.22.0): projects saved by 0.20.0 and 0.21.0 opened with every vocal marked
+  "Update needed", processed export was blocked, and "Update this vocal" wiped breath and
+  timing edits.
+- Cause: 0.22.0 added take-edit fields to the audio fingerprint, so older fingerprints never
+  matched. Now those fields are only added when used, and the 0.20/0.21 and 0.22
+  fingerprints are accepted when the chosen audio is really the same. A vocal is marked
+  stale only when its chosen audio really changed.
+- When a phrase really changes, the Update dialog lists the changed time range and what is
+  kept and reset. Cleaning, tuning settings and effects are always kept; note, breath and
+  timing edits outside the changed range are kept; only edits overlapping it are reset.
+- Tests: tests-0.23/old_projects23.py (0.20, 0.21, 0.22, 0.18.x ZIPs plus a really stale
+  one) — 0.22.0 app 4/6 (fails), 0.23.0 6/6; polish_tracks_test now checks the partial keep.
+
+WORDING AND PHONE LAYOUT
+- "Section" everywhere on screen instead of "part" (old projects open as before).
+- With / Without is now "With backing / Vocals only".
+- Phones: in POLISH the basic Clean / Tune / Chain controls come before the note editor.
+
+END-TO-END TEST (tests-0.23/e2e23.py, real UI at 1366 and 390)
+- Record Verse + Chorus on the lead and a harmony → fix the Verse → polish each vocal
+  (effects, breath, timing, note edits) → Hear song plays both → return and fix the Verse
+  again → Update lists the change → effects, Chorus breath and note edits kept, Verse timing
+  edit reset, harmony untouched, export allowed, still polished after reload.
+
+SPLIT A TAKE (take editor)
+- Edit › "Split this range": Split at (song time, defaults to the playhead when it is inside
+  the range, else the middle) › Split here.
+- The recording range becomes two ranges. Every attempt is on both sides, using the same
+  recording, so both sides keep their handles (nothing is cut). The chosen take, stars and
+  reference follow to both sides; the right-hand copies are named "… (2)".
+- Both sides are checked again for their own range. Undo joins them, Redo splits again.
+
+REFERENCE TAKE
+- "Use as reference" / "Clear reference" in the take editor and in the ⋯ take menu. One
+  reference per part (or per range). The take list marks it "Reference".
+- The take check then compares the other takes with the reference for melody (cents) and
+  timing (ms), as in 0.18.3; "Why suggested?" shows it. Undo/Redo, autosave, project ZIPs.
+- Written into the 0.18.3 parts data (each part's reference), so 0.18.3 opens it; old
+  projects' references are kept.
+
+KEY AND SCALE
+- Recording settings: Key and Scale. The transport tempo button shows them compactly
+  ("120 BPM · 4/4 · D min").
+- One song key: used by the take check, pushed to POLISH TUNE when a vocal opens there, and
+  changing the key in POLISH TUNE updates the recording screen.
+- Saved with the song, in project ZIPs and in the 0.18.3 parts data; old projects keep
+  their key and scale.
+
+TESTS
+- tests-0.23/core23.test.cjs (15) and t23.py (real UI at 1366/1024/390, incl. opening the
+  ZIP in the real 0.18.3), run_all23.sh runs every suite from tests-0.20 on.
+- tests-0.21/t21.py: the tempo button check now accepts the key after "120 BPM · 4/4".

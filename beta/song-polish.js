@@ -32,14 +32,26 @@ function capture(){
 function detach(){binding=null;lastError='';}
 function needsApply(){return !!(W()&&C.selectedCount(W())&&(!binding||!T()||binding.sourceSig!==C.trackSignature(W(),T())));}
 function notify(text,error=false){SongStudio.notify(text,error);$('polishTrackStatus').textContent=text;if(error)setStatus(text,'warn');}
+// 0.23: which stretches of a vocal really changed since it was polished (compares the saved signature rows).
+function changedRanges(w,t,oldSig){let o;try{o=JSON.parse(oldSig);}catch(e){return null;}if(!Array.isArray(o)||o[0]!==w.rate||o[1]!==w.fadeMs||!Array.isArray(o[2]))return null;
+ const n=JSON.parse(C.trackSignature(w,t))[2],key=r=>JSON.stringify(r.slice(0,8).concat([0,0,0,0].map((z,i)=>r[8+i]||0))),ok=new Set(o[2].map(key)),nk=new Set(n.map(key));
+ const diff=[...o[2].filter(r=>!nk.has(key(r))),...n.filter(r=>!ok.has(key(r)))],pad=r=>((r[2]??w.fadeMs)||0)/1000+.05;
+ return diff.map(r=>[Math.max(0,r[0]-pad(r)),r[1]+pad(r)]).sort((a,b)=>a[0]-b[0]).reduce((m,r)=>{const l=m[m.length-1];if(l&&r[0]<=l[1])l[1]=Math.max(l[1],r[1]);else m.push(r);return m;},[]);}
+function hits(ranges,a,b){return !ranges||ranges.some(([s,e])=>a<e&&b>s);}
+function fmtRanges(r){return r?r.map(([a,b])=>a.toFixed(2)+'–'+b.toFixed(2)+' s').join(', '):'the whole vocal';}
+function planKeep(w,t,old){const ranges=changedRanges(w,t,old.sourceSig),s=old.session||{},e=s.edits||{},notes=(s.notes||[]).filter(a=>a[5]>.5);
+ const part=(list,f)=>{const keep=[],drop=[];for(const x of list||[])(hits(ranges,...f(x))?drop:keep).push(x);return {keep,drop};};
+ return {ranges,notes:part(notes,a=>[a[0],a[1]]),breaths:part(e.breaths,b=>[b[0],b[1]]),timing:part(e.timing,x=>[x[0],x[1]]),comp:(e.comp||[]).length,takes:(s.takes||[]).length};}
 async function open(id=W()?.activeTrack){
  if(switching||SongStudio.locked()||sessionLocked())return false;
  const w=W(),t=w&&C.track(w,id);if(!t?.regions.some(r=>r.selected)){notify('Choose a take on this vocal track first.',true);return false;}
  SongStudio.stopPlay();endLoop();stopPlayback();capture();
  const sig=C.trackSignature(w,t),old=t.polish,valid=C.polishValid(w,t);
- if(binding?.id===id&&binding.sourceSig===sig){allowStep=true;RC.go('polish');allowStep=false;render();return true;}
+ if(binding?.id===id&&binding.sourceSig===sig){allowStep=true;RC.go('polish');window.SongStudio?.syncKey?.();allowStep=false;render();return true;}
+ let plan=null;
  if(old&&!valid){
-  const answer=await SongStudio.dialog('Update POLISH for '+t.name+'?', '<p>Your chosen recording changed. This updates <b>only this vocal track</b>. Cleaning, tuning settings and effects are kept.</p><p>Manual note edits, breath edits, timing edits and POLISH alternate takes refer to the earlier audio. They will be reset for the new performance. Back up first if you need that earlier edited version.</p>',[['cancel','Keep current version'],['ok','Update this vocal']]);
+  plan=planKeep(w,t,old);const c=(n,s)=>n+' '+s+(n===1?'':'s'),pl=plan;
+  const answer=await SongStudio.dialog('Update POLISH for '+t.name+'?', '<p>Your chosen recording changed in <b>'+fmtRanges(pl.ranges)+'</b>. This updates <b>only this vocal track</b>.</p><ul class="sg-gone"><li>Kept: cleaning, tuning settings and effects.</li><li>Kept (outside the change): '+c(pl.notes.keep.length,'note edit')+', '+c(pl.breaths.keep.length,'breath edit')+', '+c(pl.timing.keep.length,'timing edit')+'.</li><li>Reset (inside the change): '+c(pl.notes.drop.length,'note edit')+', '+c(pl.breaths.drop.length,'breath edit')+', '+c(pl.timing.drop.length,'timing edit')+'.</li>'+(pl.comp||pl.takes?'<li>Reset: POLISH alternate takes ('+c(pl.takes,'take')+').</li>':'')+'</ul><p>Back up first if you need the earlier edited version.</p>',[['cancel','Keep current version'],['ok','Update this vocal']]);
   if(answer.action!=='ok')return false;
  }
  const previous=binding?{...binding}:null,previousSession=snapshot();
@@ -50,14 +62,15 @@ async function open(id=W()?.activeTrack){
    reserve(w,t);
    const pcm=C.renderTrack(w,t,{end:C.trackEnd(t)});
    budget(w,{channels:[pcm[0],pcm[0]],session:{pcm,takes:[]}},id);
-   if(old){await restoreSession({...old.session,name:w.title+' — '+t.name,rate:w.rate,pcm,takes:[],notes:[],edits:{breaths:[],timing:[],comp:[]},guide:{...old.session.guide,locked:[],dismissed:{}}});}
+   if(old){await restoreSession({...old.session,name:w.title+' — '+t.name,rate:w.rate,pcm,takes:[],notes:[],edits:{breaths:plan?plan.breaths.keep:[],timing:plan?plan.timing.keep:[],comp:[]},guide:{...old.session.guide,locked:[],dismissed:{}}});
+   if(plan&&plan.notes.keep.length&&S.st?.notes){const keep=plan.notes.keep.map(a=>a.slice(0,13)),fresh=S.st.notes.map(a=>Array.from(a).slice(0,13)).filter(a=>!keep.some(k=>a[0]<k[1]&&a[1]>k[0])),merged=[...fresh,...keep].sort((a,b)=>a[0]-b[0]);try{const rr=await engine({type:'run',steps:[['notes',merged]],update:true});absorb(rr);}catch(e){notify('Your note edits outside the change could not be kept; notes were found again.',true);}}}
    else {S.guidePrefs={enabled:true,concern:0,goal:0,bpm:S.guidePrefs.bpm||75,sync:false};S.mix={fit:true,over:1,room:.5};chainEdited=false;S.match=true;await openVocal(pcm,w.rate,w.title+' — '+t.name,false,0);}
   }
   if(S.rate!==w.rate)throw Error('The processor changed the sample rate. This track has not replaced the song audio.');
   const p={v:1,sourceSig:sig,rate:w.rate,session:snapshot(),channels:S.final,bypass:!!old?.bypass};budget(w,p,id);
   t.polish=p;w.polishTrack=id;if(w.activeTrack!==id){w.activeTrack=id;w.selectedRegion=null;w.range=null;}binding={id,sourceSig:sig};S.song=w;
   S.loadedNotice='POLISH: '+t.name+'. Changes are saved on this track and heard in your song.';
-  setMode('final');allowStep=true;RC.go('polish');allowStep=false;
+  setMode('final');allowStep=true;RC.go('polish');window.SongStudio?.syncKey?.();allowStep=false;
   notify(t.name+' is ready. Its processing is saved automatically.');return true;
  }catch(e){
   binding=null;S.song=w;
@@ -74,7 +87,7 @@ function beforeShow(screen){
 function restored(last){
  detach();const w=W();if(!w)return;
  const saved=w.tracks.find(t=>t.id===w.polishTrack);
- if(saved?.polish){binding={id:saved.id,sourceSig:saved.polish.sourceSig};}
+ if(saved?.polish){C.polishValid(w,saved);binding={id:saved.id,sourceSig:saved.polish.sourceSig};}
  else if(S.main&&S.final?.length&&(!last.song||w.appliedSig)){
   const session=snapshot();if(!session)return;
   const p={v:1,rate:S.rate,sourceSig:'legacy',session,channels:S.final,bypass:false};
