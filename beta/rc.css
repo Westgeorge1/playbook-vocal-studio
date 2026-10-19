@@ -194,6 +194,10 @@ body.has-steps:not(.rc-on) #rcSaved,body.has-steps:not(.rc-on) #rcUndo,body.has-
 .rcctl{grid-template-columns:1fr 1fr}
 .rcctl .rcredo{grid-column:1/-1}
 .rcloop[aria-pressed="true"]{background:#3a1d1d;color:#ffb3b3;border-color:#ff4d4d}
+.rcstopend[aria-pressed="true"]{background:#33280f;color:#ffd58a;border-color:#e0a530}
+/* 0.17.1: Redo last take + Stop at part end share the first row; long labels wrap instead of widening the panel */
+.rcctl .rcredo{grid-column:auto}
+.rcctl .rcbtn{min-width:0;white-space:normal;line-height:1.2;padding-left:8px;padding-right:8px}
 .rcimport{background:var(--rcp2)}
 .rcdelrow{display:flex;align-items:center;gap:10px}.rcdelrow .rcdelun{flex:1;width:auto}.rcdelrow .rclink{white-space:nowrap}
 .rcmsm{font:500 10px var(--body);color:var(--rcm)}
@@ -207,7 +211,7 @@ body.has-steps:not(.rc-on) #rcSaved,body.has-steps:not(.rc-on) #rcUndo,body.has-
   .rcphset select{font:600 14px var(--body);color:var(--rcacc);background:var(--rcp2);border:1px solid var(--rcl);border-radius:6px;padding:6px;min-height:40px}
   .rcphset .rcgain{width:170px;height:32px}
   .rcctl{grid-template-columns:1fr 1fr}
-  .rcctl .rcredo{grid-column:1/-1}
+  .rcctl .rcredo{grid-column:auto}
   .rcctl .rcprev{display:none}
   .rcctl .rcnext{grid-column:1/-1}
   #rcImp{width:calc(100vw - 16px)}

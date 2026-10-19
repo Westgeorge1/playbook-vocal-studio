@@ -1,4 +1,4 @@
-/* Playbook Vocal Studio 0.17.0 — RECORD & COMP screen: the one place where you record.
+/* Playbook Vocal Studio 0.17.1 — RECORD & COMP screen: the one place where you record.
      part  = phrase (S.phrases.phrases[]),  take = phrase take,  chosen take = phrase.selected,
      comp  = PhraseCore.compose(workspace) (same join fade as before),  POLISH = phraseApply() + CLEAN/TUNE/CHAIN/DETAIL/MIX.
    0.17.0 fused the old POLISH recording tools in here as first-class controls:
@@ -254,7 +254,7 @@ function draw(){const c=$('rcCanvas'),g=c.getContext('2d');if(!g)return;const r=
   if(sp){for(const [t,lab,dir] of [[a,'IN',1],[b,'OUT',-1]]){const x=X(t);g.fillStyle='#ff4d4d';g.fillRect(x-.8,0,1.6,H);const fw=lab==='IN'?20:28;g.fillRect(dir>0?x:x-fw,0,fw,12);g.fillStyle='#fff';g.font='700 9px "IBM Plex Sans",sans-serif';g.fillText(lab,dir>0?x+3:x-fw+3,9.5);}}
   // playhead / recording head
   const tnow=nowT(),xp=X(tnow);
-  if(rec&&rec.target==='phrase'&&rec.phrase){const p=rec.phrase.p;g.fillStyle='rgba(255,77,77,.18)';g.fillRect(X(p.start),RULER,Math.max(0,X(Math.min(tnow,p.end))-X(p.start)),H-RULER);g.fillStyle='#ff4d4d';g.fillRect(xp-1,0,2,H);}
+  if(rec&&rec.target==='phrase'&&rec.phrase){const p=rec.phrase.p;g.fillStyle='rgba(255,77,77,.18)';g.fillRect(X(p.start),RULER,Math.max(0,X(Math.min(tnow,p.end))-X(p.start)),H-RULER);if(rec.phrase.free&&tnow>p.end){g.fillStyle='rgba(255,77,77,.10)';g.fillRect(X(p.end),RULER,X(tnow)-X(p.end),H-RULER);g.fillStyle='#ff9a9a';g.font='700 10px "IBM Plex Sans",sans-serif';g.fillText('● still recording — the part will grow',xp+221<Tw?xp+6:Math.max(4,xp-216),RULER+11);}g.fillStyle='#ff4d4d';g.fillRect(xp-1,0,2,H);}
   else if(rec&&rec.target==='punch'){const st=PV.state&&PV.state();const s0=st?st.s0:tnow;g.fillStyle='rgba(255,77,77,.20)';g.fillRect(X(s0),RULER,Math.max(0,X(tnow)-X(s0)),H-RULER);g.fillStyle='#ff4d4d';g.font='700 10px "IBM Plex Sans",sans-serif';g.fillText('● PUNCH',X(s0)+4,RULER+11);g.fillRect(xp-1,0,2,H);}
   else if(rec&&rec.target==='loop'&&loop){g.fillStyle='rgba(255,77,77,.14)';g.fillRect(X(loop.start),RULER,X(loop.end)-X(loop.start),H-RULER);const st=PV.state&&PV.state();g.fillStyle='#ff4d4d';g.font='700 10px "IBM Plex Sans",sans-serif';g.fillText('⟲ LOOP · '+(st?st.takes:0)+' take'+(st&&st.takes===1?'':'s'),X(loop.start)+4,RULER+11);g.fillRect(xp-1,0,2,H);}
   else if(rec){g.fillStyle='#ff4d4d';g.fillRect(xp-1,0,2,H);}
@@ -340,7 +340,7 @@ function sync(force){const s=signature();if(!force&&s===RC.sig)return;RC.sig=s;R
   const rows=p?p.takes.map(t=>{const ch=p.selected===t.id,aud=RC.aud===t.id,pl=playing&&RC.playingTake===t.id&&loop&&loop.phrase&&!loop.rcComp;
     return '<div class="rctake'+(ch?' chosen':'')+(aud?' aud':'')+'" data-id="'+esc(t.id)+'"><div class="rctn"><b>'+esc(t.name)+'</b><small>'+esc(takeNote(t,p,rank))+'</small>'+'</div>'+
       '<button class="rcbtn rcplay" data-act="play" aria-label="Play '+esc(t.name)+'">'+(pl?'■':'▶')+'<span class="rcphone"> '+(pl?'Stop':'Play')+'</span></button><button class="rcbtn rcchoose" data-act="choose" title="'+(ch?'Chosen for the comp. Click to un-choose it.':'Use this take in the comp')+'">'+(ch?'✓ Chosen':'✓ Choose')+'</button><button class="rcbtn rcdel" data-act="del" aria-label="Delete '+esc(t.name)+'">Del</button></div>';}).join(''):'';
-  const th=rows||'<p class="rcempty">'+(p?'No takes yet. Press the big red button (or R). The backing starts just before the part and recording stops at the end. Or turn Loop ON to record a take on every pass, or Import a take.':'No part selected.')+'</p>';
+  const th=rows||'<p class="rcempty">'+(p?'No takes yet. Press the big red button (or R), sing, then press Stop (R or Space) — it records until you stop. Or turn Loop ON to record a take on every pass, or Import a take.':'No part selected.')+'</p>';
   // rebuild the list only when it really changed, and never in the middle of a tap/click on it (the click would be lost)
   if(RC.listPress){RC.sig='';}else if(RC.takesHtml!==th){RC.takesHtml=th;$('rcTakes').innerHTML=th;}
   for(const b of qa('#rcTakes button'))b.disabled=locked&&b.dataset.act!=='play'||locked&&!!rec;
@@ -384,7 +384,11 @@ for(const id of ['rcMonitor','rcMonitorP'])$(id).onclick=toggleMonitor;
 for(const id of ['rcGain','rcGainP']){$(id).oninput=()=>{PV.setGain(+$(id).value);syncToggles();};$(id).addEventListener('keydown',e=>e.stopPropagation());}
 function toggleLoop(){if(recording())return;RC.loopOn=!RC.loopOn;rcMsg(RC.loopOn?'Loop ON: Record now plays the selected part round and round, and every full pass becomes a new take.':'Loop OFF: Record makes one take each time.');RC.sig='';sync(true);}
 $('rcLoop').onclick=toggleLoop;RC.toggleLoop=toggleLoop;
+// 0.17.1 "Stop at part end" (saved with the other recording settings; OFF = record until you press Stop)
+function toggleStopEnd(){if(recording())return;PV.toggle('stopAtEnd');rcMsg(PV.prefs.stopAtEnd?'Stop at part end: ON — recording stops by itself at the part’s OUT flag (a punch-in punches out there).':'Stop at part end: OFF — you record until you press Stop (R or Space). If you sing past OUT, the part grows to fit.');syncToggles();}
+$('rcStopEnd').onclick=toggleStopEnd;RC.toggleStopEnd=toggleStopEnd;
 function syncToggles(){const P=PV.prefs,g=(P.micGainDb>0?'+':'')+P.micGainDb+' dB';
+  $('rcStopEnd').setAttribute('aria-pressed',!!P.stopAtEnd);$('rcStopEnd').textContent='⏹ Stop at part end: '+(P.stopAtEnd?'ON':'OFF');$('rcStopEnd').disabled=recording();
   for(const id of ['rcClick','rcClickP']){$(id).setAttribute('aria-pressed',P.metro);}
   $('rcClick').textContent='CLICK '+(P.metro?'ON':'OFF');$('rcClickP').textContent='CLICK '+(P.metro?'ON':'OFF');
   $('rcMonitor').setAttribute('aria-pressed',P.monitor);$('rcMonitor').textContent=P.monitor?'ON':'OFF';$('rcMonitorP').setAttribute('aria-pressed',P.monitor);$('rcMonitorP').textContent='HEAR ME '+(P.monitor?'ON':'OFF');

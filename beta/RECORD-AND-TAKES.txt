@@ -1,4 +1,4 @@
-RECORD & COMP — recording your song part by part (Playbook Vocal Studio 0.17.0)
+RECORD & COMP — recording your song part by part (Playbook Vocal Studio 0.17.1)
 
 The idea
   Your song is split into PARTS (Intro, Verse 1, Chorus …). Each part gets as many TAKES as you like.
@@ -20,7 +20,18 @@ The idea
 3. Record takes
   - Select a part, press the big red button (or R, or REC). The backing starts a little before the part
     (pre-roll; set it in Settings ▾), you can have a COUNT-IN of 1 or 2 bars and a CLICK (metronome, key C).
-    Recording stops by itself at the end of the part. Esc throws the take away.
+    Sing, then press Stop yourself (R, Space, the big button or ■). Recording does NOT stop at the end of the
+    part: the backing keeps playing and you keep recording, even after the backing ends. Esc throws the take away.
+  - Sang past the part's OUT flag? The part gets longer to fit (up to the end of your singing; silence after
+    your last note does not count). One Undo puts it back. If that would run into the next part, you are asked:
+      OK     = keep the next part as it is — this part ends where the next one starts and the take is trimmed there;
+      Cancel = make room — this part grows and the next part starts later.
+    A part can be at most 60 seconds long; anything longer goes into a new "(cont.)" part right after it.
+  - "⏹ Stop at part end: OFF/ON" (part panel, saved in your settings): ON brings back the old way — recording
+    stops by itself at the part's OUT flag, and a punch-in punches out there.
+  - One take can be at most 10 minutes (a safety limit; you get a warning 1 minute before). Whenever recording
+    stops without you pressing Stop, a message says why (part end with the switch ON, safety limit, mic
+    unplugged, app sent to the background, audio paused by the phone).
   - "↺ Redo last take" records the part again and replaces the last take (Undo brings it back).
   - "Next part ▶" (or Shift+R to go there and record).
   - HEAR ME: hear your own voice in the headphones while you record. Wired headphones only — with speakers
@@ -30,7 +41,8 @@ The idea
   - Press Play (Space). When the song reaches the spot, press R (or REC, or the big button — it now says
     "Punch in here"). Recording starts right there, in the part under the playhead (a new "Punch m:ss" part
     is made if there is none). Press R again to punch out: the song KEEPS PLAYING and you hear the new take.
-    Space punches out and stops. Esc cancels.
+    Space punches out and stops. Esc cancels. A punch keeps going past the part's OUT flag (the part grows,
+    as above) and even past the end of the song, until you punch out.
   - The punched take is a new take of that part: your chosen take outside the punch, the new singing inside
     it, with short fades (silence outside if the part had no chosen take yet). If the part already had a
     chosen take, the punched take is chosen automatically; one Undo puts the old choice back.

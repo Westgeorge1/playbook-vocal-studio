@@ -1,4 +1,4 @@
-/* Playbook Vocal Studio 0.17.0 — POLISH screen controller (timeline, transport, menus, tabs, shortcuts).
+/* Playbook Vocal Studio 0.17.1 — POLISH screen controller (timeline, transport, menus, tabs, shortcuts).
    0.17.0: POLISH no longer records. The PHRASE and REC tabs, take lanes, IN/OUT punch strip, markers, record
    buttons and recording keys were removed; all recording lives on 1 RECORD & COMP (rc.js + rec.js).
    POLISH works on the comp: CLEAN, TUNE, CHAIN, DETAIL, MIX, note editor, wave edit, compare reference, save/export.

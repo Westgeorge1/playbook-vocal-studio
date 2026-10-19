@@ -1,0 +1,63 @@
+Playbook Vocal Studio 0.17.1 — changes since 0.17.0
+====================================================
+
+THE PROBLEM YOU REPORTED
+  "When I click on record and start singing the recording stops by itself ... before I even finish the part."
+
+WHY IT HAPPENED (root cause)
+  A normal take (select a part -> big Record button / R) is recorded by the old 0.13 core. When the take started,
+  the core set a timer for exactly the length of the part plus 0.3 s (pre-roll + part + 0.3 s) and stopped the
+  recorder when it fired. It also scheduled the backing only up to that point, so the beat went quiet at the
+  same moment. New parts are short (1–2 bars by default, about 3–6 s at 75 BPM), so the recording cut off
+  mid-line. This has been the behaviour since 0.13; 0.17.0 made it the main way to record.
+  Confirmed by a test on 0.17.0: with nobody pressing Stop, a take on a 3.2 s part ended at 3.5 s.
+
+  Every other way a recording can end without you was checked too:
+    - the microphone is unplugged / the browser's recorder fails  -> stops, with a message (unchanged)
+    - punch-in: playback stopped at the end of the song (end of comp/backing)  -> now keeps going (see below)
+    - punch-in / loop: the phone or browser paused the audio, or the app went to the background -> stops and
+      keeps what was recorded, now with a message saying why
+    - capacity checks (32 takes per part, 128 per project, 30 min of takes) happen before a take starts, not
+      in the middle of it
+  Only the part-length timer fired in the normal "select part -> press Record" flow.
+
+WHAT CHANGED
+  1. A take now records until YOU press Stop (R, Space, the big button or ■). It does not stop at the part's
+     OUT flag. The backing keeps playing to its own end, and recording continues after the backing ends (a
+     note says "The backing track has ended — still recording").
+  2. Sang past OUT? The part grows to fit — up to the end of your singing (silence after your last note does
+     not count, so a slow press of Stop does not make the part longer). One Undo puts the part and the take back.
+       - If the longer part would run into the next part, you are asked:
+           OK     = keep the next part as it is: this part ends where the next one starts, the take is trimmed there
+           Cancel = make room: this part grows and the next part starts later (its end stays)
+         Nothing is cut without asking.
+       - A part can be at most 60 s long (a rule of the project format). If you keep singing longer, the rest
+         goes into a new part right after it ("Verse 1 (cont.)") with that piece as its take — nothing is lost.
+     The same applies to punch-in: a punch keeps going past OUT (the part grows) and even past the end of
+     the song, until you punch out. Punching out after the song ended also stops the song.
+  3. New switch on the part panel (desktop and phone): "⏹ Stop at part end: OFF / ON". OFF is the default.
+     ON brings back the old behaviour: recording stops by itself just after OUT, and a punch-in punches out at
+     OUT while the song keeps playing. It is saved with your other recording settings.
+  4. Safety limit: one take can be at most 10 minutes (less only when the project is nearly full). You get a
+     warning one minute before, and a message when it stops.
+  5. Whenever recording stops without you pressing Stop, a plain message says why: "Stop at part end" is ON,
+     safety limit, microphone unplugged, app went to the background, audio paused by the phone.
+  6. Help text, "How it works", the empty-takes hint and RECORD-AND-TAKES.txt now describe this.
+  7. Loop recording is unchanged: a take every full pass, and it loops until you stop it.
+
+ALSO FIXED
+  - The red "recording" area on the timeline now follows the take past OUT ("● still recording — the part will grow").
+  - A take that is silent after the singing no longer stores the silent tail (saves memory on long takes).
+  - A two-channel recording of a mono microphone (identical channels) is stored as one channel.
+
+NOT CHANGED
+  - Engine files byte-identical (phrase-core.js, worker.js, phrase-worker.js, engine-wasm.*, daw.css, rec-worklet.js).
+  - Project format: 0.13–0.17.0 projects open in 0.17.1 and 0.17.1 projects open in 0.16.1/0.17.0
+    (parts that grew are ordinary parts).
+  - Everything else from 0.17.0.
+
+FILES
+  index.html (core take timer + backing schedule, song end held open while punching, help text, version),
+  rec.js (record-until-Stop, part growing, overlap question, continuation parts, safety cap, messages,
+  punch changes), rc.js (switch, hint text, timeline drawing), rc.css (switch style), daw.js (version only).
+  Exact diff: tests-0.17/diff-0.17.0-to-0.17.1.patch. Test results: TEST-RESULTS-0.17.1.txt (357 pass, 0 fail).
