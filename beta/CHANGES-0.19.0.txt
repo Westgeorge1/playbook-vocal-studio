@@ -1,0 +1,23 @@
+Playbook Vocal Studio 0.19.0 — Song & Vocals integration build
+
+New default recording workflow:
+- Continuous performances stay in one take beyond 60 seconds.
+- Independent song section labels: Intro, Verse, Chorus, Bridge, Outro and custom.
+- Select a word/phrase, record it repeatedly, audition alternatives and Choose.
+- Preserve the previous vocal until a replacement is explicitly chosen.
+- Up to eight independent vocal lanes for lead, harmonies, doubles and ad-libs.
+- Track volume, left/right pan, Mute, Solo and live mixer updates during playback.
+- Optional instrumental with Hear backing, listening level, Remove and Undo remove.
+- Seconds-based lead-in, microphone gain/meter, timing correction and calibration.
+- Safe incomplete takes, device-interruption handling and recovered capture WAVs.
+- Undo/Redo for the new song model; responsive timeline zoom, pan and selection.
+- Project backups and autosave include all source audio, tracks, sections and choices.
+- Versioned project format and migration from the supplied 0.18.3 projects.
+- Aligned dry stems or chosen vocal mix export as 32-bit float WAV.
+- Existing POLISH engine receives an explicit combined mix. Multiple voices enter
+  in preserve-sound mode. Changed mixes are flagged before POLISH export.
+- Browser download requests are no longer described as confirmed saved backups.
+
+This is a working agent handover build. See AGENT-HANDOVER.md for exact integration
+boundaries, older recording utilities not yet ported, and physical-device acceptance.
+No website deployment or modification of the uploaded original was performed.

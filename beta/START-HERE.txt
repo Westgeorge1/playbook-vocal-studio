@@ -1,32 +1,73 @@
-Playbook Vocal Studio 0.18.3 (1 RECORD & COMP + 2 POLISH)
-App version 0.18.3 · audio engine version 0.12.1 (the engine is unchanged; the two numbers are separate)
+PLAYBOOK VOCAL STUDIO 0.21.0 — START HERE
 
-Open in Chrome (test link — it serves 0.18.3):
-https://westgeorge1.github.io/playbook-vocal-studio/beta/
-(The main link https://westgeorge1.github.io/playbook-vocal-studio/ is unchanged and still serves 0.14.0.)
+THE SIMPLE WORKFLOW
 
-All recording happens on 1 RECORD & COMP: parts, takes, punch-in, loop recording, import, count-in, click,
-mic level and gain, hear-me monitoring. 2 POLISH works on your comp: CLEAN, TUNE, CHAIN, DETAIL, MIX,
-note editor, wave edit, compare reference, save / export. Read RECORD-AND-TAKES.txt.
+1. Record your lead vocal.
+   Load your instrumental if you have one. Select Lead vocal and press Record.
+   Sing the song, then press Stop. The recording stays together as one take.
+   Need a beat? Turn on ♩ Click (or press C) and pick a Count-in of 1 or 2 bars.
+   Tempo and time signature are under Recording settings (or tap the BPM button).
+   🎧 HEAR ME lets you hear your own voice while recording. Use headphones.
+   Punch in: press Play, then press R where you want to re-sing; R again to stop.
+   The song keeps playing and the new bit blends in with short fades.
 
-For your own hosting, serve all files together over HTTPS. Opening index.html directly as a local file cannot reliably run workers or microphone capture. The WASM audio engine is version 0.12.1 (unchanged); the app version is 0.18.3.
+2. Fix a word or phrase.
+   Drag over that spot, or enter its start and end in seconds. Press Fix phrase.
+   Record again as many times as needed. Listen, then Choose the attempt you like.
+   The rest of your recording stays in place. Repeat with lead-in makes another
+   attempt each pass. A partial attempt is kept but cannot replace a longer phrase.
+   ⟲ Loop (or L) records the selection round and round without gaps; every pass
+   becomes an attempt. Press Stop when you have enough. Esc cancels a recording.
 
-Automated suites: see TEST-RESULTS-0.18.3.txt (tests-0.18/run_all.sh fails loudly if any check fails). Physical phone microphone, audibility and touch testing remains outstanding; see VALIDATION.txt.
+3. Label your song.
+   Add Intro, Verse, Chorus, Bridge or Outro in Song sections. These labels help
+   you navigate; they do not cut or move your recordings.
 
-0.14.0: new DAW-style screen (menu bar, transport, timeline with take lanes, inspector, editor dock, keyboard shortcuts; press ? for shortcuts). Every 0.13 control is still there; see CHANGES-0.14.0.txt for where each one moved. 
+4. Add backing vocals.
+   Press + Add vocal track. Name it Harmony, Double, Ad-libs, or anything you like.
+   Record and fix phrases on that lane. Your lead and other lanes stay separate.
 
-0.15.0: true punch-in on the fly (R while playing), draggable IN/OUT flags on the ruler, Redo-this-phrase (R) and Next-phrase (Shift+R), multi-step Undo/Redo for takes and phrases, count-in and metronome, mic level check with clip warning, star ratings and Delete unchosen takes, loop recording (a new take every pass), latency calibration, song markers, big-button REC MODE for phones, optional input monitoring, mic gain, autosave indicator and backup reminders. Everything from 0.14 is still there and 0.13/0.14 projects open unchanged. See CHANGES-0.15.0.txt and the new REC tab.
+5. POLISH each voice.
+   Press Polish on a vocal lane. Clean, Tune, note edits and effects now belong
+   to that vocal only. Your changes are saved automatically on that track.
+   Use the Polishing selector to move between lead and harmony. Each keeps its
+   own settings. One voice can have light tuning and another stronger tuning;
+   one can have reverb while another stays dry.
 
-0.16.0: the app now opens on 1 RECORD & COMP — a simple screen for recording the song part by part, several takes per part, choosing the best take of each part and joining them into one vocal (the comp). Press "Comp done → Go to POLISH" (or click 2 POLISH at the top) for the full 0.15 studio: Clean, Tune, Chain, Mix. Extras such as loop recording, punch-in, metronome, monitoring, latency test and REC MODE are under More ▾ and still in POLISH. See CHANGES-0.16.0.txt.
+6. Hear the result together.
+   Press Hear song in POLISH. It plays every vocal lane using its saved processing
+   and the Song & vocals mixer. Play below the POLISH bar auditions the selected
+   vocal. The existing Mix panel fits backing for that selected-vocal audition;
+   full-song playback/export uses the song lane levels instead.
+   Back in Song & vocals, adjust each lane's volume, pan, Mute and Solo.
+   Use dry vocal bypasses a lane's POLISH while keeping its settings.
 
-0.16.1: bug fixes from a full debug and review of 0.16.0 (laptop lanes, download box over the POLISH button, clearer messages, slow-song count-in fix). Same projects, same sound engine. See CHANGES-0.16.1.txt and REVIEW-0.16.1.md.
+7. Export or back up.
+   Export song in POLISH offers the finished vocal mix, song with backing,
+   separate polished stems, or dry stems. Stems all start at 0:00. A track you
+   have not polished stays dry. Muted tracks remain in separate stem exports.
+   EXPORT THIS VOCAL in the lower POLISH panel exports the selected voice using
+   the original detailed export controls.
+   Back up project saves all tracks, attempts, sections and editable POLISH
+   settings. Check that the ZIP finished downloading. Autosave is local to this
+   browser and is not a replacement for keeping a backup.
 
-0.17.0: the old recording tools in POLISH are gone (PHRASE and REC tabs, take lanes in POLISH, the phone REC MODE, extra record buttons, star ratings, song markers). The useful ones are now ordinary buttons on 1 RECORD & COMP: punch-in on the fly (R or REC while the song plays, R again to punch out — the song keeps playing), a Loop switch on the part (every pass = a take), CLICK next to the count-in, HEAR ME (monitoring, with a headphones warning), a GAIN slider next to the mic meter and Import take. Settings ▾ now holds only settings and files (latency test, pre-roll, tempo, key, backup reminder, open/save). Same project format as 0.13–0.16; old projects open, 0.17 projects open in 0.16. See CHANGES-0.17.0.txt, TEST-RESULTS-0.17.0.txt and REVIEW-0.17.0.md.
+IF YOU RECORD A NEW PHRASE AFTER POLISHING
 
-0.17.1: fix — a take no longer stops by itself at the end of the part. You record until you press Stop (R, Space or the big button); the backing keeps playing. If you sing past the part's OUT flag the part grows to fit (one Undo puts it back), and if that runs into the next part you choose: trim at the next part, or make room. New switch on the part panel: "Stop at part end: OFF/ON" (OFF by default) for the old stop-at-OUT behaviour. See CHANGES-0.17.1.txt.
+Only the affected vocal shows Update needed. Other vocals keep their processing.
+Press Polish on the changed track. The app keeps its cleaning, tuning settings
+and effects, but asks before resetting manual note, breath and timing edits that
+belonged to the previous performance. Back up first if you need that old version.
+Until updated, song playback uses the new dry vocal on that lane. Processed export
+asks you to update it or explicitly choose Use dry vocal in its track settings.
 
-0.17.2: fixes from an independent review of 0.17.1 (see REVIEW-RESPONSE-0.17.2.md and CHANGES-0.17.2.txt). Your recording is never thrown away: long punch-ins (over 60 s) are kept whole in "(cont.)" parts; a take that runs into other parts keeps the whole recording and a window lets you choose (keep the next part / make room or replace / keep it as a take only); if the mic is unplugged the take so far is kept and marked "(mic lost)". Saving a project no longer re-sends the comp or resets your POLISH note, breath and timing edits. GAIN and HEAR ME now work while you record. Settings ▾ separates Autosave, Back up project and Export comp audio, and shows the app and engine versions; backup results show on the phone; "Why suggested?" explains the take suggestion.
+USEFUL DETAILS
 
-0.18.2: the new features from the 0.18.1 build (made by another tool from 0.17.1), added on top of 0.17.2 and fitted into the same tidy screen. Next to REC: BACKING With | Without. On the BACKING lane: M (mute), ▾ (load / replace / remove / undo remove) and the level. On the COMP lane: VOCAL ▾ (import a whole vocal, play it, clear / undo clear). At the timeline corner: − + Part Song ✋ (zoom, fit, hand). Edit on a take opens the take editor (select, level, silence, fades — each makes a new take and keeps the original — trim, split, move, ±10 ms, undo / redo, zoom). ⚠ Recovered audio appears in the top bar only when a recording could not become a take. All 0.17.2 fixes are kept. Projects from 0.15 – 0.18.1 open; 0.18.2 projects open in 0.17.2. See CHANGES-0.18.2.txt and TEST-RESULTS-0.18.2.txt.
-
-0.18.3: fixes from an independent review of 0.18.2 (see REVIEW-RESPONSE-0.18.3.md and CHANGES-0.18.3.txt). Import vocal › "Back up first" only goes on after the backup really worked; Back up project works with only a backing or only Recovered audio; tempo comes back after a reload without a whole vocal; an imported whole vocal sets the song length; the backing level is one setting and is saved; trim / split re-run the take check; nothing is cut off at 900 / 1024 px or 125 / 150 % zoom; question windows keep the keyboard inside. New: a start card on an empty session (Record a vocal / Import a vocal / Open a project, + Add backing), the long help folded behind "Help" once you start, clearer labels, and buttons that are not available say why. 0.18.2 projects open in 0.18.3 and back.
+- Use headphones so backing music does not leak acoustically into your microphone.
+- R starts/stops recording; Space stops recording or plays/pauses on Song & vocals.
+- A selected phrase gives an exact recording range. R during playback starts with
+  lead-in; it is not an instantaneous gapless live punch.
+- Use project backups before removing recordings. Song Undo lasts this session.
+- WAV exports use 32-bit float audio. Effect tails are retained in processed audio.
+- Projects with these features require version 0.20.0 or newer. Older apps cannot
+  restore all lanes and settings. Keep the original ZIP if trying an older app.

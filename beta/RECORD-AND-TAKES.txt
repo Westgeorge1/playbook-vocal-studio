@@ -1,120 +1,66 @@
-RECORD & COMP — recording your song part by part (Playbook Vocal Studio 0.18.3)
+PLAYBOOK VOCAL STUDIO 0.20.0 — START HERE
 
-The idea
-  Your song is split into PARTS (Intro, Verse 1, Chorus …). Each part gets as many TAKES as you like.
-  You CHOOSE the best take of each part (green ✓). The chosen takes are joined into one vocal: the COMP.
-  When every part is chosen, press "Comp done → Go to POLISH" to clean, tune and mix the comp.
-  An empty session shows a START card: Record a vocal / Import a vocal / Open a project, and + Add backing.
-  Once you have a part, the long help is folded away; the "Help" link at the bottom opens it again.
+THE SIMPLE WORKFLOW
 
-1. Get ready
-  - Load the backing (the beat): + Add backing on the start card, or BACKING ▾ on the backing lane
-    (Load / Replace / Remove backing, Undo remove, Listening level). BACKING With / Without in the transport
-    (or M on the lane) decides whether you hear it while you record. The backing level is a LISTENING level:
-    what you hear in your headphones. It is not recorded and it is not the export mix (that is POLISH › Mix).
-  - Wear headphones. Sing a line and watch MIC LEVEL. If CLIP lights up, move back or lower GAIN
-    (the slider next to the meter). Click the meter (or press I) for a mic check without recording.
-  - Settings ▾ › Latency test: do it once per device and browser so takes land on the beat.
-    The latency is used for every take (normal, punch-in, loop).
+1. Record your lead vocal.
+   Load your instrumental if you have one. Select Lead vocal and press Record.
+   Sing the song, then press Stop. The recording stays together as one take.
 
-2. Add parts
-  - "+ Add part": pick a name, a length in bars, and where it starts (after the last part or at the playhead).
-  - Drag a part's edges on the timeline (phone: the red IN / OUT flags) to change where it starts or ends.
-  - Rename part / Delete part are above the big button. Overlapping parts: the newer part wins in the comp.
+2. Fix a word or phrase.
+   Drag over that spot, or enter its start and end in seconds. Press Fix phrase.
+   Record again as many times as needed. Listen, then Choose the attempt you like.
+   The rest of your recording stays in place. Repeat with lead-in makes another
+   attempt each pass. A partial attempt is kept but cannot replace a longer phrase.
 
-3. Record takes
-  - Select a part, press the big red button (or R, or REC). The backing starts a little before the part
-    (pre-roll; set it in Settings ▾), you can have a COUNT-IN of 1 or 2 bars and a CLICK (metronome, key C).
-    Sing, then press Stop yourself (R, Space, the big button or ■). Recording does NOT stop at the end of the
-    part: the backing keeps playing and you keep recording, even after the backing ends. Esc throws the take away.
-  - Your recording is never thrown away. The take always keeps everything from the pre-roll to the moment you
-    pressed Stop (silence at the end too). The part's IN and OUT only decide which piece the comp uses.
-  - Sang past the part's OUT flag? The part gets longer to fit (up to the end of your singing; silence after
-    your last note does not count). One Undo puts it back. If that would run into other parts, a window asks:
-      Keep <next part> as it is  = this part ends where the next one starts; the rest stays in the take, unused;
-      Make room / Replace …      = this part grows; the next part starts later, or — if your singing covers it
-                                   (almost) completely — it is replaced (the window says how many takes that
-                                   removes; one Undo brings everything back);
-      Keep it as a take only     = no part changes at all; the take still holds the whole recording.
-    A part can be at most 60 seconds long; anything longer goes into new "(cont.)" parts right after it.
-  - "⏹ Stop at part end: OFF/ON" (part panel, saved in your settings): ON brings back the old way — recording
-    stops by itself at the part's OUT flag, and a punch-in punches out there.
-  - One take can be at most 10 minutes (a safety limit; you get a warning 1 minute before). Whenever recording
-    stops without you pressing Stop, a message says why (part end with the switch ON, safety limit, mic
-    unplugged, app sent to the background, audio paused by the phone). The same 10-minute limit applies to
-    punch-ins and loop recording.
-  - Mic unplugged or lost while recording (normal take, punch-in or loop)? What was recorded up to then is KEPT
-    as a take marked "(mic lost)" — a loop pass in progress as "(mic lost, incomplete)". Only Esc (your own
-    cancel) throws a take away. If a recording ever cannot be added, it is kept as Recovered audio: a
-    "⚠ Recovered audio" badge appears in the top bar; open it to download or remove each recording.
-  - "↺ Redo last take" records the part again and replaces the last take (Undo brings it back).
-  - "Next part ▶" (or Shift+R to go there and record).
-  - HEAR ME: hear your own voice in the headphones while you record. You can turn it on or off at any time,
-    also in the middle of a take or a punch (it uses the same microphone input, never a second one). If it
-    cannot connect, a message says so. Wired headphones only — with speakers it can echo or howl.
-  - GAIN works at once, also while you record: the recording, the meter and HEAR ME all go through it.
+3. Label your song.
+   Add Intro, Verse, Chorus, Bridge or Outro in Song sections. These labels help
+   you navigate; they do not cut or move your recordings.
 
-4. Punch-in on the fly
-  - Press Play (Space). When the song reaches the spot, press R (or REC, or the big button — it now says
-    "Punch in here"). Recording starts right there, in the part under the playhead (a new "Punch m:ss" part
-    is made if there is none). Press R again to punch out: the song KEEPS PLAYING and you hear the new take.
-    Space punches out and stops. Esc cancels. A punch keeps going past the part's OUT flag (the part grows,
-    as above, with the same choices if it runs into other parts) and even past the end of the song, until you
-    punch out. A punch longer than 60 s is kept whole: it continues in "(cont.)" parts.
-  - The punched take is a new take of that part: your chosen take outside the punch, the new singing inside
-    it, with short fades (silence outside if the part had no chosen take yet). If the part already had a
-    chosen take, the punched take is chosen automatically; one Undo puts the old choice back.
+4. Add backing vocals.
+   Press + Add vocal track. Name it Harmony, Double, Ad-libs, or anything you like.
+   Record and fix phrases on that lane. Your lead and other lanes stay separate.
 
-5. Loop recording
-  - Turn "⟲ Loop: ON" (key L) and press Record. The part plays round and round (after the pre-roll and
-    count-in). Every full pass becomes a new take. Press R / REC / Stop to finish; the pass you were in the
-    middle of is dropped. A part that runs past the end of the backing cannot loop (you get a warning).
+5. POLISH each voice.
+   Press Polish on a vocal lane. Clean, Tune, note edits and effects now belong
+   to that vocal only. Your changes are saved automatically on that track.
+   Use the Polishing selector to move between lead and harmony. Each keeps its
+   own settings. One voice can have light tuning and another stronger tuning;
+   one can have reverb while another stays dry.
 
-6. Import a take, or a whole vocal
-  - VOCAL ▾ on the COMP lane › Import vocal (whole song): one finished vocal file for the whole song. If you
-    already have takes you are asked first. "Back up first, then import" downloads a project backup and only
-    then asks for the vocal file. If the backup fails or you cancel it, nothing is imported and your parts and
-    takes stay as they are; choose "Try the backup again" or "Keep my takes".
-  - "⤓ Import take…": pick an audio file. "Lines up with the start of this part" puts the file's start at the
-    part's start. "With the start of the song (0:00)" is for a whole-song vocal exported from another app:
-    only this part's piece is kept. A file shorter than the part is kept but cannot be chosen.
+6. Hear the result together.
+   Press Hear song in POLISH. It plays every vocal lane using its saved processing
+   and the Song & vocals mixer. Play below the POLISH bar auditions the selected
+   vocal. The existing Mix panel fits backing for that selected-vocal audition;
+   full-song playback/export uses the song lane levels instead.
+   Back in Song & vocals, adjust each lane's volume, pan, Mute and Solo.
+   Use dry vocal bypasses a lane's POLISH while keeping its settings.
 
-7. Choose and build the comp
-  - ▶ plays a take (with the backing if Settings ▾ › Hear backing when I play a take is ON).
-  - "suggested" on a take is a hint from the app. Tap "Why suggested?" (or "Why not suggested?") under the take
-    name to see the numbers: pitch (cents off the key or the melody reference), timing (ms against the
-    reference take), noise (voice above the background, dB), clipping, the score — or why there is no score
-    (analysis failed, pitch uncertain, take does not cover the part, too close to call).
-  - "✓ Choose" uses the take in the comp; click "✓ Chosen" again to un-choose it. Double-click a take works too.
-  - Right-click a take: listen, choose, rename, use as melody / timing reference, delete.
-  - Edit on a take opens the take editor: level, silence, fade in / out make a NEW take (the original stays);
-    trim, split and move change the part. The take check ("suggested", the numbers) runs again after trim,
-    split, Undo and Redo.
-  - "Delete unchosen takes" (this part) and "…in all parts".
-  - ▶ Play on the transport plays the comp (HEAR MY COMP ON) with the backing. The COMP lane is your chosen
-    takes joined into one vocal; VOCAL ▾ › Play vocal plays it without the backing.
-  - Export comp audio (WAV) saves the joined vocal as a sound file. "Comp done → Go to POLISH" sends it to POLISH.
-  - Changed your comp after POLISH edits? POLISH keeps the vocal it has until you send the new comp yourself
-    (Comp done, or "Load my new comp" in POLISH). You are asked first, because note, breath and timing edits
-    made in POLISH start again on the new vocal. Adding, renaming or deleting takes you did not choose does not
-    change the comp.
+7. Export or back up.
+   Export song in POLISH offers the finished vocal mix, song with backing,
+   separate polished stems, or dry stems. Stems all start at 0:00. A track you
+   have not polished stays dry. Muted tracks remain in separate stem exports.
+   EXPORT THIS VOCAL in the lower POLISH panel exports the selected voice using
+   the original detailed export controls.
+   Back up project saves all tracks, attempts, sections and editable POLISH
+   settings. Check that the ZIP finished downloading. Autosave is local to this
+   browser and is not a replacement for keeping a backup.
 
-8. Saving — three different things
-  - AUTOSAVE (this browser only): automatic after every change; the saved light shows it. It is not a backup —
-    a phone can clear browser storage.
-  - BACK UP PROJECT: Settings ▾ › Back up project (.zip with every take) (Ctrl+S). A file you keep, with every
-    take, your choices and your POLISH edits exactly as they are (saving never re-sends the comp or resets
-    edits). It works in every session that has something to keep: a backing only, Recovered audio only, a whole
-    vocal, or parts and takes. When it is not available the menu says why. The result — saved, cancelled or
-    failed — is shown on the status line and in a message, also on a phone. Open it with Settings ▾ › Open
-    song project. Projects from 0.13–0.18 open; tempo, key and backing level come back with them. Backup reminders tell you to do this now and then (Settings ▾ › Backup reminder).
-  - EXPORT COMP AUDIO (WAV): only the joined vocal as a sound file, for other apps. Not a project backup.
+IF YOU RECORD A NEW PHRASE AFTER POLISHING
 
-Keys on RECORD & COMP
-  R record / punch in / punch out   Shift+R next part and record   Space play / pause (stop while recording)
-  Home or Enter back to the start   N / P next / previous part      L Loop on/off   C click on/off   I mic check
-  Ctrl+Z / Ctrl+Shift+Z undo / redo   Ctrl+S save project   Esc cancel the recording   2 go to POLISH
+Only the affected vocal shows Update needed. Other vocals keep their processing.
+Press Polish on the changed track. The app keeps its cleaning, tuning settings
+and effects, but asks before resetting manual note, breath and timing edits that
+belonged to the previous performance. Back up first if you need that old version.
+Until updated, song playback uses the new dry vocal on that lane. Processed export
+asks you to update it or explicitly choose Use dry vocal in its track settings.
 
-Limits
-  Buttons that cannot be used right now say why in their tooltip (and under the big Record button).
-  32 takes per part, 128 takes per song, 30 minutes of take audio, parts 0.5–60 s, song up to 15 minutes.
+USEFUL DETAILS
+
+- Use headphones so backing music does not leak acoustically into your microphone.
+- R starts/stops recording; Space stops recording or plays/pauses on Song & vocals.
+- A selected phrase gives an exact recording range. R during playback starts with
+  lead-in; it is not an instantaneous gapless live punch.
+- Use project backups before removing recordings. Song Undo lasts this session.
+- WAV exports use 32-bit float audio. Effect tails are retained in processed audio.
+- Projects with these features require version 0.20.0 or newer. Older apps cannot
+  restore all lanes and settings. Keep the original ZIP if trying an older app.

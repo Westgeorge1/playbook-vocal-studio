@@ -1,0 +1,22 @@
+Playbook Vocal Studio 0.21.0 - test results (run 19 Oct 2026, UTC-5)
+Runner: tests-0.21/run_all21.sh  (logs in tests-0.21/results/)
+
+0.20.0 suites (tests-0.20), unchanged tests:
+  core                 21 passed
+  browser_test         43 passed, 0 failed
+  long_recording_test   9 passed, 0 failed
+  edge_cases_test      17 passed, 0 failed
+  polish_tracks        29 passed, 0 failed
+  polish_edges         11 passed, 0 failed  (run 3 times: 3/3 pass - autosave fix)
+  final_ui              8 passed
+0.21.0 suites (tests-0.21):
+  core21 (node)        19 passed, 0 failed
+  t21 real UI 1366px   41 passed, 0 failed
+  t21 real UI 1024px   41 passed, 0 failed
+  t21 real UI  390px   41 passed, 0 failed
+Covered: click not in recording, HEAR ME not in recording or other lanes,
+count-in timing (2 bars = 8 clicks, 0.5 s apart at 120 BPM, accent on 1),
+punch-in range + edge fades, gapless loop (>=4 passes, no gaps, exact length),
+Esc cancel, snap, transport not covering lanes, autosave on pagehide,
+backup then reload. Zero console errors at every width.
+Engine files: sha256sum -c ENGINE-SHA256.txt -> all OK.

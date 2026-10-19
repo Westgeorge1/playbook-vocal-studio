@@ -1,4 +1,4 @@
-/* Playbook Vocal Studio 0.18.3 — RECORD & COMP screen: the one place where you record.
+/* Playbook Vocal Studio 0.21.0 — RECORD & COMP screen: the one place where you record.
      part  = phrase (S.phrases.phrases[]),  take = phrase take,  chosen take = phrase.selected,
      comp  = PhraseCore.compose(workspace) (same join fade as before),  POLISH = phraseApply() + CLEAN/TUNE/CHAIN/DETAIL/MIX.
    0.17.0 fused the old POLISH recording tools in here as first-class controls:
@@ -39,8 +39,8 @@ RC.partColor=partColor;
 // ---------------------------------------------------------------- step switch
 function setStepsHeight(){const h=$('rcSteps').getBoundingClientRect().height||48;document.documentElement.style.setProperty('--steps-h',Math.ceil(h)+'px');}
 function step(s,tab){
-  if(s!=='rc'&&s!=='polish')return;RC.step=s;document.body.classList.toggle('rc-on',s==='rc');document.body.classList.add('has-steps');
-  $('rcView').hidden=s!=='rc';$('rcStep1').setAttribute('aria-selected',s==='rc');$('rcStep2').setAttribute('aria-selected',s==='polish');
+  if(s!=='rc'&&s!=='polish')return;if(window.SongStudio&&!SongStudio.show(s))return;RC.step=s;document.body.classList.toggle('rc-on',s==='rc');document.body.classList.add('has-steps');
+  $('rcView').hidden=!!window.SongStudio||s!=='rc';$('rcStep1').setAttribute('aria-selected',s==='rc');$('rcStep2').setAttribute('aria-selected',s==='polish');
   closePops();setStepsHeight();
   if(s==='polish'){D.ctx='engine';requestAnimationFrame(()=>{D.layout();D.dirty=true;if(tab)dawTab(tab);});}
   else{D.ctx='phrase';RC.dirty=true;RC.sig='';requestAnimationFrame(()=>{layout();sync(true);});}
@@ -549,7 +549,7 @@ function moreItems(){const P=PV.prefs,w=W();
   ['hearComp','Hear my comp while playing / recording'+tg(P.hearOld),null],
   ['h','FILES'],
   ['autosave','Autosave (this browser only)',(PV.autosaveText?PV.autosaveText():'Automatic after every change.')+' Not a backup: the browser can clear it.',true],
-  ['saveProj','Back up project (.zip with every take) · Ctrl+S',canSaveProject(true)===true?'A file you keep and can open again later. POLISH edits are kept as they are.':canSaveProject(true),canSaveProject()!==true], // 0.18.3: the same rule as saveProject
+  ['saveProj','Back up project (.zip with every take) · Ctrl+S',canSaveProject(true)===true?'A file you keep and can open again later. POLISH edits are kept as they are.':canSaveProject(true),canSaveProject()!==true], // 0.21.0: the same rule as saveProject
   ['openProj','Open song project…',null],
   ['export','Export comp audio (WAV)','Only the joined vocal as a sound file — not a project backup.'],
   ['keys','Keyboard shortcuts',null],
@@ -583,7 +583,7 @@ function closePops(){$('rcMore').hidden=true;$('rcAdd').hidden=true;$('rcImp').h
 document.addEventListener('pointerdown',e=>{if(!e.target.closest('#rcMore,#rcMoreBtn,#rcMoreP'))$('rcMore').hidden=true;if(!e.target.closest('#rcAdd,#rcAddBtn,#rcAddPart2,#rcNext,#rcChips,#rcBig,#rcRec'))$('rcAdd').hidden=true;if(!e.target.closest('#rcImp,#rcImport'))$('rcImp').hidden=true;if(!e.target.closest('#rcLaneMenu,#rcBeatMenu,#rcVocalMenu,#rcBackMenuP,#rcVocalMenuP'))$('rcLaneMenu').hidden=true;},true);
 
 // ---------------------------------------------------------------- keys (only while RECORD & COMP is showing)
-window.addEventListener('keydown',e=>{if(RC.step!=='rc')return;
+window.addEventListener('keydown',e=>{if(window.SongStudio||RC.step!=='rc')return;
   if(e.key==='Escape'&&(!$('rcMore').hidden||!$('rcAdd').hidden||!$('rcImp').hidden)&&!recording()){closePops();e.preventDefault();e.stopImmediatePropagation();return;}
   if(e.defaultPrevented||isTyping(e.target)||e.altKey||e.ctrlKey||e.metaKey)return;
   if(qa('.modal').some(m=>!m.hidden))return;
@@ -604,7 +604,7 @@ window.addEventListener('keydown',e=>{if(RC.step!=='rc')return;
 // ---------------------------------------------------------------- frame: mirror readouts, poll, redraw
 let lastSlow=0;
 function frame(now){
-  if(RC.step==='rc'){
+  if(RC.step==='rc'&&!window.SongStudio){
     if(RC.auditioning&&!playing&&!playPending)restoreAfterAudition();
     if(!playing&&RC.playMode)RC.playMode=null;
     const t=nowT();const bar=barSec(),beat=beatSec();$('rcBars').textContent='bar '+(Math.floor(t/bar+1e-9)+1)+' · beat '+(Math.floor(t/beat+1e-9)%4+1);

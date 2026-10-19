@@ -1,4 +1,4 @@
-/* Playbook Vocal Studio 0.18.3 — take editor, lane menus, backing remove/undo and Recovered audio.
+/* Playbook Vocal Studio 0.21.0 — take editor, lane menus, backing remove/undo and Recovered audio.
    Features from the third-party 0.18.1 build, rebuilt to fit the tidy RECORD & COMP screen:
    - the take editor opens only from the Edit button on a take (modal);
    - BACKING ▾ and VOCAL ▾ are small menus on the lane headers (phone: Backing ▾ / Vocal ▾ in the part panel);
@@ -120,7 +120,7 @@ new ResizeObserver(draw).observe(canvas);
 // ---------------------------------------------------------------- backing: remove + Undo remove
 function removeBacking(){if(busy()||!S.beat)return;stop();removedBeat={buffer:S.beat,name:S.beatName,level:S.beatLevel,on:el('beatOn').checked};
   S.beat=null;S.beatName='';S.fitBeat=null;S.fitInfo=null;sendBeat();renderOpen();tick();persist();RC.sig='';RC.dirty=true;
-  toast('Backing removed','“Undo remove backing” in the BACKING ▾ menu brings it back. Your takes are kept.');RC.msg&&RC.msg('Backing removed. BACKING ▾ › Undo remove backing brings it back.');}
+  toast('Backing removed',window.SongStudio?'Undo remove on the INSTRUMENTAL lane brings it back. Your vocals are kept.':'“Undo remove backing” in the BACKING ▾ menu brings it back. Your takes are kept.');RC.msg&&RC.msg('Backing removed. BACKING ▾ › Undo remove backing brings it back.');}
 function undoRemoveBacking(){if(busy()||!removedBeat)return;stop();const b=removedBeat;removedBeat=null;
   S.beat=b.buffer;S.beatName=b.name;S.beatLevel=b.level;el('beatOn').checked=b.on;el('beatLevel').value=Math.round(100*S.beatLevel);el('beatLevelText').textContent=Math.round(100*S.beatLevel)+'%';
   S.fitBeat=null;S.fitInfo=null;sendBeat();renderOpen();tick();persist();RC.sig='';RC.dirty=true;RC.msg&&RC.msg('Backing '+b.name+' is back.');}
@@ -133,7 +133,7 @@ async function importVocal(){if(busy())return;const n=phraseWorkspace().phrases.
   if(n){const k=await PV.chooseModal('Import a whole vocal?','Importing a whole vocal replaces your parts and their '+n+' take'+(n===1?'':'s')+'. To add a recording to one part instead, use Import take in the part panel.',[['cancel','Cancel','Keep my parts and takes.'],['go','Back up first, then import','Downloads a project backup (.zip with every take), then asks for the vocal file.'],['now','Import and replace','Your parts and takes are replaced. Back up project first if you may need them.']]);
     if(k==='cancel'||!k)return;
     // 0.18.3 (review 01): only go on to the file picker after the backup really worked; on failure or cancel keep everything and offer Try again
-    while(k==='go'){const r=await saveProject();if(r&&r.ok)break;
+    while(k==='go'){const r=await saveProject();if(r&&r.ok){if(r.status==='requested'){const checked=await PV.chooseModal('Check your backup','Make sure the project ZIP has finished downloading. The browser cannot confirm this for the app.',[['stay','Keep my takes','Do not replace anything.'],['continue','My backup is saved — continue','Open the import picker.']]);if(checked!=='continue')return;}break;}
       const k2=await PV.chooseModal(r&&r.status==='cancelled'?'Backup cancelled':'Backup not made',(r&&r.msg?r.msg+'\n':'')+'Nothing was imported. Your parts and takes are unchanged.',[['stay','Keep my takes','Do not import now.'],['go','Try the backup again','Then choose the vocal file.']]);
       if(k2!=='go'){RC.msg&&RC.msg('Import cancelled: the backup was not made, so nothing was replaced.');return;}}}
   el('fileVocal').click();}
@@ -167,7 +167,7 @@ function renderMenu(){menu.setAttribute('aria-label',menuKind==='beat'?'Backing 
   menu.innerHTML=menuItems(menuKind).map(([k,label,hint,dis])=>k==='h'?'<div class="rcmh">'+label+'</div>':/<input/.test(label)?'<div class="rcmi rcmrow" data-k="'+k+'">'+label+'</div>':'<button class="rcmi" role="menuitem" data-k="'+k+'"'+(dis?' disabled':'')+'><span>'+label+'</span>'+(hint?'<small>'+hint+'</small>':'')+'</button>').join('');menu.hidden=false;
   const lv=el('rcmBeatLevel');if(lv)lv.oninput=()=>{el('beatLevel').value=lv.value;el('beatLevel').dispatchEvent(new Event('input'));el('rcmBeatLevelV').textContent=lv.value+'%';RC.dirty=true;};}
 menu.addEventListener('click',e=>{const b=e.target.closest('button.rcmi');if(!b||b.disabled)return;const k=b.dataset.k;
-  menu.hidden=true;if(menuAnchor?.isConnected)menuAnchor.focus();/* 0.18.3: a question opened from the menu returns focus to its button */({load:()=>el('fileBeat').click(),remove:removeBacking,undoRemove:undoRemoveBacking,import:importVocal,play:playVocal,clear:clearVocal,undoClear})[k]?.();});
+  menu.hidden=true;if(menuAnchor?.isConnected)menuAnchor.focus();/* 0.21.0: a question opened from the menu returns focus to its button */({load:()=>el('fileBeat').click(),remove:removeBacking,undoRemove:undoRemoveBacking,import:importVocal,play:playVocal,clear:clearVocal,undoClear})[k]?.();});
 menu.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();e.stopPropagation();menu.hidden=true;menuAnchor?.focus();}
   else if(e.key==='ArrowDown'||e.key==='ArrowUp'){const items=[...menu.querySelectorAll('button.rcmi:not(:disabled)')],i=items.indexOf(document.activeElement);e.preventDefault();e.stopPropagation();items[(i+(e.key==='ArrowDown'?1:-1)+items.length)%items.length]?.focus();}});
 
@@ -195,7 +195,7 @@ modal.addEventListener('pointerdown',e=>{if(e.target===modal)closeEditor();});re
 window.Studio={edit:openEditor,close:closeEditor,sync,removeBacking,undoRemoveBacking,laneMenu,importVocal,playVocal,clearVocal,undoClear,openRecovery,closeRecovery,
   state:()=>({open:!modal.hidden,pid:E.pid,tid:E.tid,a:E.a,b:E.b,start:E.start,seconds:E.seconds,hand:E.hand,removed:!!removedBeat,recoveryOpen:!recovery.hidden}),select:(a,b)=>selection(a,b),view:(a,s)=>setView(a,s)};
 setInterval(sync,250);sync();
-// ---------------------------------------------------------------- 0.18.3 start card + Help folded away once you have started
+// ---------------------------------------------------------------- 0.21.0 start card + Help folded away once you have started
 (function(){const card=el('rcStartCard'),help=el('rcHelpBox'),link=el('rcHelpLink');let touched=false,wasStarted=null;
   el('rcsRecord').onclick=()=>{el('rcAddBtn').click();RC.msg&&RC.msg('Name the first part and choose its length, then press Record (or R).');};
   el('rcsImport').onclick=()=>importVocal();el('rcsOpen').onclick=()=>el('projBtn').click();el('rcsBacking').onclick=()=>el('fileBeat').click();

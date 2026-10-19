@@ -1,0 +1,13 @@
+PLAYBOOK VOCAL STUDIO 0.20.0
+
+- Integrated independent Clean, Tune, note/performance edits and effects per vocal.
+- Added per-track POLISH selector, status, dry bypass, Hear song and Export song.
+- Song playback/exports now use each lane's saved rendered vocal and retain tails.
+- Added full song with backing, polished stems and explicitly dry stems.
+- Saved per-track settings, input/extra-take PCM and rendered outputs in project v2.
+- New phrase choices invalidate only their own processing; update confirmation
+  keeps sound parameters while resetting edits attached to the earlier performance.
+- Retained prior combined processing during migration and added its audio export.
+- Added processing memory preflight, file/state validation and switch rollback.
+- Preserved recording ranges during pointer drags and fixed medium-width POLISH.
+- Kept the existing WASM audio engine unchanged.

@@ -2,7 +2,7 @@
 <html lang="en">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Playbook Vocal Studio 0.18.3 · DAW</title>
+<title>Playbook Vocal Studio 0.21.0 · DAW</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,500..800&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
@@ -233,10 +233,10 @@ nav.steps button { flex:1 0 64px; min-height:48px; }
 .phrase-take .metrics { font:13px/1.65 var(--mono); color:var(--muted); }
 .phrase-take.suggested { color:var(--gold); }
 </style>
-<link rel="stylesheet" href="daw.css?v=0.18.3">
-<link rel="stylesheet" href="rec.css?v=0.18.3">
-<link rel="stylesheet" href="rc.css?v=0.18.3">
-<link rel="stylesheet" href="studio.css?v=0.18.3">
+<link rel="stylesheet" href="daw.css?v=0.21.0">
+<link rel="stylesheet" href="rec.css?v=0.21.0">
+<link rel="stylesheet" href="rc.css?v=0.21.0">
+<link rel="stylesheet" href="studio.css?v=0.21.0">
 <link rel="icon" href="data:,">
 
 <!-- 0.16.0 RECORD & COMP: two-step switch (always visible) -->
@@ -251,7 +251,7 @@ nav.steps button { flex:1 0 64px; min-height:48px; }
     <div class="rcsaved" id="rcSaved" role="status" aria-live="polite" title="Autosave on this browser"></div>
     <button class="rcbtn" id="rcUndo" title="Undo the last recording, choice or delete (Ctrl+Z)">↶ <span>Undo</span></button>
     <button class="rcbtn" id="rcRedo" title="Redo (Ctrl+Shift+Z)">↷ <span>Redo</span></button>
-    <button class="rcbtn rcgreen rcexport" id="rcExport" title="Join your chosen takes into one vocal WAV, download it and send it to POLISH">Export comp (WAV)</button>
+    <button class="rcbtn rcgreen rcexport" id="rcExport" title="Export the vocal mix, the song with backing, or stems">Export comp (WAV)</button>
     <button class="rcbtn rcmorebtn rcphone" id="rcMoreP" aria-haspopup="true" title="Settings: latency test, pre-roll, tempo, files…">Settings ▾</button>
     <span class="rcengine" id="rcEngine">Engine starting…</span>
   </div>
@@ -407,7 +407,7 @@ nav.steps button { flex:1 0 64px; min-height:48px; }
 <button role="menuitem" data-act="howto">How recording works</button>
 <button role="menuitem" data-act="about">About this engine</button></div></div>
   </nav>
-  <div class="apptitle"><b>Playbook Vocal Studio 0.17</b> <span id="dawSong">·</span></div>
+  <div class="apptitle"><b>Playbook Vocal Studio 0.21.0</b> <span id="dawSong">·</span></div>
   <div class="savedind" id="dawSaved" role="status" aria-live="polite" title="Autosave on this browser"></div><div class="headright"><button class="guidebtn" id="guideBtn" aria-haspopup="dialog" aria-controls="guideSheet">✦ SMART GUIDE <span class="count" id="guideCount"></span></button><div class="chip" id="chip">Starting the engine...</div></div>
 </header>
 <div class="busybar" id="busybar"><i></i></div>
@@ -436,7 +436,7 @@ nav.steps button { flex:1 0 64px; min-height:48px; }
       <div class="tl-actions" id="tlActions">
   <span class="polcomp" id="polCompInfo">Vocal: —</span>
   <button class="btn primary" id="polLoadComp" hidden title="Your comp on 1 RECORD &amp; COMP changed since it was loaded here">Load my new comp</button>
-  <button class="btn" id="polToRC" title="Go back to 1 RECORD &amp; COMP to record or choose takes">◀ Record &amp; comp</button>
+  <button class="btn" id="polToRC" title="Go back to 1 SONG &amp; VOCALS to record, punch in or choose takes">◀ Song &amp; vocals</button>
   <span class="tl-zoom"><button class="btn small" id="dawZoomOut" aria-label="Zoom timeline out">−</button><button class="btn small" id="dawZoomFit">Fit</button><button class="btn small" id="dawZoomIn" aria-label="Zoom timeline in">+</button></span>
 </div>
     <section class="dock" id="dock">
@@ -773,7 +773,7 @@ nav.steps button { flex:1 0 64px; min-height:48px; }
       <h2>Save to your phone</h2>
       <p>Each save is a ZIP holding a 24-bit WAV, the same quality as the desktop app's export. Open it with your Files app, or move it to your laptop and drop the WAV at the very start of your FL Studio playlist. It starts at 0:00, so it lines up with the beat.</p>
       <div class="savelist">
-        <div class="saveitem"><div><b>Song project</b><p>Your vocal, takes, every setting and note edit, in one ZIP. Open it again here, or unzip it on your laptop and open the .pbv in the Windows app or FL Studio plugin.</p></div><button class="btn primary" id="saveProject">Save</button></div>
+        <div class="saveitem"><div><b>Song project</b><p>All vocal tracks, attempts, sections and each track’s POLISH settings in one ZIP. Reopen in version 0.20.0 or newer. Earlier apps cannot restore all tracks.</p></div><button class="btn primary" id="saveProject">Save</button></div>
         <div class="saveitem"><div><b>Final vocal</b><p>All your edits, cleaned, tuned and through the vocal chain (stereo, with its echo and reverb). Drop it on your beat.</p></div><button class="btn primary" data-save="final">Save</button></div>
         <div class="saveitem"><div><b>Tuned vocal (dry)</b><p>All edits, cleaned and tuned, no vocal chain. Use it if you'll add your own effects in FL Studio.</p></div><button class="btn" data-save="tuned">Save</button></div>
         <div class="saveitem"><div><b>Cleaned vocal</b><p>All edits and breath reduction, cleaned, not tuned.</p></div><button class="btn" data-save="cleaned">Save</button></div>
@@ -815,13 +815,12 @@ nav.steps button { flex:1 0 64px; min-height:48px; }
   </section>
 </div></div>
 <div class="modal" id="helpModal" role="dialog" aria-label="Help" hidden><div class="mbox small"><div class="mhead"><h2 id="helpTitle">KEYBOARD SHORTCUTS</h2><button class="closebtn" data-close aria-label="Close">×</button></div>
-<div id="helpKeys" class="rack"><p class="note"><b>1 RECORD &amp; COMP screen</b></p><table class="keys">
-<tr><td><kbd>R</kbd></td><td>Stopped: record a take on the selected part (R again = stop and keep). Playing: <b>punch in</b> right where you are; R again punches out and the song keeps playing</td></tr>
-<tr><td><kbd>Shift R</kbd></td><td>Next part and record</td></tr><tr><td><kbd>L</kbd></td><td>Loop recording on / off for the selected part (a new take every pass)</td></tr>
-<tr><td><kbd>Space</kbd></td><td>Play / pause your comp with the backing · while recording: stop and keep</td></tr><tr><td><kbd>Esc</kbd></td><td>Cancel the take being recorded (nothing is added)</td></tr>
-<tr><td><kbd>N</kbd> / <kbd>P</kbd></td><td>Next / previous part</td></tr><tr><td><kbd>C</kbd> · <kbd>I</kbd></td><td>Metronome click on / off · mic level check</td></tr>
-<tr><td><kbd>Home</kbd> / <kbd>Enter</kbd></td><td>Back to the start</td></tr><tr><td><kbd>2</kbd></td><td>Go to POLISH</td></tr>
-<tr><td><kbd>Ctrl/⌘ Z</kbd> · <kbd>Ctrl/⌘ Shift Z</kbd></td><td>Undo · redo (recording, choosing, deleting, renaming, resizing)</td></tr><tr><td><kbd>Ctrl/⌘ S</kbd></td><td>Save project with every take</td></tr></table>
+<div id="helpKeys" class="rack"><p class="note"><b>1 SONG &amp; VOCALS screen</b></p><table class="keys">
+<tr><td><kbd>R</kbd></td><td>Start / stop recording on the selected lane</td></tr>
+<tr><td><kbd>Space</kbd></td><td>Stop recording or play / pause</td></tr>
+<tr><td><kbd>Home</kbd></td><td>Move to the song start</td></tr>
+<tr><td><kbd>Ctrl/⌘ Z</kbd> · <kbd>Ctrl/⌘ Shift Z</kbd></td><td>Undo / redo a song edit</td></tr>
+<tr><td><kbd>Ctrl/⌘ S</kbd></td><td>Back up the project</td></tr></table>
 <p class="note"><b>2 POLISH screen</b></p><table class="keys">
 <tr><td><kbd>Space</kbd></td><td>Play / pause</td></tr><tr><td><kbd>Enter</kbd> / <kbd>Home</kbd></td><td>Back to start</td></tr>
 <tr><td><kbd>L</kbd></td><td>Loop for listening: the ruler region, else the part under the playhead, else 4 bars</td></tr>
@@ -829,14 +828,18 @@ nav.steps button { flex:1 0 64px; min-height:48px; }
 <tr><td><kbd>Ctrl/⌘ Z</kbd>, <kbd>Ctrl/⌘ Shift Z</kbd>, <kbd>Ctrl Y</kbd></td><td>Undo / redo (in the area you last worked: wave edit or sound/notes)</td></tr>
 <tr><td><kbd>+</kbd> / <kbd>−</kbd></td><td>Zoom the timeline</td></tr><tr><td><kbd>Ctrl/⌘ S</kbd></td><td>Save project with every take</td></tr>
 <tr><td><kbd>?</kbd></td><td>This help · <kbd>Esc</kbd> closes menus and windows</td></tr></table>
-<p class="note">Shortcuts are ignored while you type in a box. POLISH timeline: click = move the playhead, drag the ruler = loop region. Recording, takes and parts live only on 1 RECORD &amp; COMP.</p></div>
-<div id="helpHow" class="rack" hidden><p><strong>One place to record — 1 RECORD &amp; COMP.</strong> 1) <b>+ Add part</b> (Intro, Verse 1, Chorus…) and drag its edges to fit the song. 2) Click a part and press the big red <b>Record</b> button (or R): the backing starts just before the part (pre-roll and count-in); sing, then press <b>Stop</b> (R or Space). Recording does not stop by itself at the end of the part: if you sing past the OUT flag, the part grows to fit (one Undo puts it back). Your recording is never thrown away: the take keeps everything you sang, and if it runs into other parts a window lets you choose (keep the next part, make room / replace, or keep it as a take only). If the mic is unplugged, the take so far is kept and marked “(mic lost)”. Turn <b>Stop at part end</b> ON if you want it to stop at OUT. 3) Record as many takes as you like; they stack under the part. Click a take to hear it, then <b>Choose</b> the best one (green ✓). <b>Redo last take</b> replaces the last try; <b>Del</b> and <b>Delete unchosen takes</b> tidy up; Undo brings anything back. 4) The <b>COMP</b> lane joins your chosen takes with a short smooth fade at each join. <b>Comp done → Go to POLISH</b> sends that one vocal to CLEAN, TUNE, CHAIN and MIX.</p>
-<p><strong>Punch-in on the fly.</strong> Press Play, and when the song reaches the spot you want to fix press <b>R</b> (or the red button): recording starts right there in the part under the playhead, the song keeps playing, and R again punches out. The new take is your chosen take with the punched bit dropped in (short fades at both edges), and it is chosen for you; Undo or choose the old take to go back. If there is no part there yet, a new part is made. A punch longer than 60 s is kept whole and continues in “(cont.)” parts.</p>
-<p><strong>Loop recording.</strong> Turn <b>⟲ Loop</b> on in the part panel (or press L) and press Record: the part plays round and round and every full pass becomes a new take. R or Stop ends it; Esc throws away the pass in progress.</p>
-<p><strong>Also on the same screen:</strong> count-in and CLICK (metronome, headphones only), the mic meter with CLIP light and GAIN (works at once, also while recording), HEAR ME (input monitoring, wired headphones only; can be switched on or off during a take), Import take (a file recorded elsewhere), and under <b>Settings ▾</b> the latency test (run once per device and browser so takes land on the beat), pre-roll, join fade, tempo and files. <b>Autosave</b> (this browser only) is automatic; <b>Back up project</b> saves a ZIP with every take and your POLISH edits as they are; <b>Export comp audio</b> saves only the joined vocal as a WAV. Under a take, <b>Why suggested?</b> shows the pitch, timing and noise numbers behind the suggestion.</p><p class="note">Full instructions: RECORD-AND-TAKES.txt.</p></div>
+<p class="note">Shortcuts are ignored while you type in a box. POLISH timeline: click = move the playhead, drag the ruler = loop region. Recording, phrase attempts and song sections live on 1 SONG &amp; VOCALS.</p></div>
+<div id="helpHow" class="rack" hidden>
+<p><strong>1 · Record your song.</strong> In SONG &amp; VOCALS, select Lead vocal, load backing music if needed, then press Record. Sing and press Stop. A whole performance stays together.</p>
+<p><strong>2 · Fix a word or phrase.</strong> Drag over its range, or enter Start and End in seconds. Press Fix phrase. Repeat until comfortable, then Listen and Choose. The rest of the performance stays in place. Repeat with lead-in adds an attempt each pass.</p>
+<p><strong>3 · Organise and layer.</strong> Song sections label Intro, Verse, Chorus and Outro without cutting recordings. Add vocal track gives harmonies, doubles and ad-libs their own lane.</p>
+<p><strong>4 · Polish each voice.</strong> Press Polish on a lane. Clean, Tune, note edits and effects belong to that voice. Use the Polishing selector to work on another track; each retains its settings. Hear song plays the processed tracks together.</p>
+<p><strong>5 · Save your result.</strong> Export song offers the vocal mix, song with backing, polished stems or dry stems. Back up project keeps all tracks, attempts and editable POLISH sessions. Check that the ZIP finished downloading.</p>
+<p><strong>After re-recording:</strong> only that track needs a POLISH update. Its sound settings are kept, but the app asks before resetting manual edits attached to the old performance. Other vocals stay unchanged.</p>
+<p class="note">Use headphones to avoid backing leaking into the mic. Recording from playback uses lead-in; use a selected phrase for an exact replacement. Full instructions: START-HERE.txt.</p></div>
 <div id="helpAbout" hidden>    <div class="rack">
       <h2>Same engine as the desktop app</h2>
-      <p>Playbook Vocal Studio app version 0.18.3. It runs audio engine version 0.12.1 of the Windows app and the FL Studio plugin: Voice focus cleaning, performance edits, tuning, the vocal chain and the Smart Guide. Everything stays on your phone; nothing is uploaded.</p>
+      <p>Playbook Vocal Studio app version 0.21.0. It runs audio engine version 0.12.1 of the Windows app and the FL Studio plugin: Voice focus cleaning, performance edits, tuning, the vocal chain and the Smart Guide. Everything stays on your phone; nothing is uploaded.</p>
       <p class="note" id="engineInfo"></p>
     </div></div>
 </div></div>
@@ -1000,6 +1003,8 @@ nav.steps button { flex:1 0 64px; min-height:48px; }
   </div>
 </div>
 
+<link rel="stylesheet" href="song-studio.css?v=0.21.0">
+<script src="song-core.js?v=0.21.0"></script>
 <script>
 // Generated by web/generate-detail-ui.py from VocalDetailSettings.h.
 const DETAIL_PARAMS=[{"id":"chRepairOn","name":"Click / plosive repair","unit":"","low":0.0,"high":1.0,"step":1.0,"initial":0.0,"group":0,"toggle":true,"advanced":false},{"id":"chRepairClicks","name":"Click sensitivity","unit":"%","low":0.0,"high":100.0,"step":1.0,"initial":35.0,"group":0,"toggle":false,"advanced":false},{"id":"chRepairPlosives","name":"Plosive reduction","unit":"%","low":0.0,"high":100.0,"step":1.0,"initial":40.0,"group":0,"toggle":false,"advanced":false},{"id":"chRoomReduceOn","name":"Gentle de-reverb","unit":"","low":0.0,"high":1.0,"step":1.0,"initial":0.0,"group":1,"toggle":true,"advanced":false},{"id":"chRoomReduce","name":"Room-tail reduction","unit":"%","low":0.0,"high":100.0,"step":1.0,"initial":30.0,"group":1,"toggle":false,"advanced":false},{"id":"chRoomDecay","name":"Room decay estimate","unit":"ms","low":100.0,"high":700.0,"step":10.0,"initial":300.0,"group":1,"toggle":false,"advanced":true},{"id":"chPrecisionOn","name":"Precision dynamic EQ","unit":"","low":0.0,"high":1.0,"step":1.0,"initial":0.0,"group":2,"toggle":true,"advanced":false},{"id":"chPrecisionMud","name":"Mud maximum cut","unit":"dB","low":0.0,"high":6.0,"step":0.1,"initial":3.0,"group":2,"toggle":false,"advanced":false},{"id":"chPrecisionNasal","name":"Nasal maximum cut","unit":"dB","low":0.0,"high":6.0,"step":0.1,"initial":3.0,"group":2,"toggle":false,"advanced":false},{"id":"chPrecisionHarsh","name":"Harsh maximum cut","unit":"dB","low":0.0,"high":6.0,"step":0.1,"initial":3.0,"group":2,"toggle":false,"advanced":false},{"id":"chPrecisionMudHz","name":"Mud frequency","unit":"Hz","low":120.0,"high":600.0,"step":1.0,"initial":250.0,"group":2,"toggle":false,"advanced":true},{"id":"chPrecisionNasalHz","name":"Nasal frequency","unit":"Hz","low":500.0,"high":1800.0,"step":1.0,"initial":900.0,"group":2,"toggle":false,"advanced":true},{"id":"chPrecisionHarshHz","name":"Harsh frequency","unit":"Hz","low":1800.0,"high":6500.0,"step":10.0,"initial":3200.0,"group":2,"toggle":false,"advanced":true},{"id":"chPrecisionQ","name":"Band width (Q)","unit":"","low":0.5,"high":4.0,"step":0.05,"initial":1.3,"group":2,"toggle":false,"advanced":true},{"id":"chPrecisionTrigger","name":"Rise above usual balance","unit":"dB","low":0.0,"high":8.0,"step":0.1,"initial":2.0,"group":2,"toggle":false,"advanced":true},{"id":"chPrecisionAttack","name":"EQ attack","unit":"ms","low":2.0,"high":40.0,"step":1.0,"initial":8.0,"group":2,"toggle":false,"advanced":true},{"id":"chPrecisionRelease","name":"EQ release","unit":"ms","low":40.0,"high":400.0,"step":5.0,"initial":120.0,"group":2,"toggle":false,"advanced":true},{"id":"chReverbDuckOn","name":"Reverb ducking","unit":"","low":0.0,"high":1.0,"step":1.0,"initial":0.0,"group":3,"toggle":true,"advanced":false},{"id":"chReverbDuck","name":"Reverb dip","unit":"dB","low":0.0,"high":18.0,"step":0.5,"initial":9.0,"group":3,"toggle":false,"advanced":false},{"id":"chReverbRelease","name":"Reverb recovery","unit":"ms","low":100.0,"high":800.0,"step":10.0,"initial":300.0,"group":3,"toggle":false,"advanced":true},{"id":"chReverbPre","name":"Reverb pre-delay","unit":"ms","low":0.0,"high":100.0,"step":1.0,"initial":22.0,"group":3,"toggle":false,"advanced":true},{"id":"chDoubleOn","name":"Vocal doubler","unit":"","low":0.0,"high":1.0,"step":1.0,"initial":0.0,"group":4,"toggle":true,"advanced":false},{"id":"chDoubleMix","name":"Double blend","unit":"%","low":0.0,"high":25.0,"step":1.0,"initial":12.0,"group":4,"toggle":false,"advanced":false},{"id":"chDoubleWidth","name":"Double width","unit":"%","low":0.0,"high":100.0,"step":1.0,"initial":80.0,"group":4,"toggle":false,"advanced":false},{"id":"chDoubleCents","name":"Double variation","unit":"cents","low":0.0,"high":12.0,"step":0.5,"initial":6.0,"group":4,"toggle":false,"advanced":true},{"id":"chDoubleDelay","name":"Double separation","unit":"ms","low":12.0,"high":35.0,"step":1.0,"initial":22.0,"group":4,"toggle":false,"advanced":true}];
@@ -1108,7 +1113,7 @@ async function saveDownload(filename, data) {
 })(globalThis);
 
 "use strict";
-// Playbook Vocal Studio 0.18.3 (phone, DAW layout). The engine in worker.js holds the session (the same C++ as the
+// Playbook Vocal Studio 0.21.0 (phone, DAW layout). The engine in worker.js holds the session (the same C++ as the
 // desktop app); this page draws it, plays it, and sends the desktop app's parameter ids back.
 // ---------------------------------------------------------------- constants
 const KEYS = ["C","C# / Db","D","D# / Eb","E","F","F# / Gb","G","G# / Ab","A","A# / Bb","B"];
@@ -1145,8 +1150,8 @@ const songSeconds = () => S.original ? S.original.length / S.rate : 0;
 
 // ---------------------------------------------------------------- engine (worker)
 // 0.17.2: the app and the audio engine have separate version numbers
-var APP_VERSION="0.18.3",ENGINE_VERSION="0.12.1";
-const worker = new Worker("worker.js?v=0.18.3");
+var APP_VERSION="0.21.0",ENGINE_VERSION="0.12.1";
+const worker = new Worker("worker.js?v=0.21.0");
 let reqId = 0, engineFailure = null; const pending = {};
 worker.onmessage = ({ data: m }) => {
   if (m.type === "ready") $("engineInfo").textContent = "App version: "+APP_VERSION+" · Audio engine version: "+ENGINE_VERSION+" (WebAssembly, the same audio code as the Windows app, with Voice focus).";
@@ -1174,6 +1179,7 @@ async function exec(steps, update = true, want) {
 // knob and switch changes: collect for a moment, then process once
 let pendingSteps = [], changeTimer = 0;
 function change(steps, delay = 350) {
+  if(window.SongStudio && !document.body.classList.contains("rc-on"))SongStudio.stopPlay();
   if(typeof invalidateReference==="function")invalidateReference();
   S.detail=null;S.detailVersion=(S.detailVersion||0)+1;if(loop&&loop.detail)endLoop();
   pendingSteps.push(...steps); S.dirty = true; setStatus("Updating...", "busy"); syncGuide(); if(typeof syncDetail==="function")syncDetail();if(typeof syncReference==="function")syncReference();
@@ -1231,6 +1237,7 @@ function absorb(r) {
   }
 }
 function readyStatus() {
+  if(window.SongPolish)SongPolish.capture();
   if(typeof renderOpen==="function")renderOpen();
   if(typeof syncReference==="function")syncReference();
   if (!S.st || !S.st.rendered) return;
@@ -1301,6 +1308,7 @@ $("fileCapture").addEventListener("change", e => openPicked(e, recordingName()))
 $("fileVocal").addEventListener("change", e => openPicked(e));
 async function openPicked(e, name) {
   const f = e.target.files[0]; e.target.value = ""; if (!f || sessionLocked()) return;
+  if(window.SongStudio){RC.go("rc");await SongStudio.importAudio(f);return;}
   prepareSongChange(); S.loading="Reading "+f.name+"…"; S.loadError=""; setBusy(true); showPage("open");
   try {
     setStatus(S.loading, "busy");
@@ -1312,13 +1320,13 @@ async function openPicked(e, name) {
 }
 $("fileBeat").addEventListener("change", async e => {
   const f = e.target.files[0]; e.target.value = ""; if (!f || sessionLocked()) return;
-  S.beatLoading=true;stopPlayback();renderOpen();
+  S.beatLoading=true;if(window.SongStudio)SongStudio.stopPlay();stopPlayback();renderOpen();
   try {
     setStatus("Loading backing track…", "busy"); const beat=await decodeFile(f);
     if(!beat.length||beat.duration>900||beat.numberOfChannels>2)throw new Error("Use a mono or stereo track under 15 minutes.");
     S.beat=beat;S.beatName=f.name;S.fitBeat=null;S.fitInfo=null;if(typeof PVSRec==="undefined"||!PVSRec.recordChoiceMade())$("beatOn").checked=true; // 0.18.2: an explicit "Without backing" choice is kept
-    position=0;setStatus("Backing track loaded: " + S.beatName, "ready");sendBeat();
-  } catch (err) { setStatus("Backing track not loaded: "+err.message, "warn"); }
+    position=0;setStatus("Backing track loaded: " + S.beatName, "ready");if(window.SongStudio)SongStudio.notify("Backing loaded: "+S.beatName+". Hear backing controls whether it plays while you record.");sendBeat();
+  } catch (err) { setStatus("Backing track not loaded: "+err.message, "warn");if(window.SongStudio)SongStudio.notify("Backing not loaded: "+err.message,true); }
   finally { S.beatLoading=false;renderOpen();tick();persist(); }
 });
 $("beatRemove").onclick = () => { if(sessionLocked())return;stopPlayback(); S.beat = null; S.fitBeat = null; S.fitInfo=null;S.beatName="";renderOpen(); sendBeat();tick();persist(); };
@@ -1350,7 +1358,7 @@ $("beatLevel").oninput = () => {
   if(rec&&rec.beatGain)rec.beatGain.gain.setTargetAtTime(S.beatLevel,audioCtx().currentTime,.02);
   for(const g of beatGains)g.gain.setTargetAtTime(S.beatLevel*(typeof dawBeatGain==="function"?dawBeatGain():1),audioCtx().currentTime,.02);
 };
-function sessionLocked() { return !!(S.busy||S.dirty||S.loading||S.beatLoading||S.referenceLoading||S.recStarting||S.phraseWorking||rec); }
+function sessionLocked() { return !!(S.busy||S.dirty||S.loading||S.beatLoading||S.referenceLoading||S.recStarting||S.phraseWorking||S.songWorking||rec); }
 function renderOpen() {
   const locked=sessionLocked(),has=!!S.main,phraseAttempts=S.phrases?.phrases.reduce((n,p)=>n+p.takes.length,0)||0;
   $("songName").textContent = has ? S.name : phraseAttempts?phraseAttempts+" takes on RECORD & COMP":"No vocal loaded";
@@ -2381,7 +2389,7 @@ async function masteredMix() {
 }
 const safeName = s => s.replace(/[\\/:*?"<>|]+/g, "").trim() || "Vocal";
 async function saveKind(kind) {
-  if(typeof phraseNeedsApply==="function"&&phraseNeedsApply()){$("saveStatus").textContent="Your chosen phrases have changed. Open Record and tap Apply chosen takes to vocal before exporting.";return;}
+  if(typeof phraseNeedsApply==="function"&&phraseNeedsApply()){$("saveStatus").textContent="This vocal recording changed. Return to SONG & VOCALS and update POLISH for this track before exporting.";return;}
   if (!S.original) return;
   if (sessionLocked()) { $("saveStatus").textContent = "Still working. Wait until the status says Ready, then save."; return; }
   const base = safeName(S.name), files = [];
@@ -2457,7 +2465,7 @@ $("hearCustom").onclick = () => run(async () => { const c = await ensureCustom()
 $("hearFull").onclick = () => run(async () => { const c = await ensureCustom(); if (c) abPlay(S.final, c.gains[0], "a"); });
 $("hearStop").onclick = () => { endLoop(); syncCustom(); };
 $("saveCustom").onclick = () => run(async () => {
-  if(typeof phraseNeedsApply==="function"&&phraseNeedsApply()){$("customStatus").textContent="Open Record and apply your changed phrase choices before exporting.";return;}
+  if(typeof phraseNeedsApply==="function"&&phraseNeedsApply()){$("customStatus").textContent="Return to SONG & VOCALS and update POLISH for this vocal track before exporting.";return;}
   if (!S.original) return;
   const c = await ensureCustom(); if (!c) return;
   const base = safeName(S.name), label = maskLabel(c.mask), enc = new TextEncoder();
@@ -2606,18 +2614,19 @@ function noteToProject(a) {
 const noteFromProject = n => [noteNum(n.start), noteNum(n.end), noteNum(n.centre), noteNum(n.target), n.enabled ? 1 : 0, n.manual ? 1 : 0,
   noteNum(n.vibrato, -1), noteNum(n.drift, -1), noteNum(n.slideMs, -1), noteNum(n.bend, 0), noteNum(n.scoop, 0), noteNum(n.scoopMs, 120), Math.max(-12, Math.min(12, noteNum(n.gainDb, 0)))];
 async function saveProject() {
+  if(window.SongPolish)SongPolish.capture();
   const st = $("saveStatus");
-  // 0.18.3: returns {ok, status:"saved"|"cancelled"|"failed"|"blocked", msg} so callers (Import vocal › Back up first) only go on after a real backup
+  // 0.21.0: returns {ok, status:"saved"|"cancelled"|"failed"|"blocked", msg} so callers (Import vocal › Back up first) only go on after a real backup
   const done=(ok,status,msg)=>{st.textContent=msg;return {ok,status,msg};};
   const why=canSaveProject(true);if(why!==true)return done(false,"blocked",why);
   // 0.17.2: saving never re-applies the comp (that reset POLISH note, breath and timing edits). It saves the POLISH
   // session as it is plus the whole RECORD & COMP workspace (all takes and choices); send a changed comp on purpose.
   try {
-  const phraseOnly=!S.main, phraseWorkspaceAudio=phraseOnly?PhraseCore.compose(phraseWorkspace()):null;
-  const base = safeName(phraseOnly?phraseWorkspace().title:S.name), srcName = base + " - phone source.wav", src = wavFloat(phraseWorkspaceAudio||S.audio[5]||S.main, phraseOnly?phraseWorkspace().rate:S.rate), files = [{ name: srcName, data: src }];
+  const phraseOnly=!S.main, phraseWorkspaceAudio=phraseOnly?(S.song?SongCore.mix(S.song):PhraseCore.compose(phraseWorkspace())):null;
+  const base = safeName(S.song?.title||(phraseOnly?phraseWorkspace().title:S.name)), srcName = base + " - phone source.wav", src = wavFloat(phraseWorkspaceAudio||S.audio[5]||S.main, phraseOnly?(S.song?.rate||phraseWorkspace().rate):S.rate), files = [{ name: srcName, data: src }];
   const takes = S.takes.slice(1).map((t, i) => { const name = base + " - take " + (i + 1) + ".wav", data = wavFloat(S.takeChannels[i+1]||t, S.rate); files.push({ name, data }); return { file: name, bytes: data.length, trim: 0, pad: 0 }; });
   const g = S.guide || {}, P = { ...S.P, chMixFit: S.mix.fit ? 1 : 0, chMixOver: S.mix.over, chMixRoom: S.mix.room };
-  const root = { format: "Playbook Vocal Studio", version: 9, savedBy: "Playbook Vocal Studio 0.18.3 (phone DAW)",
+  const root = { format: "Playbook Vocal Studio", version: 9, savedBy: "Playbook Vocal Studio 0.21.0 (phone DAW)",
     smartGuide: { enabled: !!S.guidePrefs.enabled, concern: S.guidePrefs.concern || 0, goal: S.guidePrefs.goal, bpm: S.guidePrefs.bpm, tempoSync: !!S.guidePrefs.sync, locked: g.locked || [], dismissed: g.dismissed || {} },
     performance: S.st?.edits||{breaths:[],timing:[],comp:[]}, notePerformance: S.st?.edits||{breaths:[],timing:[],comp:[]}, alternateTakes: takes,
     source: srcName, sourceBytes: src.length, trim: 0, pad: 0, take: false };
@@ -2627,15 +2636,15 @@ async function saveProject() {
   if(typeof phraseProjectPack==="function")await phraseProjectPack(root,files);
   root.exportStages = S.exportMask;
   files.unshift({ name: base + ".pbv", data: new TextEncoder().encode(JSON.stringify(root, null, 1)) });
-  files.push({ name: "READ-ME.txt", data: new TextEncoder().encode("Playbook Vocal Studio song project (saved on the phone, 0.18.3).\r\n\r\nOn the laptop: extract this ZIP into its own folder, keep the files together, then use Open project in the Windows app or FL Studio plugin (0.9.8 or newer) and choose " + base + ".pbv.\r\nPhrase attempts and backing are included. Edit phrases in phone 0.13.0 or newer; desktop opens the assembled vocal only.\r\nOn the phone: SONG PROJECT > Open a song project, then pick this ZIP.\r\n") });
+  files.push({ name: "READ-ME.txt", data: new TextEncoder().encode("Playbook Vocal Studio song project (saved on the phone, 0.21.0).\r\n\r\nOn the laptop: extract this ZIP into its own folder, keep the files together, then use Open project in the Windows app or FL Studio plugin (0.9.8 or newer) and choose " + base + ".pbv.\r\nOpen multitrack projects in Playbook Vocal Studio 0.21.0 or newer to retain separate tracks, sections and attempts. Older apps open only the last POLISH vocal and will lose the multitrack data if you save over this project. Keep this original ZIP.\r\nOn the phone: SONG PROJECT > Open a song project, then pick this ZIP.\r\n") });
   let data;try{data=zip(files);}catch(err){return done(false,"failed","Couldn't save: the project could not be prepared ("+(err&&err.message||"unknown problem")+").");}
-  try { const result = await saveDownload(base + " - song project.zip", data); const r=done(true,"saved",result + ": " + base + " - song project.zip. " + whereSaved()); toast(result, base + " - song project.zip. " + whereSaved()); return r; }
+  try { const result = await saveDownload(base + " - song project.zip", data); const r=done(true,result==="Saved"?"saved":"requested",result + ": " + base + " - song project.zip. " + whereSaved()); toast(result, base + " - song project.zip. " + whereSaved()); return r; }
   catch (err) { return err && err.code === "declined" ? done(false,"cancelled","Not saved.") : done(false,"failed","Couldn't save: " + (err && err.message || "unknown problem") + "."); }
   } catch (err) { return done(false,"failed","Couldn't save: the project could not be prepared (" + (err && err.message || "unknown problem") + ")."); }
 }
-// 0.18.3: ONE rule for "can this session be backed up", used by saveProject and by every Back up button/menu item.
+// 0.21.0: ONE rule for "can this session be backed up", used by saveProject and by every Back up button/menu item.
 // true, or (when why) a plain-English reason. Anything worth keeping counts: a vocal, parts/takes, a backing, Recovered audio.
-function canSaveProject(why){const has=(S.main&&S.st)||(typeof phraseHasWork==="function"&&phraseHasWork())||!!S.recoveryFiles?.length||(window.Recovery&&Recovery.list().length>0)||!!S.beat;
+function canSaveProject(why){const has=(S.song&&(Object.keys(S.song.sources).length||S.song.sections.length||S.song.tracks.length>1))||(S.main&&S.st)||(typeof phraseHasWork==="function"&&phraseHasWork())||!!S.recoveryFiles?.length||(window.Recovery&&Recovery.list().length>0)||!!S.beat;
   if(!has)return why?"Nothing to back up yet: load a backing, record or import a vocal first.":false;
   if(sessionLocked())return why?"Still working. Wait until the status says Ready, then back up.":false;return true;}
 $("saveProject").onclick = () => saveProject();
@@ -2683,8 +2692,8 @@ $("fileProject").addEventListener("change", async e => {
   const list = [...e.target.files]; e.target.value = ""; if (!list.length||sessionLocked()) return;
   S.loading="Reading project…";setBusy(true);
   $("projStatus").textContent = "Opening the project...";
-  try { stopPlayback(); await openProjectFiles(list); $("projStatus").textContent = "Opened. Your settings and note edits are restored."; }
-  catch (err) { $("projStatus").textContent = err.message; setStatus("Project not opened: " + err.message, "warn"); setBusy(false); }
+  try { stopPlayback(); await openProjectFiles(list); try{await persistNow();}catch(e){} $("projStatus").textContent = "Opened. Your settings and note edits are restored.";if(window.SongStudio)SongStudio.notify("Project opened. Your tracks, takes, sections and saved POLISH settings are restored."); }
+  catch (err) { $("projStatus").textContent = err.message; setStatus("Project not opened: " + err.message, "warn");if(window.SongStudio)SongStudio.notify("Project not opened: "+err.message,true); setBusy(false); }
   finally{S.loading="";setBusy(false);renderOpen();}
 });
 
@@ -2693,6 +2702,7 @@ function idb() { return new Promise((res, rej) => { try { const r = indexedDB.op
 let persistTimer = 0, persistGeneration = 0;
 function cancelPersist() { clearTimeout(persistTimer);persistGeneration++; }
 function sessionSnapshot() {
+  if(window.SongPolish)SongPolish.capture();
   if(!S.main||!S.st)return typeof phraseSnapshot==="function"?phraseSnapshot(null):null;
   const g=S.guide||{locked:[],dismissed:{}};
   const snapshot={v:4,name:S.name,rate:S.rate,pcm:S.audio[5]||[S.main],takes:S.takeChannels.slice(1),P:{...S.P},notes:S.st.notes.map(a=>a.slice(0,13)),edits:JSON.parse(JSON.stringify(S.st.edits)),match:S.match,chainEdited,mix:{...S.mix},exportMask:S.exportMask,
@@ -2704,6 +2714,13 @@ async function writeRemembered(value, generation=persistGeneration) {
   try { await new Promise((resolve,reject)=>{const tx=db.transaction("s","readwrite");tx.objectStore("s").put(value,"last");tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error||new Error("Session storage was interrupted."));}); }
   finally{db.close();}
 }
+// 0.21.0: write the autosave NOW (no 800 ms debounce). Used after a backup or an
+// opened project, and when the page is hidden or closing, so a reload never
+// brings back an older song.
+async function persistNow(){if(S.isSample)return;cancelPersist();const generation=persistGeneration,snapshot=sessionSnapshot();if(snapshot)await writeRemembered(snapshot,generation);}
+window.persistNow=persistNow;
+for(const ev of ["pagehide","freeze"])window.addEventListener(ev,()=>{try{if(!sessionLocked())persistNow().catch(()=>{});}catch(e){}});
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden"){try{if(!sessionLocked())persistNow().catch(()=>{});}catch(e){}}});
 function persist() {
   if(S.isSample)return;
   cancelPersist();const generation=persistGeneration;
@@ -2748,6 +2765,8 @@ async function restore() {
   catch (e) { return null; }
 }
 function restoreSession(last) {
+  if(window.SongPolish && !S.songApplying)SongPolish.detach();
+  if(last.song)SongCore.validate(last.song);
   if(last.phrases)PhraseCore.validate(last.phrases);
   if(last.backing)PhraseCore.audio(last.backing);
   if(!last.pcm?.length&&typeof phraseRestoreData==="function"){
@@ -2789,7 +2808,7 @@ function restoreSession(last) {
   renderOpen(); updatePlay(); tick(); syncEdit(); syncMix();showPage("open");
   try {
     const last=await restore();
-    if(last&&(last.v===2||last.v===3||last.v===4||last.v===5)&&(last.pcm?.length||last.phrases||last.backing||last.recoveryFiles?.length))await restoreSession(last);
+    if(last&&(last.v===2||last.v===3||last.v===4||last.v===5)&&(last.pcm?.length||last.song||last.phrases||last.backing||last.recoveryFiles?.length))await restoreSession(last);
     else if(last?.pcm?.length)await openVocal(Float32Array.from(last.pcm),last.rate,last.name,false);
     else {S.loading="";setStatus("Load a vocal or backing track to begin.","");}
   }catch(err){S.loadError="Couldn't restore the previous vocal: "+err.message;setStatus(S.loadError,"warn");}
@@ -2927,14 +2946,14 @@ function phraseHistory(dir){if(phraseBusy())return false;const from=dir<0?phrase
 function phraseNextTakeName(p){let n=Math.max(p.takeSeq||0,phraseSeqSeen[p.id]||0);for(const t of p.takes){const m=/^Take (\d+)$/.exec(t.name);if(m)n=Math.max(n,+m[1]);}return 'Take '+(n+1);}
 function phraseNoteTakeName(p,t){const m=/^Take (\d+)$/.exec(t.name);if(m){p.takeSeq=Math.max(p.takeSeq||0,+m[1]);phraseSeqSeen[p.id]=Math.max(phraseSeqSeen[p.id]||0,+m[1]);}}
 function phraseChanged(message){const w=phraseWorkspace();w.revision++;S.isSample=false;if(loop?.phrase)endLoop();syncPhraseUI();persist();if(message)phraseMessage(message);}
-function phraseReset(){S.phrases=null;S.phraseRecovery=null;phraseHistoryReset();}
+function phraseReset(){if(window.SongStudio)SongStudio.reset();S.phrases=null;S.phraseRecovery=null;phraseHistoryReset();}
 function phraseHasWork(){return !!S.phrases&&(S.phrases.phrases.length>0||!!S.phrases.base||S.phrases.applied>=0);}
 // 0.17.2: what the assembled vocal depends on. Adding, renaming or deleting takes that are not chosen leaves it unchanged.
 function phraseCompSig(w){if(!w)return '';return JSON.stringify([w.rate,w.fadeMs,w.base?[w.base.channels.length,w.base.channels[0].length]:0,w.phrases.filter(p=>p.selected).map(p=>{const t=p.takes.find(t=>t.id===p.selected);return t?[p.id,p.start,p.end,t.id,t.origin,t.offsetMs||0,t.gainDb||0,t.channels.length,t.channels[0].length]:[p.id];})]);}
 // a comp applied by an older version (no signature yet): its signature is the current one while nothing changed
 function phraseSigNow(){const w=S.phrases;if(w&&w.applied>=0&&w.applied===w.revision&&!w.appliedSig){w.appliedSig=phraseCompSig(w);if(w.appliedDur==null)w.appliedDur=PhraseCore.duration(w);}}
 function phraseCompSig181(w){return JSON.stringify([w.rate,w.fadeMs,PhraseCore.duration(w),w.base?.name,w.base?.channels[0]?.length,w.phrases.filter(p=>p.selected).map(p=>{const t=p.takes.find(t=>t.id===p.selected);return [p.id,p.start,p.end,p.selected,t?.origin,t?.offsetMs,t?.gainDb,t?.channels[0]?.length];})]);} // 0.18.1's rule, to read its projects
-function phraseNeedsApply(){const w=S.phrases;if(w&&w.applied>=0&&!w.appliedSig&&w.appliedSignature&&w.appliedSignature===phraseCompSig181(w)){w.appliedSig=phraseCompSig(w);if(w.appliedDur==null)w.appliedDur=PhraseCore.duration(w);}
+function phraseNeedsApply(){if(window.SongStudio&&S.song)return SongStudio.needsApply();const w=S.phrases;if(w&&w.applied>=0&&!w.appliedSig&&w.appliedSignature&&w.appliedSignature===phraseCompSig181(w)){w.appliedSig=phraseCompSig(w);if(w.appliedDur==null)w.appliedDur=PhraseCore.duration(w);}
   phraseSigNow();if(!w||!(w.applied>=0||w.phrases.some(p=>p.selected)))return false;if(w.applied>=0&&w.appliedSig)return w.appliedSig!==phraseCompSig(w)||(w.appliedDur!=null&&Math.abs(w.appliedDur-PhraseCore.duration(w))>1e-6);return w.applied!==w.revision;}
 function phraseUnchoose(){if(phraseBusy())return;const p=selectedPhrase();if(!p)return;phraseBackup();p.selected=null;phraseChanged('Take choice cleared. This phrase will use the starting vocal, or silence where there is none.');}
 function phraseEsc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
@@ -2948,7 +2967,7 @@ function phraseAdjust(id,field,value){if(phraseBusy())return;const p=selectedPhr
 function phraseSafeGain(channels){let peak=0;for(const c of channels)for(const x of c)peak=Math.max(peak,Math.abs(x));return peak>.891251?.891251/peak:1;}
 async function phraseListen(id){if(phraseBusy())return;try{const w=phraseWorkspace(),p=selectedPhrase();let channels,start=0,end,rate=w.rate,gain=1;if(id){const t=p?.takes.find(t=>t.id===id);if(!t)return;const excerpt=PhraseCore.audition(t,p);channels=excerpt;start=p.start;end=channels[0].length/rate;gain=PhraseCore.matchGains(p)[id]||phraseSafeGain(channels);}else{channels=PhraseCore.compose(w);end=channels[0].length/rate;gain=phraseSafeGain(channels);start=0;}if(!end)throw new Error('No audio in this phrase.');endLoop();loop={phrase:true,chs:channels,rate,gain,start:0,end,noBeat:!$('phraseCompareBeat').checked,beatOffset:start,oneShot:true};const ok=await startPlayback(0);phraseMessage(ok?(id?'Playing attempt at a matched level':'Playing assembled vocal')+($('phraseCompareBeat').checked&&S.beat?' with backing.':'.'):'Audio could not start. '+$('playbackStatus').textContent);}catch(e){phraseMessage(e.message);}}
 function phraseFailWorker(error){if(phraseWorker)phraseWorker.terminate();phraseWorker=null;for(const j of phraseJobs.values()){clearTimeout(j.timer);j.reject(new Error(error));}phraseJobs.clear();}
-function phraseWorkerRequest(t,p){return new Promise((resolve,reject)=>{if(!phraseWorker){phraseWorker=new Worker('phrase-worker.js?v=0.18.3');phraseWorker.onmessage=({data:m})=>{const j=phraseJobs.get(m.id);if(!j)return;clearTimeout(j.timer);phraseJobs.delete(m.id);m.error?j.reject(new Error(m.error)):j.resolve(m.profile);};phraseWorker.onerror=e=>phraseFailWorker(e.message||'Take analysis stopped. Retry analysis.');phraseWorker.onmessageerror=()=>phraseFailWorker('Take analysis returned unreadable data.');}const id=++phraseSerial,channels=t.channels.map(c=>c.slice());phraseJobs.set(id,{resolve,reject,timer:setTimeout(()=>phraseFailWorker('Take analysis timed out. Your recording is kept; retry analysis.'),120000)});try{phraseWorker.postMessage({id,take:{...t,channels,profile:null},phrase:{start:p.start,end:p.end}},channels.map(c=>c.buffer));}catch(e){const j=phraseJobs.get(id);clearTimeout(j.timer);phraseJobs.delete(id);reject(e);}});}
+function phraseWorkerRequest(t,p){return new Promise((resolve,reject)=>{if(!phraseWorker){phraseWorker=new Worker('phrase-worker.js?v=0.21.0');phraseWorker.onmessage=({data:m})=>{const j=phraseJobs.get(m.id);if(!j)return;clearTimeout(j.timer);phraseJobs.delete(m.id);m.error?j.reject(new Error(m.error)):j.resolve(m.profile);};phraseWorker.onerror=e=>phraseFailWorker(e.message||'Take analysis stopped. Retry analysis.');phraseWorker.onmessageerror=()=>phraseFailWorker('Take analysis returned unreadable data.');}const id=++phraseSerial,channels=t.channels.map(c=>c.slice());phraseJobs.set(id,{resolve,reject,timer:setTimeout(()=>phraseFailWorker('Take analysis timed out. Your recording is kept; retry analysis.'),120000)});try{phraseWorker.postMessage({id,take:{...t,channels,profile:null},phrase:{start:p.start,end:p.end}},channels.map(c=>c.buffer));}catch(e){const j=phraseJobs.get(id);clearTimeout(j.timer);phraseJobs.delete(id);reject(e);}});}
 function phraseAnalyze(t,p){const token={};t.analysisToken=token;t.profile=null;t.analysisError=null;phraseJobQueue=phraseJobQueue.then(async()=>{if(t.analysisToken!==token||!S.phrases?.phrases.includes(p)||!p.takes.includes(t))return;try{const profile=await phraseWorkerRequest(t,p);if(t.analysisToken===token){t.profile=profile;t.profileKey=phraseProfileKey(t,p);}}catch(e){if(t.analysisToken===token)t.analysisError=e.message;}finally{if(t.analysisToken===token){delete t.analysisToken;syncPhraseUI();persist();}}});return phraseJobQueue;}
 // 0.18.3 (review 06): a check result belongs to one part span and take position; Undo / Redo / trim / split that change them run it again
 function phraseProfileKey(t,p){return [p.start,p.end,t.origin,t.offsetMs||0,t.channels[0]?.length||0].join(',');}
@@ -2958,10 +2977,10 @@ function phraseRecordOptions(){const p=selectedPhrase(),w=phraseWorkspace();if(!
 function phraseScheduleRecording(r,ctx){const o=r.phrase;r.origin=o.start;r.nodes=[];r.monitorSources=[];r.clockStart=ctx.currentTime;const schedule=(buffer,gain,from,to)=>{from=Math.max(0,from);to=Math.min(to,buffer.duration);if(to<=from)return;const s=ctx.createBufferSource(),g=ctx.createGain();s.buffer=buffer;g.gain.value=gain;s.connect(g).connect(ctx.destination);s.start(r.clockStart+from-o.start,from,to-from);r.monitorSources.push(s);r.nodes.push(g);return g;};const bg=1,vg=typeof pvsRecVocalGain==='function'?pvsRecVocalGain():1;if(S.beat&&$('beatOn').checked&&bg>0)r.beatGain=schedule(S.beat,S.beatLevel*bg,o.start,o.free?Infinity:o.end);if(vg>0){const channels=PhraseCore.compose(o.w);const b=bufferOf(channels,o.w.rate);const gain=phraseSafeGain(channels)*vg;schedule(b,gain,o.start,o.p.start);if(!o.free)schedule(b,gain,o.p.end,o.end);}$('phraseRecNote').textContent='Headphones: '+(r.beatGain?'backing':'no backing')+(vg>0?' + existing vocal outside this phrase':' · old vocal off')+'. Microphone: new attempt only.';if(typeof pvsRecScheduled==='function')pvsRecScheduled(r,ctx);r.limit=setTimeout(()=>{if(rec===r&&r.mr.state!=='inactive'){r.autoStop=o.free?'cap':'end';r.mr.stop();}},(o.free?o.cap:(o.end-o.start))*1000);}
 async function phraseFinishRecording(r,channels,rate){const ctx=audioCtx(),latency=typeof pvsLatency==='function'?pvsLatency():Math.max(0,(ctx.outputLatency||0)+(ctx.baseLatency||0));await phraseAddAudio(r.phrase.p,channels,rate,r.origin-latency,phraseNextTakeName(r.phrase.p));const t=r.phrase.p.takes.at(-1);if(!PhraseCore.covers(t,r.phrase.p))phraseMessage('Recording kept, but it ended before the phrase was complete. Adjust End or redo this part.');else if(r.clip)phraseMessage('Recording kept. Some input peaks were loud; check the clipping analysis before choosing.');showPage('record');}
 async function phraseApply(){if(phraseBusy())return false;const w=phraseWorkspace();if(!w.base&&w.applied<0&&!w.phrases.some(p=>p.selected)){phraseMessage('Choose at least one take before applying your assembled vocal.');return false;}S.phraseWorking=true;syncPhraseUI();try{const pcm=PhraseCore.compose(w),last=sessionSnapshot()||{};S.phraseApplying=true;if(S.main)await restoreSession({...last,v:5,name:w.title||'Assembled vocal',rate:w.rate,pcm,takes:[],notes:[],edits:{breaths:[],timing:[],comp:[]},phrases:w});else await openVocal(pcm,w.rate,w.title||'Assembled vocal',false);S.phrases=w;w.applied=w.revision;w.appliedSig=phraseCompSig(w);w.appliedDur=PhraseCore.duration(w);S.loadedNotice='Assembled vocal loaded — '+w.phrases.filter(p=>p.selected).length+' chosen phrases.';persist();phraseMessage('Assembled vocal applied. Use Clean, Tune and Chain, then Save.');return true;}catch(e){phraseMessage('Could not apply: '+e.message);return false;}finally{S.phraseApplying=false;S.phraseWorking=false;syncPhraseUI();renderOpen();}}
-function phraseSnapshot(last){const w=S.phrases;if(!last&&!w?.phrases.length&&!S.beat&&!S.recoveryFiles?.length)return null;const result={...(last||{name:w?.title||'Recording session',rate:w?.rate||S.rate,pcm:null,P:{...S.P}}),v:5,recordBacking:$('beatOn').checked,phrases:w?PhraseCore.clone(w):null,recoveryFiles:(S.recoveryFiles||[]).slice()};if(!last){const g=S.guide||{};result.guide={...S.guidePrefs,locked:[...(g.locked||[])],dismissed:{...(g.dismissed||{})}};result.mix={...S.mix};}/* 0.18.3 (review 03): tempo and the other song settings are kept without a whole vocal too */if(result.phrases)for(const p of result.phrases.phrases)for(const t of p.takes)delete t.analysisToken;result.backing=S.beat?{name:S.beatName,rate:S.beat.sampleRate,channels:Array.from({length:S.beat.numberOfChannels},(_,i)=>S.beat.getChannelData(i)),level:S.beatLevel,on:$('beatOn').checked}:null;return result;}
-function phraseRestoreData(last){if(last.phrases){PhraseCore.validate(last.phrases);if(!S.phraseApplying)for(const p of last.phrases.phrases)for(const t of p.takes){delete t.analysisToken;t.profile=null;t.analysisError=null;}}if(last.backing)PhraseCore.audio(last.backing);S.phrases=last.phrases||null;if(Array.isArray(last.recoveryFiles))S.recoveryFiles=last.recoveryFiles.slice();phraseHistoryReset();if(Object.prototype.hasOwnProperty.call(last,'backing')){S.beat=last.backing?bufferOf(last.backing.channels,last.backing.rate):null;S.beatName=last.backing?.name||'';S.beatLevel=last.backing?.level??.8;$('beatOn').checked=last.backing?.on!==false;$('beatLevel').value=S.beatLevel*100;$('beatLevelText').textContent=Math.round(S.beatLevel*100)+'%';S.fitBeat=null;sendBeat();}if(typeof last.recordBacking==='boolean')$('beatOn').checked=last.recordBacking;phraseAnalyzeMissing();syncPhraseUI();}
-async function phraseProjectPack(root,files){const snap=phraseSnapshot(null);if(!snap)return;const audio=(a,file)=>{files.push({name:file,data:wavFloat(a.channels,a.rate)});const meta={...a,file};delete meta.channels;return meta;};const w=snap.phrases;if(w){root.phoneRecording={...w,base:w.base?audio(w.base,'pbv-recording-base.wav'):null,phrases:w.phrases.map((p,i)=>({...p,takes:p.takes.map((t,j)=>{const a=audio(t,'pbv-phrase-'+i+'-take-'+j+'.wav');delete a.analysisToken;return a;})}))};}root.phoneRecordBacking=snap.recordBacking;if(snap.backing)root.phoneBacking=audio(snap.backing,'pbv-recording-backing.wav');if(window.Recovery)await Recovery.pack(root,files);}
-async function phraseProjectUnpack(root,files){const audio=async a=>{const f=files.get(baseName(a.file).toLowerCase());if(!f)throw new Error('Project recording audio is missing: '+a.file);const decoded=await decodeBytes(f.data,a.file);return {...a,channels:decoded.channels,rate:decoded.rate};};let w=null;if(root.phoneRecording){w=structuredClone(root.phoneRecording);w.base=w.base?await audio(w.base):null;for(const p of w.phrases)for(let i=0;i<p.takes.length;i++){p.takes[i]=await audio(p.takes[i]);delete p.takes[i].analysisToken;}PhraseCore.validate(w);}const backing=root.phoneBacking?await audio(root.phoneBacking):null;if(backing)PhraseCore.audio(backing);return {phrases:w,backing,recordBacking:typeof root.phoneRecordBacking==='boolean'?root.phoneRecordBacking:backing?.on,recoveryFiles:window.Recovery?Recovery.unpack(root,files):[]};}
+function phraseSnapshot(last){const w=S.phrases;if(!last&&!w?.phrases.length&&!S.song&&!S.beat&&!S.recoveryFiles?.length)return null;const result={...(last||{name:w?.title||'Recording session',rate:w?.rate||S.rate,pcm:null,P:{...S.P}}),v:5,song:S.song?SongCore.clone(S.song):null,recordBacking:$('beatOn').checked,phrases:w?PhraseCore.clone(w):null,recoveryFiles:(S.recoveryFiles||[]).slice()};if(!last){const g=S.guide||{};result.guide={...S.guidePrefs,locked:[...(g.locked||[])],dismissed:{...(g.dismissed||{})}};result.mix={...S.mix};}/* 0.18.3 (review 03): tempo and the other song settings are kept without a whole vocal too */if(result.phrases)for(const p of result.phrases.phrases)for(const t of p.takes)delete t.analysisToken;result.backing=S.beat?{name:S.beatName,rate:S.beat.sampleRate,channels:Array.from({length:S.beat.numberOfChannels},(_,i)=>S.beat.getChannelData(i)),level:S.beatLevel,on:$('beatOn').checked}:null;return result;}
+function phraseRestoreData(last){if(last.phrases){PhraseCore.validate(last.phrases);if(!S.phraseApplying)for(const p of last.phrases.phrases)for(const t of p.takes){delete t.analysisToken;t.profile=null;t.analysisError=null;}}if(last.backing)PhraseCore.audio(last.backing);S.phrases=last.phrases||null;if(Array.isArray(last.recoveryFiles))S.recoveryFiles=last.recoveryFiles.slice();phraseHistoryReset();if(Object.prototype.hasOwnProperty.call(last,'backing')){S.beat=last.backing?bufferOf(last.backing.channels,last.backing.rate):null;S.beatName=last.backing?.name||'';S.beatLevel=last.backing?.level??.8;$('beatOn').checked=last.backing?.on!==false;$('beatLevel').value=S.beatLevel*100;$('beatLevelText').textContent=Math.round(S.beatLevel*100)+'%';S.fitBeat=null;sendBeat();}if(typeof last.recordBacking==='boolean')$('beatOn').checked=last.recordBacking;if(!S.songApplying){if(window.SongStudio)SongStudio.restore(last);else S.song=last.song?SongCore.clone(last.song):null;}phraseAnalyzeMissing();syncPhraseUI();}
+async function phraseProjectPack(root,files){const snap=phraseSnapshot(null);if(!snap)return;const audio=(a,file)=>{files.push({name:file,data:wavFloat(a.channels,a.rate)});const meta={...a,file};delete meta.channels;return meta;};const w=snap.phrases;if(w){root.phoneRecording={...w,base:w.base?audio(w.base,'pbv-recording-base.wav'):null,phrases:w.phrases.map((p,i)=>({...p,takes:p.takes.map((t,j)=>{const a=audio(t,'pbv-phrase-'+i+'-take-'+j+'.wav');delete a.analysisToken;return a;})}))};}root.phoneRecordBacking=snap.recordBacking;if(snap.backing)root.phoneBacking=audio(snap.backing,'pbv-recording-backing.wav');if(window.Recovery)await Recovery.pack(root,files);if(window.SongStudio)await SongStudio.pack(root,files);}
+async function phraseProjectUnpack(root,files){const audio=async a=>{const f=files.get(baseName(a.file).toLowerCase());if(!f)throw new Error('Project recording audio is missing: '+a.file);const decoded=await decodeBytes(f.data,a.file);return {...a,channels:decoded.channels,rate:decoded.rate};};let w=null;if(root.phoneRecording){w=structuredClone(root.phoneRecording);w.base=w.base?await audio(w.base):null;for(const p of w.phrases)for(let i=0;i<p.takes.length;i++){p.takes[i]=await audio(p.takes[i]);delete p.takes[i].analysisToken;}PhraseCore.validate(w);}const backing=root.phoneBacking?await audio(root.phoneBacking):null;if(backing)PhraseCore.audio(backing);return {song:window.SongStudio?await SongStudio.unpack(root,files):null,phrases:w,backing,recordBacking:typeof root.phoneRecordBacking==='boolean'?root.phoneRecordBacking:backing?.on,recoveryFiles:window.Recovery?Recovery.unpack(root,files):[]};}
 function phraseDraw(){const c=$('phraseTimeline'),ctx=c.getContext('2d');if(!ctx)return;const w=phraseWorkspace(),width=c.clientWidth||320,h=130,ratio=Math.min(2,window.devicePixelRatio||1);c.width=width*ratio;c.height=h*ratio;ctx.scale(ratio,ratio);ctx.fillStyle='#10181d';ctx.fillRect(0,0,width,h);const duration=Math.max(PhraseCore.duration(w),S.beat?.duration||0,8),x=t=>t/duration*width;ctx.fillStyle='#9daaaa';ctx.font='12px sans-serif';ctx.fillText('BACKING',8,16);if(S.beat){const a=S.beat.getChannelData(0);ctx.fillStyle='#4a636e';for(let i=0;i<width;i++){const from=Math.floor(i/width*a.length),to=Math.floor((i+1)/width*a.length);let peak=0;for(let j=from;j<to;j+=Math.max(1,Math.floor((to-from)/20)))peak=Math.max(peak,Math.abs(a[j]));ctx.fillRect(i,35-peak*14,1,Math.max(1,peak*28));}}ctx.fillStyle='#9daaaa';ctx.fillText('VOCAL PHRASES',8,68);for(const p of w.phrases){ctx.fillStyle=p.selected?'#68c2aa':'#786846';ctx.fillRect(x(p.start),78,Math.max(2,x(p.end-p.start)),24);if(p.id===w.selected){ctx.strokeStyle='#fff';ctx.strokeRect(x(p.start),77,Math.max(2,x(p.end-p.start)),26);}}ctx.strokeStyle='#f5d08a';ctx.beginPath();ctx.moveTo(x(w.cursor),0);ctx.lineTo(x(w.cursor),h);ctx.stroke();ctx.fillStyle='#dce4df';ctx.fillText(fmtShort(duration),Math.max(0,width-50),122);}
 function syncPhraseUI(){if(!phraseReady)return;const w=phraseWorkspace(),p=selectedPhrase(),locked=phraseBusy();const set=(id,v)=>{if(document.activeElement!==$(id))$(id).value=v;};set('phraseTitle',w.title);set('phraseLead',w.lead);set('phraseFade',w.fadeMs);set('phraseCursor',w.cursor);$('phraseCursor').max=Math.min(899.5,Math.max(8,PhraseCore.duration(w),S.beat?.duration||0));$('phraseCursorText').textContent=fmt(w.cursor);$('phraseBaseInfo').textContent=w.base?'Starting vocal: '+w.base.name+' · kept outside replaced phrases.':S.main&&!w.phrases.length?'Current vocal will be kept outside your new phrases.':'Build your vocal one phrase at a time. No original vocal is overwritten.';$('phraseBackingInfo').textContent=S.beat?'BACKING: '+S.beatName+' · '+($('beatOn').checked?'plays in headphones':'muted — enable on Open tab'):'BACKING: none loaded. You can record without one.';$('phraseList').innerHTML=w.phrases.map(q=>'<button class="btn '+(q.id===w.selected?'on':'')+'" data-phrase="'+phraseEsc(q.id)+'">'+phraseEsc(q.name)+' · '+fmt(q.start)+'–'+fmt(q.end)+' · '+q.takes.length+' takes'+(q.selected?' ✓':'')+'</button>').join('')||'<p class="hint">Set a start and end below, then Add phrase.</p>';
   for(const b of $('phraseList').querySelectorAll('[data-phrase]')){b.disabled=locked;b.onclick=()=>phraseSelect(b.dataset.phrase);}if(p){set('phraseLabel',p.name);set('phraseStart',p.start);set('phraseEnd',p.end);}set('phraseKey',w.key||0);set('phraseScale',w.scale||0);$('phraseReference').innerHTML='<option value="">Key only (no melody reference)</option>'+(p?p.takes.map(t=>'<option value="'+phraseEsc(t.id)+'">'+phraseEsc(t.name)+'</option>').join(''):'');$('phraseReference').value=p?.reference||'';
@@ -2976,9 +2995,12 @@ phraseBind();
 
 </script>
 
-<script src="daw.js?v=0.18.3"></script>
-<script src="recovery.js?v=0.18.3"></script>
-<script src="rec.js?v=0.18.3"></script>
-<script src="rc.js?v=0.18.3"></script>
-<script src="edit-core.js?v=0.18.3"></script>
-<script src="studio.js?v=0.18.3"></script>
+<script src="daw.js?v=0.21.0"></script>
+<script src="recovery.js?v=0.21.0"></script>
+<script src="rec.js?v=0.21.0"></script>
+<script src="rc.js?v=0.21.0"></script>
+<script src="edit-core.js?v=0.21.0"></script>
+<script src="studio.js?v=0.21.0"></script>
+
+<script src="song-studio.js?v=0.21.0"></script>
+<script src="song-polish.js?v=0.21.0"></script>

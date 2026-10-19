@@ -1,0 +1,46 @@
+PLAYBOOK VOCAL STUDIO 0.21.0 — stage 1 of restoring every 0.18.3 feature on the 0.20.0 song design
+Date: 19 Oct 2026
+
+Base: the third-party 0.20.0 build (0.18.3 + 0.19.0 Song & Vocals + per-lane POLISH),
+reviewed and approved for merging. SongCore/SongStudio stays the ONLY capture owner; the
+old RECORD & COMP recorder is still hidden and is not used. Engine files are byte-identical
+(ENGINE-SHA256.txt verified).
+
+New on the song recording screen (main controls up front, settings folded away):
+- ♩ Click: metronome on/off (C), volume in Recording settings. Look-ahead scheduler on the
+  playback graph only; never connected to the microphone path, so it is never in a take.
+- Count-in: Off / 1 bar / 2 bars before a recording, fix or loop. Clicks sit on the bar
+  grid and the last one lands one beat before the take starts. Replaces the lead-in when on.
+- Tempo (50–200 BPM, shared with CHAIN › BPM) and time signature 2/4–7/4 in Recording
+  settings; a "120 BPM · 4/4" button in the transport opens them.
+- Bar/beat grid on every lane, bar numbers on the ruler, bar | beat readout next to the
+  clock ("count-in" while counting in), optional Snap to beat for selections.
+- 🎧 HEAR ME: live monitoring with its own level (Recording settings), asks about headphones
+  the first time. Mic → mic gain → capture worklet, and mic gain → HEAR ME gain → output.
+- Punch-in on the fly: while the song plays, R punches in on the selected track at the
+  playhead; R again punches out and the song keeps playing. The attempt is a "Punch-in"
+  range with complementary edge fades (join fade, min 5 ms) and is chosen straight away;
+  "Keep earlier audio" brings the old part back. Space stops recording and playback.
+- Gapless loop recording: ⟲ Loop (L) + Fix selected phrase loops the selection with
+  sample-accurate looping playback while ONE continuous capture runs; on Stop it is split
+  into consecutive passes, one attempt per pass (partial last pass kept if ≥ 0.25 s, not
+  choosable). Stops itself at 32 attempts. "Repeat with lead-in" is kept as the
+  stop-between-tries option.
+- Esc cancels the recording in progress (nothing is added). Shortcut table in the help.
+
+Autosave:
+- The autosave is written immediately (no 800 ms wait) after Back up project, after a
+  project is opened and after each new take; Back up project keeps the screen locked
+  until the autosave write has finished.
+- On pagehide / tab hidden the autosave is started and a small synchronous journal of
+  the song arrangement (choices, mutes, levels, sections, settings) is written; the next
+  start applies it once if every audio source it names is in the autosave. This fixes
+  the 0.20.0 polish_edges failure (reload right after a backup reopened an older song).
+
+Tidy:
+- The transport no longer sticks over the lanes; lanes are a little shorter on desktop.
+- Range labels on a lane stack instead of overlapping ("Take 1" / "Fix · …" / "Punch · …").
+- POLISH: "◀ Record & comp" is now "◀ Song & vocals"; the header Export tooltip is current.
+
+Project format: unchanged and additive (meter, click, clickVol, countIn, snap, loopRec on
+the song workspace). requiresSongStudio stays 0.20.0, so 0.20.0 still opens 0.21.0 projects.

@@ -216,7 +216,7 @@ cv.addEventListener('contextmenu',e=>{const h=hit(e);if(h.l?.k==='ruler'&&D.regi
 cv.addEventListener('pointercancel',()=>{D.drag=null;});
 
 // ---------------------------------------------------------------- keyboard shortcuts
-document.addEventListener('keydown',e=>{
+document.addEventListener('keydown',e=>{if(window.SongStudio&&RC.step==='rc')return;
   if(e.key==='Escape'&&window.PVSRec&&PVSRec.escape())return;
   const onRC=!!(window.RC&&RC.step==='rc'); // RECORD & COMP has its own keys (rc.js); here only Esc, Ctrl shortcuts and Space-while-recording
   if(e.key==='Escape'){if(qa('.mdrop').some(d=>!d.hidden)){closeMenus();return;}if(closeModals())return;if(!$('guideSheet').hidden){$('guideSheet').hidden=true;return;}return;}
