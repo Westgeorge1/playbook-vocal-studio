@@ -1,0 +1,52 @@
+Playbook Vocal Studio 0.18.3 — fixes from the independent review of 0.18.2
+App version 0.18.3 · audio engine version 0.12.1 (engine files byte-identical, see ENGINE-SHA256.txt)
+
+Everything in 0.18.2 is kept: all features, the tidy RECORD & COMP screen and the project format.
+0.18.2 projects open in 0.18.3 and 0.18.3 projects open in 0.18.2 (tested both ways).
+
+Fixes
+  01 Import vocal › "Back up first, then import" now goes on to the file picker ONLY after the backup really
+     downloaded. If the backup cannot be prepared, the download fails or you cancel it, nothing is imported,
+     your parts and takes stay, and a window says so with "Try the backup again" or "Keep my takes".
+     (Inside: saveProject() returns {ok, status: saved / cancelled / failed / blocked, msg}.)
+  02 Settings ▾ › Back up project works in every session that has something to keep: a backing only,
+     Recovered audio only, a whole vocal, or parts and takes. One rule decides this for the menu, Ctrl+S and
+     the save itself (canSaveProject). When it is not available the menu item says why.
+  03 Tempo (and the other song settings: guide, tempo sync) now come back after a reload when you only have
+     parts, takes not yet sent to POLISH, or only a backing. 75 → 100 BPM, reload → 100 BPM.
+  04 Song length counts an imported whole vocal (at its own sample rate): a 36 s vocal with no backing and no
+     parts gives a 36 s song; Song fit, scrolling, the waveform and the clock all use it; also 2:30 at 44.1 kHz.
+  05 The backing level is one setting: the lane fader, the BACKING ▾ menu level, the mixer faders and the
+     labels all move together and the level is saved at once (reload and the project keep it; playback uses it).
+  06 Trim and split re-run the take check ("suggested", the numbers) of every take they affect — both sides of
+     a split — and so do Undo and Redo. An old result can no longer stay on a changed part.
+  07 At 900 and 1024 px wide (and at 125 % / 150 % browser zoom) nothing is cut off any more: below 1366 px
+     the transport gets compact and wraps onto a second row, the part panel narrows, and the screen is never
+     wider than the window. Record, Stop, Settings ▾, the big Record button and Comp done stay reachable.
+     From 1366 px the transport stays on one row as in 0.18.2 (the COMP lane stays in view at 1366 × 768).
+  08 The question windows (Import a whole vocal?, overlaps, clear, …) are real dialogs: Tab and Shift+Tab stay
+     inside, the page behind cannot be used, the title names the dialog for screen readers, Esc picks the safe
+     first choice, Enter the focused one, focus goes back to the button you came from, and page shortcuts
+     (R, Space, Ctrl+Z…) do nothing while a question is open. A question over the take editor works the same.
+
+Easier to use (still tidy)
+  - An empty session shows a START card (laptop: under the lanes; phone: in the part panel): Record a vocal / Import a vocal / Open a project,
+    and + Add backing.
+  - "What each area does / The flow" is folded behind "Help" once you have a part; the footer text
+    "How it works" is behind a small Help link. Open it whenever you like; once you open or close it yourself, it stays that way.
+  - The COMP lane says what it is: "your chosen takes joined into one vocal".
+  - The backing level is labelled as a LISTENING level (what you hear; not recorded and not the export mix);
+    Hear-me and Click levels are labelled as listening levels too.
+  - Buttons that cannot be used right now say why: in the tooltip (" — Not available now: …"), and under the
+    big Record button.
+  - RECORD-AND-TAKES.txt and the old "Apply" / "More ▾" wording now match the lane menus and the
+    Comp done / Load my new comp flow.
+
+Tests
+  - tests-0.18/t183.py: regression checks for all 8 findings through the real buttons and menus, plus the
+    start card / help, 900 / 1024 / 1280 / 1366 px and 125 % / 150 % zoom, phones 360 / 390, failed and
+    cancelled backups, and 0.18.2 ↔ 0.18.3 projects. The same checks fail on 0.18.2.
+  - run_all.sh also runs t182.py at 1024 × 768. polish17.py now runs right after sessA.py (it opens the project
+    sessA makes; before, it could pick up an old copy).
+  - Every test input ships in the zip (imp-song.wav and the 0.15 / 0.16 project zips were missing in 0.18.2);
+    vocal36.wav and vocal150-44k.wav are made the same way every time by tests-0.18/mkfix183.py.

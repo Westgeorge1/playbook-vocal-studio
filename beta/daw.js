@@ -1,4 +1,4 @@
-/* Playbook Vocal Studio 0.18.2 — POLISH screen controller (timeline, transport, menus, tabs, shortcuts).
+/* Playbook Vocal Studio 0.18.3 — POLISH screen controller (timeline, transport, menus, tabs, shortcuts).
    0.17.0: POLISH no longer records. The PHRASE and REC tabs, take lanes, IN/OUT punch strip, markers, record
    buttons and recording keys were removed; all recording lives on 1 RECORD & COMP (rc.js + rec.js).
    POLISH works on the comp: CLEAN, TUNE, CHAIN, DETAIL, MIX, note editor, wave edit, compare reference, save/export.
@@ -224,7 +224,7 @@ document.addEventListener('keydown',e=>{
   const mod=e.ctrlKey||e.metaKey,k=e.key;
   if(mod&&(k==='z'||k==='Z')){e.preventDefault();e.shiftKey?dawRedo():dawUndo();return;}
   if(mod&&(k==='y'||k==='Y')){e.preventDefault();dawRedo();return;}
-  if(mod&&(k==='s'||k==='S')){e.preventDefault();if(!$('phraseSave').disabled)$('phraseSave').click();else if(!$('saveProject').disabled)$('saveProject').click();return;}
+  if(mod&&(k==='s'||k==='S')){e.preventDefault();if(canSaveProject()===true)saveProject();else toast('Nothing backed up',canSaveProject(true));return;/* 0.18.3: one shared rule */}
   if(mod)return;
   const modalOpen=qa('.modal').some(m=>!m.hidden);
   if(k===' '&&rec&&window.PVSRec){e.preventDefault();PVSRec.stop(true);return;}

@@ -1,4 +1,4 @@
-/* Playbook Vocal Studio 0.18.2 — new controls in the RECORD & COMP look (from 0.18.1 features, restyled). */
+/* Playbook Vocal Studio 0.18.3 — new controls in the RECORD & COMP look (from 0.18.1 features, restyled). */
 /* With / Without backing: compact segmented switch next to REC */
 .rcseg{display:inline-flex;border:1px solid var(--rcl);border-radius:7px;overflow:hidden;background:var(--rcp2)}
 .rcseg button{font:700 12px var(--body);color:var(--rcm);background:transparent;border:0;padding:0 10px;min-height:30px;cursor:pointer;white-space:nowrap}
@@ -111,7 +111,40 @@ body.st-open{overflow:hidden}
 #pvsChoice{z-index:9500!important}
 @media (min-width:900px){body.rc-on #browserDownloads{left:200px!important}}
 body.rc-on #browserDownloads{z-index:110!important} /* 0.18.2: the prepared-downloads box stays clear of the lane headers (BACKING ▾, VOCAL ▾) and under menus and windows */
-/* 0.18.2: on a laptop the transport stays on ONE line whatever the readouts say (a second line pushed the COMP
+/* 0.18.2 (replaced in 0.18.3, see below): on a laptop the transport stays on ONE line whatever the readouts say (a second line pushed the COMP
    lane out of view at 1366x768): the clock and the tempo/info readouts shrink first, with "…" if needed */
-@media (min-width:900px){.rctbar{flex-wrap:nowrap}.rctbar>*{flex-shrink:0}.rctbar>.rcclock,.rctbar>#rcTempo{flex-shrink:1;min-width:96px;overflow:hidden}
+/* 0.18.3 (review 07): the screen never gets wider than the window. From 1366 px the transport is one row (clock and
+   tempo give way first); below that it gets compact and then wraps onto a second row, and the part panel narrows,
+   so Record, Stop, Settings and Comp done always stay on screen (also at 125 % / 150 % browser zoom). */
+.rcview{grid-template-columns:minmax(0,1fr)}.rcview>*{min-width:0}
+@media (min-width:1366px){.rctbar{flex-wrap:nowrap}.rctbar>*{flex-shrink:0}.rctbar>.rcclock,.rctbar>#rcTempo{flex-shrink:1;min-width:96px;overflow:hidden}
   .rctbar>.rcclock *,.rctbar>#rcTempo *{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
+@media (min-width:900px) and (max-width:1365.98px){
+  .rctbar{flex-wrap:wrap;gap:6px 8px;padding:6px 10px}.rctbar>#rcMoreBtn{margin-left:auto}
+  .rct{width:42px;height:40px}.rct.rcrec{padding:0 14px}
+  .rcclock{min-width:112px;padding:4px 8px}.rcclock #rcBars{font-size:15px}.rcinfo{min-width:78px;font-size:12px}
+  .rctog{min-width:48px}.rcmicfield .rcmeter{width:56px}.rcgain{width:56px}.rcseg button{padding:0 6px}
+  .rcbody{grid-template-columns:minmax(0,1fr) minmax(260px,31vw);gap:10px;padding:8px 10px}
+  .rcfoot{padding:6px 12px;gap:10px}.rcfoot .rcgo{padding:8px 14px;font-size:14px;white-space:normal;max-width:46%}
+  .rclanes{grid-template-columns:140px minmax(0,1fr)}}
+@media (min-width:900px) and (max-width:1100px){.rcfoot p{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}}
+/* 0.18.3: start card on an empty session (Record / Import / Open + Add backing) */
+.rcstart{display:grid;gap:8px;margin:4px 0 6px}
+@media (min-width:900px){.rcstart{grid-template-columns:repeat(4,minmax(0,1fr));align-items:stretch;margin:0}.rcstart h3{grid-column:1/-1}.rcstartb{padding:8px 12px}}
+.rcstart h3{font:700 12px var(--body);letter-spacing:.06em;color:var(--rcacc);margin:0}
+.rcstartb{display:grid;text-align:left;gap:2px;white-space:normal;padding:10px 14px;min-height:52px}
+.rcstartb b{font:700 15px var(--body);color:var(--rct)}.rcstartb small{font:500 12px var(--body);color:var(--rcm)}
+#rcsRecord{border-color:var(--rcred)}#rcsRecord b{color:#ff8a8a}
+.rcstartalt{background:transparent;border-style:dashed}
+/* 0.18.3: the long help is folded behind "Help" once you have started */
+.rchelpbox>summary{font:700 12px var(--body);letter-spacing:.04em;color:var(--rcacc);cursor:pointer;padding:2px 0;list-style-position:inside}
+.rchelpbox[open]>summary{margin-bottom:6px}
+.rchelplink{margin-left:8px;font-size:12px;letter-spacing:0;display:none}
+body.rc-started .rchelplink{display:inline}
+body.rc-started:not(.rc-helpopen) #rcHowText{display:none}
+body.rc-started:not(.rc-helpopen) .rcfoot h3{margin:0}
+.rchlvl .rchlbl{font:600 9px var(--body);letter-spacing:.06em;color:var(--rcm);text-transform:uppercase;margin-right:4px}
+.rcmrow .rcmsm{display:block;font:500 11px var(--body);color:var(--rcm)}
+/* 0.18.3: a reason next to a control that is not available right now */
+.rcwhy{font:500 12px var(--body);color:var(--rcm);margin:2px 0 0}
+.rch.comp .rcs{white-space:normal;line-height:1.15;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}

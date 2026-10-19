@@ -1,12 +1,17 @@
-RECORD & COMP — recording your song part by part (Playbook Vocal Studio 0.17.2)
+RECORD & COMP — recording your song part by part (Playbook Vocal Studio 0.18.3)
 
 The idea
   Your song is split into PARTS (Intro, Verse 1, Chorus …). Each part gets as many TAKES as you like.
   You CHOOSE the best take of each part (green ✓). The chosen takes are joined into one vocal: the COMP.
   When every part is chosen, press "Comp done → Go to POLISH" to clean, tune and mix the comp.
+  An empty session shows a START card: Record a vocal / Import a vocal / Open a project, and + Add backing.
+  Once you have a part, the long help is folded away; the "Help" link at the bottom opens it again.
 
 1. Get ready
-  - Settings ▾ › Open backing track (the beat). BACKING ON/OFF hears it or not.
+  - Load the backing (the beat): + Add backing on the start card, or BACKING ▾ on the backing lane
+    (Load / Replace / Remove backing, Undo remove, Listening level). BACKING With / Without in the transport
+    (or M on the lane) decides whether you hear it while you record. The backing level is a LISTENING level:
+    what you hear in your headphones. It is not recorded and it is not the export mix (that is POLISH › Mix).
   - Wear headphones. Sing a line and watch MIC LEVEL. If CLIP lights up, move back or lower GAIN
     (the slider next to the meter). Click the meter (or press I) for a mic check without recording.
   - Settings ▾ › Latency test: do it once per device and browser so takes land on the beat.
@@ -40,8 +45,8 @@ The idea
     punch-ins and loop recording.
   - Mic unplugged or lost while recording (normal take, punch-in or loop)? What was recorded up to then is KEPT
     as a take marked "(mic lost)" — a loop pass in progress as "(mic lost, incomplete)". Only Esc (your own
-    cancel) throws a take away. If a recording ever cannot be added, it is kept for download:
-    Settings ▾ › Download my last microphone recording (a WAV you can import again).
+    cancel) throws a take away. If a recording ever cannot be added, it is kept as Recovered audio: a
+    "⚠ Recovered audio" badge appears in the top bar; open it to download or remove each recording.
   - "↺ Redo last take" records the part again and replaces the last take (Undo brings it back).
   - "Next part ▶" (or Shift+R to go there and record).
   - HEAR ME: hear your own voice in the headphones while you record. You can turn it on or off at any time,
@@ -65,7 +70,11 @@ The idea
     count-in). Every full pass becomes a new take. Press R / REC / Stop to finish; the pass you were in the
     middle of is dropped. A part that runs past the end of the backing cannot loop (you get a warning).
 
-6. Import a take
+6. Import a take, or a whole vocal
+  - VOCAL ▾ on the COMP lane › Import vocal (whole song): one finished vocal file for the whole song. If you
+    already have takes you are asked first. "Back up first, then import" downloads a project backup and only
+    then asks for the vocal file. If the backup fails or you cancel it, nothing is imported and your parts and
+    takes stay as they are; choose "Try the backup again" or "Keep my takes".
   - "⤓ Import take…": pick an audio file. "Lines up with the start of this part" puts the file's start at the
     part's start. "With the start of the song (0:00)" is for a whole-song vocal exported from another app:
     only this part's piece is kept. A file shorter than the part is kept but cannot be chosen.
@@ -78,11 +87,15 @@ The idea
     (analysis failed, pitch uncertain, take does not cover the part, too close to call).
   - "✓ Choose" uses the take in the comp; click "✓ Chosen" again to un-choose it. Double-click a take works too.
   - Right-click a take: listen, choose, rename, use as melody / timing reference, delete.
+  - Edit on a take opens the take editor: level, silence, fade in / out make a NEW take (the original stays);
+    trim, split and move change the part. The take check ("suggested", the numbers) runs again after trim,
+    split, Undo and Redo.
   - "Delete unchosen takes" (this part) and "…in all parts".
-  - ▶ Play on the transport plays the comp (HEAR MY COMP ON) with the backing.
+  - ▶ Play on the transport plays the comp (HEAR MY COMP ON) with the backing. The COMP lane is your chosen
+    takes joined into one vocal; VOCAL ▾ › Play vocal plays it without the backing.
   - Export comp audio (WAV) saves the joined vocal as a sound file. "Comp done → Go to POLISH" sends it to POLISH.
   - Changed your comp after POLISH edits? POLISH keeps the vocal it has until you send the new comp yourself
-    (Comp done, or "Load latest comp" in POLISH). You are asked first, because note, breath and timing edits
+    (Comp done, or "Load my new comp" in POLISH). You are asked first, because note, breath and timing edits
     made in POLISH start again on the new vocal. Adding, renaming or deleting takes you did not choose does not
     change the comp.
 
@@ -91,9 +104,10 @@ The idea
     a phone can clear browser storage.
   - BACK UP PROJECT: Settings ▾ › Back up project (.zip with every take) (Ctrl+S). A file you keep, with every
     take, your choices and your POLISH edits exactly as they are (saving never re-sends the comp or resets
-    edits). The result — saved, cancelled or failed — is shown on the status line and in a message, also on a
-    phone. Open it with Settings ▾ › Open song project. Projects from 0.13–0.17 open; 0.17.2 projects open in
-    0.17.1 and 0.16. Backup reminders tell you to do this now and then (Settings ▾ › Backup reminder).
+    edits). It works in every session that has something to keep: a backing only, Recovered audio only, a whole
+    vocal, or parts and takes. When it is not available the menu says why. The result — saved, cancelled or
+    failed — is shown on the status line and in a message, also on a phone. Open it with Settings ▾ › Open
+    song project. Projects from 0.13–0.18 open; tempo, key and backing level come back with them. Backup reminders tell you to do this now and then (Settings ▾ › Backup reminder).
   - EXPORT COMP AUDIO (WAV): only the joined vocal as a sound file, for other apps. Not a project backup.
 
 Keys on RECORD & COMP
@@ -102,4 +116,5 @@ Keys on RECORD & COMP
   Ctrl+Z / Ctrl+Shift+Z undo / redo   Ctrl+S save project   Esc cancel the recording   2 go to POLISH
 
 Limits
+  Buttons that cannot be used right now say why in their tooltip (and under the big Record button).
   32 takes per part, 128 takes per song, 30 minutes of take audio, parts 0.5–60 s, song up to 15 minutes.

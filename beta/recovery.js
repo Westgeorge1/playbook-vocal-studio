@@ -1,4 +1,4 @@
-/* Playbook Vocal Studio 0.18.2 — Recovered audio (from 0.18.1, with fixes).
+/* Playbook Vocal Studio 0.18.3 — Recovered audio (from 0.18.1, with fixes).
    Audio that could not be placed as a take (a failed add, an unfinished loop ending, a loop pass that did not fit, an
    interrupted punch) is kept here. The list is included in the browser autosave and in Save project, and every file
    can be downloaded. The list only shows (badge at the top of RECORD & COMP) when there is something in it. */

@@ -1,7 +1,7 @@
-Playbook Vocal Studio 0.18.2 (1 RECORD & COMP + 2 POLISH)
-App version 0.18.2 · audio engine version 0.12.1 (the engine is unchanged; the two numbers are separate)
+Playbook Vocal Studio 0.18.3 (1 RECORD & COMP + 2 POLISH)
+App version 0.18.3 · audio engine version 0.12.1 (the engine is unchanged; the two numbers are separate)
 
-Open in Chrome (test link — it serves 0.18.2):
+Open in Chrome (test link — it serves 0.18.3):
 https://westgeorge1.github.io/playbook-vocal-studio/beta/
 (The main link https://westgeorge1.github.io/playbook-vocal-studio/ is unchanged and still serves 0.14.0.)
 
@@ -9,9 +9,9 @@ All recording happens on 1 RECORD & COMP: parts, takes, punch-in, loop recording
 mic level and gain, hear-me monitoring. 2 POLISH works on your comp: CLEAN, TUNE, CHAIN, DETAIL, MIX,
 note editor, wave edit, compare reference, save / export. Read RECORD-AND-TAKES.txt.
 
-For your own hosting, serve all files together over HTTPS. Opening index.html directly as a local file cannot reliably run workers or microphone capture. The WASM audio engine is version 0.12.1 (unchanged); the app version is 0.18.2.
+For your own hosting, serve all files together over HTTPS. Opening index.html directly as a local file cannot reliably run workers or microphone capture. The WASM audio engine is version 0.12.1 (unchanged); the app version is 0.18.3.
 
-Automated suites: see TEST-RESULTS-0.18.2.txt (tests-0.18/run_all.sh fails loudly if any check fails). Physical phone microphone, audibility and touch testing remains outstanding; see VALIDATION.txt.
+Automated suites: see TEST-RESULTS-0.18.3.txt (tests-0.18/run_all.sh fails loudly if any check fails). Physical phone microphone, audibility and touch testing remains outstanding; see VALIDATION.txt.
 
 0.14.0: new DAW-style screen (menu bar, transport, timeline with take lanes, inspector, editor dock, keyboard shortcuts; press ? for shortcuts). Every 0.13 control is still there; see CHANGES-0.14.0.txt for where each one moved. 
 
@@ -28,3 +28,5 @@ Automated suites: see TEST-RESULTS-0.18.2.txt (tests-0.18/run_all.sh fails loudl
 0.17.2: fixes from an independent review of 0.17.1 (see REVIEW-RESPONSE-0.17.2.md and CHANGES-0.17.2.txt). Your recording is never thrown away: long punch-ins (over 60 s) are kept whole in "(cont.)" parts; a take that runs into other parts keeps the whole recording and a window lets you choose (keep the next part / make room or replace / keep it as a take only); if the mic is unplugged the take so far is kept and marked "(mic lost)". Saving a project no longer re-sends the comp or resets your POLISH note, breath and timing edits. GAIN and HEAR ME now work while you record. Settings ▾ separates Autosave, Back up project and Export comp audio, and shows the app and engine versions; backup results show on the phone; "Why suggested?" explains the take suggestion.
 
 0.18.2: the new features from the 0.18.1 build (made by another tool from 0.17.1), added on top of 0.17.2 and fitted into the same tidy screen. Next to REC: BACKING With | Without. On the BACKING lane: M (mute), ▾ (load / replace / remove / undo remove) and the level. On the COMP lane: VOCAL ▾ (import a whole vocal, play it, clear / undo clear). At the timeline corner: − + Part Song ✋ (zoom, fit, hand). Edit on a take opens the take editor (select, level, silence, fades — each makes a new take and keeps the original — trim, split, move, ±10 ms, undo / redo, zoom). ⚠ Recovered audio appears in the top bar only when a recording could not become a take. All 0.17.2 fixes are kept. Projects from 0.15 – 0.18.1 open; 0.18.2 projects open in 0.17.2. See CHANGES-0.18.2.txt and TEST-RESULTS-0.18.2.txt.
+
+0.18.3: fixes from an independent review of 0.18.2 (see REVIEW-RESPONSE-0.18.3.md and CHANGES-0.18.3.txt). Import vocal › "Back up first" only goes on after the backup really worked; Back up project works with only a backing or only Recovered audio; tempo comes back after a reload without a whole vocal; an imported whole vocal sets the song length; the backing level is one setting and is saved; trim / split re-run the take check; nothing is cut off at 900 / 1024 px or 125 / 150 % zoom; question windows keep the keyboard inside. New: a start card on an empty session (Record a vocal / Import a vocal / Open a project, + Add backing), the long help folded behind "Help" once you start, clearer labels, and buttons that are not available say why. 0.18.2 projects open in 0.18.3 and back.

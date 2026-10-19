@@ -1,4 +1,4 @@
-/* Playbook Vocal Studio 0.18.2 — take editor, lane menus, backing remove/undo and Recovered audio.
+/* Playbook Vocal Studio 0.18.3 — take editor, lane menus, backing remove/undo and Recovered audio.
    Features from the third-party 0.18.1 build, rebuilt to fit the tidy RECORD & COMP screen:
    - the take editor opens only from the Edit button on a take (modal);
    - BACKING ▾ and VOCAL ▾ are small menus on the lane headers (phone: Backing ▾ / Vocal ▾ in the part panel);
@@ -131,7 +131,11 @@ el('fileBeat').addEventListener('change',()=>{removedBeat=null;});
 // ---------------------------------------------------------------- vocal: import whole vocal / play / clear + undo
 async function importVocal(){if(busy())return;const n=phraseWorkspace().phrases.reduce((n,p)=>n+p.takes.length,0);
   if(n){const k=await PV.chooseModal('Import a whole vocal?','Importing a whole vocal replaces your parts and their '+n+' take'+(n===1?'':'s')+'. To add a recording to one part instead, use Import take in the part panel.',[['cancel','Cancel','Keep my parts and takes.'],['go','Back up first, then import','Downloads a project backup (.zip with every take), then asks for the vocal file.'],['now','Import and replace','Your parts and takes are replaced. Back up project first if you may need them.']]);
-    if(k==='cancel'||!k)return;if(k==='go'){await saveProject();}}
+    if(k==='cancel'||!k)return;
+    // 0.18.3 (review 01): only go on to the file picker after the backup really worked; on failure or cancel keep everything and offer Try again
+    while(k==='go'){const r=await saveProject();if(r&&r.ok)break;
+      const k2=await PV.chooseModal(r&&r.status==='cancelled'?'Backup cancelled':'Backup not made',(r&&r.msg?r.msg+'\n':'')+'Nothing was imported. Your parts and takes are unchanged.',[['stay','Keep my takes','Do not import now.'],['go','Try the backup again','Then choose the vocal file.']]);
+      if(k2!=='go'){RC.msg&&RC.msg('Import cancelled: the backup was not made, so nothing was replaced.');return;}}}
   el('fileVocal').click();}
 async function playVocal(){if(busy())return;if(playing||playPending){stop();return;}const chs=RC.compChannels();
   if(!chs){toast('No vocal yet','Import a vocal, or choose a take in a part, then press Play vocal.');return;}
@@ -149,7 +153,7 @@ function menuItems(kind){const lk=busy(),w=phraseWorkspace(),n=w.phrases.reduce(
     ['load',S.beat?'Replace backing…':'Load backing…','MP3, WAV, M4A… It is only heard, never recorded.',lk],
     ['remove','Remove backing',S.beat?'Your takes stay. Undo remove brings it back.':'No backing loaded.',lk||!S.beat],
     ...(removedBeat?[['undoRemove','Undo remove backing','Brings back '+esc(removedBeat.name)+'.',lk]]:[]),
-    ['level','Level <input type="range" id="rcmBeatLevel" min="0" max="100" value="'+Math.round((S.beatLevel??.8)*100)+'"'+(S.beat?'':' disabled')+' aria-label="Backing level"> <span id="rcmBeatLevelV">'+Math.round((S.beatLevel??.8)*100)+'%</span>'],
+    ['level','Listening level <input type="range" id="rcmBeatLevel" min="0" max="100" value="'+Math.round((S.beatLevel??.8)*100)+'"'+(S.beat?'':' disabled')+' aria-label="Backing listening level"> <span id="rcmBeatLevelV">'+Math.round((S.beatLevel??.8)*100)+'%</span><small class="rcmsm">what you hear; not the export mix</small>'],
     ['h',PV.withBacking()?'Recording WITH backing (switch: With / Without)':'Recording WITHOUT backing (switch: With / Without)']];
   return [['h','VOCAL'],
     ['import','Import vocal (whole song)…','One finished vocal file for the whole song.',lk],
@@ -163,7 +167,7 @@ function renderMenu(){menu.setAttribute('aria-label',menuKind==='beat'?'Backing 
   menu.innerHTML=menuItems(menuKind).map(([k,label,hint,dis])=>k==='h'?'<div class="rcmh">'+label+'</div>':/<input/.test(label)?'<div class="rcmi rcmrow" data-k="'+k+'">'+label+'</div>':'<button class="rcmi" role="menuitem" data-k="'+k+'"'+(dis?' disabled':'')+'><span>'+label+'</span>'+(hint?'<small>'+hint+'</small>':'')+'</button>').join('');menu.hidden=false;
   const lv=el('rcmBeatLevel');if(lv)lv.oninput=()=>{el('beatLevel').value=lv.value;el('beatLevel').dispatchEvent(new Event('input'));el('rcmBeatLevelV').textContent=lv.value+'%';RC.dirty=true;};}
 menu.addEventListener('click',e=>{const b=e.target.closest('button.rcmi');if(!b||b.disabled)return;const k=b.dataset.k;
-  menu.hidden=true;({load:()=>el('fileBeat').click(),remove:removeBacking,undoRemove:undoRemoveBacking,import:importVocal,play:playVocal,clear:clearVocal,undoClear})[k]?.();});
+  menu.hidden=true;if(menuAnchor?.isConnected)menuAnchor.focus();/* 0.18.3: a question opened from the menu returns focus to its button */({load:()=>el('fileBeat').click(),remove:removeBacking,undoRemove:undoRemoveBacking,import:importVocal,play:playVocal,clear:clearVocal,undoClear})[k]?.();});
 menu.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();e.stopPropagation();menu.hidden=true;menuAnchor?.focus();}
   else if(e.key==='ArrowDown'||e.key==='ArrowUp'){const items=[...menu.querySelectorAll('button.rcmi:not(:disabled)')],i=items.indexOf(document.activeElement);e.preventDefault();e.stopPropagation();items[(i+(e.key==='ArrowDown'?1:-1)+items.length)%items.length]?.focus();}});
 
@@ -191,4 +195,29 @@ modal.addEventListener('pointerdown',e=>{if(e.target===modal)closeEditor();});re
 window.Studio={edit:openEditor,close:closeEditor,sync,removeBacking,undoRemoveBacking,laneMenu,importVocal,playVocal,clearVocal,undoClear,openRecovery,closeRecovery,
   state:()=>({open:!modal.hidden,pid:E.pid,tid:E.tid,a:E.a,b:E.b,start:E.start,seconds:E.seconds,hand:E.hand,removed:!!removedBeat,recoveryOpen:!recovery.hidden}),select:(a,b)=>selection(a,b),view:(a,s)=>setView(a,s)};
 setInterval(sync,250);sync();
+// ---------------------------------------------------------------- 0.18.3 start card + Help folded away once you have started
+(function(){const card=el('rcStartCard'),help=el('rcHelpBox'),link=el('rcHelpLink');let touched=false,wasStarted=null;
+  el('rcsRecord').onclick=()=>{el('rcAddBtn').click();RC.msg&&RC.msg('Name the first part and choose its length, then press Record (or R).');};
+  el('rcsImport').onclick=()=>importVocal();el('rcsOpen').onclick=()=>el('projBtn').click();el('rcsBacking').onclick=()=>el('fileBeat').click();
+  help.addEventListener('toggle',()=>{if(help.dataset.auto!=='1')touched=true;help.dataset.auto='';link.setAttribute('aria-expanded',help.open);document.body.classList.toggle('rc-helpopen',help.open);});
+  link.onclick=()=>{help.open=!help.open;if(help.open)help.scrollIntoView({block:'nearest'});};
+  const setOpen=v=>{if(help.open!==v){help.dataset.auto='1';help.open=v;}};
+  const desk=el('rcStatus'),phone=el('rcPartInfo'),mq=(typeof matchMedia==='function'&&matchMedia('(max-width:899px)'))||{matches:false};
+  function placeCard(){if(mq.matches){if(card.previousElementSibling!==phone)phone.after(card);}else if(card.nextElementSibling!==desk)desk.before(card);}
+  try{mq.addEventListener?mq.addEventListener('change',placeCard):mq.addListener&&mq.addListener(placeCard);}catch(e){}try{placeCard();}catch(e){}
+  function syncStart(){const w=phraseWorkspace?.();if(!w)return;const started=!!(w.phrases.length||S.main);
+    const empty=!started&&!busy();if(card.hidden===empty)card.hidden=!empty;el('rcsBacking').hidden=!!S.beat;
+    for(const id of ['rcsRecord','rcsImport','rcsOpen','rcsBacking'])el(id).disabled=busy();
+    document.body.classList.toggle('rc-started',started);
+    if(started!==wasStarted){if(!touched)setOpen(!started);wasStarted=started;}}
+  // a control that cannot be used right now says why, in its tooltip, and the big Record button also right below it
+  const lockWhy=()=>S.micBlocked?'The microphone is blocked: allow it in the browser address bar, then try again.':S.recStarting?'Opening the microphone…':busy()?'Still working: wait until the status says Ready.':'';
+  const WHY={rcBig:lockWhy,rcRec:lockWhy,rcRedoLast:()=>!selectedPhrase()?'Pick a part first.':!selectedPhrase().takes.length?'This part has no take yet.':lockWhy(),
+    rcDelUn:()=>lockWhy()||'Every take in this part is the chosen one.',rcDelAll:()=>lockWhy()||'No unchosen takes in any part.',
+    rcPrev:()=>lockWhy()||'This is the first part.'};
+  const NA=' — Not available now: ';
+  function syncWhy(){for(const [id,f] of Object.entries(WHY)){const b=el(id);if(!b)continue;const base=(b.title||'').split(NA)[0],r=b.disabled?f():'';
+      const t=r?base+NA+r:base;if(b.title!==t)b.title=t;}
+    const w=el('rcBigWhy'),r=el('rcBig').disabled?lockWhy():'';if(w.textContent!==r)w.textContent=r;if(w.hidden!==!r)w.hidden=!r;}
+  setInterval(()=>{syncStart();syncWhy();},250);syncStart();Studio.syncStart=syncStart;})();
 })();

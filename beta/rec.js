@@ -1,4 +1,4 @@
-/* Playbook Vocal Studio 0.18.2 — recording engine behind the RECORD & COMP screen.
+/* Playbook Vocal Studio 0.18.3 — recording engine behind the RECORD & COMP screen.
    Punch-in on the fly (into the part under the playhead), loop recording (a take every pass), count-in /
    metronome, mic check + gain, input monitoring, latency calibration, rename, delete-unchosen,
    autosave indicator and backup reminders.
@@ -46,7 +46,7 @@ async function capOpen(){
     const ctx=await resumeAudio();
     if(!ctx.audioWorklet||!window.AudioWorkletNode)throw new Error('This browser has no AudioWorklet, so punch-in and loop recording are not available. Recording a part from the Record button still works.');
     capClose(true);
-    if(Cap.moduleCtx!==ctx){await ctx.audioWorklet.addModule('rec-worklet.js?v=0.18.2');Cap.moduleCtx=ctx;}
+    if(Cap.moduleCtx!==ctx){await ctx.audioWorklet.addModule('rec-worklet.js?v=0.18.3');Cap.moduleCtx=ctx;}
     const stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
     const tr=stream.getAudioTracks()[0];Cap.label=tr?.label||'microphone';LSset('pvs-mic-label',Cap.label);
     Cap.ctx=ctx;Cap.stream=stream;Cap.src=ctx.createMediaStreamSource(stream);Cap.gain=ctx.createGain();Cap.gain.gain.value=dbToGain(P.micGainDb);
@@ -219,16 +219,35 @@ PV._lastSound=lastSound;
 // moment you stopped); the part boundaries only decide which piece the comp uses. If the singing runs into other
 // parts you choose what happens (keep them / replace or make room / keep it as a take only). Parts longer than the
 // 60-s project limit continue in "(cont.)" parts. One Undo puts everything back.
+// 0.18.3 (review 08): a real modal dialog. Tab / Shift+Tab stay inside, the page behind is inert, the title names the
+// dialog (aria-labelledby), Esc = the first (safe) choice, focus goes back to where it was, and no page shortcut
+// (Space, R, Ctrl+Z…) runs while it is open. A question asked while another is open waits and opens after it.
+const CQ={open:null,queue:[]};
+function choiceItems(m){return [...m.querySelectorAll('button:not(:disabled)')].filter(x=>x.getClientRects().length);}
+if(typeof window.addEventListener==='function')window.addEventListener('keydown',e=>{const o=CQ.open;if(!o)return;const m=o.m;
+  if(e.key==='Tab'){e.preventDefault();e.stopImmediatePropagation();const it=choiceItems(m);if(!it.length)return;const i=it.indexOf(document.activeElement);
+    (i<0?it[0]:it[(i+(e.shiftKey?-1:1)+it.length)%it.length]).focus();return;}
+  if(e.key==='Escape'){e.preventDefault();e.stopImmediatePropagation();o.done(o.opts[0][0]);return;}
+  if(!m.contains(e.target)){e.preventDefault();e.stopImmediatePropagation();choiceItems(m)[0]?.focus();return;}
+  if(e.key!=='Enter'&&e.key!==' ')e.stopImmediatePropagation();},true);
+if(typeof document!=='undefined'&&typeof document.addEventListener==='function')document.addEventListener('focusin',e=>{const o=CQ.open;if(o&&!o.m.contains(e.target))choiceItems(o.m)[0]?.focus();});
 function chooseModal(title,body,opts){
   if(typeof PV._choose==='function'){const k=PV._choose(title,body,opts);if(k)return Promise.resolve(k);}
-  return new Promise(res=>{let m=$('pvsChoice');
-    if(!m){m=document.createElement('div');m.className='modal';m.id='pvsChoice';m.setAttribute('role','dialog');m.setAttribute('aria-modal','true');
+  return new Promise(res=>{const job={title,body,opts,res};if(CQ.open){CQ.queue.push(job);return;}showChoice(job);});}
+function showChoice(job){const {title,body,opts,res}=job;let m=$('pvsChoice');
+    if(!m){m=document.createElement('div');m.className='modal';m.id='pvsChoice';m.setAttribute('role','dialog');m.setAttribute('aria-modal','true');m.setAttribute('aria-labelledby','pvsChoiceT');m.setAttribute('aria-describedby','pvsChoiceB');
       m.innerHTML='<div class="mbox small"><div class="mhead"><h2 id="pvsChoiceT"></h2></div><p id="pvsChoiceB" class="pvschoiceb"></p><div id="pvsChoiceO" class="pvschoice"></div></div>';document.body.appendChild(m);}
     $('pvsChoiceT').textContent=title;$('pvsChoiceB').textContent=body;const box=$('pvsChoiceO');box.innerHTML='';
-    const done=k=>{m.hidden=true;m.onkeydown=null;res(k);};
+    const opener=document.activeElement,inerted=[...document.body.children].filter(x=>x!==m&&!x.inert&&x.tagName!=='SCRIPT');
+    for(const x of inerted)x.inert=true;
+    const done=k=>{if(CQ.open!==o)return;CQ.open=null;m.hidden=true;for(const x of inerted)x.inert=false;
+      const next=CQ.queue.shift();if(next){res(k);showChoice(next);return;}
+      if(opener&&opener.isConnected&&opener!==document.body&&!opener.closest('[hidden]'))try{opener.focus();}catch(e){}
+      res(k);},o={m,opts,done};
     for(const [k,label,hint] of opts){const b=document.createElement('button');b.className='rcbtn';b.dataset.k=k;const x=document.createElement('b');x.textContent=label;const y=document.createElement('small');y.textContent=hint||'';b.append(x,y);b.onclick=()=>done(k);box.appendChild(b);}
-    m.onkeydown=e=>{e.stopPropagation();if(e.key==='Escape'){e.preventDefault();done(opts[0][0]);}};
-    m.hidden=false;setTimeout(()=>box.firstChild&&box.firstChild.focus(),30);});}
+    m.onkeydown=e=>{e.stopPropagation();};CQ.open=o;
+    m.hidden=false;box.firstChild&&box.firstChild.focus();setTimeout(()=>{if(CQ.open===o&&!m.contains(document.activeElement))box.firstChild&&box.firstChild.focus();},30);}
+PV.choiceOpen=()=>!!CQ.open;
 PV.chooseModal=chooseModal;
 function reAnalyze(p){for(const t of p.takes)phraseAnalyze(t,p);}
 function stopNote(title,m){phraseMessage(m);toast(title,m,10000);}
@@ -535,9 +554,9 @@ const origAdd=window.phraseAddAudio;
 window.phraseAddAudio=async function(){const r=await origAdd.apply(this,arguments);BK.since++;saveBK();maybeNag();return r;};
 const origSaveProject=window.saveProject;
 // 0.17.2: the result of a project backup is shown where you are (RECORD & COMP status line + a toast), also on a phone
-if(typeof origSaveProject==='function')window.saveProject=async function(){$('saveStatus').textContent='';const r=await origSaveProject.apply(this,arguments);const msg=$('saveStatus').textContent||'',bad=!msg||/fail|could not|couldn|not saved|error|first|wait/i.test(msg);
+if(typeof origSaveProject==='function')window.saveProject=async function(){$('saveStatus').textContent='';const r=await origSaveProject.apply(this,arguments);const msg=(r&&r.msg)||$('saveStatus').textContent||'',bad=r&&typeof r.ok==='boolean'?!r.ok:(!msg||/fail|could not|couldn|not saved|error|first|wait/i.test(msg)); // 0.18.3: the explicit result decides
   if(!bad){BK.since=0;BK.lastBackup=Date.now();saveBK();syncSaved();}
-  PV.lastSave={ok:!bad,msg};if(msg)phraseMessage((bad?'Project backup: ':'Project backup saved — ')+msg);if(bad&&msg)toast(/^Not saved/.test(msg)?'Project backup cancelled':'Project backup not saved',msg,8000);return r;};
+  PV.lastSave={ok:!bad,status:r&&r.status||(bad?'failed':'saved'),msg};if(msg)phraseMessage((bad?'Project backup: ':'Project backup saved — ')+msg);if(bad&&msg)toast(/^Not saved/.test(msg)?'Project backup cancelled':'Project backup not saved',msg,8000);return r||PV.lastSave;};
 PV.autosaveText=()=>{const tm=d=>new Date(d).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});return saveState==='fail'?'⚠ The last autosave failed.':savedAt?'Last autosaved at '+tm(savedAt)+'.':'Automatic after every change.';};
 function maybeNag(){const every=+P.backupEvery||0;if(!every||BK.since<every)return;if(Date.now()-BK.lastNag<10*60000)return;BK.lastNag=Date.now();saveBK();
   toast('Back up your takes',BK.since+' new takes since your last project download. Browser storage can be cleared by the phone — Settings ▾ › Save project with every take (Ctrl+S).',9000);}

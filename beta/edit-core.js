@@ -1,5 +1,6 @@
 /* Immutable, non-ripple vocal edits. Originals stay in the workspace.
-   From the third-party 0.18.1 build; 0.18.2 fixes the edge ramp at the ends of the audio (see edit()). */
+   From the third-party 0.18.1 build; 0.18.2 fixes the edge ramp at the ends of the audio (see edit()).
+   0.18.3: trim and split clear the take check of every affected take (both sides of a split) so it runs again. */
 (function(root){
 'use strict';
 const C=typeof module==='object'?require('./phrase-core.js'):root.PhraseCore;
@@ -15,13 +16,14 @@ function edit(t,a,b,kind,value=0){
 function clearIncomplete(p){if(p.selected&&!C.covers(p.takes.find(t=>t.id===p.selected),p))p.selected=null;}
 function transform(w,pid,action,args={}){
  const next=C.clone(w),p=next.phrases.find(p=>p.id===pid);if(!p)throw new Error('Select a part first.');
- if(action==='trim'){C.span(args.start,args.end);p.start=args.start;p.end=args.end;clearIncomplete(p);}
+ const stale=q=>{for(const t of q.takes){t.profile=null;t.analysisError=null;delete t.analysisToken;}}; // 0.18.3 (review 06): the take check depends on the part's start and end
+ if(action==='trim'){C.span(args.start,args.end);p.start=args.start;p.end=args.end;stale(p);clearIncomplete(p);}
  else if(action==='move'){const delta=args.start-p.start;if(!Number.isFinite(delta))throw new Error('Enter a valid position.');p.start+=delta;p.end+=delta;for(const t of p.takes){t.origin+=delta;t.profile=null;}}
  else if(action==='nudge'){const t=p.takes.find(t=>t.id===args.tid);if(!t)throw new Error('Select a take.');t.offsetMs=(t.offsetMs||0)+args.ms;t.profile=null;clearIncomplete(p);}
  else if(action==='split'){
   const at=args.at;C.span(p.start,at);C.span(at,p.end);const q={...p,id:'p'+next.nextId++,name:p.name+' · next',start:at,takes:[]};p.end=at;
   for(const t of p.takes){const id='t'+next.nextId++,o=C.origin(t),from=clamp(Math.floor((at-.1-o)*t.rate),0,t.channels[0].length-1);q.takes.push({...t,id,origin:o+from/t.rate,offsetMs:0,channels:t.channels.map(c=>c.slice(from)),profile:null,analysisToken:undefined});if(q.selected===t.id)q.selected=id;if(q.reference===t.id)q.reference=id;}
-  next.phrases.splice(next.phrases.indexOf(p)+1,0,q);clearIncomplete(p);clearIncomplete(q);next.selected=q.id;
+  stale(p);next.phrases.splice(next.phrases.indexOf(p)+1,0,q);clearIncomplete(p);clearIncomplete(q);next.selected=q.id;
  }else throw new Error('Unknown part edit.');
  C.validate(next);return next;
 }

@@ -1,4 +1,4 @@
-/* Playbook Vocal Studio 0.18.2 — RECORD & COMP screen: the one place where you record.
+/* Playbook Vocal Studio 0.18.3 — RECORD & COMP screen: the one place where you record.
      part  = phrase (S.phrases.phrases[]),  take = phrase take,  chosen take = phrase.selected,
      comp  = PhraseCore.compose(workspace) (same join fade as before),  POLISH = phraseApply() + CLEAN/TUNE/CHAIN/DETAIL/MIX.
    0.17.0 fused the old POLISH recording tools in here as first-class controls:
@@ -203,7 +203,9 @@ function fitSong(){RC.view={fit:'song',start:0,dur:0};layout();RC.sig='';}
 function panBy(frac){const v=getView();setView(v.start+frac*v.dur,v.dur);}
 function setHand(on){RC.hand=!!on;RC.sig='';RC.dirty=true;for(const b of qa('[data-z="hand"]'))b.setAttribute('aria-pressed',RC.hand);rcMsg(RC.hand?'Hand ON: drag the timeline to scroll it. Click ✋ again to edit parts.':'Hand OFF: click and drag edits parts again.');}
 Object.assign(RC,{setView,getView,zoomBy,fitPart,fitSong,panBy,setHand,viewRange});
-function songDur(){const w=W();return Math.max(S.beat?.duration||0,w.phrases.length||w.base?PhraseCore.duration(w):0,20)+.5;}
+// 0.18.3 (review 04): a whole imported vocal (no parts yet) counts too, measured at its own sample rate
+function mainDur(){if(!mainOnly())return 0;const c=S.audio[0]||S.audio[5],n=c?(c[0]?.length??c.length):0;return Math.max(n,S.main?.length||0)/(S.rate||48000);}
+function songDur(){const w=W();return Math.max(S.beat?.duration||0,w.phrases.length||w.base?PhraseCore.duration(w):0,mainDur(),20)+.5;}
 function lanes(){const w=W(),n=Math.max(3,...w.phrases.map(p=>p.takes.length));const L=[{k:'ruler',h:RULER},{k:'beat',h:BACK},{k:'parts',h:PARTS}];for(let i=0;i<n;i++)L.push({k:'take',i,h:TAKE});L.push({k:'comp',h:COMP});let y=0;for(const l of L){l.y=y;y+=l.h;}return L;}
 function X(t){return (t-geo.start)/geo.span*(geo.w-ADDW);}
 function T(x){return Math.max(0,geo.start+x/(geo.w-ADDW)*geo.span);}
@@ -215,8 +217,8 @@ function layout(){if(RC.step!=='rc')return;const L=lanes(),H=L.at(-1).y+L.at(-1)
   sizeMini();RC.dirty=true;}
 const ZOOMHTML='<div class="rczoom" role="group" aria-label="Timeline zoom"><button data-z="out" title="Zoom out (−)" aria-label="Zoom out">−</button><button data-z="in" title="Zoom in (+)" aria-label="Zoom in">+</button><button data-z="part" title="Fit the selected part">Part</button><button data-z="song" title="Fit the whole song">Song</button><button data-z="hand" aria-pressed="false" title="Hand: drag the timeline to scroll it" aria-label="Hand (drag to scroll)">✋</button></div>';
 function headHTML(l){if(l.k==='ruler')return ZOOMHTML;
-  if(l.k==='beat')return '<div class="rchrow"><b>BACKING</b><button class="rchb" id="rcBeatMute" aria-pressed="false" title="Mute the backing (same as Without backing)">M</button><button class="rchb" id="rcBeatMenu" aria-haspopup="true" title="Load, replace or remove the backing track" aria-label="Backing menu">▾</button></div><span class="rcs" id="rcBeatName">none</span><label class="rchlvl" title="Backing level in your headphones (not recorded)"><input type="range" id="rcBeatLevel" min="0" max="100" step="1" value="80" aria-label="Backing level"><output id="rcBeatLevelV">80%</output></label>';
-  if(l.k==='comp')return '<div class="rchrow"><b class="grn">COMP</b><button class="rchb rchvoc" id="rcVocalMenu" aria-haspopup="true" title="Import a whole vocal, play it, or clear it">VOCAL ▾</button></div><span class="rcs">best takes joined</span>';
+  if(l.k==='beat')return '<div class="rchrow"><b>BACKING</b><button class="rchb" id="rcBeatMute" aria-pressed="false" title="Mute the backing (same as Without backing)">M</button><button class="rchb" id="rcBeatMenu" aria-haspopup="true" title="Load, replace or remove the backing track" aria-label="Backing menu">▾</button></div><span class="rcs" id="rcBeatName">none</span><label class="rchlvl" title="Listening level of the backing: what you hear while you play and record. Not recorded, and not the export mix (set that in POLISH › Mix)."><span class="rchlbl">listen</span><input type="range" id="rcBeatLevel" min="0" max="100" step="1" value="80" aria-label="Backing level"><output id="rcBeatLevelV">80%</output></label>';
+  if(l.k==='comp')return '<div class="rchrow"><b class="grn">COMP</b><button class="rchb rchvoc" id="rcVocalMenu" aria-haspopup="true" title="Import a whole vocal, play it, or clear it">VOCAL ▾</button></div><span class="rcs" title="Your chosen takes joined into one vocal">your chosen takes joined into one vocal</span>';
   if(l.k==='parts')return '<b class="acc">PARTS</b><span class="rcs">click to select</span>';if(l.k==='take')return '<b class="mut">Take '+(l.i+1)+'</b>';return '<b class="grn">COMP</b><span class="rcs">best takes joined</span>';}
 function syncHeads(){const b=$('rcBeatName');if(b){const t=S.beatLoading?'loading…':S.beat?S.beatName:'none · ▾ to load';if(b.textContent!==t){b.textContent=t;b.title=S.beat?S.beatName:'';}}
   const m=$('rcBeatMute'),on=!!S.beat&&$('beatOn').checked;if(m){m.setAttribute('aria-pressed',!!S.beat&&!on);m.disabled=!S.beat||busy();}
@@ -532,14 +534,14 @@ function moreItems(){const P=PV.prefs,w=W();
   return [
   ['h','SETTINGS'],
   ['count','Count-in <select id="rcmCount"><option value="0">Off</option><option value="1">1 bar</option><option value="2">2 bars</option></select>',null],
-  ['clickVol','Click level <input type="range" id="rcmClickVol" min="0" max="100" step="5" value="'+Math.round(P.clickVol*100)+'"> <span id="rcmClickVolV">'+Math.round(P.clickVol*100)+'%</span>',null],
+  ['clickVol','Click listening level <input type="range" id="rcmClickVol" min="0" max="100" step="5" value="'+Math.round(P.clickVol*100)+'"> <span id="rcmClickVolV">'+Math.round(P.clickVol*100)+'%</span>',null],
   ['lead','Pre-roll before IN <input type="number" id="rcmLead" min="0" max="5" step="0.5" value="'+w.lead+'"> s',null],
   ['fade','Join crossfade <input type="number" id="rcmFade" min="0" max="100" step="5" value="'+w.fadeMs+'"> ms',null],
   ['bpm','Tempo <input type="number" id="rcmBpm" min="50" max="200" value="'+bpm()+'"> BPM',null],
   ['latms','Latency <input type="number" id="rcmLat" min="0" max="800" step="1" value="'+Math.round(pvsLatency()*1000)+'"> ms <small class="rcmsm">used for every take</small>',null],
   ['lat','Latency test (timing)…','Run once per device and browser so every take lands on the beat.'+(e?' Now: '+esc(e):'')],
   ['latAuto','Use the automatic latency',null],
-  ['monVol','Hear-me level <input type="range" id="rcmMonVol" min="0" max="100" step="5" value="'+Math.round(P.monitorVol*100)+'"> <span id="rcmMonVolV">'+Math.round(P.monitorVol*100)+'%</span>',null],
+  ['monVol','Hear-me listening level <input type="range" id="rcmMonVol" min="0" max="100" step="5" value="'+Math.round(P.monitorVol*100)+'"> <span id="rcmMonVolV">'+Math.round(P.monitorVol*100)+'%</span>',null],
   ['micFirst','Mic check before the first take'+tg(P.micFirst),null],
   ['backup','Backup reminder <select id="rcmBackup"><option value="0">Off</option><option value="3">every 3 takes</option><option value="6">every 6 takes</option><option value="10">every 10 takes</option></select>',null],
   ['key','Song key (for take suggestions) <select id="rcmKey">'+$('phraseKey').innerHTML+'</select><select id="rcmScale">'+$('phraseScale').innerHTML+'</select>',null],
@@ -547,7 +549,7 @@ function moreItems(){const P=PV.prefs,w=W();
   ['hearComp','Hear my comp while playing / recording'+tg(P.hearOld),null],
   ['h','FILES'],
   ['autosave','Autosave (this browser only)',(PV.autosaveText?PV.autosaveText():'Automatic after every change.')+' Not a backup: the browser can clear it.',true],
-  ['saveProj','Back up project (.zip with every take) · Ctrl+S','A file you keep and can open again later. POLISH edits are kept as they are.',$('phraseSave').disabled],
+  ['saveProj','Back up project (.zip with every take) · Ctrl+S',canSaveProject(true)===true?'A file you keep and can open again later. POLISH edits are kept as they are.':canSaveProject(true),canSaveProject()!==true], // 0.18.3: the same rule as saveProject
   ['openProj','Open song project…',null],
   ['export','Export comp audio (WAV)','Only the joined vocal as a sound file — not a project backup.'],
   ['keys','Keyboard shortcuts',null],
@@ -572,7 +574,7 @@ function moreAct(k){const P=PV.prefs;
   ({lat:()=>PV.calOpen(),latAuto:()=>{PV.latAuto();rcMsg('Latency: automatic ('+Math.round(pvsLatency()*1000)+' ms).');},
     micFirst:()=>{$('optMicFirst').checked=!P.micFirst;$('optMicFirst').dispatchEvent(new Event('change'));},
     hearComp:()=>$('rcHearComp').click(),audBeat:()=>{$('phraseCompareBeat').checked=!$('phraseCompareBeat').checked;},
-    saveProj:()=>$('phraseSave').click(),openProj:()=>$('projBtn').click(),export:exportComp,
+    saveProj:()=>saveProject(),openProj:()=>$('projBtn').click(),export:exportComp,
     keys:()=>dawOpenModal('helpModal','keys')})[k]?.();
   if(keep)setTimeout(()=>{if(!$('rcMore').hidden)openMore(RC.moreAnchor);},80);else $('rcMore').hidden=true;}
 $('rcMore').addEventListener('click',e=>{const b=e.target.closest('button.rcmi');if(!b||b.disabled)return;moreAct(b.dataset.k);});
