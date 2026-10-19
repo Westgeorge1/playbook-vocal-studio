@@ -1,0 +1,117 @@
+/* Playbook Vocal Studio 0.18.2 — new controls in the RECORD & COMP look (from 0.18.1 features, restyled). */
+/* With / Without backing: compact segmented switch next to REC */
+.rcseg{display:inline-flex;border:1px solid var(--rcl);border-radius:7px;overflow:hidden;background:var(--rcp2)}
+.rcseg button{font:700 12px var(--body);color:var(--rcm);background:transparent;border:0;padding:0 10px;min-height:30px;cursor:pointer;white-space:nowrap}
+.rcseg button+button{border-left:1px solid var(--rcl)}
+.rcseg button[aria-pressed="true"]{background:#163326;color:var(--rcgrn)}
+.rcseg button:disabled{opacity:.4;cursor:default}
+.rcseg button:hover:not(:disabled):not([aria-pressed="true"]){color:var(--rct)}
+/* Recovered audio badge: only shown when there is something to recover */
+.rcrecov{background:#3a2a10;color:#ffd08a;border-color:var(--rcacc);font-size:13px;min-height:36px;padding:4px 10px}
+.rcrecov b{display:inline-block;min-width:18px;margin-left:4px;padding:0 5px;border-radius:9px;background:var(--rcacc);color:#111;font:800 11px/18px var(--body);text-align:center}
+.rcrecov[hidden]{display:none!important}
+/* lane headers */
+.rchrow{display:flex;align-items:center;gap:4px;min-width:0}
+.rchrow b{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rchb{font:700 11px var(--body);color:var(--rcm);background:var(--rcp2);border:1px solid var(--rcl);border-radius:5px;min-width:22px;height:20px;padding:0 5px;cursor:pointer;flex:none}
+.rchb:hover:not(:disabled){color:var(--rct);border-color:#56657a}
+.rchb:disabled{opacity:.4;cursor:default}
+.rchb[aria-pressed="true"]{background:#4a1c1c;color:#ffb0b0;border-color:#a33}
+.rchb.rchvoc{color:var(--rcgrn)}
+.rch.beat{gap:1px;justify-content:center}
+.rch.beat .rcs{font-size:10px;line-height:13px}
+.rchlvl{display:flex;align-items:center;gap:4px;height:14px}
+.rchlvl input{flex:1;min-width:0;height:12px;margin:0;accent-color:#5a7be0}
+.rchlvl output{font:600 9px var(--mono,monospace);color:var(--rcm);min-width:28px;text-align:right}
+.rch.comp{gap:2px}
+/* zoom cluster in the ruler corner */
+.rch.ruler{padding:0 6px}
+.rczoom{display:flex;align-items:center;gap:3px}
+.rczoom button{font:700 11px var(--body);color:var(--rcm);background:var(--rcp2);border:1px solid var(--rcl);border-radius:5px;height:22px;min-width:22px;padding:0 5px;cursor:pointer}
+.rczoom button:hover{color:var(--rct);border-color:#56657a}
+.rczoom button[aria-pressed="true"]{background:#3a2a10;color:var(--rcacc);border-color:var(--rcacc)}
+.rcpanrow{padding:3px 104px 0 170px}
+.rcpanrow[hidden]{display:none!important}
+.rcpanrow input{width:100%;margin:0;height:14px;accent-color:var(--rcacc)}
+/* Edit button on a take row */
+.rctake{grid-template-columns:minmax(0,1fr) auto auto auto auto}
+.rcedit{background:var(--rcp);color:#9cc4ff;border-color:#33507a;min-width:44px}
+/* modal dialogs (take editor, recovered audio) */
+.stmodal{position:fixed;inset:0;z-index:9000;background:rgba(3,6,10,.78);display:grid;place-items:center;padding:16px;color:var(--rct);font:14px var(--body)}
+.stmodal[hidden]{display:none!important}
+.stdialog{background:var(--rcp);border:1px solid var(--rcl);border-radius:14px;box-shadow:0 24px 80px rgba(0,0,0,.7);width:min(1000px,100%);max-height:calc(100dvh - 32px);overflow:auto;padding:14px 18px;box-sizing:border-box;overscroll-behavior:contain}
+.stdialog.stsmall{width:min(620px,100%)}
+.stdialog header{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.stdialog h2{font:700 18px var(--body);margin:0;flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.stdialog h3{font:700 11px var(--body);letter-spacing:.08em;color:var(--rcacc);margin:0 0 4px}
+.stdialog button{font:600 13px var(--body);color:var(--rct);background:var(--rcp2);border:1px solid var(--rcl);border-radius:7px;padding:5px 11px;min-height:34px;cursor:pointer;white-space:nowrap}
+.stdialog button:hover:not(:disabled){border-color:#56657a;background:#2b3440}
+.stdialog button:disabled{opacity:.42;cursor:default}
+.stdialog button[aria-pressed="true"]{background:#3a2a10;color:var(--rcacc);border-color:var(--rcacc)}
+.stdialog button.stgreen{color:var(--rcgrn);border-color:#2b6a47;background:#14261c}
+.stdialog button.stgreen.on{background:#1f5a3a}
+.stdialog select,.stdialog input[type=number]{font:600 13px var(--body);color:var(--rct);background:#0b0f14;border:1px solid var(--rcl);border-radius:6px;padding:4px 6px;min-height:34px;box-sizing:border-box}
+.stdialog header select{max-width:240px;min-width:0}
+.stdialog input[type=number]{width:84px}
+.stdialog label{display:inline-flex;align-items:center;gap:5px;font:600 12px var(--body);color:var(--rcm)}
+.stdialog :focus-visible{outline:2px solid var(--rcacc);outline-offset:2px}
+.sthint{font:500 12px/1.45 var(--body);color:var(--rcm);margin:2px 0 8px}
+.stcanvas{display:block;width:100%;height:200px;background:#0b0f14;border:1px solid var(--rcl);border-radius:8px;touch-action:none;cursor:crosshair;box-sizing:border-box}
+.strow{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:6px 0}
+.stgap{flex:1}
+.stpan input{flex:1;min-width:60px;margin:0;accent-color:var(--rcacc)}
+.stpan output,.stdialog output{font:600 11px var(--mono,monospace);color:var(--rcm);min-width:44px;text-align:center}
+.stgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:6px}
+.stbox{background:var(--rcp2);border:1px solid var(--rcl);border-radius:10px;padding:8px 10px}
+.stbox .strow{margin:4px 0}
+.stdet{margin-top:8px}.stdet summary{cursor:pointer;font:600 12px var(--body);color:var(--rcm)}
+.stanalysis{font:500 12px/1.5 var(--body);color:#d6dde4;margin:6px 0}
+.ststatus{min-height:18px;margin:8px 0 0;font:500 13px var(--body);color:var(--rcgrn)}
+.strecitem{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:6px;align-items:center;padding:9px 0;border-top:1px solid var(--rcl)}
+.strecitem b{display:block;overflow-wrap:anywhere}.strecitem small{font:500 11px var(--body);color:var(--rcm)}
+body.st-open{overflow:hidden}
+@media (max-width:1100px) and (min-width:900px){.stgrid{grid-template-columns:1fr 1fr}}
+/* phone */
+@media (max-width:899px){
+  .rczoom.rcphone{display:flex!important;justify-content:center;gap:6px}
+  .rczoom.rcphone button{min-height:44px;min-width:44px;font-size:14px;padding:0 10px;border-radius:8px}
+  .rcbackp .rcseg button{min-height:44px;padding:0 12px;font-size:13px}
+  .rcbackp .rctog{min-height:44px;min-width:0;padding:0 12px}
+  .rcrecov{font-size:0;padding:4px 8px;min-height:36px}.rcrecov b{font-size:11px;margin:0}.rcrecov::before{content:'⚠';font-size:14px}
+  .rctake{grid-template-columns:minmax(0,1fr) auto auto auto}
+  .rctake .rctn{grid-column:1/-1}
+  .rctake .rcbtn{min-height:44px}
+  .rcedit{min-width:56px}
+  .stmodal{padding:4px;place-items:stretch}
+  .stdialog{max-height:calc(100dvh - 8px);padding:10px 10px 14px;border-radius:10px}
+  .stdialog header{flex-wrap:wrap}.stdialog header select{order:3;flex:1 1 100%;max-width:none}
+  .stdialog button,.stdialog select,.stdialog input[type=number]{min-height:44px}
+  .stdialog h2{font-size:16px}
+  .stcanvas{height:170px}
+  .stgrid{grid-template-columns:1fr}
+  .strow.stnav .stgap{display:none}
+  .stdialog input[type=number]{width:78px}
+}
+/* keep the whole transport on one line at 1366 px with the With / Without switch added */
+@media (max-width:1500px) and (min-width:900px){.rctbar{gap:8px}.rcseg button{padding:0 7px}.rcclock{min-width:148px;padding:5px 10px}.rcinfo{min-width:100px}}
+.stzoomg{display:inline-flex;gap:6px;flex-wrap:nowrap}
+@media (max-width:899px){
+  .strow.stnav .stzoomg{flex:1 1 100%;justify-content:space-between}.strow.stnav .stzoomg button{flex:1}
+  /* zoom row under the part view: quiet, but 44 px to tap */
+  .rczoom.rcphone button{background:transparent;color:var(--rcm);border-color:#2a333e}
+  .rczoom.rcphone button[aria-pressed="true"]{background:#3a2a10;color:var(--rcacc);border-color:var(--rcacc)}
+  .rcproghead{align-items:center}.rcvocp{min-height:44px!important;min-width:0!important;padding:0 12px;margin-left:auto;margin-right:8px;color:var(--rcgrn)}
+  /* 44 px touch targets for the phone controls that were smaller */
+  .rcswitch button,.rctopright .rcbtn,.rcchip,.rcphset .rctog,.rcphset select,.rcdelun,#rcClipP{min-height:44px!important}
+  .rcmicp .rcmeter{height:44px!important;background:transparent;border:0;overflow:visible}
+  .rcmicp .rcmeter::before{content:'';position:absolute;left:0;right:0;top:16px;bottom:16px;background:#070a0e;border:1px solid var(--rcl);border-radius:4px}
+  .rcmicp .rcmeter i{top:17px;bottom:17px;left:1px;border-radius:3px}
+}
+@media (max-width:899px){.rclanemenu .rcmi{min-height:44px}.rclanemenu .rcmrow input{height:32px}}
+#pvsChoice{z-index:9500!important}
+@media (min-width:900px){body.rc-on #browserDownloads{left:200px!important}}
+body.rc-on #browserDownloads{z-index:110!important} /* 0.18.2: the prepared-downloads box stays clear of the lane headers (BACKING ▾, VOCAL ▾) and under menus and windows */
+/* 0.18.2: on a laptop the transport stays on ONE line whatever the readouts say (a second line pushed the COMP
+   lane out of view at 1366x768): the clock and the tempo/info readouts shrink first, with "…" if needed */
+@media (min-width:900px){.rctbar{flex-wrap:nowrap}.rctbar>*{flex-shrink:0}.rctbar>.rcclock,.rctbar>#rcTempo{flex-shrink:1;min-width:96px;overflow:hidden}
+  .rctbar>.rcclock *,.rctbar>#rcTempo *{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}

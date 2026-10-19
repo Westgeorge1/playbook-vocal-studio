@@ -1,0 +1,59 @@
+Playbook Vocal Studio 0.18.2 — test results
+(all in real headless Chrome with a fake microphone playing tests-0.18/voice48k.wav, plus node suites;
+ every suite exits nonzero on any failed check; logs and JSON results are in tests-0.18/)
+
+HOW TO RUN
+  tests-0.18/run_all.sh          everything (browser suites in 6 parallel streams + node suites); prints ok/FAIL per suite
+  node tests-0.18/node/run.cjs   the node suites only
+  Servers it expects: see the top of run_all.sh and h.py.
+
+SUITES (results of the final full run, run #3, plus the reruns noted below)
+  T182   t182.py at 1366x768 + phone 390     new: every feature ported from 0.18.1 (A–I)          74 pass 0 fail
+  T182W  t182.py at 1920x1080 + phone 390                                                         74 pass 0 fail
+  R172   t172.py   0.17.2 review fixes F1–F7 (real 75 s and 125 s punches), compat 0.17.0/0.17.1  58 pass 0 fail
+  F1366 / F1920  t171.py  record until Stop, part grows, Stop at part end                         42 / 42 pass
+  T1366 / T1920  t17.py   RECORD & COMP controls, Settings ▾ holds settings + files only          37 / 37 pass
+  A1366 / A1920  sessA.py whole session: 7 parts, comp, POLISH, reload                            35 / 35 pass
+  B   sessB.py  32 takes, overlaps, mic unplugged                                                 27 pass
+  D   sessD.py  Shift+R, overlap warning, 50 BPM count-in + latency, 5 takes at 1366x768          11 pass (rerun, see below)
+  OLD old17.py  0.15 and 0.16.1 projects open                                                     14 pass
+  PH  phone17.py phone 390 and 360                                                                24 pass
+  P   sessP.py  phone take list, export, POLISH                                                   22 pass
+  C   sessC.py  no microphone / microphone denied                                                 10 pass
+  POL polish17.py POLISH tools                                                                    24 pass
+  audit audit17.py every 0.16.1 control is present, replaced (with where) or dropped on purpose   PASS, 0 page errors
+  COMPAT compat182.py 0.17.2 -> 0.18.2, third-party 0.18.1 -> 0.18.2, 0.18.2 -> 0.18.2 and -> 0.17.2   4 pass
+  NODE node/run.cjs the third-party 0.18.1 node suites, adapted (8 suites, 79 checks)            all pass
+  Console errors: none in any suite (each suite checks it).
+
+HONEST HISTORY OF THE RUNS
+  Run #1  all ok except: PH360 count-in (the two count-in boxes synced only on the next screen tick → fixed in
+          rc.js, they now follow at once); audit (0.16 id rcBacking had no map entry → map added: With/Without +
+          M); T182 at 1366 (the prepared-downloads box sat over the VOCAL ▾ menu → fixed in studio.css: it stays
+          right of the lane headers and under menus); A1920 failed once (passed alone, 35/0).
+  Run #2  T182 / T182W 74/0. run_all.out also showed two T182 FAIL lines that were STALE (an old t182.log left
+          from an earlier debug run was picked up by the log scan) → the log was deleted and run_all.sh now
+          scans only this run's logs. Real failures:
+          - R172 real 125 s punch: test timing under load (the audio clock reached only 110 s in the 155 s the
+            test waits, with 6 suites at once); the take itself ended exactly at the punch-out. Alone: 58/0.
+          - OLD: page load timed out (30 s) under load. Alone: 14/0.
+          - POL: Undo of a note edit: the engine needs about 1.8 s to apply it (0.17.2 needs 1.9 s, so not a
+            regression); the test read it after a fixed 300 ms. The test now waits up to 8 s for the change and
+            still checks the exact value. Alone: 24/0.
+  Run #3  18 of 19 ok. D failed "50 BPM + 2-bar count-in + 300 ms latency" once. Alone 3 times: that check
+          passed 3/3 (the take ends at 3.24 s for a part ending at 3.20 s — a tight margin, so the run #3 miss
+          was load timing). But 2 of those 3 runs failed another check: "with 5 takes at 1366x768 the COMP lane
+          is on screen". Cause: the laptop transport bar had only ~42 px to spare and could wrap to a second
+          line when a readout got wider, which pushed the COMP lane out of view. Fixed (studio.css): the
+          transport never wraps at 900 px and wider; the clock / tempo readouts shrink with "…" instead.
+          After the fix: D 11/0 twice, t17 37/0. (No further full run was made after this CSS-only fix.)
+
+BUGS FOUND AND FIXED WHILE TESTING (see CHANGES-0.18.2.txt)
+  editor Tab key escaped the window; Esc did not return focus to Edit; the choice window opened under the editor;
+  With / Without and M showed the old state for a moment; edit edges at the ends of the audio; full Undo history
+  lost steps when one take made several parts; downloads box covering VOCAL ▾; count-in boxes out of sync;
+  transport wrapping at 1366.
+
+STILL NOT TESTED HERE
+  A real phone microphone, real headphones / audibility and real touch (see VALIDATION.txt). The tests use a fake
+  microphone in desktop Chrome with phone-sized windows and touch emulation.

@@ -1,4 +1,4 @@
-/* Playbook Vocal Studio 0.17.2 — POLISH screen controller (timeline, transport, menus, tabs, shortcuts).
+/* Playbook Vocal Studio 0.18.2 — POLISH screen controller (timeline, transport, menus, tabs, shortcuts).
    0.17.0: POLISH no longer records. The PHRASE and REC tabs, take lanes, IN/OUT punch strip, markers, record
    buttons and recording keys were removed; all recording lives on 1 RECORD & COMP (rc.js + rec.js).
    POLISH works on the comp: CLEAN, TUNE, CHAIN, DETAIL, MIX, note editor, wave edit, compare reference, save/export.
@@ -16,7 +16,8 @@ const narrow=()=>matchMedia('(max-width: 899px)').matches;
 // ---------------------------------------------------------------- monitor gains (called from startPlayback)
 const monitored=()=>!loop||!!loop.daw;
 window.dawVocalGain=()=>{if(!monitored())return 1;const m=D.mix;if(m.vMute)return 0;if(m.bSolo&&!m.vSolo)return 0;return m.vVol;};
-window.dawBeatGain=()=>{if(!monitored())return 1;const m=D.mix;return m.vSolo&&!m.bSolo?0:1;};
+window.dawBeatGain=()=>{if(window.RC?.step==='rc'||!monitored())return 1; // 0.18.2: the POLISH solo buttons do not mute the backing on RECORD & COMP
+  const m=D.mix;return m.vSolo&&!m.bSolo?0:1;};
 function mixChanged(){syncMixUI();if((playing||playPending)&&monitored())restartPlayback();}
 
 // ---------------------------------------------------------------- tabs, dock, modals

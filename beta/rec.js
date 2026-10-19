@@ -1,4 +1,4 @@
-/* Playbook Vocal Studio 0.17.2 — recording engine behind the RECORD & COMP screen.
+/* Playbook Vocal Studio 0.18.2 — recording engine behind the RECORD & COMP screen.
    Punch-in on the fly (into the part under the playhead), loop recording (a take every pass), count-in /
    metronome, mic check + gain, input monitoring, latency calibration, rename, delete-unchosen,
    autosave indicator and backup reminders.
@@ -19,6 +19,21 @@ const dbToGain=db=>Math.pow(10,db/20);
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const PV={}; window.PVSRec=PV;
 let micChecked=false;
+// 0.18.2 (from 0.18.1): one explicit choice, "With backing" / "Without backing", for normal takes, punch-in and loop
+// recording. Saved in the preferences and in the project. Without backing works with no backing loaded and keeps a
+// loaded backing in the project (silent). Loading a backing does not override an explicit "Without backing".
+// The backing is never recorded: only the microphone is.
+if(typeof P.recordBacking==='boolean')$('beatOn').checked=P.recordBacking;
+PV.withBacking=()=>!!S.beat&&$('beatOn').checked;
+PV.recordChoiceMade=()=>typeof P.recordBacking==='boolean'&&!P.recordBacking;
+$('beatOn').addEventListener('change',()=>{P.recordBacking=!!$('beatOn').checked;savePrefs();if(window.RC){RC.dirty=true;RC.sig='';}if(window.Studio)Studio.sync();});
+PV.setRecordBacking=on=>{
+  if(sessionLocked()||rec||R||S.recStarting){toast('Not while recording','Stop the recording first, then change With / Without backing.');return false;}
+  on=!!on;if(on&&!S.beat){toast('No backing loaded','You can record without backing now. To record with one, load it from the ▾ menu on the BACKING lane.');return false;}
+  const was=$('beatOn').checked;$('beatOn').checked=on;P.recordBacking=on;savePrefs();
+  if(was!==on)$('beatOn').dispatchEvent(new Event('change'));persist();
+  phraseMessage(on?'Record WITH backing: you hear the backing in your headphones; only your microphone is recorded.':'Record WITHOUT backing: no backing plays while you record'+(S.beat?' (it stays loaded and saved in the project)':'')+'. Count-in, click and Hear my comp are separate switches.');
+  if(window.Studio)Studio.sync();return true;};
 
 // ================================================================ microphone capture (AudioWorklet)
 const Cap={stream:null,ctx:null,src:null,gain:null,an:null,node:null,mon:null,keep:null,sinks:new Set(),ring:[],peak:0,hold:0,clip:false,label:LS('pvs-mic-label',''),opening:null,checking:false,users:0};
@@ -31,7 +46,7 @@ async function capOpen(){
     const ctx=await resumeAudio();
     if(!ctx.audioWorklet||!window.AudioWorkletNode)throw new Error('This browser has no AudioWorklet, so punch-in and loop recording are not available. Recording a part from the Record button still works.');
     capClose(true);
-    if(Cap.moduleCtx!==ctx){await ctx.audioWorklet.addModule('rec-worklet.js?v=0.17.2');Cap.moduleCtx=ctx;}
+    if(Cap.moduleCtx!==ctx){await ctx.audioWorklet.addModule('rec-worklet.js?v=0.18.2');Cap.moduleCtx=ctx;}
     const stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
     const tr=stream.getAudioTracks()[0];Cap.label=tr?.label||'microphone';LSset('pvs-mic-label',Cap.label);
     Cap.ctx=ctx;Cap.stream=stream;Cap.src=ctx.createMediaStreamSource(stream);Cap.gain=ctx.createGain();Cap.gain.gain.value=dbToGain(P.micGainDb);
@@ -45,7 +60,7 @@ async function capOpen(){
     if(tr)tr.onended=()=>{if(R&&!R.stopping){R.lost=true;R.lostWhy='microphone disconnected';stopRec(true,false,'mic');}capClose(true);syncPanel();}; // 0.17.2: device loss keeps what was recorded (Esc still cancels)
     applyMonitor();syncPanel();return Cap;
   })();
-  try{return await Cap.opening;}finally{Cap.opening=null;}
+  try{return await Cap.opening;}catch(e){capClose(true);throw e;}finally{Cap.opening=null;}
 }
 function capClose(force){
   if(!force&&(Cap.checking||P.monitor&&rec||R||Cap.sinks.size))return;
@@ -80,6 +95,9 @@ PV.clipReset=()=>{Cap.clip=false;Cap.hold=0;if(rec)rec.clip=false;syncPanel();};
 // (also 0 dB) so the GAIN slider and HEAR ME work live while recording.
 let RG=null;
 function rgRelease(){if(!RG)return;for(const n of [RG.g,RG.mon])try{n.disconnect();}catch(e){}RG=null;}
+// 0.18.2 (from 0.18.1): close the mic-check capture before the normal recorder asks for the microphone (one stream)
+window.pvsRecPrepare=()=>{if(R)return;if(Cap.stream||Cap.checking){Cap.checking=false;capClose(true);syncPanel();}};
+window.pvsRecInputClose=()=>rgRelease();
 window.pvsRecStream=(ctx,mic,stream,an)=>{const tr=stream.getAudioTracks()[0];if(tr?.label){Cap.label=tr.label;LSset('pvs-mic-label',tr.label);}
   rgRelease();if(!ctx.createMediaStreamDestination)return stream;
   const g=ctx.createGain(),d=ctx.createMediaStreamDestination(),mon=ctx.createGain();g.gain.value=dbToGain(P.micGainDb);mon.gain.value=0;
@@ -87,7 +105,7 @@ window.pvsRecStream=(ctx,mic,stream,an)=>{const tr=stream.getAudioTracks()[0];if
   setTimeout(()=>{if(!applyMonitor())monFail();},0);return d.stream;};
 const origFinishRec=window.finishRecording;
 window.finishRecording=async function(r){if(rec===r){rgRelease();}return origFinishRec.apply(this,arguments);};
-window.pvsRecVocalGain=()=>{if(!P.hearOld)return 0;return typeof dawVocalGain==='function'?dawVocalGain():1;};
+window.pvsRecVocalGain=()=>P.hearOld?1:0; // 0.18.2: RECORD & COMP no longer follows the POLISH mute / solo buttons
 window.pvsRecScheduled=(r,ctx)=>{applyMonitor();
   const was=micChecked;micChecked=true;if(!was)syncPanel();};
 
@@ -185,6 +203,7 @@ window.phraseRecordOptions=function(){const o=origOptions.apply(this,arguments);
 PV.CAP=600; // 10-minute safety limit for one take
 function capSec(w){w=w||phraseWorkspace();const C=PhraseCore;let secs=0,bytes=w.base?w.base.channels.reduce((n,c)=>n+c.byteLength,0):0;
   for(const p of w.phrases)for(const t of p.takes){secs+=t.channels[0].length/w.rate;bytes+=t.channels.reduce((n,c)=>n+c.byteLength,0);}
+  bytes+=window.Recovery?Recovery.bytes():0; // 0.18.2: recovered audio counts toward the project size
   const room=Math.min(C.MAX_TOTAL-secs,(C.MAX_BYTES-bytes)/(w.rate*4))-3; // mono takes (a two-channel recording of a mono mic is stored as one channel)
   PV.capFull=room<(PV._capSec||PV.CAP);return Math.max(5,Math.min(PV._capSec||PV.CAP,room));}
 PV.capSec=capSec;
@@ -228,6 +247,7 @@ const floorMs=x=>Math.floor(x*1000+1e-6)/1000,ceilMs=x=>Math.ceil(x*1000-1e-6)/1
 async function placeTake(p,o){if(typeof phraseSigNow==='function')phraseSigNow();
   const w=phraseWorkspace(),pre=o.pre||PhraseCore.clone(w),oldEnd=p.end,oldSel=p.takes.find(t=>t.id===p.selected);
   const res={choice:null,removed:[],moved:[],cont:[],oldEnd,oldSel,leftover:0,t:null,adds:0};
+  const hist=phraseUndoStack.slice(),redo=phraseRedoStack.slice(),setHist=h=>{phraseUndoStack.splice(0,phraseUndoStack.length,...h.slice(-40));phraseUndo=phraseUndoStack.at(-1)||null;}; // 0.18.2: a full Undo history (40) no longer loses steps when one take adds several parts
   let L=p.end;
   try{
     if(o.S>p.end+.05){
@@ -250,10 +270,10 @@ async function placeTake(p,o){if(typeof phraseSigNow==='function')phraseSigNow()
       const s=o.slice(Math.max(o.origin,sa-.25),i===segs.length-1?o.E:sb+.3);
       try{await phraseAddAudio(cp,s.chs,o.rate,s.origin,phraseNextTakeName(cp)+(o.suffix||''));res.adds++;res.cont.push(cp);}catch(e){w.phrases=w.phrases.filter(x=>x!==cp);throw e;}}
     for(const q of [p,...res.moved])reAnalyze(q);
-    for(let i=0;i<res.adds;i++)phraseUndoStack.pop();phraseUndoStack.push(pre);phraseUndo=pre;phraseRedoStack=[];
+    setHist([...hist,pre]);phraseRedoStack=[];
     w.selected=p.id;return res;
   }catch(e){ // nothing half-done: put the parts back exactly as they were
-    if(res.adds)for(let i=0;i<res.adds;i++)phraseUndoStack.pop();S.phrases=PhraseCore.clone(pre);syncPhraseUI();throw e;}}
+    if(res.adds){setHist(hist);phraseRedoStack=redo;}S.phrases=PhraseCore.clone(pre);syncPhraseUI();throw e;}}
 PV._placeTake=placeTake;
 function placeText(p,res){let m='';const t=res.t;
   if(p.end>res.oldEnd+.0005)m+=' You '+(res.punch?'punched':'sang')+' past the OUT flag, so '+p.name+' now ends at '+fmt(p.end)+' (was '+fmt(res.oldEnd)+').';
@@ -268,9 +288,11 @@ function placeText(p,res){let m='';const t=res.t;
   return m;}
 function noteSeq(p,t){const m=/^Take (\d+)/.exec(t.name);if(m)p.takeSeq=Math.max(p.takeSeq||0,+m[1]);}
 function lostNote(r,t){return 'The microphone stopped during the recording ('+(r.lostWhy||'disconnected')+'). Everything captured up to then is kept as “'+t.name+'”'+(t.incompleteCover?', which does not cover the whole part':'')+'.';}
-// a raw recording we could not add is kept for download (Settings ▾ › Download my last microphone recording)
-function keepRecovery(chs,rate,why){try{S.phraseRecovery=new Blob([wavFloat(chs,rate)],{type:'audio/wav'});}catch(e){}
-  stopNote('Recording kept for download',why+' Your singing was not lost: Settings ▾ › “Download my last microphone recording” saves it as a WAV file you can import again.');}
+// a raw recording we could not add is kept in Recovered audio (0.18.2; badge at the top of RECORD & COMP) as a WAV
+function keepRecovery(chs,rate,why,name){let b=null;try{b=new Blob([wavFloat(chs,rate)],{type:'audio/wav'});S.phraseRecovery=b;}catch(e){}
+  if(b&&window.Recovery)Recovery.keep(b,name||'Recording that could not be added',why);
+  stopNote('Recording kept for recovery',why+' Your singing was not lost: it is under Recovered audio (the badge at the top), where you can download it as a WAV file and import it again.');}
+PV.keepRecovery=keepRecovery;
 const origFinish=window.phraseFinishRecording;
 window.phraseFinishRecording=async function(r,channels,rate){
   const o=r.phrase,why=r.autoStop,lostSfx=r.lost?' (mic lost)':'';
@@ -305,14 +327,14 @@ function capacityCheck(seconds){const w=phraseWorkspace();const total=w.phrases.
   if(w.phrases.reduce((n,p)=>n+p.takes.length,0)>=128)throw new Error('Save the project and remove unused takes before recording more (128 takes).');
   if(total+seconds>PhraseCore.MAX_TOTAL)throw new Error('The project is near its 30-minute take limit. Save and remove unused takes first.');}
 async function punchStart(){
-  if(R||rec)return;const ctx=audioCtx();if(!playing)return;
+  if(R||rec)return;const ctx=audioCtx();if(!playing)return;if(window.Recovery&&!Recovery.canRecord())return;
   try{capacityCheck(30);}catch(e){phraseMessage(e.message);toast('Cannot punch in',e.message);return;}
   const T0=ctx.currentTime,s0=currentPos();
   R={mode:'punch',T0,s0,a:s0,chunks:[],clip:false,added:0,starting:true,part:partUnder(s0),cap:capSec()};
   S.recStarting=true;
   try{await capOpen();}catch(e){R=null;S.recStarting=false;renderOpen();toast('Punch-in needs the microphone',e.message);phraseMessage(e.message);return;}
   S.recStarting=false;
-  if(!playing){R=null;renderOpen();return;}
+  if(!playing){R=null;capClose();renderOpen();return;}
   // keep up to 1 s of audio captured before R was pressed (only if the mic was already open)
   for(const c of Cap.ring)if(c.frame+c.data.length>(T0-1)*Cap.rate)R.chunks.push(c);
   R.sink=c=>R.chunks.push(c);Cap.sinks.add(R.sink);R.starting=false;
@@ -321,14 +343,14 @@ async function punchStart(){
   phraseMessage('● Punch-in at '+fmt(s0)+(R.part?' on '+R.part.name:' (no part here yet: a new part will be made)')+' — press R to punch out (the song keeps playing), Space to punch out and stop, Esc to cancel.');
 }
 async function loopRecStart(){
-  if(R||rec)return;const ctx=audioCtx();if(!playing||!loop||!loop.daw)return;
+  if(R||rec)return;const ctx=audioCtx();if(!playing||!loop||!loop.daw)return;if(window.Recovery&&!Recovery.canRecord())return;
   const a=loop.start,b=loop.end,L=b-a;
   if(L<.5||L>60){toast('Loop recording','The loop must be 0.5–60 s long to record takes on every pass (it is '+L.toFixed(1)+' s).');return;}
   try{capacityCheck(L*4);}catch(e){toast('Cannot loop-record',e.message);return;}
   R={mode:'loop',T0:ctx.currentTime,s0:a,a,b,L,chunks:[],clip:false,passes:0,added:0,next:null,phrase:loop.rcPart||null,starting:true,pending:Promise.resolve(),cap:capSec()};
   S.recStarting=true;
   try{await capOpen();}catch(e){R=null;S.recStarting=false;renderOpen();toast('Loop recording needs the microphone',e.message);return;}
-  S.recStarting=false;if(!playing||!loop){R=null;renderOpen();return;}
+  S.recStarting=false;if(!playing||!loop){R=null;capClose();renderOpen();return;}
   for(const c of Cap.ring)if(c.frame+c.data.length>(R.T0-1)*Cap.rate)R.chunks.push(c);
   R.sink=c=>R.chunks.push(c);Cap.sinks.add(R.sink);R.starting=false;
   // first pass that starts after (or within 0.25 s before) R was pressed
@@ -362,11 +384,14 @@ async function stopRec(keep,stopTransport,why){
       if(r.lost){const rate=Cap.rate,ps=r.passStart(r.next),seg=chunksBetween(chunks,Math.round((ps-.15+lat)*rate),Infinity);
         if(seg&&seg.data.length>=rate*.3){const origin=r.a+(seg.first/rate-lat-ps);r.raw={data:seg.data,rate};loopOwner=r;
           try{const t=await addRecorded(seg.data,rate,origin,r.a,r.b,'loop');if(t){t.name+=' (mic lost, incomplete)';syncPhraseUI();persist();stopNote('Microphone stopped',lostNote(r,t)+' The finished passes are kept as normal takes.');}}finally{loopOwner=null;}}
-        else stopNote('Microphone stopped','The microphone stopped during loop recording ('+(r.lostWhy||'disconnected')+'). '+(r.added?r.added+' finished pass'+(r.added===1?' is':'es are')+' kept.':'Nothing had been recorded yet.'));}if(!r.added)phraseMessage('Loop recording stopped before a full pass finished — nothing was added.');else phraseMessage('Loop recording: '+r.added+' new take'+(r.added===1?'':'s')+' on '+(r.phrase?.name||'the loop')+'. Listen and choose the best one.');}
-    if(r.why){const what=r.mode==='loop'?'Loop recording':'The punch';const reason={end:'Punched out at the end of '+(r.part?.name||'the part')+' because “Stop at part end” is ON.',paused:what+' stopped by itself because the audio stopped playing (the phone or browser paused it).',hidden:what+' stopped by itself because the app went to the background (screen locked or another app opened). What was recorded is kept.',cap:what+' stopped by itself because it reached the '+capText(r.cap)+' safety limit for one take. What was recorded is kept; press R again to carry on.'}[r.why];
+        else stopNote('Microphone stopped','The microphone stopped during loop recording ('+(r.lostWhy||'disconnected')+'). '+(r.added?r.added+' finished pass'+(r.added===1?' is':'es are')+' kept.':'Nothing had been recorded yet.'));}
+      else if(window.Recovery&&!r.failed){const rate=Cap.rate,ps=r.passStart(r.next),seg=chunksBetween(chunks,Math.round((ps-.15+lat)*rate),Math.round((Math.min(T1,ps+r.L)+.15+lat)*rate));
+        if(seg&&seg.data.length>=rate*.5&&lastSound([seg.data],rate)>.3)Recovery.keep(new Blob([wavFloat([seg.data],rate)],{type:'audio/wav'}),'Unfinished loop pass '+(r.next+1)+' ('+(r.phrase?.name||'loop')+')','You stopped before this pass was complete, so it is not a take. Full passes are kept as takes.');}if(!r.added)phraseMessage('Loop recording stopped before a full pass finished — nothing was added.');else phraseMessage('Loop recording: '+r.added+' new take'+(r.added===1?'':'s')+' on '+(r.phrase?.name||'the loop')+'. Listen and choose the best one.');}
+    if(r.why){const what=r.mode==='loop'?'Loop recording':'The punch';const reason={end:'Punched out at the end of '+(r.part?.name||'the part')+' because “Stop at part end” is ON.',paused:what+' stopped by itself because the audio stopped playing (the phone or browser paused it).',hidden:what+' stopped by itself because the app went to the background (screen locked or another app opened). What was recorded is kept.',cap:what+' stopped by itself because it reached the '+capText(r.cap)+' safety limit for one take. What was recorded is kept; press R again to carry on.',capacity:'Loop recording stopped because the project is full. Finished passes are kept; the pass that did not fit is under Recovered audio.'}[r.why];
       if(reason)stopNote(r.why==='end'?'Punched out at the part end':'Recording stopped by itself',reason+(r.why==='end'?' Turn it OFF on the part panel to keep punching past OUT.':''));}
     if(r.clip)toast('Some peaks clipped','The take is kept. Move back from the mic or lower the GAIN next to the mic meter, and check the clipping figure before choosing.');
-  }catch(e){if(r.raw&&r.raw.data.length>=r.raw.rate*.5)keepRecovery([r.raw.data],r.raw.rate,'Recording not added: '+e.message);else phraseMessage('Recording not added: '+e.message);}
+  }catch(e){if(!r.raw&&keep){const rate=Cap.rate||ctx.sampleRate,seg=chunksBetween(chunks,0,Infinity);if(seg)r.raw={data:seg.data,rate};}
+    if(keep&&r.raw&&r.raw.data.length>=r.raw.rate*.5)keepRecovery([r.raw.data],r.raw.rate,'Recording not added: '+e.message,'Interrupted '+(r.mode==='loop'?'loop':'punch-in')+' recording');else phraseMessage('Recording not added: '+e.message);}
   finally{capClose();renderOpen();syncPhraseUI();D.dirty=true;}
 }
 PV.stop=(stopTransport)=>{if(R)return stopRec(true,!!stopTransport);if(rec&&rec.mr&&rec.mr.state!=='inactive')rec.mr.stop();};
@@ -449,7 +474,9 @@ PV.record=(shift)=>{
   if(playing||playPending){if(loop)endLoop();stopPlayback();}
   gate(()=>shift?nextPhrase():redoPhrase());
 };
-function queuePass(owner,c){owner.next=Math.max(owner.next,c+1);owner.passes++;owner.pending=owner.pending.then(async()=>{loopOwner=owner;try{await finishLoopPassFor(owner,c);}catch(e){phraseMessage('Loop pass not added: '+e.message);}finally{loopOwner=null;owner.kept=c+1;}});}
+function queuePass(owner,c){owner.next=Math.max(owner.next,c+1);owner.passes++;owner.pending=owner.pending.then(async()=>{loopOwner=owner;try{await finishLoopPassFor(owner,c);}catch(e){const rate=Cap.rate,lat=pvsLatency(),ps=owner.passStart(c),seg=chunksBetween(owner.chunks,Math.round((ps-.15+lat)*rate),Math.round((ps+owner.L+.15+lat)*rate));
+    if(seg&&window.Recovery)Recovery.keep(new Blob([wavFloat([seg.data],rate)],{type:'audio/wav'}),'Loop pass '+(c+1)+' ('+(owner.phrase?.name||'loop')+')','This pass could not be added as a take: '+e.message);
+    phraseMessage('Loop pass not added ('+e.message+'). It is kept under Recovered audio and loop recording stops.');owner.failed=true;if(R===owner&&!R.stopping)setTimeout(()=>stopRec(true,true,'capacity'),0);}finally{loopOwner=null;owner.kept=c+1;}});}
 function loopPollBound(){if(!R||R.mode!=='loop'||R.stopping)return;const ctx=audioCtx(),lat=pvsLatency();
   while(ctx.currentTime>R.passStart(R.next+1)+.15+lat+.12)queuePass(R,R.next);
   const keepFrom=(R.passStart(R.kept)-1)*Cap.rate;while(R.chunks.length&&R.chunks[0].frame+R.chunks[0].data.length<keepFrom)R.chunks.shift();}
@@ -483,6 +510,7 @@ PV.inlineRename=(kind,p,obj,x,y)=>{closeCtx();const inp=$('inlineEdit');const cu
 // ================================================================ mic check (RECORD & COMP meter, pre-record modal)
 let mcAfter=null;
 async function micCheckOn(on){
+  if(on&&rec&&!R){phraseMessage('The recording meter is already showing your microphone level.');return false;} // 0.18.2: no second mic stream during a take
   if(on){Cap.checking=true;Cap.clip=false;Cap.hold=0;try{await capOpen();}catch(e){Cap.checking=false;toast('Mic check',e.message);syncPanel();return false;}applyMonitor();}
   else{Cap.checking=false;applyMonitor();capClose();}
   syncPanel();return true;}

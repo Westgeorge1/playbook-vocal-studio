@@ -1,10 +1,13 @@
-/* Playbook Vocal Studio 0.17.2 — RECORD & COMP screen: the one place where you record.
+/* Playbook Vocal Studio 0.18.2 — RECORD & COMP screen: the one place where you record.
      part  = phrase (S.phrases.phrases[]),  take = phrase take,  chosen take = phrase.selected,
      comp  = PhraseCore.compose(workspace) (same join fade as before),  POLISH = phraseApply() + CLEAN/TUNE/CHAIN/DETAIL/MIX.
    0.17.0 fused the old POLISH recording tools in here as first-class controls:
      punch-in on the fly (R / REC while playing), Loop toggle (every pass = a take), CLICK next to the count-in,
      HEAR ME (input monitoring), mic GAIN next to the meter, Import take. Settings ▾ holds only settings and files.
-   Nothing here changes audio math or the project format. */
+   0.18.2 (features from 0.18.1, placed tidily): timeline zoom / Fit part / Fit song / Hand (small cluster in the
+     ruler corner), With / Without backing switch next to REC, backing controls on the BACKING lane header,
+     VOCAL ▾ menu on the COMP lane header, Edit button on each take (opens the take editor, studio.js).
+   Nothing here changes audio math. */
 (function(){
 'use strict';
 const D=window.DAW,PV=window.PVSRec;
@@ -49,12 +52,14 @@ new ResizeObserver(setStepsHeight).observe($('rcSteps'));
 // ---------------------------------------------------------------- comp (cached compose of the chosen takes)
 let compCache={w:null,rev:-1,key:'',chs:null,err:''};
 function compKey(w){return w.phrases.map(p=>p.id+':'+p.start+':'+p.end+':'+(p.selected||'')).join('|')+'|'+w.fadeMs+'|'+(w.base?1:0);}
-function hasComp(){const w=W();return !!w.base||w.phrases.some(p=>p.selected);}
-function compChannels(){const w=W(),k=compKey(w);
+function mainOnly(){const w=W();return !!(S.main&&!w.base&&!w.phrases.length&&(S.audio[0]||S.audio[5]));}
+function hasComp(){const w=W();return !!w.base||w.phrases.some(p=>p.selected)||mainOnly();}
+function compRate(){return mainOnly()?S.rate:W().rate;}
+function compChannels(){const w=W(),k=compKey(w);if(mainOnly())return S.audio[0]||S.audio[5];
   if(compCache.w===w&&compCache.rev===w.revision&&compCache.key===k)return compCache.chs;
   let chs=null,err='';try{if(hasComp())chs=PhraseCore.compose(w);}catch(e){err=e.message;}
   compCache={w,rev:w.revision,key:k,chs,err};return chs;}
-RC.compChannels=compChannels;
+RC.compChannels=compChannels;RC.compRate=compRate;RC.hasComp=hasComp;
 
 // ---------------------------------------------------------------- playback
 function padTo(chs,rate,sec){const n=Math.ceil(sec*rate);if(!chs||chs[0].length>=n)return chs;if(compCache.padSrc===chs&&compCache.padN===n)return compCache.pad;const out=chs.map(c=>{const a=new Float32Array(n);a.set(c);return a;});compCache.padSrc=chs;compCache.padN=n;compCache.pad=out;return out;}
@@ -62,12 +67,12 @@ async function playFrom(at,quiet){
   if(rec||S.recStarting||S.loading)return false;const w=W();const say=m=>{if(!quiet)rcMsg(m);};
   const comp=PV.prefs.hearOld?compChannels():null;
   RC.auditioning=false;RC.savedPos=null;
-  if(comp){endLoop();const beatOn=S.beat&&$('beatOn').checked;const chs=beatOn?padTo(comp,w.rate,S.beat.duration):comp;
-    loop={phrase:true,rcComp:true,chs,rate:w.rate,gain:phraseSafeGain(comp),start:0,end:chs[0].length/w.rate,noBeat:!beatOn,beatOffset:0,oneShot:true};RC.playMode='comp';
+  if(comp){endLoop();const beatOn=S.beat&&$('beatOn').checked;const cr=compRate(),chs=beatOn?padTo(comp,cr,S.beat.duration):comp;
+    loop={phrase:true,rcComp:true,chs,rate:cr,gain:phraseSafeGain(comp),start:0,end:chs[0].length/cr,noBeat:!beatOn,beatOffset:0,oneShot:true};RC.playMode='comp';
     at=Math.max(0,at);if(at>=loop.end-.1)at=0; // past the end -> start again from the top
     const ok=await startPlayback(at);say(ok?'Playing your comp'+(beatOn?' with the backing.':'.')+' Press R to punch in at the playhead.':'Audio could not start.');return ok;}
   if(S.beat&&$('beatOn').checked){endLoop();RC.playMode='beat';if(at>=S.beat.duration-.1)at=0;const ok=await startPlayback(Math.max(0,at),'beat');say(ok?'Playing the backing'+(PV.prefs.hearOld?' (no chosen takes yet).':' only (Hear my comp is OFF).')+' Press R to punch in at the playhead.':'Audio could not start.');return ok;}
-  toast('Nothing to play yet',S.beat?'The backing is OFF and no take is chosen yet.':'Open a backing track (Settings ▾ › Open backing track) or record and choose a take.');return false;}
+  toast('Nothing to play yet',S.beat?'Without backing is on and no take is chosen yet.':'Load a backing from the ▾ on the BACKING lane, or record and choose a take.');return false;}
 function rcPlay(){if(rec||S.recStarting)return;if(playing||playPending){stopAll();return;}
   playFrom(RC.savedPos!=null?RC.savedPos:position);}
 function stopAll(){if(loop)endLoop();stopPlayback();restoreAfterAudition();RC.dirty=true;}
@@ -126,7 +131,7 @@ function pollReplace(){const r=RC.replace;if(!r)return;const w=W(),p=w.phrases.f
     if(p.selected===r.tid)p.selected=r.chosen&&PhraseCore.covers(nt,p)?nt.id:null;
     RC.aud=nt.id;phraseChanged(nt.name+' replaces '+old.name+' on '+p.name+'. Undo brings '+old.name+' back.');return;}
   if(performance.now()-r.t0>1500)RC.replace=null;}
-RC.record=rcRecord;RC.redoLast=redoLast;RC.loopRec=()=>{const p=sel();if(p)loopRec(p);};
+RC.record=rcRecord;RC.slow=()=>slow();RC.redoLast=redoLast;RC.loopRec=()=>{const p=sel();if(p)loopRec(p);};
 
 // ---------------------------------------------------------------- parts
 function selectPart(p){if(!p||phraseBusy())return;if(W().selected!==p.id){phraseSelect(p.id);const ch=p.takes.find(t=>t.id===p.selected);RC.aud=ch?ch.id:p.takes.at(-1)?.id||null;}RC.dirty=true;}
@@ -181,20 +186,43 @@ RC.exportComp=exportComp;RC.compDone=compDone;
 
 // ---------------------------------------------------------------- timeline geometry (desktop)
 const HEADW=170,ADDW=104,RULER=30,BACK=56,PARTS=46,TAKE=44,COMP=54;
-let geo={w:600,dur:30};
+let geo={w:600,dur:30,start:0,span:30};
+// 0.18.2 view: fit:'auto' = whole song on desktop / the selected part on the phone; 'part' follows the selected part;
+// 'song' = whole song; null = the zoom the user chose (start + dur seconds).
+RC.view={fit:'auto',start:0,dur:0};RC.hand=false;
+function viewRange(){const sd=songDur(),v=RC.view,p=sel();
+  if(v.fit==='song'||(v.fit==='auto'&&!narrow()))return [0,sd];
+  if(v.fit==='part'||v.fit==='auto'){if(!p)return [0,sd];if(narrow())return miniDefault(p);const m=Math.max(.25,(p.end-p.start)*.05);return [Math.max(0,p.start-Math.max(m,Math.min(PV.preRoll(),2))),Math.min(sd+30,p.end+m)];}
+  const dur=Math.max(1,Math.min(sd,v.dur||sd)),a=Math.max(0,Math.min(v.start,sd-dur));return [a,a+dur];}
+function setView(start,dur){const sd=songDur();if(!(dur>0)||dur>=sd-.01){RC.view={fit:'song',start:0,dur:0};}else{dur=Math.max(1,dur);RC.view={fit:null,start:Math.max(0,Math.min(start,sd-dur)),dur};}layout();RC.sig='';RC.dirty=true;}
+function getView(){const [a,b]=viewRange();return {start:a,dur:b-a,song:songDur(),fit:RC.view.fit,zoomed:b-a<songDur()-.01,w:geo.w};}
+function zoomBy(f){const v=getView(),p=sel(),now=nowT();let c=v.start+v.dur/2;if(now>v.start&&now<v.start+v.dur&&(playing||rec))c=now;else if(p&&p.end>v.start&&p.start<v.start+v.dur)c=(Math.max(p.start,v.start)+Math.min(p.end,v.start+v.dur))/2;
+  const d=Math.max(1,v.dur/f);setView(c-d/2,d);}
+function fitPart(){if(!sel()){toast('No part selected','Add or select a part first.');return;}RC.view={fit:'part',start:0,dur:0};layout();RC.sig='';}
+function fitSong(){RC.view={fit:'song',start:0,dur:0};layout();RC.sig='';}
+function panBy(frac){const v=getView();setView(v.start+frac*v.dur,v.dur);}
+function setHand(on){RC.hand=!!on;RC.sig='';RC.dirty=true;for(const b of qa('[data-z="hand"]'))b.setAttribute('aria-pressed',RC.hand);rcMsg(RC.hand?'Hand ON: drag the timeline to scroll it. Click ✋ again to edit parts.':'Hand OFF: click and drag edits parts again.');}
+Object.assign(RC,{setView,getView,zoomBy,fitPart,fitSong,panBy,setHand,viewRange});
 function songDur(){const w=W();return Math.max(S.beat?.duration||0,w.phrases.length||w.base?PhraseCore.duration(w):0,20)+.5;}
 function lanes(){const w=W(),n=Math.max(3,...w.phrases.map(p=>p.takes.length));const L=[{k:'ruler',h:RULER},{k:'beat',h:BACK},{k:'parts',h:PARTS}];for(let i=0;i<n;i++)L.push({k:'take',i,h:TAKE});L.push({k:'comp',h:COMP});let y=0;for(const l of L){l.y=y;y+=l.h;}return L;}
-function X(t){return t/geo.dur*(geo.w-ADDW);}
-function T(x){return Math.max(0,x/(geo.w-ADDW)*geo.dur);}
-RC.X=X;RC.lanes=()=>lanes();
+function X(t){return (t-geo.start)/geo.span*(geo.w-ADDW);}
+function T(x){return Math.max(0,geo.start+x/(geo.w-ADDW)*geo.span);}
+RC.X=X;RC.T=T;RC.songDur=songDur;RC.lanes=()=>lanes();
 function layout(){if(RC.step!=='rc')return;const L=lanes(),H=L.at(-1).y+L.at(-1).h,tl=$('rcTl'),c=$('rcCanvas'),r=Math.min(2,devicePixelRatio||1),w=Math.max(300,tl.clientWidth||600);
-  geo={w,dur:songDur()};c.style.width=w+'px';c.style.height=H+'px';if(c.width!==Math.round(w*r)||c.height!==Math.round(H*r)){c.width=Math.round(w*r);c.height=Math.round(H*r);}
+  const [va,vb]=viewRange();geo={w,dur:songDur(),start:va,span:Math.max(.5,vb-va)};c.style.width=w+'px';c.style.height=H+'px';if(c.width!==Math.round(w*r)||c.height!==Math.round(H*r)){c.width=Math.round(w*r);c.height=Math.round(H*r);}
   const key=L.map(l=>l.k+(l.i??'')).join('|');if(key!==RC.headKey){RC.headKey=key;$('rcHeads').innerHTML=L.map(l=>'<div class="rch '+l.k+'" style="height:'+l.h+'px">'+headHTML(l)+'</div>').join('');}
   syncHeads();const pl=L.find(l=>l.k==='parts');const ab=$('rcAddBtn');ab.style.top=(pl.y+6)+'px';ab.style.left=(w-ADDW+6)+'px';ab.style.width=(ADDW-10)+'px';ab.style.height=(pl.h-12)+'px';
   sizeMini();RC.dirty=true;}
-function headHTML(l){if(l.k==='ruler')return '<span class="rcs">bars</span>';if(l.k==='beat')return '<b>BACKING</b><span class="rcs" id="rcBeatName">none</span>';
+const ZOOMHTML='<div class="rczoom" role="group" aria-label="Timeline zoom"><button data-z="out" title="Zoom out (−)" aria-label="Zoom out">−</button><button data-z="in" title="Zoom in (+)" aria-label="Zoom in">+</button><button data-z="part" title="Fit the selected part">Part</button><button data-z="song" title="Fit the whole song">Song</button><button data-z="hand" aria-pressed="false" title="Hand: drag the timeline to scroll it" aria-label="Hand (drag to scroll)">✋</button></div>';
+function headHTML(l){if(l.k==='ruler')return ZOOMHTML;
+  if(l.k==='beat')return '<div class="rchrow"><b>BACKING</b><button class="rchb" id="rcBeatMute" aria-pressed="false" title="Mute the backing (same as Without backing)">M</button><button class="rchb" id="rcBeatMenu" aria-haspopup="true" title="Load, replace or remove the backing track" aria-label="Backing menu">▾</button></div><span class="rcs" id="rcBeatName">none</span><label class="rchlvl" title="Backing level in your headphones (not recorded)"><input type="range" id="rcBeatLevel" min="0" max="100" step="1" value="80" aria-label="Backing level"><output id="rcBeatLevelV">80%</output></label>';
+  if(l.k==='comp')return '<div class="rchrow"><b class="grn">COMP</b><button class="rchb rchvoc" id="rcVocalMenu" aria-haspopup="true" title="Import a whole vocal, play it, or clear it">VOCAL ▾</button></div><span class="rcs">best takes joined</span>';
   if(l.k==='parts')return '<b class="acc">PARTS</b><span class="rcs">click to select</span>';if(l.k==='take')return '<b class="mut">Take '+(l.i+1)+'</b>';return '<b class="grn">COMP</b><span class="rcs">best takes joined</span>';}
-function syncHeads(){const b=$('rcBeatName');if(b)b.textContent=S.beat?S.beatName+($('beatOn').checked?'':' · OFF'):'none · Settings ▾ › Open backing';}
+function syncHeads(){const b=$('rcBeatName');if(b){const t=S.beatLoading?'loading…':S.beat?S.beatName:'none · ▾ to load';if(b.textContent!==t){b.textContent=t;b.title=S.beat?S.beatName:'';}}
+  const m=$('rcBeatMute'),on=!!S.beat&&$('beatOn').checked;if(m){m.setAttribute('aria-pressed',!!S.beat&&!on);m.disabled=!S.beat||busy();}
+  const lv=$('rcBeatLevel');if(lv){const v=Math.round((S.beatLevel??.8)*100);if(document.activeElement!==lv)lv.value=v;lv.disabled=!S.beat;$('rcBeatLevelV').textContent=v+'%';}
+  for(const z of qa('[data-z="hand"]'))z.setAttribute('aria-pressed',RC.hand);
+  const v=getView(),pr=$('rcPanRow');if(pr){const show=v.zoomed&&!narrow();if(pr.hidden===show)pr.hidden=!show;const pn=$('rcPan'),max=Math.max(0,v.song-v.dur);if(show&&document.activeElement!==pn)pn.value=max?Math.round(v.start/max*1000):0;pr.style.setProperty('--thumb',Math.max(4,Math.min(100,v.dur/v.song*100))+'%');}}
 window.addEventListener('resize',()=>{layout();});new ResizeObserver(()=>layout()).observe($('rcTl'));
 
 // ---------------------------------------------------------------- peaks
@@ -207,13 +235,13 @@ function rr(g,x,y,w,h,r){g.beginPath();g.roundRect?g.roundRect(x,y,w,h,r):g.rect
 
 // ---------------------------------------------------------------- draw (desktop timeline)
 function nowT(){if(rec&&rec.target==='phrase'&&rec.phrase)return Math.max(0,rec.origin+(performance.now()-rec.t0)/1000);return playing?D.playheadTime():position;}
-function draw(){const c=$('rcCanvas'),g=c.getContext('2d');if(!g)return;const r=c.width/(parseFloat(c.style.width)||1);g.setTransform(r,0,0,r,0,0);
+function draw(){const c=$('rcCanvas'),g=c.getContext('2d');if(!g)return;{const [va,vb]=viewRange();geo.start=va;geo.span=Math.max(.5,vb-va);}const r=c.width/(parseFloat(c.style.width)||1);g.setTransform(r,0,0,r,0,0);
   const Wd=geo.w,L=lanes(),H=L.at(-1).y+L.at(-1).h,w=W(),sp=sel(),Tw=Wd-ADDW,lane=k=>L.find(l=>l.k===k);
   g.clearRect(0,0,Wd,H);
   for(const l of L){g.fillStyle=l.k==='ruler'?'#0a0d12':l.k==='comp'?'#0d1612':'#0f141a';g.fillRect(0,l.y,Wd,l.h);g.fillStyle='#070a0e';g.fillRect(0,l.y+l.h-1,Wd,1);}
   // bars
-  const bar=barSec(),bpx=X(bar);let every=1;while(every*bpx<26)every*=2;g.font='600 10px "IBM Plex Mono",monospace';
-  for(let b=0;b*bar<=geo.dur;b++){const x=X(b*bar);if(x>Tw)break;const big=b%(every*4)===0||every>=4&&b%every===0;if(b%every===0){g.fillStyle=big?'#8d98a5':'#3a4450';g.fillRect(x,big?10:18,1,RULER-(big?10:18));if(big){g.fillStyle='#8d98a5';g.fillText(String(b+1),x+3,10);}g.fillStyle='rgba(255,255,255,.035)';g.fillRect(x,RULER,1,H-RULER);}}
+  const bar=barSec(),bpx=X(bar)-X(0);let every=1;while(every*bpx<26)every*=2;g.font='600 10px "IBM Plex Mono",monospace';
+  for(let b=Math.max(0,Math.floor(geo.start/bar/every)*every);b*bar<=geo.start+geo.span;b++){const x=X(b*bar);if(x>Tw)break;const big=b%(every*4)===0||every>=4&&b%every===0;if(b%every===0){g.fillStyle=big?'#8d98a5':'#3a4450';g.fillRect(x,big?10:18,1,RULER-(big?10:18));if(big){g.fillStyle='#8d98a5';g.fillText(String(b+1),x+3,10);}g.fillStyle='rgba(255,255,255,.035)';g.fillRect(x,RULER,1,H-RULER);}}
   // selected part shading + pre-roll + IN/OUT
   const pre=PV.preRoll();let a=0,b=0;
   if(sp){const dr=RC.drag&&RC.drag.p===sp?RC.drag:null;a=dr&&dr.which==='start'?dr.t:sp.start;b=dr&&dr.which==='end'?dr.t:sp.end;
@@ -221,8 +249,8 @@ function draw(){const c=$('rcCanvas'),g=c.getContext('2d');if(!g)return;const r=
     g.fillStyle='#f0a030';g.font='600 9px "IBM Plex Sans",sans-serif';if(X(a)-X(a-pre)>34)g.fillText('pre-roll',X(a-pre)+3,RULER+9);}
   // 0.17.0: song markers are kept in old projects' data but no longer drawn
   // backing
-  const lb=lane('beat');if(S.beat){g.fillStyle='#131a28';rr(g,1,lb.y+3,Math.min(Tw,X(S.beat.duration))-2,lb.h-6,4);g.fill();wave(g,S.beat.getChannelData(0),S.beat.sampleRate,0,0,S.beat.duration,lb.y+4,lb.h-8,$('beatOn').checked?'#5a7be0':'#323c52',X,T);}
-  else{g.fillStyle='#5d6873';g.font='13px "IBM Plex Sans",sans-serif';g.fillText('No backing track yet · Settings ▾ › Open backing track',10,lb.y+lb.h/2+4);}
+  const lb=lane('beat');if(S.beat){const bx0=Math.max(1,X(0)+1),bx1=Math.min(Tw,X(S.beat.duration))-1;if(bx1>bx0){g.fillStyle='#131a28';rr(g,bx0,lb.y+3,bx1-bx0,lb.h-6,4);g.fill();}wave(g,S.beat.getChannelData(0),S.beat.sampleRate,0,0,S.beat.duration,lb.y+4,lb.h-8,$('beatOn').checked?'#5a7be0':'#323c52',X,T);}
+  else{g.fillStyle='#5d6873';g.font='13px "IBM Plex Sans",sans-serif';g.fillText('No backing track · load one with ▾ on the left, or record Without backing',10,lb.y+lb.h/2+4);}
   // parts
   const lp=lane('parts'),list=sorted();
   list.forEach((p,i)=>{const isSel=p.id===w.selected,dr=RC.drag&&RC.drag.p===p?RC.drag:null,pa=dr&&dr.which==='start'?dr.t:p.start,pb=dr&&dr.which==='end'?dr.t:p.end,x0=X(pa)+1,x1=X(pb)-1;if(x1<0||x0>Tw)return;
@@ -265,7 +293,8 @@ function draw(){const c=$('rcCanvas'),g=c.getContext('2d');if(!g)return;const r=
 
 // ---------------------------------------------------------------- phone mini view of the selected part
 function sizeMini(){const c=$('rcMini');if(!c||!narrow()||RC.step!=='rc')return;const w=Math.max(200,c.clientWidth||300),h=72,r=Math.min(2,devicePixelRatio||1);if(c.width!==Math.round(w*r)||c.height!==Math.round(h*r)){c.width=Math.round(w*r);c.height=Math.round(h*r);}c.style.height=h+'px';}
-function miniRange(p){const pre=PV.preRoll(),a0=Math.max(0,p.start-pre),b0=p.end+Math.min(1,(p.end-p.start)*.04);return [a0,b0];}
+function miniDefault(p){const pre=PV.preRoll(),a0=Math.max(0,p.start-pre),b0=p.end+Math.min(1,(p.end-p.start)*.04);return [a0,b0];}
+function miniRange(p){if(RC.view.fit==='auto'||RC.view.fit==='part'||!narrow())return miniDefault(p);return viewRange();}
 function drawMini(){const c=$('rcMini'),g=c.getContext('2d');if(!g)return;const w=c.clientWidth||300,h=72,r=c.width/w;g.setTransform(r,0,0,r,0,0);g.clearRect(0,0,w,h);g.fillStyle='#0f141a';g.fillRect(0,0,w,h);
   const p=sel();if(!p){g.fillStyle='#8d98a5';g.font='12px "IBM Plex Sans",sans-serif';g.fillText('Add a part to see it here',10,40);return;}
   const dr=RC.drag&&RC.drag.p===p&&RC.drag.mini?RC.drag:null,pa=dr&&dr.which==='start'?dr.t:p.start,pb=dr&&dr.which==='end'?dr.t:p.end;const [a0,b0]=miniRange({start:pa,end:pb});const Xm=t=>(t-a0)/(b0-a0)*w,Tm=x=>a0+x/w*(b0-a0);RC.miniX=Xm;RC.miniT=Tm;
@@ -284,6 +313,12 @@ function edgeAt(x,lk){const w=W(),cand=lk==='ruler'?[sel()].filter(Boolean):sort
 function snap(t,free){if(free)return Math.round(t*100)/100;const b=beatSec();return Math.round(t/b)*b;}
 function clampEdge(p,which,t){if(which==='start')return Math.max(0,Math.min(t,p.end-.5,899.5),p.end-60);return Math.min(900,Math.max(t,p.start+.5),p.start+60);}
 const cv=$('rcCanvas');let clickTimer=0;
+let handDrag=null;
+for(const c of [cv,$('rcMini')]){
+  c.addEventListener('pointerdown',e=>{if(!RC.hand||e.button)return;e.preventDefault();e.stopImmediatePropagation();const v=getView();handDrag={x:e.clientX,start:v.start,dur:v.dur,w:c===cv?geo.w-ADDW:c.clientWidth};try{c.setPointerCapture(e.pointerId);}catch(_){}c.style.cursor='grabbing';},true);
+  c.addEventListener('pointermove',e=>{if(!handDrag)return;e.stopImmediatePropagation();setView(handDrag.start-(e.clientX-handDrag.x)/handDrag.w*handDrag.dur,handDrag.dur);},true);
+  for(const ty of ['pointerup','pointercancel'])c.addEventListener(ty,e=>{if(handDrag){handDrag=null;c.style.cursor='grab';e.stopImmediatePropagation();}},true);
+  c.addEventListener('wheel',e=>{if(e.ctrlKey||e.metaKey){e.preventDefault();zoomBy(e.deltaY<0?1.25:.8);}else if(Math.abs(e.deltaX)>Math.abs(e.deltaY)||e.shiftKey){const v=getView();if(!v.zoomed)return;e.preventDefault();panBy((e.deltaX||e.deltaY)/Math.max(200,c.clientWidth));}},{passive:false});}
 cv.addEventListener('pointerdown',e=>{if(e.button)return;closePops();D.ctx='phrase';const h=hit(e);if(!h.l||h.right)return;
   if((h.l.k==='parts'||h.l.k==='ruler')&&!phraseBusy()){const ed=edgeAt(h.x,h.l.k);if(ed){try{cv.setPointerCapture(e.pointerId);}catch(_){}if(ed.p.id!==W().selected)selectPart(ed.p);RC.drag={p:ed.p,which:ed.which,t:ed.p[ed.which],x0:e.clientX};return;}}
   if(h.l.k==='ruler'){rcSeek(h.t);return;}
@@ -291,7 +326,7 @@ cv.addEventListener('pointerdown',e=>{if(e.button)return;closePops();D.ctx='phra
   if(h.l.k==='parts'){const p=partAt(h.t);if(p){selectPart(p);rcMsg(p.name+' selected · '+partInfo(p)+'. Press Record (R).');}else rcSeek(h.t);return;}
   if(h.l.k==='take'){const p=partAt(h.t),t=p?.takes[h.l.i];if(t){clearTimeout(clickTimer);const tt=t,pp=p;clickTimer=setTimeout(()=>audition(tt,pp),230);}else if(p)selectPart(p);else rcSeek(h.t);return;}
   if(h.l.k==='comp'){rcSeek(h.t);if(!playing)playFrom(h.t);return;}});
-cv.addEventListener('pointermove',e=>{const h=hit(e);
+cv.addEventListener('pointermove',e=>{if(RC.hand){cv.style.cursor=handDrag?'grabbing':'grab';return;}const h=hit(e);
   if(RC.drag&&e.buttons){RC.drag.t=clampEdge(RC.drag.p,RC.drag.which,snap(h.t,e.shiftKey));RC.dirty=true;return;}
   if(h.l&&(h.l.k==='parts'||h.l.k==='ruler')&&!h.right&&edgeAt(h.x,h.l.k))cv.style.cursor='ew-resize';else cv.style.cursor=h.l&&(h.l.k==='take'||h.l.k==='parts')?'pointer':'default';});
 function endDrag(e){const d=RC.drag;RC.drag=null;if(!d)return;if(Math.abs(d.t-d.p[d.which])>.005&&(!e||Math.abs(e.clientX-d.x0)>2)){const a=d.which==='start'?d.t:d.p.start,b=d.which==='end'?d.t:d.p.end,had=d.p.selected,ht=d.p.takes.find(t=>t.id===had);PV.setBounds(d.p,a,b);
@@ -360,7 +395,7 @@ function sync(force){const s=signature();if(!force&&s===RC.sig)return;RC.sig=s;R
   // take list
   const rows=p?p.takes.map(t=>{const ch=p.selected===t.id,aud=RC.aud===t.id,pl=playing&&RC.playingTake===t.id&&loop&&loop.phrase&&!loop.rcComp;
     return '<div class="rctake'+(ch?' chosen':'')+(aud?' aud':'')+'" data-id="'+esc(t.id)+'"><div class="rctn"><b>'+esc(t.name)+'</b><small>'+esc(takeNote(t,p,rank))+'</small>'+(whyLabel(t,p,rank)?'<button class="rcwhyb" data-act="why" aria-expanded="'+RC.why.has(t.id)+'">'+whyLabel(t,p,rank)+'</button>':'')+'</div>'+
-      '<button class="rcbtn rcplay" data-act="play" aria-label="Play '+esc(t.name)+'">'+(pl?'■':'▶')+'<span class="rcphone"> '+(pl?'Stop':'Play')+'</span></button><button class="rcbtn rcchoose" data-act="choose" title="'+(ch?'Chosen for the comp. Click to un-choose it.':'Use this take in the comp')+'">'+(ch?'✓ Chosen':'✓ Choose')+'</button><button class="rcbtn rcdel" data-act="del" aria-label="Delete '+esc(t.name)+'">Del</button>'+(RC.why.has(t.id)?'<div class="rcwhy" role="note">'+whyText(t,p,rank).map(x=>'<div>'+esc(x)+'</div>').join('')+'</div>':'')+'</div>';}).join(''):'';
+      '<button class="rcbtn rcplay" data-act="play" aria-label="Play '+esc(t.name)+'">'+(pl?'■':'▶')+'<span class="rcphone"> '+(pl?'Stop':'Play')+'</span></button><button class="rcbtn rcchoose" data-act="choose" title="'+(ch?'Chosen for the comp. Click to un-choose it.':'Use this take in the comp')+'">'+(ch?'✓ Chosen':'✓ Choose')+'</button><button class="rcbtn rcedit" data-act="edit" title="Open the take editor: select, level, silence, fade, trim, split, move, nudge" aria-label="Edit '+esc(t.name)+'">Edit</button><button class="rcbtn rcdel" data-act="del" aria-label="Delete '+esc(t.name)+'">Del</button>'+(RC.why.has(t.id)?'<div class="rcwhy" role="note">'+whyText(t,p,rank).map(x=>'<div>'+esc(x)+'</div>').join('')+'</div>':'')+'</div>';}).join(''):'';
   const th=rows||'<p class="rcempty">'+(p?'No takes yet. Press the big red button (or R), sing, then press Stop (R or Space) — it records until you stop. Or turn Loop ON to record a take on every pass, or Import a take.':'No part selected.')+'</p>';
   // rebuild the list only when it really changed, and never in the middle of a tap/click on it (the click would be lost)
   if(RC.listPress){RC.sig='';}else if(RC.takesHtml!==th){RC.takesHtml=th;$('rcTakes').innerHTML=th;}
@@ -383,7 +418,7 @@ function sync(force){const s=signature();if(!force&&s===RC.sig)return;RC.sig=s;R
 }
 $('rcTakes').addEventListener('pointerdown',()=>{RC.listPress=true;});window.addEventListener('pointerup',()=>{if(RC.listPress)setTimeout(()=>{RC.listPress=false;RC.sig='';},0);},true);window.addEventListener('pointercancel',()=>{RC.listPress=false;RC.sig='';},true);
 $('rcTakes').addEventListener('click',e=>{const row=e.target.closest('.rctake');if(!row)return;const p=sel(),t=p?.takes.find(t=>t.id===row.dataset.id);if(!t)return;const b=e.target.closest('button');
-  const act=b?b.dataset.act:'aud';if(act==='play'||act==='aud')audition(t,p);else if(act==='choose')choose(t,p,true);else if(act==='del')delTake(t,p);else if(act==='why'){if(RC.why.has(t.id))RC.why.delete(t.id);else RC.why.add(t.id);}RC.sig='';});
+  const act=b?b.dataset.act:'aud';if(act==='play'||act==='aud')audition(t,p);else if(act==='choose')choose(t,p,true);else if(act==='del')delTake(t,p);else if(act==='edit'){if(window.Studio)Studio.edit(t.id);}else if(act==='why'){if(RC.why.has(t.id))RC.why.delete(t.id);else RC.why.add(t.id);}RC.sig='';});
 $('rcTakes').addEventListener('dblclick',e=>{const row=e.target.closest('.rctake');if(!row||e.target.closest('button'))return;const p=sel(),t=p?.takes.find(t=>t.id===row.dataset.id);if(t)choose(t,p);});
 $('rcChips').addEventListener('click',e=>{const b=e.target.closest('[data-pid]');if(!b)return;if(b.dataset.pid==='+'){openAdd(true);return;}const p=W().phrases.find(p=>p.id===b.dataset.pid);if(p)selectPart(p);});
 
@@ -396,7 +431,7 @@ $('rcPlay').onclick=rcPlay;$('rcPlayP').onclick=rcPlay;$('rcStop').onclick=rcSto
 $('rcUndo').onclick=()=>{phraseHistory(-1);RC.sig='';};$('rcRedo').onclick=()=>{phraseHistory(1);RC.sig='';};
 $('rcExport').onclick=exportComp;$('rcExportP').onclick=exportComp;$('rcDone').onclick=compDone;$('rcDoneP').onclick=compDone;
 function setCount(v){$('optCountIn').checked=v>0;$('optCountIn').dispatchEvent(new Event('change'));if(v>0){$('optCountBars').value=String(v);$('optCountBars').dispatchEvent(new Event('change'));}rcMsg(v?'Count-in: '+v+' bar'+(v>1?'s':'')+' of clicks before each take (headphones only).':'Count-in off.');RC.sig='';for(const id of ['rcCount','rcCountP'])if(document.activeElement===$(id))$(id).blur();}
-for(const id of ['rcCount','rcCountP'])$(id).onchange=()=>setCount(+$(id).value);
+for(const id of ['rcCount','rcCountP'])$(id).onchange=()=>{setCount(+$(id).value);for(const o of ['rcCount','rcCountP'])if(o!==id)$(o).value=$(id).value;}; // 0.18.2: the other copy follows at once
 function toggleClick(){PV.toggle('metro');rcMsg(PV.prefs.metro?'Click ON: a metronome plays while you play and record (headphones only, never recorded).':'Click OFF.');syncToggles();}
 for(const id of ['rcClick','rcClickP'])$(id).onclick=toggleClick;
 function toggleMonitor(){const on=!PV.prefs.monitor;$('optMonitor').checked=on;$('optMonitor').dispatchEvent(new Event('change'));
@@ -415,7 +450,21 @@ function syncToggles(){const P=PV.prefs,g=(P.micGainDb>0?'+':'')+P.micGainDb+' d
   $('rcMonitor').setAttribute('aria-pressed',P.monitor);$('rcMonitor').textContent=P.monitor?'ON':'OFF';$('rcMonitorP').setAttribute('aria-pressed',P.monitor);$('rcMonitorP').textContent='HEAR ME '+(P.monitor?'ON':'OFF');
   for(const id of ['rcGain','rcGainP'])if(document.activeElement!==$(id))$(id).value=P.micGainDb;$('rcGainV').textContent=g;$('rcGainVP').textContent=g;
   for(const id of ['rcCount','rcCountP'])if(document.activeElement!==$(id))$(id).value=P.countIn?String(P.countBars):'0';}
-$('rcBacking').onclick=()=>{if($('beatOn').disabled||!S.beat){toast('No backing track','Open one from Settings ▾ › Open backing track.');return;}$('beatOn').checked=!$('beatOn').checked;$('beatOn').dispatchEvent(new Event('change'));if(playing&&RC.playMode){const t=D.playheadTime();stopAll();playFrom(t);}RC.dirty=true;};
+function setBacking(on){const was=PV.withBacking();if(!PV.setRecordBacking(on))return false;if(was!==PV.withBacking()&&playing&&RC.playMode&&!RC.auditioning){const t=D.playheadTime();stopAll();playFrom(t,true);}
+  rcMsg(on?'With backing: you hear the backing while you play and record. Only your microphone is recorded.':'Without backing: no backing plays while you record'+(S.beat?' (it stays loaded and saved).':'.'));RC.dirty=true;RC.sig='';slow();return true;} // slow(): the switch and M show the new state at once
+RC.setBacking=setBacking;
+for(const [id,on] of [['rcWith',true],['rcWithout',false],['rcWithP',true],['rcWithoutP',false]])$(id).onclick=()=>setBacking(on);
+$('rcHeads').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  if(b.id==='rcBeatMute')setBacking(!PV.withBacking());
+  else if(b.id==='rcBeatMenu'||b.id==='rcVocalMenu'){e.stopPropagation();if(window.Studio)Studio.laneMenu(b.id==='rcBeatMenu'?'beat':'vocal',b);}
+  else if(b.dataset.z)zoomAct(b.dataset.z);});
+$('rcHeads').addEventListener('input',e=>{if(e.target.id==='rcBeatLevel'){$('beatLevel').value=e.target.value;$('beatLevel').dispatchEvent(new Event('input'));$('rcBeatLevelV').textContent=e.target.value+'%';}});
+$('rcHeads').addEventListener('change',e=>{if(e.target.id==='rcBeatLevel'){$('beatLevel').dispatchEvent(new Event('change'));persist();}});
+function zoomAct(z){({in:()=>zoomBy(2),out:()=>zoomBy(.5),part:fitPart,song:fitSong,hand:()=>setHand(!RC.hand)})[z]?.();syncHeads();}
+RC.zoomAct=zoomAct;
+$('rcZoomP').addEventListener('click',e=>{const b=e.target.closest('button[data-z]');if(b)zoomAct(b.dataset.z);});
+for(const [id,k] of [['rcBackMenuP','beat'],['rcVocalMenuP','vocal']])$(id).onclick=e=>{e.stopPropagation();if(window.Studio)Studio.laneMenu(k,$(id));};
+$('rcPan').addEventListener('input',e=>{const v=getView(),max=Math.max(0,v.song-v.dur);setView(+e.target.value/1000*max,v.dur);});
 $('rcHearComp').onclick=()=>{$('optHearOld').checked=!PV.prefs.hearOld;$('optHearOld').dispatchEvent(new Event('change'));if(playing&&RC.playMode){const t=D.playheadTime();stopAll();playFrom(t);}rcMsg(PV.prefs.hearOld?'Hear my comp ON: you hear your chosen takes while you play and record.':'Hear my comp OFF: backing only while you play and record.');};
 for(const id of ['rcClip','rcClipP'])$(id).onclick=()=>{PV.clipReset();rcMsg('Clip light reset.');};
 for(const id of ['rcMeterBtn','rcMeterBtnP'])$(id).onclick=()=>PV.micCheck();
@@ -495,15 +544,12 @@ function moreItems(){const P=PV.prefs,w=W();
   ['backup','Backup reminder <select id="rcmBackup"><option value="0">Off</option><option value="3">every 3 takes</option><option value="6">every 6 takes</option><option value="10">every 10 takes</option></select>',null],
   ['key','Song key (for take suggestions) <select id="rcmKey">'+$('phraseKey').innerHTML+'</select><select id="rcmScale">'+$('phraseScale').innerHTML+'</select>',null],
   ['audBeat','Hear backing when I play a take'+tg($('phraseCompareBeat').checked),null],
-  ['backing','Backing'+tg(S.beat&&$('beatOn').checked),null,!S.beat],
   ['hearComp','Hear my comp while playing / recording'+tg(P.hearOld),null],
   ['h','FILES'],
-  ['openBeat','Open backing track…',null],
   ['autosave','Autosave (this browser only)',(PV.autosaveText?PV.autosaveText():'Automatic after every change.')+' Not a backup: the browser can clear it.',true],
   ['saveProj','Back up project (.zip with every take) · Ctrl+S','A file you keep and can open again later. POLISH edits are kept as they are.',$('phraseSave').disabled],
   ['openProj','Open song project…',null],
   ['export','Export comp audio (WAV)','Only the joined vocal as a sound file — not a project backup.'],
-  ['lastMic','Download my last microphone recording',null,!S.phraseRecovery],
   ['keys','Keyboard shortcuts',null],
   ['h','ABOUT'],
   ['ver','App version '+(window.APP_VERSION||'')+' · Audio engine version '+(window.ENGINE_VERSION||''),'The app (screens and recording) and the sound engine (CLEAN, TUNE, CHAIN) have separate version numbers.',true]];}
@@ -522,17 +568,17 @@ function openMore(anchor){closePops();const m=$('rcMore');m.innerHTML=moreItems(
   num('rcmLead','phraseLead');num('rcmFade','phraseFade');num('rcmBpm','bpm');}
 RC.openMore=openMore;
 function moreAct(k){const P=PV.prefs;
-  const keep=['micFirst','backing','hearComp','audBeat','latAuto'].includes(k);
+  const keep=['micFirst','hearComp','audBeat','latAuto'].includes(k);
   ({lat:()=>PV.calOpen(),latAuto:()=>{PV.latAuto();rcMsg('Latency: automatic ('+Math.round(pvsLatency()*1000)+' ms).');},
     micFirst:()=>{$('optMicFirst').checked=!P.micFirst;$('optMicFirst').dispatchEvent(new Event('change'));},
-    backing:()=>$('rcBacking').click(),hearComp:()=>$('rcHearComp').click(),audBeat:()=>{$('phraseCompareBeat').checked=!$('phraseCompareBeat').checked;},
-    openBeat:()=>$('beatPick').click(),saveProj:()=>$('phraseSave').click(),openProj:()=>$('projBtn').click(),export:exportComp,
-    lastMic:()=>$('phraseRecover').click(),keys:()=>dawOpenModal('helpModal','keys')})[k]?.();
+    hearComp:()=>$('rcHearComp').click(),audBeat:()=>{$('phraseCompareBeat').checked=!$('phraseCompareBeat').checked;},
+    saveProj:()=>$('phraseSave').click(),openProj:()=>$('projBtn').click(),export:exportComp,
+    keys:()=>dawOpenModal('helpModal','keys')})[k]?.();
   if(keep)setTimeout(()=>{if(!$('rcMore').hidden)openMore(RC.moreAnchor);},80);else $('rcMore').hidden=true;}
 $('rcMore').addEventListener('click',e=>{const b=e.target.closest('button.rcmi');if(!b||b.disabled)return;moreAct(b.dataset.k);});
 for(const id of ['rcMoreBtn','rcMoreP'])$(id).onclick=e=>{e.stopPropagation();if(!$('rcMore').hidden){$('rcMore').hidden=true;return;}RC.moreAnchor=$(id);openMore($(id));};
-function closePops(){$('rcMore').hidden=true;$('rcAdd').hidden=true;$('rcImp').hidden=true;}
-document.addEventListener('pointerdown',e=>{if(!e.target.closest('#rcMore,#rcMoreBtn,#rcMoreP'))$('rcMore').hidden=true;if(!e.target.closest('#rcAdd,#rcAddBtn,#rcAddPart2,#rcNext,#rcChips,#rcBig,#rcRec'))$('rcAdd').hidden=true;if(!e.target.closest('#rcImp,#rcImport'))$('rcImp').hidden=true;},true);
+function closePops(){$('rcMore').hidden=true;$('rcAdd').hidden=true;$('rcImp').hidden=true;$('rcLaneMenu').hidden=true;}
+document.addEventListener('pointerdown',e=>{if(!e.target.closest('#rcMore,#rcMoreBtn,#rcMoreP'))$('rcMore').hidden=true;if(!e.target.closest('#rcAdd,#rcAddBtn,#rcAddPart2,#rcNext,#rcChips,#rcBig,#rcRec'))$('rcAdd').hidden=true;if(!e.target.closest('#rcImp,#rcImport'))$('rcImp').hidden=true;if(!e.target.closest('#rcLaneMenu,#rcBeatMenu,#rcVocalMenu,#rcBackMenuP,#rcVocalMenuP'))$('rcLaneMenu').hidden=true;},true);
 
 // ---------------------------------------------------------------- keys (only while RECORD & COMP is showing)
 window.addEventListener('keydown',e=>{if(RC.step!=='rc')return;
@@ -575,7 +621,7 @@ function frame(now){
 function slow(){pollReplace();sync(false);syncHeads();
   $('rcBpm').textContent=bpm()+' BPM';$('rcKey').textContent=$('dawKey').textContent;
   syncToggles();
-  const bo=!!S.beat&&$('beatOn').checked;$('rcBacking').setAttribute('aria-pressed',bo);$('rcBacking').textContent=!S.beat?'NONE':bo?'ON':'OFF';
+  const bo=PV.withBacking(),lk=recording()||!!S.recStarting||phraseBusy();for(const [a,b] of [['rcWith','rcWithout'],['rcWithP','rcWithoutP']]){$(a).setAttribute('aria-pressed',bo);$(b).setAttribute('aria-pressed',!bo);$(a).disabled=!S.beat||lk;$(b).disabled=lk;$(a).title=S.beat?'Hear the backing while you play and record (only your microphone is recorded)':'No backing loaded — load one with ▾ on the BACKING lane';}
   $('rcHearComp').setAttribute('aria-pressed',PV.prefs.hearOld);$('rcHearComp').textContent=PV.prefs.hearOld?'ON':'OFF';
   const sv=$('dawSaved');$('rcSaved').textContent=sv.textContent;$('rcSaved').className='rcsaved '+sv.className.replace('savedind','').trim();$('rcSaved').title=sv.title;
   const chip=$('chip').textContent||'';$('rcEngine').textContent=/starting/i.test(chip)?'Engine starting…':/fail|error|could not|stopped/i.test(chip)?chip.slice(0,40):'Engine ready ●';$('rcEngine').title=chip;
