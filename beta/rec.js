@@ -1,4 +1,4 @@
-/* Playbook Vocal Studio 0.17.1 — recording engine behind the RECORD & COMP screen.
+/* Playbook Vocal Studio 0.17.2 — recording engine behind the RECORD & COMP screen.
    Punch-in on the fly (into the part under the playhead), loop recording (a take every pass), count-in /
    metronome, mic check + gain, input monitoring, latency calibration, rename, delete-unchosen,
    autosave indicator and backup reminders.
@@ -31,7 +31,7 @@ async function capOpen(){
     const ctx=await resumeAudio();
     if(!ctx.audioWorklet||!window.AudioWorkletNode)throw new Error('This browser has no AudioWorklet, so punch-in and loop recording are not available. Recording a part from the Record button still works.');
     capClose(true);
-    if(Cap.moduleCtx!==ctx){await ctx.audioWorklet.addModule('rec-worklet.js?v=0.17.1');Cap.moduleCtx=ctx;}
+    if(Cap.moduleCtx!==ctx){await ctx.audioWorklet.addModule('rec-worklet.js?v=0.17.2');Cap.moduleCtx=ctx;}
     const stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
     const tr=stream.getAudioTracks()[0];Cap.label=tr?.label||'microphone';LSset('pvs-mic-label',Cap.label);
     Cap.ctx=ctx;Cap.stream=stream;Cap.src=ctx.createMediaStreamSource(stream);Cap.gain=ctx.createGain();Cap.gain.gain.value=dbToGain(P.micGainDb);
@@ -42,7 +42,7 @@ async function capOpen(){
     Cap.node.port.onmessage=e=>{const c={frame:e.data.frame,data:e.data.data};let pk=0;const d=c.data;for(let i=0;i<d.length;i+=2){const v=d[i]<0?-d[i]:d[i];if(v>pk)pk=v;}c.peak=pk;
       if(pk>.98){Cap.clip=true;if(R)R.clip=true;}Cap.peak=pk;Cap.hold=Math.max(Cap.hold*.97,pk);
       Cap.ring.push(c);const keepFrames=3*Cap.rate;while(Cap.ring.length&&Cap.ring[0].frame<c.frame-keepFrames)Cap.ring.shift();for(const s of Cap.sinks)s(c);};
-    if(tr)tr.onended=()=>{if(R&&!R.stopping){R.error='Microphone disconnected.';stopRec(false,false);}capClose(true);syncPanel();};
+    if(tr)tr.onended=()=>{if(R&&!R.stopping){R.lost=true;R.lostWhy='microphone disconnected';stopRec(true,false,'mic');}capClose(true);syncPanel();}; // 0.17.2: device loss keeps what was recorded (Esc still cancels)
     applyMonitor();syncPanel();return Cap;
   })();
   try{return await Cap.opening;}finally{Cap.opening=null;}
@@ -54,7 +54,13 @@ function capClose(force){
   if(Cap.stream)Cap.stream.getTracks().forEach(t=>t.stop());
   Object.assign(Cap,{stream:null,src:null,gain:null,an:null,node:null,mon:null,keep:null,ring:[],peak:0,hold:0});
 }
-function applyMonitor(){if(!Cap.mon)return;const on=P.monitor&&(rec||Cap.checking);Cap.mon.gain.setTargetAtTime(on?P.monitorVol:0,Cap.ctx.currentTime,.02);}
+// 0.17.2: HEAR ME uses the input gain stage of whatever is recording: the normal-take stage (RG) or the punch / loop /
+// mic-check capture (Cap). Never a second microphone stream. Returns false when it should be on but nothing can carry it.
+function applyMonitor(){const on=!!(P.monitor&&(rec||Cap.checking)),useRG=!!(RG&&rec&&!R);
+  if(RG)RG.mon.gain.setTargetAtTime(on&&useRG?P.monitorVol:0,RG.ctx.currentTime,.02);
+  if(Cap.mon)Cap.mon.gain.setTargetAtTime(on&&!useRG?P.monitorVol:0,Cap.ctx.currentTime,.02);
+  return !on||useRG||!!Cap.mon;}
+PV.monState=()=>({rg:!!RG,rgMon:RG?RG.mon.gain.value:null,rgGain:RG?RG.g.gain.value:null,cap:!!Cap.stream,capMon:Cap.mon?Cap.mon.gain.value:null,capGain:Cap.gain?Cap.gain.gain.value:null});
 function chunksBetween(list,f0,f1){ // returns {data,first} covering frames [f0,f1)
   const parts=list.filter(c=>c.frame+c.data.length>f0&&c.frame<f1).sort((a,b)=>a.frame-b.frame);if(!parts.length)return null;
   const first=Math.max(f0,parts[0].frame),last=Math.min(f1,parts.at(-1).frame+parts.at(-1).data.length),out=new Float32Array(Math.max(0,last-first));
@@ -70,11 +76,19 @@ PV.clipOn=()=>Cap.clip||!!(rec&&rec.clip);
 PV.clipReset=()=>{Cap.clip=false;Cap.hold=0;if(rec)rec.clip=false;syncPanel();};
 
 // ---- MediaRecorder paths (stopped-transport phrase, main recording, comp take): digital mic gain
+// 0.17.2: one owned input gain stage for a normal take: mic -> GAIN -> (recorder, meter, HEAR ME). Built at every gain
+// (also 0 dB) so the GAIN slider and HEAR ME work live while recording.
+let RG=null;
+function rgRelease(){if(!RG)return;for(const n of [RG.g,RG.mon])try{n.disconnect();}catch(e){}RG=null;}
 window.pvsRecStream=(ctx,mic,stream,an)=>{const tr=stream.getAudioTracks()[0];if(tr?.label){Cap.label=tr.label;LSset('pvs-mic-label',tr.label);}
-  if(Math.abs(P.micGainDb)<.05||!ctx.createMediaStreamDestination)return stream;
-  const g=ctx.createGain(),d=ctx.createMediaStreamDestination();g.gain.value=dbToGain(P.micGainDb);try{mic.disconnect(an);}catch(e){}mic.connect(g);g.connect(d);g.connect(an);return d.stream;};
+  rgRelease();if(!ctx.createMediaStreamDestination)return stream;
+  const g=ctx.createGain(),d=ctx.createMediaStreamDestination(),mon=ctx.createGain();g.gain.value=dbToGain(P.micGainDb);mon.gain.value=0;
+  try{mic.disconnect(an);}catch(e){}mic.connect(g);g.connect(d);g.connect(an);g.connect(mon);mon.connect(ctx.destination);RG={ctx,g,mon,d};
+  setTimeout(()=>{if(!applyMonitor())monFail();},0);return d.stream;};
+const origFinishRec=window.finishRecording;
+window.finishRecording=async function(r){if(rec===r){rgRelease();}return origFinishRec.apply(this,arguments);};
 window.pvsRecVocalGain=()=>{if(!P.hearOld)return 0;return typeof dawVocalGain==='function'?dawVocalGain():1;};
-window.pvsRecScheduled=(r,ctx)=>{if(P.monitor){Cap.forRec=true;capOpen().then(applyMonitor).catch(()=>{});}
+window.pvsRecScheduled=(r,ctx)=>{applyMonitor();
   const was=micChecked;micChecked=true;if(!was)syncPanel();};
 
 // ================================================================ latency
@@ -181,60 +195,101 @@ function lastSound(chs,rate){const d=chs[0],h=Math.max(1,Math.round(rate*.05)),n
   const srt=Array.from(e).sort((a,b)=>a-b),floor=srt[Math.floor(n*.1)],thr=Math.max(.0056,Math.min(floor*4,.02));
   for(let k=n-1;k>=0;k--)if(e[k]>thr)return (k+1)*h/rate;return 0;}
 PV._lastSound=lastSound;
-// where should part p end so it holds a take that runs to song time E?
-function fitOut(p,E,ask){const w=phraseWorkspace(),maxEnd=Math.min(900,p.start+60);
-  let end=Math.min(E,maxEnd),cut=E>maxEnd+.05?{at:maxEnd,why:'limit'}:null,shrink=null;
-  const q=w.phrases.filter(x=>x!==p&&x.start>=p.end-.05&&x.start<end-.05).sort((a,b)=>a.start-b.start)[0];
-  if(q){const canMove=end<=q.end-.5;if(!canMove||ask(q,end)){cut={at:q.start,why:'next',q};end=q.start;}else shrink=q;}
-  return {end:Math.max(p.end,Math.floor(end*1000+1e-6)/1000),shrink,cut};} // rounded down to 1 ms so the take still covers the part
-PV._fitOut=fitOut;
-function askTrim(p,q,E){if(typeof PV._ask==='function')return PV._ask(p,q,E);
-  return confirm(p.name+': your take runs '+(E-q.start).toFixed(1)+' s into “'+q.name+'”.\n\nOK = keep '+q.name+' as it is: '+p.name+' ends where '+q.name+' starts ('+fmt(q.start)+') and the take is trimmed there.\n\nCancel = make room: '+p.name+' ends at '+fmt(E)+' and '+q.name+' starts there instead, so your new singing is used.\n\nUndo (Ctrl+Z) puts everything back either way.');}
+// ================================================================ 0.17.2 placing a take that runs past its part
+// Rule: captured singing is never thrown away. The take always keeps the whole recording (from the lead-in to the
+// moment you stopped); the part boundaries only decide which piece the comp uses. If the singing runs into other
+// parts you choose what happens (keep them / replace or make room / keep it as a take only). Parts longer than the
+// 60-s project limit continue in "(cont.)" parts. One Undo puts everything back.
+function chooseModal(title,body,opts){
+  if(typeof PV._choose==='function'){const k=PV._choose(title,body,opts);if(k)return Promise.resolve(k);}
+  return new Promise(res=>{let m=$('pvsChoice');
+    if(!m){m=document.createElement('div');m.className='modal';m.id='pvsChoice';m.setAttribute('role','dialog');m.setAttribute('aria-modal','true');
+      m.innerHTML='<div class="mbox small"><div class="mhead"><h2 id="pvsChoiceT"></h2></div><p id="pvsChoiceB" class="pvschoiceb"></p><div id="pvsChoiceO" class="pvschoice"></div></div>';document.body.appendChild(m);}
+    $('pvsChoiceT').textContent=title;$('pvsChoiceB').textContent=body;const box=$('pvsChoiceO');box.innerHTML='';
+    const done=k=>{m.hidden=true;m.onkeydown=null;res(k);};
+    for(const [k,label,hint] of opts){const b=document.createElement('button');b.className='rcbtn';b.dataset.k=k;const x=document.createElement('b');x.textContent=label;const y=document.createElement('small');y.textContent=hint||'';b.append(x,y);b.onclick=()=>done(k);box.appendChild(b);}
+    m.onkeydown=e=>{e.stopPropagation();if(e.key==='Escape'){e.preventDefault();done(opts[0][0]);}};
+    m.hidden=false;setTimeout(()=>box.firstChild&&box.firstChild.focus(),30);});}
+PV.chooseModal=chooseModal;
 function reAnalyze(p){for(const t of p.takes)phraseAnalyze(t,p);}
 function stopNote(title,m){phraseMessage(m);toast(title,m,10000);}
-PV._stopNote=stopNote;
+function askOverlap(p,B,S){
+  if(typeof PV._ask==='function'){const k=PV._ask(p,B,S);if(k)return Promise.resolve(k);}
+  const q=B[0],gone=B.filter(x=>x.end<=S+.5),cut=B.filter(x=>x.end>S+.5),nt=gone.reduce((n,x)=>n+x.takes.length,0);
+  const repl=gone.length?'Replace '+gone.map(x=>x.name).join(', ')+(cut.length?' and start '+cut[0].name+' at '+fmt(S):''):'Make room: '+q.name+' starts at '+fmt(S);
+  return chooseModal('Your take runs into '+q.name,
+    p.name+': you kept singing '+(S-q.start).toFixed(1)+' s past the start of '+q.name+(B.length>1?' and over '+(B.length-1)+' more part'+(B.length>2?'s':''):'')+'.\nThe whole recording is kept whatever you choose. Undo (Ctrl+Z) puts the parts back.',
+    [['keep','Keep '+q.name+' as it is',p.name+' ends where '+q.name+' starts ('+fmt(q.start)+'). The rest of your singing stays in the take but is not used in the comp.'],
+     ['replace',repl,'Your new singing is used up to '+fmt(S)+'.'+(nt?' This removes '+nt+' take'+(nt===1?'':'s')+' of '+gone.map(x=>x.name).join(', ')+' (Undo brings '+(nt===1?'it':'them')+' back).':'')],
+     ['unplaced','Keep it as a take only','No part changes. The take holds the whole recording; the comp uses only '+p.name+' ('+fmt(p.start)+'–'+fmt(p.end)+').']]);}
+PV._askOverlap=askOverlap;
+const floorMs=x=>Math.floor(x*1000+1e-6)/1000,ceilMs=x=>Math.ceil(x*1000-1e-6)/1000;
+// o: {origin, E (raw end), S (end of singing to place), rate, name, main(to)->{chs,origin}, slice(a,b)->{chs,origin}, after(t)}
+async function placeTake(p,o){if(typeof phraseSigNow==='function')phraseSigNow();
+  const w=phraseWorkspace(),pre=o.pre||PhraseCore.clone(w),oldEnd=p.end,oldSel=p.takes.find(t=>t.id===p.selected);
+  const res={choice:null,removed:[],moved:[],cont:[],oldEnd,oldSel,leftover:0,t:null,adds:0};
+  let L=p.end;
+  try{
+    if(o.S>p.end+.05){
+      const B=w.phrases.filter(x=>x!==p&&x.start>=p.end-.05&&x.start<o.S-.05).sort((a,b)=>a.start-b.start);
+      if(B.length){res.choice=await askOverlap(p,B,o.S);res.blocker=B[0];
+        if(res.choice==='keep')L=Math.max(p.end,B[0].start);
+        else if(res.choice==='replace'){for(const q of B){if(q.end<=o.S+.5)res.removed.push(q);else{q.start=ceilMs(o.S);res.moved.push(q);}}
+          w.phrases=w.phrases.filter(x=>!res.removed.includes(x));L=o.S;}
+        else L=p.end;}
+      else L=o.S;}
+    const newEnd=Math.max(p.end,floorMs(Math.min(L,p.start+60,900)));
+    const segs=[];let a=newEnd;while(L-a>=.5&&w.phrases.length+segs.length<128&&a<899.5){const b=floorMs(Math.min(L,a+60,900));segs.push([a,b]);a=b;}
+    res.leftover=Math.max(0,L-a);
+    const m0=o.main(segs.length?newEnd+.3:o.E);
+    await phraseAddAudio(p,m0.chs,o.rate,m0.origin,o.name||phraseNextTakeName(p));res.adds++;const t=res.t=p.takes.at(-1);
+    if(newEnd>p.end+.0005){p.end=newEnd;if(p.selected&&p.selected!==t.id&&!PhraseCore.covers(p.takes.find(x=>x.id===p.selected),p))p.selected=null;}
+    if(o.after)o.after(t);
+    for(let i=0;i<segs.length;i++){const [sa,sb]=segs[i];let nm=p.name.replace(/ \(cont\.( \d+)?\)$/,'')+' (cont.)',k=2;while(w.phrases.some(x=>x.name===nm))nm=p.name.replace(/ \(cont\.( \d+)?\)$/,'')+' (cont. '+(k++)+')';
+      const cp={id:'p'+w.nextId++,name:nm,start:+sa.toFixed(3),end:sb,selected:null,reference:null,takes:[]};w.phrases.push(cp);
+      const s=o.slice(Math.max(o.origin,sa-.25),i===segs.length-1?o.E:sb+.3);
+      try{await phraseAddAudio(cp,s.chs,o.rate,s.origin,phraseNextTakeName(cp)+(o.suffix||''));res.adds++;res.cont.push(cp);}catch(e){w.phrases=w.phrases.filter(x=>x!==cp);throw e;}}
+    for(const q of [p,...res.moved])reAnalyze(q);
+    for(let i=0;i<res.adds;i++)phraseUndoStack.pop();phraseUndoStack.push(pre);phraseUndo=pre;phraseRedoStack=[];
+    w.selected=p.id;return res;
+  }catch(e){ // nothing half-done: put the parts back exactly as they were
+    if(res.adds)for(let i=0;i<res.adds;i++)phraseUndoStack.pop();S.phrases=PhraseCore.clone(pre);syncPhraseUI();throw e;}}
+PV._placeTake=placeTake;
+function placeText(p,res){let m='';const t=res.t;
+  if(p.end>res.oldEnd+.0005)m+=' You '+(res.punch?'punched':'sang')+' past the OUT flag, so '+p.name+' now ends at '+fmt(p.end)+' (was '+fmt(res.oldEnd)+').';
+  if(res.moved.length)m+=' '+res.moved.map(q=>q.name+' now starts at '+fmt(q.start)).join('; ')+'.';
+  if(res.removed.length)m+=' Replaced '+res.removed.map(q=>q.name).join(', ')+' (Undo brings '+(res.removed.length===1?'it':'them')+' back).';
+  if(res.cont.length)m+=' A part can be at most 60 s long, so the rest went into '+res.cont.map(q=>q.name).join(', ')+'.';
+  if(res.choice==='keep')m+=' '+res.blocker.name+' was kept as it is; the singing after '+fmt(p.end)+' stays in '+t.name+' but is not used in the comp.';
+  if(res.choice==='unplaced')m+=' No parts were changed; '+t.name+' holds the whole recording but the comp uses only '+fmt(p.start)+'–'+fmt(p.end)+'.';
+  if(res.leftover>=.5)m+=' The project already has 128 parts, so the last '+res.leftover.toFixed(1)+' s stays in the take, unused.';
+  if(res.oldSel&&p.selected!==res.oldSel.id&&p.end>res.oldEnd)m+=' '+res.oldSel.name+' no longer covers the longer part, so it is not chosen any more.';
+  if(p.end>res.oldEnd+.0005||res.moved.length||res.removed.length||res.cont.length)m+=' Undo (Ctrl+Z) puts it all back.';
+  return m;}
+function noteSeq(p,t){const m=/^Take (\d+)/.exec(t.name);if(m)p.takeSeq=Math.max(p.takeSeq||0,+m[1]);}
+function lostNote(r,t){return 'The microphone stopped during the recording ('+(r.lostWhy||'disconnected')+'). Everything captured up to then is kept as “'+t.name+'”'+(t.incompleteCover?', which does not cover the whole part':'')+'.';}
+// a raw recording we could not add is kept for download (Settings ▾ › Download my last microphone recording)
+function keepRecovery(chs,rate,why){try{S.phraseRecovery=new Blob([wavFloat(chs,rate)],{type:'audio/wav'});}catch(e){}
+  stopNote('Recording kept for download',why+' Your singing was not lost: Settings ▾ › “Download my last microphone recording” saves it as a WAV file you can import again.');}
 const origFinish=window.phraseFinishRecording;
 window.phraseFinishRecording=async function(r,channels,rate){
-  const o=r.phrase,why=r.autoStop;
+  const o=r.phrase,why=r.autoStop,lostSfx=r.lost?' (mic lost)':'';
   if(o&&o.free&&channels.length===2){let same=true;const x=channels[0],y=channels[1];for(let i=0;i<x.length;i+=7)if(Math.abs(x[i]-y[i])>1e-6){same=false;break;}if(same)channels=[x];}
-  if(!o||!o.free){await origFinish.apply(this,arguments);
-    if(why==='end')stopNote('Recording stopped at the part end','Stopped at the end of '+o.p.name+' because “Stop at part end” is ON. Turn it OFF on the part panel to keep recording until you press Stop.');return;}
-  const p=o.p,w=phraseWorkspace(),lat=pvsLatency(),origin=r.origin-lat,E=origin+channels[0].length/rate;
-  const sung=Math.min(E,Math.max(origin+lastSound(channels,rate)+.25,p.end));
-  const pre=PhraseCore.clone(w),oldEnd=p.end,oldSel=p.takes.find(t=>t.id===p.selected);
-  const fit=sung>p.end+.05?fitOut(p,sung,(q,e)=>askTrim(p,q,e)):{end:p.end,shrink:null,cut:null};
+  if(!o||!o.free){await origFinish.apply(this,arguments);const p=o.p,t=p.takes.at(-1);
+    if(r.lost&&t){noteSeq(p,t);t.name+=lostSfx;stopNote('Microphone stopped',lostNote(r,t));syncPhraseUI();persist();}
+    else if(why==='end')stopNote('Recording stopped at the part end','Stopped at the end of '+o.p.name+' because “Stop at part end” is ON. Turn it OFF on the part panel to keep recording until you press Stop.');return;}
+  const p=o.p,lat=pvsLatency(),origin=r.origin-lat,E=origin+channels[0].length/rate;
+  const S=Math.min(E,Math.max(origin+lastSound(channels,rate)+.25,p.end));
   const sl=(a,b)=>{const i0=Math.max(0,Math.round((a-origin)*rate)),i1=Math.min(channels[0].length,Math.round((b-origin)*rate));return channels.map(c=>c.slice(i0,Math.max(i0+1,i1)));};
-  const keepTo=Math.min(E,fit.end+(fit.cut?.3:1)); // the silent tail after your last note is not stored
-  let adds=0;const extra=[];
-  await phraseAddAudio(p,sl(origin,keepTo),rate,origin,phraseNextTakeName(p));adds++;
-  const t=p.takes.at(-1);
-  if(fit.end>p.end+.0005){p.end=fit.end;if(p.selected&&!PhraseCore.covers(p.takes.find(x=>x.id===p.selected),p))p.selected=null;reAnalyze(p);}
-  if(fit.shrink){fit.shrink.start=fit.end;reAnalyze(fit.shrink);}
-  // longer than the 60-s part limit: the rest goes into new part(s) right after it
-  let contNote='';
-  if(fit.cut&&fit.cut.why==='limit'){let a=fit.end;const made=[];
-    try{while(sung-a>=.5&&w.phrases.length<128){const nx=w.phrases.filter(x=>x!==p&&x.start>a-.05&&x.start<sung).sort((x,y)=>x.start-y.start)[0];
-        if(nx&&nx.start<a+.5){contNote=' The singing after '+fmt(a)+' was not kept because '+nx.name+' starts there.';break;}
-        const b=Math.floor(Math.min(sung,a+60,nx?nx.start:Infinity)*1000+1e-6)/1000;let nm=p.name+' (cont.)',k=2;while(w.phrases.some(x=>x.name===nm))nm=p.name+' (cont. '+(k++)+')';
-        const cp={id:'p'+w.nextId++,name:nm,start:+a.toFixed(3),end:b,selected:null,reference:null,takes:[]};w.phrases.push(cp);
-        const s0=Math.max(origin,a-.25);try{await phraseAddAudio(cp,sl(s0,Math.min(E,b+.3)),rate,s0,phraseNextTakeName(cp));adds++;}catch(e){w.phrases=w.phrases.filter(x=>x!==cp);throw e;}
-        made.push(cp.name);a=b;if(nx&&Math.abs(b-nx.start)<.01&&sung-b>=.5){contNote=' The singing after '+fmt(b)+' was not kept because '+nx.name+' starts there.';break;}}
-    }catch(e){contNote+=' The rest could not be added: '+e.message;}
-    if(made.length)contNote=' A part can be at most 60 s long, so the rest of the take went into '+made.join(', ')+'.'+contNote;}
-  // one Undo goes back to before this take
-  for(let i=0;i<adds;i++)phraseUndoStack.pop();phraseUndoStack.push(pre);phraseUndo=pre;phraseRedoStack=[];
-  w.selected=p.id;
-  let m=t.name+' recorded on '+p.name+'.';
-  if(p.end>oldEnd+.0005)m+=' You sang past the OUT flag, so '+p.name+' now ends at '+fmt(p.end)+' (was '+fmt(oldEnd)+').';
-  if(fit.shrink)m+=' '+fit.shrink.name+' now starts at '+fmt(fit.shrink.start)+'.';
-  if(fit.cut&&fit.cut.why==='next')m+=' The take was trimmed where '+fit.cut.q.name+' starts ('+fmt(fit.cut.at)+').';
-  m+=contNote;
-  if(oldSel&&p.selected!==oldSel.id&&p.end>oldEnd)m+=' '+oldSel.name+' no longer covers the longer part, so it is not chosen any more.';
-  if(p.end>oldEnd+.0005||fit.shrink||adds>1)m+=' Undo (Ctrl+Z) puts it all back.';
+  const base=phraseNextTakeName(p);
+  const res=await placeTake(p,{origin,E,S,rate,name:base+lostSfx,suffix:lostSfx,main:to=>({chs:sl(origin,to),origin}),slice:(a,b)=>({chs:sl(a,b),origin:a})});
+  const t=res.t;noteSeq(p,t);if(r.lost)t.incompleteCover=!PhraseCore.covers(t,p);
+  let m=t.name+' recorded on '+p.name+'.'+placeText(p,res);
   if(!PhraseCore.covers(t,p))m+=' The take ended before the part was complete — record again or drag the OUT flag back.';
   else if(r.clip)m+=' Some input peaks were loud; check the clipping figure before choosing.';
-  phraseChanged(m);w.cursor=Math.min(899.5,p.end);persist();
-  if(why==='cap')stopNote('Recording stopped by itself',m+' — It stopped because it reached the '+capText(o.cap)+' safety limit for one take'+(o.capFull?' (the project is nearly full: save it and delete unused takes)':'')+'. Press Record again to carry on.');
+  phraseChanged(m);phraseWorkspace().cursor=Math.min(899.5,p.end);persist();
+  if(r.lost)stopNote('Microphone stopped',lostNote(r,t)+' '+m);
+  else if(why==='cap')stopNote('Recording stopped by itself',m+' — It stopped because it reached the '+capText(o.cap)+' safety limit for one take'+(o.capFull?' (the project is nearly full: save it and delete unused takes)':'')+'. Press Record again to carry on.');
   if(typeof showPage==='function')showPage('record');};
 window.pvsHoldPlay=()=>!!(R&&R.mode==='punch'&&!R.stopping); // a punch keeps going after the song ends
 PV.preRoll=()=>{const w=S.phrases;return Math.max(w?w.lead:2,P.countIn?P.countBars*barSec():0);};
@@ -253,7 +308,7 @@ async function punchStart(){
   if(R||rec)return;const ctx=audioCtx();if(!playing)return;
   try{capacityCheck(30);}catch(e){phraseMessage(e.message);toast('Cannot punch in',e.message);return;}
   const T0=ctx.currentTime,s0=currentPos();
-  R={mode:'punch',T0,s0,a:s0,chunks:[],clip:false,added:0,starting:true,part:partUnder(s0)};
+  R={mode:'punch',T0,s0,a:s0,chunks:[],clip:false,added:0,starting:true,part:partUnder(s0),cap:capSec()};
   S.recStarting=true;
   try{await capOpen();}catch(e){R=null;S.recStarting=false;renderOpen();toast('Punch-in needs the microphone',e.message);phraseMessage(e.message);return;}
   S.recStarting=false;
@@ -270,7 +325,7 @@ async function loopRecStart(){
   const a=loop.start,b=loop.end,L=b-a;
   if(L<.5||L>60){toast('Loop recording','The loop must be 0.5–60 s long to record takes on every pass (it is '+L.toFixed(1)+' s).');return;}
   try{capacityCheck(L*4);}catch(e){toast('Cannot loop-record',e.message);return;}
-  R={mode:'loop',T0:ctx.currentTime,s0:a,a,b,L,chunks:[],clip:false,passes:0,added:0,next:null,phrase:loop.rcPart||null,starting:true,pending:Promise.resolve()};
+  R={mode:'loop',T0:ctx.currentTime,s0:a,a,b,L,chunks:[],clip:false,passes:0,added:0,next:null,phrase:loop.rcPart||null,starting:true,pending:Promise.resolve(),cap:capSec()};
   S.recStarting=true;
   try{await capOpen();}catch(e){R=null;S.recStarting=false;renderOpen();toast('Loop recording needs the microphone',e.message);return;}
   S.recStarting=false;if(!playing||!loop){R=null;renderOpen();return;}
@@ -294,20 +349,24 @@ async function stopRec(keep,stopTransport,why){
   await sleep(Math.min(600,(lat+.18)*1000));
   Cap.sinks.delete(r.sink);const chunks=r.chunks;rec=null;R=null;applyMonitor();
   try{
-    if(r.error)throw new Error(r.error);
+    if(r.error&&!r.lost)throw new Error(r.error);
     if(!keep){phraseMessage(r.mode==='loop'&&r.added?'Loop recording cancelled — the pass in progress was discarded; '+r.added+' finished take'+(r.added===1?' is':'s are')+' kept (Undo removes them).':'Take cancelled (Esc) — nothing was added.');return;}
     if(r.mode==='punch'){
       const rate=Cap.rate||ctx.sampleRate,seg=chunksBetween(chunks,0,Infinity);if(!seg)throw new Error('No microphone audio was captured.');
       const origin=r.s0+(seg.first/rate-lat-r.T0),endAudio=origin+seg.data.length/rate;
       let a=Math.max(r.s0,origin+.002),b=Math.min(s1,endAudio-.002);
       if(b-a<.5)throw new Error('Punch was shorter than 0.5 s — nothing was added.');
-      if(b-a>60)b=a+60;
-      await addPunch(seg.data,rate,origin,a,b,r);
-    }else{while(r.passStart(r.next+1)<=T1+.03)queuePass(r,r.next);await r.pending;if(!r.added)phraseMessage('Loop recording stopped before a full pass finished — nothing was added.');else phraseMessage('Loop recording: '+r.added+' new take'+(r.added===1?'':'s')+' on '+(r.phrase?.name||'the loop')+'. Listen and choose the best one.');}
-    if(r.why){const what=r.mode==='loop'?'Loop recording':'The punch';const reason={end:'Punched out at the end of '+(r.part?.name||'the part')+' because “Stop at part end” is ON.',paused:what+' stopped by itself because the audio stopped playing (the phone or browser paused it).',hidden:what+' stopped by itself because the app went to the background (screen locked or another app opened). What was recorded is kept.'}[r.why];
+      r.raw={data:seg.data,rate};const t=await addPunch(seg.data,rate,origin,a,b,r);
+      if(r.lost&&t){t.incompleteCover=!PhraseCore.covers(t,phraseWorkspace().phrases.find(p=>p.takes.includes(t))||{start:0,end:0});stopNote('Microphone stopped',lostNote(r,t)+' The punch ends where the microphone stopped ('+fmt(b)+').');}
+    }else{while(r.passStart(r.next+1)<=T1+.03)queuePass(r,r.next);await r.pending;
+      if(r.lost){const rate=Cap.rate,ps=r.passStart(r.next),seg=chunksBetween(chunks,Math.round((ps-.15+lat)*rate),Infinity);
+        if(seg&&seg.data.length>=rate*.3){const origin=r.a+(seg.first/rate-lat-ps);r.raw={data:seg.data,rate};loopOwner=r;
+          try{const t=await addRecorded(seg.data,rate,origin,r.a,r.b,'loop');if(t){t.name+=' (mic lost, incomplete)';syncPhraseUI();persist();stopNote('Microphone stopped',lostNote(r,t)+' The finished passes are kept as normal takes.');}}finally{loopOwner=null;}}
+        else stopNote('Microphone stopped','The microphone stopped during loop recording ('+(r.lostWhy||'disconnected')+'). '+(r.added?r.added+' finished pass'+(r.added===1?' is':'es are')+' kept.':'Nothing had been recorded yet.'));}if(!r.added)phraseMessage('Loop recording stopped before a full pass finished — nothing was added.');else phraseMessage('Loop recording: '+r.added+' new take'+(r.added===1?'':'s')+' on '+(r.phrase?.name||'the loop')+'. Listen and choose the best one.');}
+    if(r.why){const what=r.mode==='loop'?'Loop recording':'The punch';const reason={end:'Punched out at the end of '+(r.part?.name||'the part')+' because “Stop at part end” is ON.',paused:what+' stopped by itself because the audio stopped playing (the phone or browser paused it).',hidden:what+' stopped by itself because the app went to the background (screen locked or another app opened). What was recorded is kept.',cap:what+' stopped by itself because it reached the '+capText(r.cap)+' safety limit for one take. What was recorded is kept; press R again to carry on.'}[r.why];
       if(reason)stopNote(r.why==='end'?'Punched out at the part end':'Recording stopped by itself',reason+(r.why==='end'?' Turn it OFF on the part panel to keep punching past OUT.':''));}
     if(r.clip)toast('Some peaks clipped','The take is kept. Move back from the mic or lower the GAIN next to the mic meter, and check the clipping figure before choosing.');
-  }catch(e){phraseMessage('Recording not added: '+e.message);}
+  }catch(e){if(r.raw&&r.raw.data.length>=r.raw.rate*.5)keepRecovery([r.raw.data],r.raw.rate,'Recording not added: '+e.message);else phraseMessage('Recording not added: '+e.message);}
   finally{capClose();renderOpen();syncPhraseUI();D.dirty=true;}
 }
 PV.stop=(stopTransport)=>{if(R)return stopRec(true,!!stopTransport);if(rec&&rec.mr&&rec.mr.state!=='inactive')rec.mr.stop();};
@@ -341,33 +400,36 @@ async function addRecorded(data,rate,origin,a,b,mode){
 // take, the new take is chosen in its place (one Undo goes back). No part there -> a new part is made (as before).
 function partUnder(t){const L=phraseWorkspace().phrases;let hit=null;for(const p of L)if(t>=p.start-1e-6&&t<p.end)hit=p; // later parts win, like the comp
   if(hit)return hit;let next=null;for(const p of L)if(p.start>t&&p.start-t<=.5&&(!next||p.start<next.start))next=p;return next;} // pressed a moment early
-PV.partUnder=partUnder;
+PV.partUnder=partUnder;PV._addPunch=(...a)=>addPunch(...a);PV._capTrack=()=>Cap.stream&&Cap.stream.getAudioTracks()[0];
 async function addPunch(data,rate,origin,a,b,r){
-  const w=phraseWorkspace(),p=r.part&&w.phrases.includes(r.part)?r.part:null;
-  if(!p)return addRecorded(data,rate,origin,a,b,'punch');
-  const pre=PhraseCore.clone(w),oldEnd=p.end,base0=p.takes.find(t=>t.id===p.selected),useBase0=!!(base0&&PhraseCore.covers(base0,p));let fit=null;
-  if(!P.stopAtEnd&&b>p.end+.05&&a<p.end){const sung=Math.min(b,Math.max(origin+lastSound([data],rate)+.25,p.end));if(sung>p.end+.05)fit=fitOut(p,sung,(q,e)=>askTrim(p,q,e));}
-  if(fit&&p.takes.length<32){if(fit.end>p.end)p.end=fit.end;if(fit.shrink){fit.shrink.start=fit.end;reAnalyze(fit.shrink);}}
-  const undoFit=()=>{p.end=oldEnd;if(fit&&fit.shrink){const q0=pre.phrases.find(x=>x.id===fit.shrink.id);if(q0)fit.shrink.start=q0.start;}};
-  try{
-  const pa=Math.max(a,p.start),pb=Math.min(b,p.end);
-  if(pb-pa<.3)throw new Error('The punch did not reach into '+p.name+' long enough (less than 0.3 s) — nothing was added.');
+  const w=phraseWorkspace();let p=r.part&&w.phrases.includes(r.part)?r.part:null;
+  if(!p&&b-a<=60)return addRecorded(data,rate,origin,a,b,'punch');
+  const pre=PhraseCore.clone(w);
+  if(!p){ // a long punch with no part under it: a new part (up to 60 s), the rest is placed like any long take
+    if(w.phrases.length>=128)throw new Error('Up to 128 parts per project.');
+    const nx=w.phrases.filter(q=>q.start>a+.001).sort((x,y)=>x.start-y.start)[0],e=floorMs(Math.min(a+60,nx?nx.start:Infinity,900));
+    PhraseCore.span(+a.toFixed(3),e);phraseCaptureBase();p={id:'p'+w.nextId++,name:'Punch '+fmtShort(a),start:+a.toFixed(3),end:e,selected:null,reference:null,takes:[]};w.phrases.push(p);}
+  const base=p.takes.find(t=>t.id===p.selected),useBase=!!(base&&PhraseCore.covers(base,p)),pa=Math.max(a,p.start);
+  if(Math.min(b,p.end)-pa<.3)throw new Error('The punch did not reach into '+p.name+' long enough (less than 0.3 s) — nothing was added.');
   if(p.takes.length>=32)throw new Error(p.name+' already has 32 takes. Delete some takes first.');
-  const W=w.rate,[mono]=await phraseResample([data],rate,W),base=base0,useBase=useBase0;
-  const pad=.25,o=Math.max(-9.9,+(p.start-pad).toFixed(4)),n=Math.round((p.end+pad-o)*W),nc=useBase?base.channels.length:1,out=Array.from({length:nc},()=>new Float32Array(n));
-  if(useBase){const off=Math.round((o-PhraseCore.origin(base))*W),g=Math.pow(10,(base.gainDb||0)/20);for(let c=0;c<nc;c++){const src=base.channels[c],dst=out[c];for(let i=0;i<n;i++){const j=off+i;if(j>=0&&j<src.length)dst[i]=src[j]*g;}}}
-  const F=Math.max(1,Math.round(.015*W)),ia=Math.round((pa-o)*W),ib=Math.round((pb-o)*W),mo=Math.round((origin-o)*W);
-  for(let i=Math.max(0,ia);i<Math.min(n,ib);i++){const j=i-mo;if(j<0||j>=mono.length)continue;const wt=Math.min(1,(i-ia)/F,(ib-1-i)/F);if(wt<=0)continue;for(let c=0;c<nc;c++)out[c][i]=out[c][i]*(1-wt)+mono[j]*wt;}
-  w.selected=p.id;await phraseAddAudio(p,out,W,o,null);
-  }catch(e){undoFit();throw e;}
-  const pa=Math.max(a,p.start),pb=Math.min(b,p.end),base=base0,useBase=useBase0;
-  const t=p.takes.at(-1);t.punch={from:+pa.toFixed(3),to:+pb.toFixed(3),over:useBase?base.name:null};
-  if(useBase)p.selected=t.id;
-  if(p.end>oldEnd+.0005||fit&&fit.shrink){if(p.selected&&!PhraseCore.covers(p.takes.find(x=>x.id===p.selected),p))p.selected=null;for(const x of p.takes)if(x!==t)phraseAnalyze(x,p);phraseUndoStack[phraseUndoStack.length-1]=pre;phraseUndo=pre;}
-  const grew=p.end>oldEnd+.0005?' You punched past the OUT flag, so '+p.name+' now ends at '+fmt(p.end)+' (was '+fmt(oldEnd)+')'+(fit.shrink?' and '+fit.shrink.name+' starts there':'')+'.':'';
-  const cut=a<p.start-.05||b>p.end+.05;
-  phraseChanged('Punched in '+fmt(pa)+'–'+fmt(pb)+' on '+p.name+' → '+t.name+(useBase?' ('+base.name+' with that bit replaced). '+t.name+' is now chosen; Undo or choose '+base.name+' to go back.':' (silence around the punch — no take was chosen on this part yet).')+grew+(cut?(fit&&fit.cut&&fit.cut.why==='next'?' The punch was trimmed where '+fit.cut.q.name+' starts.':fit&&fit.cut?' A part can be at most 60 s long, so the punch was trimmed there.':' Only the part between its IN and OUT was kept'+(P.stopAtEnd?' (“Stop at part end” is ON).':'.')):''));
-  w.cursor=Math.min(899.5,p.end);persist();D.dirty=true;return t;}
+  const W=w.rate,[mono]=await phraseResample([data],rate,W);
+  const S=P.stopAtEnd?p.end:Math.min(b,Math.max(origin+lastSound([mono],W)+.25,p.end));
+  const o0=Math.max(-9.9,+(p.start-.25).toFixed(4));
+  const main=to=>{const n=Math.max(1,Math.round((to-o0)*W)),nc=useBase?base.channels.length:1,out=Array.from({length:nc},()=>new Float32Array(n));
+    if(useBase){const off=Math.round((o0-PhraseCore.origin(base))*W),g=Math.pow(10,(base.gainDb||0)/20);for(let c=0;c<nc;c++){const src=base.channels[c],dst=out[c];for(let i=0;i<n;i++){const j=off+i;if(j>=0&&j<src.length)dst[i]=src[j]*g;}}}
+    const F=Math.max(1,Math.round(.015*W)),ia=Math.round((pa-o0)*W),ib=Math.min(n,Math.round((Math.min(b,to)-o0)*W)),mo=Math.round((origin-o0)*W);
+    for(let i=Math.max(0,ia);i<ib;i++){const j=i-mo;if(j<0||j>=mono.length)continue;const wt=Math.min(1,(i-ia)/F,(ib-1-i)/F);if(wt<=0)continue;for(let c=0;c<nc;c++)out[c][i]=out[c][i]*(1-wt)+mono[j]*wt;}
+    return {chs:out,origin:o0};};
+  const slice=(x,y)=>{const i0=Math.max(0,Math.round((x-origin)*W)),i1=Math.min(mono.length,Math.round((y-origin)*W));return {chs:[mono.slice(i0,Math.max(i0+1,i1))],origin:origin+i0/W};};
+  const sfx=r.lost?' (mic lost)':'';
+  w.selected=p.id;
+  const res=await placeTake(p,{pre,origin,E:Math.max(b,p.end)+.25,S,rate:W,name:phraseNextTakeName(p)+sfx,suffix:sfx,main,slice,
+    after:t=>{t.punch={from:+pa.toFixed(3),to:+Math.min(b,p.end).toFixed(3),over:useBase?base.name:null};if(useBase&&PhraseCore.covers(t,p))p.selected=t.id;}});
+  const t=res.t;noteSeq(p,t);res.punch=true;
+  const pb=Math.min(b,p.end);
+  let m='Punched in '+fmt(pa)+'–'+fmt(pb)+' on '+p.name+' → '+t.name+(useBase?' ('+base.name+' with that bit replaced). '+t.name+' is now chosen; Undo or choose '+base.name+' to go back.':' (silence around the punch — no take was chosen on this part yet).')+placeText(p,res);
+  if(P.stopAtEnd&&b>p.end+.05)m+=' Only the part between IN and OUT is used (“Stop at part end” is ON); the take keeps the rest.';
+  phraseChanged(m);w.cursor=Math.min(899.5,p.end);persist();D.dirty=true;return t;}
 
 // ================================================================ the R / Shift+R logic
 function pastBackingText(p){if(!p||!S.beat)return '';const d=S.beat.duration;if(p.end<=d+.01)return '';return p.start>=d?p.name+' starts after the backing track ends ('+fmt(d)+'): you will hear no backing.':p.name+' runs past the end of the backing track ('+fmt(d)+'): the last '+(p.end-d).toFixed(1)+' s has no backing.';}
@@ -429,7 +491,8 @@ function micModalOpen(after){mcAfter=after;$('micModal').hidden=false;$('mcGain'
 function micModalClose(go){$('micModal').hidden=true;if($('mcNoAsk').checked){P.micFirst=false;savePrefs();}micChecked=true;const f=mcAfter;mcAfter=null;if(!$('chkToggle').dataset.keep)micCheckOn(false);if(go&&f)setTimeout(f,60);syncPanel();}
 $('mcGo').onclick=()=>micModalClose(true);$('mcSkip').onclick=()=>micModalClose(true);
 q('#micModal [data-close]').addEventListener('click',()=>{mcAfter=null;micCheckOn(false);});
-function setGain(db){P.micGainDb=Math.max(-12,Math.min(24,Math.round(db)));savePrefs();if(Cap.gain)Cap.gain.gain.setTargetAtTime(dbToGain(P.micGainDb),Cap.ctx.currentTime,.02);syncPanel();}
+function setGain(db){P.micGainDb=Math.max(-12,Math.min(24,Math.round(db)));savePrefs();const v=dbToGain(P.micGainDb);if(Cap.gain)Cap.gain.gain.setTargetAtTime(v,Cap.ctx.currentTime,.02);if(RG)RG.g.gain.setTargetAtTime(v,RG.ctx.currentTime,.02);syncPanel();}
+function monFail(){const m='HEAR ME could not connect to the microphone input, so you will not hear yourself. Turn HEAR ME off and on again, or stop and start the recording.';phraseMessage(m);toast('HEAR ME is not working',m,8000);}
 PV.setGain=setGain;
 function levelUI(pk,hold,clip,ids){const lv=x=>Math.max(0,Math.min(100,(20*Math.log10(x+1e-6)+60)/60*100));$(ids[0]).style.width=lv(pk)+'%';$(ids[0]).style.background=pk>.98?'var(--red)':pk>.5?'var(--amber)':'var(--green)';if(ids[1])$(ids[1]).style.left=lv(hold)+'%';
   const db=20*Math.log10(hold+1e-6);$(ids[2]).textContent=hold<.001?'— dBFS':db.toFixed(1)+' dBFS peak';$(ids[3]).classList.toggle('on',clip);
@@ -443,7 +506,11 @@ window.writeRemembered=async function(){saveState='saving';syncSaved();try{const
 const origAdd=window.phraseAddAudio;
 window.phraseAddAudio=async function(){const r=await origAdd.apply(this,arguments);BK.since++;saveBK();maybeNag();return r;};
 const origSaveProject=window.saveProject;
-if(typeof origSaveProject==='function')window.saveProject=async function(){const r=await origSaveProject.apply(this,arguments);if(!/fail|could not|couldn|not saved|error/i.test($('saveStatus').textContent||'')){BK.since=0;BK.lastBackup=Date.now();saveBK();syncSaved();}return r;};
+// 0.17.2: the result of a project backup is shown where you are (RECORD & COMP status line + a toast), also on a phone
+if(typeof origSaveProject==='function')window.saveProject=async function(){$('saveStatus').textContent='';const r=await origSaveProject.apply(this,arguments);const msg=$('saveStatus').textContent||'',bad=!msg||/fail|could not|couldn|not saved|error|first|wait/i.test(msg);
+  if(!bad){BK.since=0;BK.lastBackup=Date.now();saveBK();syncSaved();}
+  PV.lastSave={ok:!bad,msg};if(msg)phraseMessage((bad?'Project backup: ':'Project backup saved — ')+msg);if(bad&&msg)toast(/^Not saved/.test(msg)?'Project backup cancelled':'Project backup not saved',msg,8000);return r;};
+PV.autosaveText=()=>{const tm=d=>new Date(d).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});return saveState==='fail'?'⚠ The last autosave failed.':savedAt?'Last autosaved at '+tm(savedAt)+'.':'Automatic after every change.';};
 function maybeNag(){const every=+P.backupEvery||0;if(!every||BK.since<every)return;if(Date.now()-BK.lastNag<10*60000)return;BK.lastNag=Date.now();saveBK();
   toast('Back up your takes',BK.since+' new takes since your last project download. Browser storage can be cleared by the phone — Settings ▾ › Save project with every take (Ctrl+S).',9000);}
 PV._nag=maybeNag;PV._bk=BK;
@@ -458,7 +525,7 @@ $('dawSaved').onclick=()=>{if(BK.since&&!$('phraseSave').disabled)$('phraseSave'
 // ================================================================ panel wiring
 function bindSwitch(id,key,after){const el=$(id);el.checked=!!P[key];el.onchange=()=>{P[key]=el.checked;savePrefs();if(after)after();syncPanel();};}
 bindSwitch('optCountIn','countIn');bindSwitch('optMetro','metro');bindSwitch('optHearOld','hearOld');bindSwitch('optMicFirst','micFirst');
-bindSwitch('optMonitor','monitor',async()=>{if(P.monitor){toast('Input monitoring on','Wired headphones only. Expect a small delay ('+Math.round(pvsLatency()*1000)+' ms or more). Turn it off if you hear an echo or howl.',7000);}applyMonitor();});
+bindSwitch('optMonitor','monitor',async()=>{if(!applyMonitor()){monFail();return;}if(P.monitor){toast('Input monitoring on','Wired headphones only. Expect a small delay ('+Math.round(pvsLatency()*1000)+' ms or more). Turn it off if you hear an echo or howl.',7000);}applyMonitor();});
 $('optCountBars').value=String(P.countBars);$('optCountBars').onchange=()=>{P.countBars=+$('optCountBars').value===2?2:1;savePrefs();syncPanel();};
 $('optClickVol').value=Math.round(P.clickVol*100);$('optClickVol').oninput=()=>{P.clickVol=+$('optClickVol').value/100;savePrefs();syncPanel();};
 $('optMonVol').value=Math.round(P.monitorVol*100);$('optMonVol').oninput=()=>{P.monitorVol=+$('optMonVol').value/100;savePrefs();applyMonitor();syncPanel();};
@@ -491,7 +558,7 @@ window.syncPhraseUI=function(){const r=origSync.apply(this,arguments);if(!phrase
   const warn=pastBackingText(p);$('phraseWarn').hidden=!warn;$('phraseWarn').textContent=warn?'⚠ '+warn:'';return r;};
 PV.frame=now=>{
   // 0.17.0 fix: input monitoring opened for a normal take is switched off and released when that take ends (it stayed on before)
-  if(Cap.forRec&&!rec&&!S.recStarting){Cap.forRec=false;applyMonitor();capClose();}
+  if(RG&&!rec&&!S.recStarting){rgRelease();}
   if(rec&&rec.target==='phrase'&&rec.phrase&&rec.phrase.free&&rec.t0){const o=rec.phrase,el=(performance.now()-rec.t0)/1000,st=rec.origin+el;
     if(!rec.outNoted&&st>o.p.end+.3){rec.outNoted=true;phraseMessage('● Still recording past the OUT flag of '+o.p.name+' — the part will get longer to fit. Press R, Space or Stop when you have finished.');}
     if(!rec.beatNoted&&rec.beatGain&&S.beat&&st>S.beat.duration){rec.beatNoted=true;toast('The backing track has ended','Still recording. Press Stop (R or Space) when you have finished.',7000);}
@@ -507,6 +574,9 @@ document.addEventListener('visibilitychange',()=>{if(document.visibilityState===
 // playback ended while punching (song end / Stop) -> punch out
 setInterval(()=>{if(!R||R.starting||R.stopping)return;
   if(!playing){stopRec(true,false,'paused');return;}
+  // 0.17.2: the same safety limit as a normal take (10 min, less when the project is nearly full)
+  const el=audioCtx().currentTime-R.T0;if(R.cap&&el>=R.cap){stopRec(true,false,'cap');return;}
+  if(R.cap>90&&!R.capNoted&&el>R.cap-60){R.capNoted=true;toast('Recording stops in 1 minute','One '+(R.mode==='loop'?'loop recording':'punch')+' can be at most '+capText(R.cap)+' long (a safety limit). Punch out soon and carry on with another one.',10000);}
   // 0.17.1: "Stop at part end" ON also punches out at the part's OUT flag (the song keeps playing)
   if(R.mode==='punch'&&P.stopAtEnd&&R.part&&phraseWorkspace().phrases.includes(R.part)&&R.s0<R.part.end&&currentPos()>=R.part.end+.05)stopRec(true,false,'end');},100);
 syncPanel();syncSaved();

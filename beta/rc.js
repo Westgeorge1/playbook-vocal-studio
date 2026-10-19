@@ -1,4 +1,4 @@
-/* Playbook Vocal Studio 0.17.1 — RECORD & COMP screen: the one place where you record.
+/* Playbook Vocal Studio 0.17.2 — RECORD & COMP screen: the one place where you record.
      part  = phrase (S.phrases.phrases[]),  take = phrase take,  chosen take = phrase.selected,
      comp  = PhraseCore.compose(workspace) (same join fade as before),  POLISH = phraseApply() + CLEAN/TUNE/CHAIN/DETAIL/MIX.
    0.17.0 fused the old POLISH recording tools in here as first-class controls:
@@ -161,7 +161,7 @@ function progressText(){const L=W().phrases,n=L.filter(p=>p.selected).length;ret
 
 // ---------------------------------------------------------------- export + go to POLISH
 async function sendToPolish(ask){const w=W();if(!phraseNeedsApply())return true;
-  if(ask&&w.applied>=0&&S.main&&!confirm('Your comp changed since you last sent it to POLISH.\n\nSend the new comp to POLISH now? Tuning note edits made on the old comp start again on the new vocal.'))return false;
+  if(ask&&S.main&&!confirm((w.applied>=0?'Your comp changed since you last sent it to POLISH.':'POLISH has a different vocal loaded.')+'\n\nSend the new comp to POLISH now? Note, breath and timing edits made in POLISH start again on the new vocal. Your sound settings stay.'))return false;
   const ok=await phraseApply();return ok;}
 async function exportComp(){if(busy()){toast('Please wait','Finish the recording or the current job first.');return false;}
   const w=W();if(!hasComp()){toast('Nothing to export yet','Choose a take for at least one part first (green ✓).');return false;}
@@ -318,7 +318,28 @@ function partInfo(p){const bar=barSec(),b0=Math.floor(p.start/bar+1e-6)+1,b1=Mat
 function takeNote(t,p,rank){const bits=[msShort(takeDur(t))];if(t.punch)bits.push('punch '+fmtShort(t.punch.from)+'–'+fmtShort(t.punch.to));if(t.source)bits.push('imported: '+t.source);if(!PhraseCore.covers(t,p))bits.push('too short — redo');
   else if(t.analysisToken)bits.push('checking…');else if(t.profile)bits.push(t.profile.clippedPercent>0.001?'clipped '+t.profile.clippedPercent.toFixed(2)+'%':'clip ok');
   if(p.reference===t.id)bits.push('melody reference');if(rank&&rank.winner===t.id)bits.push('suggested');if(p.selected===t.id)bits.push('chosen');return bits.join(' · ');}
-function signature(){const w=W();return JSON.stringify([w.revision,w.selected,w.key,w.scale,w.phrases.map(p=>[p.id,p.name,p.start,p.end,p.selected,p.reference,p.takes.map(t=>t.id+t.name+'|'+(t.profile?1:0)+(t.analysisToken?1:0))]),RC.aud,recording(),!!S.recStarting,busy(),RC.loopOn,playing&&RC.playMode,PV.prefs.countIn,PV.prefs.countBars,narrow(),bpm(),RC.playingTake&&playing,phraseUndoStack.length,phraseRedoStack.length]);}
+// 0.17.2 "Why suggested?": the numbers behind the take suggestion (pitch, timing, noise, clipping) or why there is none
+function whyLabel(t,p,rank){const r=rank&&rank.rows.find(r=>r.id===t.id);if(!r||t.analysisToken)return '';
+  return rank.winner===t.id?'Why suggested?':t.analysisError?'Why no score?':'Why not suggested?';}
+function whyText(t,p,rank){const r=rank&&rank.rows.find(r=>r.id===t.id),a=t.profile,out=[];
+  if(t.analysisError)return ['Analysis failed: '+t.analysisError+'. Listen and choose by ear; the app cannot score this take.'];
+  if(!r||!a)return ['Not analysed yet.'];
+  out.push('Pitch: '+(r.pitch===null||r.pitch===undefined?'uncertain (no steady notes found)':Math.round(r.pitch)+' cents off '+(r.melody?'the melody reference':'the nearest note of the song key')+' (lower is better)'));
+  out.push('Timing: '+(r.timing===null||r.timing===undefined?(p.reference&&p.reference!==t.id?'not compared (the notes do not line up with the reference)':'not measured — set a melody / timing reference take to compare timing'):Math.round(r.timing)+' ms from the reference (lower is better)'));
+  out.push('Noise: '+(Number.isFinite(r.contrast)?'voice is '+Math.round(r.contrast)+' dB above the background (higher is better)':'not measured (no quiet lead-in before the part)'));
+  out.push('Clipping: '+(r.clippedPercent>0.001?r.clippedPercent.toFixed(2)+'% of samples clipped':'none'));
+  if(r.eligible)out.push('Score: '+Math.round(r.score)+' / 100');
+  const others=rank.rows.filter(x=>x.eligible);
+  if(rank.winner===t.id){const second=others.filter(x=>x.id!==t.id).sort((a,b)=>b.score-a.score)[0];out.push('Suggested: the best score'+(second?', '+Math.round(r.score-second.score)+' points ahead of the next take':'')+'. A suggestion is only a hint — trust your ears.');}
+  else if(!r.eligible)out.push('Not suggested: '+(r.reason||'uncertain')+'.');
+  else if(rank.tied)out.push('No suggestion: the best takes are within 3 points of each other — too close to call.');
+  else if(others.length<2)out.push('No suggestion yet: at least two takes that cover the part must be analysed.');
+  else if(!p.takes.every(x=>x.profile||x.analysisError))out.push('No suggestion yet: other takes are still being checked.');
+  else out.push('Another take scored higher.');
+  return out;}
+RC.whyText=(id)=>{const p=sel(),w=W();const t=p&&p.takes.find(t=>t.id===id);return t?whyText(t,p,PhraseCore.rank(p,w.key||0,w.scale||0)):null;};
+RC.why=RC.why||new Set();
+function signature(){const w=W();return JSON.stringify([[...RC.why].join(),w.revision,w.selected,w.key,w.scale,w.phrases.map(p=>[p.id,p.name,p.start,p.end,p.selected,p.reference,p.takes.map(t=>t.id+t.name+'|'+(t.profile?1:0)+(t.analysisToken?1:0))]),RC.aud,recording(),!!S.recStarting,busy(),RC.loopOn,playing&&RC.playMode,PV.prefs.countIn,PV.prefs.countBars,narrow(),bpm(),RC.playingTake&&playing,phraseUndoStack.length,phraseRedoStack.length]);}
 function sync(force){const s=signature();if(!force&&s===RC.sig)return;RC.sig=s;RC.dirty=true;
   const w=W(),p=sel(),L=sorted(),locked=phraseBusy(),rank=p?PhraseCore.rank(p,w.key||0,w.scale||0):null;
   // remember new takes -> auto-select the newest for audition
@@ -338,8 +359,8 @@ function sync(force){const s=signature();if(!force&&s===RC.sig)return;RC.sig=s;R
   $('rcRedoLast').disabled=!p||!p.takes.length||busy();$('rcPrev').disabled=!p||idx<=0||locked;$('rcNext').disabled=locked||recording();$('rcNext').textContent=p&&idx===L.length-1?'+ Add next part':'Next part ▶';
   // take list
   const rows=p?p.takes.map(t=>{const ch=p.selected===t.id,aud=RC.aud===t.id,pl=playing&&RC.playingTake===t.id&&loop&&loop.phrase&&!loop.rcComp;
-    return '<div class="rctake'+(ch?' chosen':'')+(aud?' aud':'')+'" data-id="'+esc(t.id)+'"><div class="rctn"><b>'+esc(t.name)+'</b><small>'+esc(takeNote(t,p,rank))+'</small>'+'</div>'+
-      '<button class="rcbtn rcplay" data-act="play" aria-label="Play '+esc(t.name)+'">'+(pl?'■':'▶')+'<span class="rcphone"> '+(pl?'Stop':'Play')+'</span></button><button class="rcbtn rcchoose" data-act="choose" title="'+(ch?'Chosen for the comp. Click to un-choose it.':'Use this take in the comp')+'">'+(ch?'✓ Chosen':'✓ Choose')+'</button><button class="rcbtn rcdel" data-act="del" aria-label="Delete '+esc(t.name)+'">Del</button></div>';}).join(''):'';
+    return '<div class="rctake'+(ch?' chosen':'')+(aud?' aud':'')+'" data-id="'+esc(t.id)+'"><div class="rctn"><b>'+esc(t.name)+'</b><small>'+esc(takeNote(t,p,rank))+'</small>'+(whyLabel(t,p,rank)?'<button class="rcwhyb" data-act="why" aria-expanded="'+RC.why.has(t.id)+'">'+whyLabel(t,p,rank)+'</button>':'')+'</div>'+
+      '<button class="rcbtn rcplay" data-act="play" aria-label="Play '+esc(t.name)+'">'+(pl?'■':'▶')+'<span class="rcphone"> '+(pl?'Stop':'Play')+'</span></button><button class="rcbtn rcchoose" data-act="choose" title="'+(ch?'Chosen for the comp. Click to un-choose it.':'Use this take in the comp')+'">'+(ch?'✓ Chosen':'✓ Choose')+'</button><button class="rcbtn rcdel" data-act="del" aria-label="Delete '+esc(t.name)+'">Del</button>'+(RC.why.has(t.id)?'<div class="rcwhy" role="note">'+whyText(t,p,rank).map(x=>'<div>'+esc(x)+'</div>').join('')+'</div>':'')+'</div>';}).join(''):'';
   const th=rows||'<p class="rcempty">'+(p?'No takes yet. Press the big red button (or R), sing, then press Stop (R or Space) — it records until you stop. Or turn Loop ON to record a take on every pass, or Import a take.':'No part selected.')+'</p>';
   // rebuild the list only when it really changed, and never in the middle of a tap/click on it (the click would be lost)
   if(RC.listPress){RC.sig='';}else if(RC.takesHtml!==th){RC.takesHtml=th;$('rcTakes').innerHTML=th;}
@@ -362,7 +383,7 @@ function sync(force){const s=signature();if(!force&&s===RC.sig)return;RC.sig=s;R
 }
 $('rcTakes').addEventListener('pointerdown',()=>{RC.listPress=true;});window.addEventListener('pointerup',()=>{if(RC.listPress)setTimeout(()=>{RC.listPress=false;RC.sig='';},0);},true);window.addEventListener('pointercancel',()=>{RC.listPress=false;RC.sig='';},true);
 $('rcTakes').addEventListener('click',e=>{const row=e.target.closest('.rctake');if(!row)return;const p=sel(),t=p?.takes.find(t=>t.id===row.dataset.id);if(!t)return;const b=e.target.closest('button');
-  const act=b?b.dataset.act:'aud';if(act==='play'||act==='aud')audition(t,p);else if(act==='choose')choose(t,p,true);else if(act==='del')delTake(t,p);RC.sig='';});
+  const act=b?b.dataset.act:'aud';if(act==='play'||act==='aud')audition(t,p);else if(act==='choose')choose(t,p,true);else if(act==='del')delTake(t,p);else if(act==='why'){if(RC.why.has(t.id))RC.why.delete(t.id);else RC.why.add(t.id);}RC.sig='';});
 $('rcTakes').addEventListener('dblclick',e=>{const row=e.target.closest('.rctake');if(!row||e.target.closest('button'))return;const p=sel(),t=p?.takes.find(t=>t.id===row.dataset.id);if(t)choose(t,p);});
 $('rcChips').addEventListener('click',e=>{const b=e.target.closest('[data-pid]');if(!b)return;if(b.dataset.pid==='+'){openAdd(true);return;}const p=W().phrases.find(p=>p.id===b.dataset.pid);if(p)selectPart(p);});
 
@@ -478,11 +499,14 @@ function moreItems(){const P=PV.prefs,w=W();
   ['hearComp','Hear my comp while playing / recording'+tg(P.hearOld),null],
   ['h','FILES'],
   ['openBeat','Open backing track…',null],
-  ['saveProj','Save project with every take (Ctrl+S)',null,$('phraseSave').disabled],
+  ['autosave','Autosave (this browser only)',(PV.autosaveText?PV.autosaveText():'Automatic after every change.')+' Not a backup: the browser can clear it.',true],
+  ['saveProj','Back up project (.zip with every take) · Ctrl+S','A file you keep and can open again later. POLISH edits are kept as they are.',$('phraseSave').disabled],
   ['openProj','Open song project…',null],
-  ['export','Export comp (WAV)',null],
+  ['export','Export comp audio (WAV)','Only the joined vocal as a sound file — not a project backup.'],
   ['lastMic','Download my last microphone recording',null,!S.phraseRecovery],
-  ['keys','Keyboard shortcuts',null]];}
+  ['keys','Keyboard shortcuts',null],
+  ['h','ABOUT'],
+  ['ver','App version '+(window.APP_VERSION||'')+' · Audio engine version '+(window.ENGINE_VERSION||''),'The app (screens and recording) and the sound engine (CLEAN, TUNE, CHAIN) have separate version numbers.',true]];}
 function openMore(anchor){closePops();const m=$('rcMore');m.innerHTML=moreItems().map(([k,label,hint,dis])=>k==='h'?'<div class="rcmh">'+label+'</div>':
   (/<(input|select)/.test(label)?'<div class="rcmi rcmrow" data-k="'+k+'">'+label+'</div>':'<button class="rcmi" role="menuitem" data-k="'+k+'"'+(dis?' disabled':'')+'><span>'+label+'</span>'+(hint?'<small>'+hint+'</small>':'')+'</button>')).join('');
   m.hidden=false;$('rcmCount').value=PV.prefs.countIn?String(PV.prefs.countBars):'0';const bk=$('rcmBackup');bk.value=String(PV.prefs.backupEvery);if(bk.value!==String(PV.prefs.backupEvery)){bk.insertAdjacentHTML('beforeend','<option value="'+PV.prefs.backupEvery+'">every '+PV.prefs.backupEvery+' takes</option>');bk.value=String(PV.prefs.backupEvery);}

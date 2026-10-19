@@ -1,20 +1,21 @@
-Playbook Vocal Studio 0.17.1 (1 RECORD & COMP + 2 POLISH)
+Playbook Vocal Studio 0.17.2 (1 RECORD & COMP + 2 POLISH)
+App version 0.17.2 · audio engine version 0.12.1 (the engine is unchanged; the two numbers are separate)
 
-Open in Chrome (test link, 0.17.1):
+Open in Chrome (test link — it serves 0.17.2):
 https://westgeorge1.github.io/playbook-vocal-studio/beta/
-(The main link https://westgeorge1.github.io/playbook-vocal-studio/ is unchanged.)
+(The main link https://westgeorge1.github.io/playbook-vocal-studio/ is unchanged and still serves 0.14.0.)
 
 All recording happens on 1 RECORD & COMP: parts, takes, punch-in, loop recording, import, count-in, click,
 mic level and gain, hear-me monitoring. 2 POLISH works on your comp: CLEAN, TUNE, CHAIN, DETAIL, MIX,
 note editor, wave edit, compare reference, save / export. Read RECORD-AND-TAKES.txt.
 
-For your own hosting, serve all files together over HTTPS. Opening index.html directly as a local file cannot reliably run workers or microphone capture. The WASM effects engine remains 0.12.1.
+For your own hosting, serve all files together over HTTPS. Opening index.html directly as a local file cannot reliably run workers or microphone capture. The WASM audio engine is version 0.12.1 (unchanged); the app version is 0.17.2.
 
-All 12 automated suites passed; two source review/debug passes completed. Physical phone microphone, audibility and touch testing remains outstanding; see VALIDATION.txt.
+Automated suites: see TEST-RESULTS-0.17.2.txt (run_all.sh fails loudly if any check fails). Physical phone microphone, audibility and touch testing remains outstanding; see VALIDATION.txt.
 
 0.14.0: new DAW-style screen (menu bar, transport, timeline with take lanes, inspector, editor dock, keyboard shortcuts; press ? for shortcuts). Every 0.13 control is still there; see CHANGES-0.14.0.txt for where each one moved. 
 
-0.15.0: true punch-in on the fly (R while playing), draggable IN/OUT flags on the ruler, Redo-this-phrase (R) and Next-phrase (Shift+R), multi-step Undo/Redo for takes and phrases, count-in and metronome, mic level check with clip warning, star ratings and Delete unchosen takes, loop recording (a new take every pass), latency calibration, song markers, big-button REC MODE for phones, optional input monitoring, mic gain, autosave indicator and backup reminders. Everything from 0.14 is still there and 0.13/0.14 projects open unchanged. See CHANGES-0.15.0.txt and the new REC tab. The hosted link above is still 0.13.0 until you upload this folder.
+0.15.0: true punch-in on the fly (R while playing), draggable IN/OUT flags on the ruler, Redo-this-phrase (R) and Next-phrase (Shift+R), multi-step Undo/Redo for takes and phrases, count-in and metronome, mic level check with clip warning, star ratings and Delete unchosen takes, loop recording (a new take every pass), latency calibration, song markers, big-button REC MODE for phones, optional input monitoring, mic gain, autosave indicator and backup reminders. Everything from 0.14 is still there and 0.13/0.14 projects open unchanged. See CHANGES-0.15.0.txt and the new REC tab.
 
 0.16.0: the app now opens on 1 RECORD & COMP — a simple screen for recording the song part by part, several takes per part, choosing the best take of each part and joining them into one vocal (the comp). Press "Comp done → Go to POLISH" (or click 2 POLISH at the top) for the full 0.15 studio: Clean, Tune, Chain, Mix. Extras such as loop recording, punch-in, metronome, monitoring, latency test and REC MODE are under More ▾ and still in POLISH. See CHANGES-0.16.0.txt.
 
@@ -23,3 +24,5 @@ All 12 automated suites passed; two source review/debug passes completed. Physic
 0.17.0: the old recording tools in POLISH are gone (PHRASE and REC tabs, take lanes in POLISH, the phone REC MODE, extra record buttons, star ratings, song markers). The useful ones are now ordinary buttons on 1 RECORD & COMP: punch-in on the fly (R or REC while the song plays, R again to punch out — the song keeps playing), a Loop switch on the part (every pass = a take), CLICK next to the count-in, HEAR ME (monitoring, with a headphones warning), a GAIN slider next to the mic meter and Import take. Settings ▾ now holds only settings and files (latency test, pre-roll, tempo, key, backup reminder, open/save). Same project format as 0.13–0.16; old projects open, 0.17 projects open in 0.16. See CHANGES-0.17.0.txt, TEST-RESULTS-0.17.0.txt and REVIEW-0.17.0.md.
 
 0.17.1: fix — a take no longer stops by itself at the end of the part. You record until you press Stop (R, Space or the big button); the backing keeps playing. If you sing past the part's OUT flag the part grows to fit (one Undo puts it back), and if that runs into the next part you choose: trim at the next part, or make room. New switch on the part panel: "Stop at part end: OFF/ON" (OFF by default) for the old stop-at-OUT behaviour. See CHANGES-0.17.1.txt.
+
+0.17.2: fixes from an independent review of 0.17.1 (see REVIEW-RESPONSE-0.17.2.md and CHANGES-0.17.2.txt). Your recording is never thrown away: long punch-ins (over 60 s) are kept whole in "(cont.)" parts; a take that runs into other parts keeps the whole recording and a window lets you choose (keep the next part / make room or replace / keep it as a take only); if the mic is unplugged the take so far is kept and marked "(mic lost)". Saving a project no longer re-sends the comp or resets your POLISH note, breath and timing edits. GAIN and HEAR ME now work while you record. Settings ▾ separates Autosave, Back up project and Export comp audio, and shows the app and engine versions; backup results show on the phone; "Why suggested?" explains the take suggestion.

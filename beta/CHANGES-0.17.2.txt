@@ -1,0 +1,61 @@
+Playbook Vocal Studio 0.17.2 — fixes from the independent review of 0.17.1
+(app version 0.17.2 · audio engine version 0.12.1, byte-identical; see REVIEW-RESPONSE-0.17.2.md for finding → fix → test)
+
+Your recording is never thrown away
+  - F1 Long punch-ins are kept whole. 0.17.1 cut every punch at 60 s and dropped the rest. Now the part grows to the
+    60-s project limit and the rest of the punch goes into "(cont.)" parts (as many as needed), sample-exact.
+    One Undo removes the punch and the continuation parts together. The 10-minute safety limit (with a warning one
+    minute before) now also applies to punch-ins and loop recording, with a message saying why it stopped.
+  - F2 A take that runs past OUT always keeps the whole recording (pre-roll to Stop, silence at the end too). 0.17.1
+    trimmed the take at the next part without asking (when the next part was too short to shorten) and cut off the
+    silent tail. Now, whenever the singing runs into other parts, a window asks:
+        Keep <next part> as it is · Make room / Replace … · Keep it as a take only
+    "Replace" names the parts and how many takes it removes; one Undo brings everything back. Short overlaps,
+    most of / all of the next part, several following parts and continuation parts that reach another part are
+    all handled the same way. Nothing is changed if something fails (the parts are put back exactly).
+    A recording that cannot be added is kept for Settings ▾ › Download my last microphone recording (now a WAV
+    file for punch-ins), and the recovery copy of a normal take is only cleared after the take is stored.
+  - F5 Mic unplugged / lost while recording: the audio so far is kept — a normal take or punch as
+    "Take N (mic lost)", a loop pass in progress as "(mic lost, incomplete)" (finished passes are normal takes),
+    with a message. Esc (your own cancel) still throws the take away. If the browser cannot read the recording,
+    the message points to the recovery download.
+
+POLISH edits are safe
+  - F6 Saving a project no longer re-sends the comp to POLISH (that reset note, breath and timing edits). It saves the
+    POLISH session as it is and the whole RECORD & COMP workspace. A cancelled download changes nothing.
+    Sending a changed comp is always your own action (Comp done / Load latest comp / Export comp) and asks first,
+    saying that POLISH edits start again on the new vocal.
+    Adding, renaming or deleting takes that are not chosen no longer marks the comp as changed (the app compares
+    what the comp is made of: chosen takes, their place, level and timing, the join fade, the starting vocal).
+    Projects from older versions fall back to the old rule until the comp is next sent.
+
+Live recording controls
+  - F3 GAIN works at once during a normal take too (it was fixed at the start, and skipped at 0 dB). The recording,
+    the meter and HEAR ME go through one gain stage that the app owns, also at 0 dB.
+  - F4 HEAR ME can be switched on and off at any time: before recording (takes effect when you record), in the mic
+    check, during a normal take and during a punch / loop. It uses the same microphone input (never a second
+    microphone stream), is released when recording stops, and shows a message if it cannot connect.
+
+Tests (F7)
+  - A suite with any failing check (or a crash) now exits with code 1; run_all.sh collects every suite's exit code,
+    prints a summary and exits 1 if anything failed (selftest_run_all.sh proves it). Paths, ports and the browser
+    can be set with PVS_APP_DIR, PVS_TESTS, PVS_CHROME, URL, URL15/16/170/171, PVS_PYTHON, PVS_OLD_DIR.
+  - The POLISH Undo "NOTE" is now a real check (a changed sound setting is put back exactly).
+  - New t172.py with the regressions the review asked for (the review's own scripts were not supplied).
+
+Smaller things from the review
+  - App version and audio engine version are labelled separately (help › About, Settings ▾ › ABOUT).
+  - START-HERE no longer says the hosted link is 0.13.0.
+  - Settings ▾ separates "Autosave (this browser only)", "Back up project (.zip with every take)" and
+    "Export comp audio (WAV)". The result of a backup (saved / cancelled / failed) appears on the RECORD & COMP status
+    line and as a message, also on a phone.
+  - "Why suggested?" under each take: pitch, timing and noise numbers, clipping and score — or why there is none
+    (analysis failed, pitch uncertain, take does not cover the part, too close to call, not enough takes).
+
+Not changed
+  - Audio engine files byte-identical (phrase-core.js, worker.js, phrase-worker.js, engine-wasm.js/.wasm,
+    rec-worklet.js; daw.css and rec.css too) — sha256 in ENGINE-SHA256.txt.
+  - Every feature of 0.17.1 is still there. Projects from 0.15, 0.16 and 0.17 open; 0.17.2 projects open in 0.17.1
+    (and 0.16.1). New project fields (appliedSig) are ignored by older versions.
+
+Files changed: index.html, rec.js, rc.js, rc.css, daw.js, START-HERE.txt, RECORD-AND-TAKES.txt, tests-0.17/*.

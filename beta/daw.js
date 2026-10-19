@@ -1,4 +1,4 @@
-/* Playbook Vocal Studio 0.17.1 — POLISH screen controller (timeline, transport, menus, tabs, shortcuts).
+/* Playbook Vocal Studio 0.17.2 — POLISH screen controller (timeline, transport, menus, tabs, shortcuts).
    0.17.0: POLISH no longer records. The PHRASE and REC tabs, take lanes, IN/OUT punch strip, markers, record
    buttons and recording keys were removed; all recording lives on 1 RECORD & COMP (rc.js + rec.js).
    POLISH works on the comp: CLEAN, TUNE, CHAIN, DETAIL, MIX, note editor, wave edit, compare reference, save/export.
@@ -264,7 +264,7 @@ function slow(){
 // 0.17.0: POLISH works on the comp. Show what is loaded and offer the newest comp when it changed on RECORD & COMP.
 function syncComp(){const w=work(),need=typeof phraseNeedsApply==='function'&&phraseNeedsApply(),chosen=w?w.phrases.filter(p=>p.selected).length:0;
   $('polLoadComp').hidden=!need;$('polLoadComp').disabled=typeof phraseBusy==='function'&&phraseBusy();
-  $('polCompInfo').textContent=!S.main?(chosen?'Vocal: your comp is not loaded yet':'Vocal: none yet'):w&&w.applied>=0&&w.applied===w.revision?'Vocal: your comp ('+chosen+' of '+w.phrases.length+' parts chosen)':w&&w.applied>=0?'Vocal: an older version of your comp':'Vocal: '+(S.name||'imported vocal');}
+  $('polCompInfo').textContent=!S.main?(chosen?'Vocal: your comp is not loaded yet':'Vocal: none yet'):w&&w.applied>=0&&!need?'Vocal: your comp ('+chosen+' of '+w.phrases.length+' parts chosen)':w&&w.applied>=0?'Vocal: an older version of your comp':'Vocal: '+(S.name||'imported vocal');}
 async function loadComp(){if(typeof phraseNeedsApply!=='function'||!phraseNeedsApply()){toast('Comp already loaded','POLISH already has your latest comp.');return;}
   if(S.main&&!confirm('Load your latest comp from RECORD & COMP?\n\nYour sound settings stay. Note and wave edits made on the old comp start again on the new vocal.'))return;
   const ok=await phraseApply();if(ok)toast('New comp loaded','POLISH now has your latest comp.',5000);syncComp();D.dirty=true;}

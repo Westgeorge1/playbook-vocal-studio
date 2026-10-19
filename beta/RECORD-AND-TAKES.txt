@@ -1,4 +1,4 @@
-RECORD & COMP — recording your song part by part (Playbook Vocal Studio 0.17.1)
+RECORD & COMP — recording your song part by part (Playbook Vocal Studio 0.17.2)
 
 The idea
   Your song is split into PARTS (Intro, Verse 1, Chorus …). Each part gets as many TAKES as you like.
@@ -22,27 +22,40 @@ The idea
     (pre-roll; set it in Settings ▾), you can have a COUNT-IN of 1 or 2 bars and a CLICK (metronome, key C).
     Sing, then press Stop yourself (R, Space, the big button or ■). Recording does NOT stop at the end of the
     part: the backing keeps playing and you keep recording, even after the backing ends. Esc throws the take away.
+  - Your recording is never thrown away. The take always keeps everything from the pre-roll to the moment you
+    pressed Stop (silence at the end too). The part's IN and OUT only decide which piece the comp uses.
   - Sang past the part's OUT flag? The part gets longer to fit (up to the end of your singing; silence after
-    your last note does not count). One Undo puts it back. If that would run into the next part, you are asked:
-      OK     = keep the next part as it is — this part ends where the next one starts and the take is trimmed there;
-      Cancel = make room — this part grows and the next part starts later.
-    A part can be at most 60 seconds long; anything longer goes into a new "(cont.)" part right after it.
+    your last note does not count). One Undo puts it back. If that would run into other parts, a window asks:
+      Keep <next part> as it is  = this part ends where the next one starts; the rest stays in the take, unused;
+      Make room / Replace …      = this part grows; the next part starts later, or — if your singing covers it
+                                   (almost) completely — it is replaced (the window says how many takes that
+                                   removes; one Undo brings everything back);
+      Keep it as a take only     = no part changes at all; the take still holds the whole recording.
+    A part can be at most 60 seconds long; anything longer goes into new "(cont.)" parts right after it.
   - "⏹ Stop at part end: OFF/ON" (part panel, saved in your settings): ON brings back the old way — recording
     stops by itself at the part's OUT flag, and a punch-in punches out there.
   - One take can be at most 10 minutes (a safety limit; you get a warning 1 minute before). Whenever recording
     stops without you pressing Stop, a message says why (part end with the switch ON, safety limit, mic
-    unplugged, app sent to the background, audio paused by the phone).
+    unplugged, app sent to the background, audio paused by the phone). The same 10-minute limit applies to
+    punch-ins and loop recording.
+  - Mic unplugged or lost while recording (normal take, punch-in or loop)? What was recorded up to then is KEPT
+    as a take marked "(mic lost)" — a loop pass in progress as "(mic lost, incomplete)". Only Esc (your own
+    cancel) throws a take away. If a recording ever cannot be added, it is kept for download:
+    Settings ▾ › Download my last microphone recording (a WAV you can import again).
   - "↺ Redo last take" records the part again and replaces the last take (Undo brings it back).
   - "Next part ▶" (or Shift+R to go there and record).
-  - HEAR ME: hear your own voice in the headphones while you record. Wired headphones only — with speakers
-    it can echo or howl and the speaker sound gets into your take.
+  - HEAR ME: hear your own voice in the headphones while you record. You can turn it on or off at any time,
+    also in the middle of a take or a punch (it uses the same microphone input, never a second one). If it
+    cannot connect, a message says so. Wired headphones only — with speakers it can echo or howl.
+  - GAIN works at once, also while you record: the recording, the meter and HEAR ME all go through it.
 
 4. Punch-in on the fly
   - Press Play (Space). When the song reaches the spot, press R (or REC, or the big button — it now says
     "Punch in here"). Recording starts right there, in the part under the playhead (a new "Punch m:ss" part
     is made if there is none). Press R again to punch out: the song KEEPS PLAYING and you hear the new take.
     Space punches out and stops. Esc cancels. A punch keeps going past the part's OUT flag (the part grows,
-    as above) and even past the end of the song, until you punch out.
+    as above, with the same choices if it runs into other parts) and even past the end of the song, until you
+    punch out. A punch longer than 60 s is kept whole: it continues in "(cont.)" parts.
   - The punched take is a new take of that part: your chosen take outside the punch, the new singing inside
     it, with short fades (silence outside if the part had no chosen take yet). If the part already had a
     chosen take, the punched take is chosen automatically; one Undo puts the old choice back.
@@ -59,17 +72,29 @@ The idea
 
 7. Choose and build the comp
   - ▶ plays a take (with the backing if Settings ▾ › Hear backing when I play a take is ON).
+  - "suggested" on a take is a hint from the app. Tap "Why suggested?" (or "Why not suggested?") under the take
+    name to see the numbers: pitch (cents off the key or the melody reference), timing (ms against the
+    reference take), noise (voice above the background, dB), clipping, the score — or why there is no score
+    (analysis failed, pitch uncertain, take does not cover the part, too close to call).
   - "✓ Choose" uses the take in the comp; click "✓ Chosen" again to un-choose it. Double-click a take works too.
   - Right-click a take: listen, choose, rename, use as melody / timing reference, delete.
   - "Delete unchosen takes" (this part) and "…in all parts".
   - ▶ Play on the transport plays the comp (HEAR MY COMP ON) with the backing.
-  - Export comp (WAV) saves the joined vocal. "Comp done → Go to POLISH" sends it to POLISH.
+  - Export comp audio (WAV) saves the joined vocal as a sound file. "Comp done → Go to POLISH" sends it to POLISH.
+  - Changed your comp after POLISH edits? POLISH keeps the vocal it has until you send the new comp yourself
+    (Comp done, or "Load latest comp" in POLISH). You are asked first, because note, breath and timing edits
+    made in POLISH start again on the new vocal. Adding, renaming or deleting takes you did not choose does not
+    change the comp.
 
-8. Saving
-  - Autosave keeps your session in the browser. The saved light shows it. Backup reminders tell you to save a
-    project file now and then (Settings ▾ › Backup reminder).
-  - Settings ▾ › Save project with every take (Ctrl+S) makes a ZIP with every take. Open it with
-    Settings ▾ › Open song project. Projects from 0.13–0.16 open; 0.17 projects open in 0.16 too.
+8. Saving — three different things
+  - AUTOSAVE (this browser only): automatic after every change; the saved light shows it. It is not a backup —
+    a phone can clear browser storage.
+  - BACK UP PROJECT: Settings ▾ › Back up project (.zip with every take) (Ctrl+S). A file you keep, with every
+    take, your choices and your POLISH edits exactly as they are (saving never re-sends the comp or resets
+    edits). The result — saved, cancelled or failed — is shown on the status line and in a message, also on a
+    phone. Open it with Settings ▾ › Open song project. Projects from 0.13–0.17 open; 0.17.2 projects open in
+    0.17.1 and 0.16. Backup reminders tell you to do this now and then (Settings ▾ › Backup reminder).
+  - EXPORT COMP AUDIO (WAV): only the joined vocal as a sound file, for other apps. Not a project backup.
 
 Keys on RECORD & COMP
   R record / punch in / punch out   Shift+R next part and record   Space play / pause (stop while recording)

@@ -216,3 +216,14 @@ body.has-steps:not(.rc-on) #rcSaved,body.has-steps:not(.rc-on) #rcUndo,body.has-
   .rcctl .rcnext{grid-column:1/-1}
   #rcImp{width:calc(100vw - 16px)}
 }
+
+/* 0.17.2: "Why suggested?" breakdown on a take row */
+.rcwhyb{justify-self:start;background:none;border:0;padding:2px 0;margin-top:1px;color:#8fc7ff;font:600 12px var(--body);text-decoration:underline;cursor:pointer;min-height:24px}
+.rcwhy{grid-column:1/-1;display:grid;gap:2px;font:500 12px/1.35 var(--body);color:#d6dde4;background:#0f1a24;border:1px solid var(--rcl);border-radius:6px;padding:7px 9px;cursor:default}
+/* 0.17.2: choice window when a take runs into other parts */
+#pvsChoice .mbox{max-width:520px}
+.pvschoiceb{white-space:pre-line;margin:0 0 10px;font:500 14px/1.4 var(--body,inherit)}
+.pvschoice{display:grid;gap:8px}
+.pvschoice .rcbtn{display:grid;gap:3px;text-align:left;white-space:normal;padding:10px 12px;min-height:48px;height:auto}
+.pvschoice .rcbtn b{font-size:14px}.pvschoice .rcbtn small{font-weight:400;font-size:12px;opacity:.85}
+.pvschoice .rcbtn:first-child{border-color:#8de4b7}
