@@ -1,4 +1,11 @@
-# Playbook Vocal Studio 0.24.0 — review fixes, room for a full song, phone tidy-up
+# Playbook Vocal Studio 0.25.0 — every vocal lane can be polished, safer audio and settings
+
+- **0.25.0:** fixes R1–R6 from the 0.24.0 review: a 4-min lead + two 4-min backing vocals all complete POLISH,
+  POLISH readiness shown ("POLISH: 2 of 3 vocals ready"), instant capacity refusal, stereo kept on reopen (mono only
+  by your choice), no stale take approved on older projects, "own key" works both ways, POLISH settings survive a
+  crash, invalid (NaN) audio rejected; modern backup without older-app copies (CHANGES-0.25.0.txt,
+  REVIEW-RESPONSE-0.25.0.md, TEST-RESULTS-0.25.0.txt; tests in tests-0.25, run_all25.sh; invariants in AGENT-HANDOVER.md).
+
 
 - **0.24.0:** fixes F1–F8 from the 0.23.1 review, 256 MB of recording room (about 23 minutes mono) with the room left shown,
   compact 16-bit storage, sticky take-editor footer and 44 px touch targets (CHANGES-0.24.0.txt, REVIEW-RESPONSE-0.24.0.md,

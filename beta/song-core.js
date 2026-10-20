@@ -1,4 +1,4 @@
-/* Playbook Vocal Studio 0.23.0. Pure multitrack model and render functions.
+/* Playbook Vocal Studio 0.25.0. Pure multitrack model and render functions.
  * Audio arrays are immutable. History clones metadata and shares audio arrays.
  * Sections are navigation markers. Regions are independent, ordered replacements
  * within ONE track. Tracks are summed; takes within a region are alternatives.
@@ -32,22 +32,66 @@ const SIGMEMO=new Map(),SRCID=new WeakMap();let srcN=0;const srcTok=s=>{const c=
 function trackSignature(w,t){const key=t.regions.some(r=>r.selected)?layoutSig(w,t)+'|'+t.regions.filter(r=>r.selected).map(r=>srcTok(w.sources[r.takes.find(a=>a.id===r.selected).source])).join(','):'';if(!key)return 'pcm1:empty';if(SIGMEMO.has(key))return SIGMEMO.get(key);const s='pcm1:'+w.rate+':'+hashPcm(renderTrack(w,t,{end:trackEnd(t)}));if(SIGMEMO.size>64)SIGMEMO.delete(SIGMEMO.keys().next().value);SIGMEMO.set(key,s);return s;}
 function oldPad(sig){try{const o=JSON.parse(sig);if(!Array.isArray(o)||!Array.isArray(o[2]))return null;return JSON.stringify([o[0],o[1],o[2].map(r=>r.length===8?r.concat([0,0,0,0]):r)]);}catch(e){return null;}}
 // Called once when a song is loaded: converts signatures saved by 0.20–0.23 (layout lists) into audio hashes.
-// If the saved POLISH input audio is present and the same shape, it decides by comparing every sample;
-// otherwise (projects converted from 0.18) the saved layout, with missing edit values = 0, must match exactly.
-function normalizeSigs(w){for(const t of w.tracks){const p=t.polish;if(!p||typeof p.sourceSig!=='string'||p.sourceSig.startsWith('pcm1:')||p.sourceSig==='legacy')continue;
- const cur=trackSignature(w,t),pcm=p.session?.pcm,r=t.regions.some(x=>x.selected)?renderTrack(w,t,{end:trackEnd(t)}):null;let ok=false;
- if(r&&pcm?.length===r.length&&pcm[0]?.length===r[0].length){
-  // Same audio, or differences only at seams where two chosen ranges meet (0.24 renders those seams
-  // without the old dip; the take choices are unchanged) -> still valid. Anything else is a real change.
-  const sel=t.regions.filter(x=>x.selected),zones=[];for(const p of sel)for(const q of sel)if(p!==q&&Math.round(p.end*w.rate)===Math.round(q.start*w.rate)){const f=Math.round((Math.max(p.fadeMs??w.fadeMs,q.fadeMs??w.fadeMs))*w.rate/1000)+2,s=Math.round(q.start*w.rate);zones.push([s-f,s+f]);}
-  ok=true;for(let c=0;c<r.length&&ok;c++)for(let i=0;i<r[c].length;i++)if(pcm[c][i]!==r[c][i]&&!zones.some(([a,b])=>i>=a&&i<b)){ok=false;break;}}
- else ok=oldPad(p.sourceSig)===layoutSig(w,t);
- p.sourceSig=ok?cur:'stale:'+p.sourceSig;}return w;}
+// 0.25 (R3): there is NO tolerance zone. The saved POLISH input must equal, sample for sample, either the
+// current render or the exact 0.20–0.23 render (renderTrackLegacy23) of the CURRENT choices. Anything else
+// stays stale. Projects converted from 0.18 (no saved input audio) need the exact saved layout.
+function samePcm(a,b){if(!Array.isArray(a)||!Array.isArray(b)||a.length!==b.length)return false;for(let c=0;c<a.length;c++){const x=a[c],y=b[c];if(!x||!y||x.length!==y.length)return false;for(let i=0;i<x.length;i++)if(x[i]!==y[i]&&!(x[i]!==x[i]&&y[i]!==y[i]))return false;}return true;}
+// The renderer of 0.20–0.23, kept ONLY to prove a legacy POLISH input is unchanged (fade on both sides of every range).
+function renderTrackLegacy23(w,t,{start=0,end}){
+ const first=Math.round(start*w.rate),last=Math.round(end*w.rate),n=Math.max(1,last-first);
+ const nc=Math.max(1,...t.regions.flatMap(r=>r.takes.map(a=>w.sources[a.source].channels.length))),out=Array.from({length:nc},()=>new Float32Array(n));
+ for(const r of t.regions){const a=r.takes.find(a=>a.id===r.selected);if(!a)continue;const s=w.sources[a.source],o=Math.round(origin(a)*w.rate),[ts,te]=takeSpan(w,a),fi=Math.round((a.fadeIn||0)*w.rate/1000),fo=Math.round((a.fadeOut||0)*w.rate/1000),rs=Math.round(r.start*w.rate),re=Math.round(r.end*w.rate),lo=Math.max(first,rs,ts),hi=Math.min(last,re,te),fade=Math.min(Math.round((r.fadeMs??w.fadeMs)*w.rate/1000),Math.floor((re-rs)/4)),g=Math.pow(10,(a.gainDb||0)/20);
+  for(let i=lo;i<hi;i++){const m=fade?clamp(Math.min(i-rs,re-1-i)/fade,0,1):1,e=(fi?clamp((i-ts)/fi,0,1):1)*(fo?clamp((te-1-i)/fo,0,1):1);for(let c=0;c<nc;c++){const x=i-first;out[c][x]=out[c][x]*(1-m)+s.channels[Math.min(c,s.channels.length-1)][i-o]*g*e*m;}}}
+ return out;}
+function migrationProof(w,t){const p=t.polish,pcm=p?.session?.pcm;if(!t.regions.some(x=>x.selected))return false;
+ if(Array.isArray(pcm)&&pcm.length&&pcm[0]?.length!=null){const end=trackEnd(t);return samePcm(pcm,renderTrack(w,t,{end}))||samePcm(pcm,renderTrackLegacy23(w,t,{end}));}
+ return oldPad(p.sourceSig)===layoutSig(w,t);}
+function normalizeSigs(w){for(const t of w.tracks){const p=t.polish;if(!p||typeof p.sourceSig!=='string'||p.sourceSig.startsWith('pcm1:')||p.sourceSig.startsWith('stale:')||p.sourceSig==='legacy')continue;
+ p.sourceSig=migrationProof(w,t)?trackSignature(w,t):'stale:'+p.sourceSig;}return w;}
 // 0.24 (F4): one song key. A polished vocal whose TUNE key differs from the song key needs a settings
 // update (its notes and effects are kept) unless the vocal is set to keep its own key.
 function polishKey(t){const P=t.polish?.session?.P;return P&&Number.isFinite(P.key)?{key:P.key,scale:Number.isFinite(P.scale)?P.scale:0}:null;}
-function keyStale(w,t){if(w.key==null||!t.polish||t.polish.bypass||t.polish.ownKey)return false;const k=polishKey(t);return !!k&&(k.key!==w.key||k.scale!==(w.scale??0));}
-function polishValid(w,t){return !!(t.polish&&t.polish.sourceSig===trackSignature(w,t)&&t.polish.rate===w.rate&&t.polish.channels?.length);}
+// 0.25 (R4): THE key a vocal must be tuned to. Song key, unless the vocal keeps its own key (then its saved own
+// key, or the key it was polished in). Both directions of key sync and keyStale use only this function.
+// 0.25 (R2): the explicit, user-chosen mono version of a stereo lane for POLISH (originals untouched).
+function monoMix(ch){if(ch.length<2)return ch[0];const m=new Float32Array(ch[0].length);for(let i=0;i<m.length;i++)m[i]=(ch[0][i]+ch[1][i])/2;return m;}
+function songKeyOf(w){return {key:Number.isInteger(w?.key)?w.key:0,scale:Number.isInteger(w?.scale)?w.scale:1};}
+function wantedKey(w,t){const p=t?.polish;if(p?.ownKey){if(Number.isInteger(p.key))return {key:p.key,scale:Number.isInteger(p.scale)?p.scale:0};const k=polishKey(t);if(k)return k;}return songKeyOf(w);}
+function keyStale(w,t){if(!t.polish||t.polish.bypass)return false;if(w.key==null&&!t.polish.ownKey)return false;const k=polishKey(t);if(!k)return false;const want=t.polish.ownKey?wantedKey(w,t):{key:w.key,scale:w.scale??0};return k.key!==want.key||k.scale!==want.scale;}
+// 0.25 (R6): ONE validated PCM boundary. Every accepted POLISH result and every written WAV goes through
+// acceptPcm; non-finite samples (NaN/Infinity) are rejected. Results are memoised per (immutable) array.
+const FINITE=new WeakMap();
+function pcmFinite(ch){if(!Array.isArray(ch)||!ch.length)return false;const n=ch[0]?.length;for(const c of ch){if(!(c instanceof Float32Array)||c.length!==n)return false;let v=FINITE.get(c);if(v===undefined){v=true;for(let i=0;i<c.length;i++){const x=c[i];if(x-x!==0){v=false;break;}}FINITE.set(c,v);}if(!v)return false;}return true;}
+function acceptPcm(ch,what='This audio'){if(!pcmFinite(ch))throw Object.assign(Error(what+' contains invalid samples (not-a-number or infinite values). It was not accepted; your recordings and the last good version are kept.'),{code:'nonfinite'});return ch;}
+// 0.25 (R1): POLISH capacity is a property of ONE lane: only the open editor is resident in the engine;
+// completed lanes keep their final render (saved to browser storage once). plan() runs BEFORE the engine is touched.
+// Measured 0.25: the engine returns NaN/Infinity for sessions below 22.05 kHz (tests-0.25/rateprobe.py), and runs out of
+// memory beyond about 3 minutes of 48 kHz stereo. Both limits are checked here, outside the (unchanged) engine.
+const ENGINE=Object.freeze({bytes:256*1024*1024,stereoFrames:180*48000,minRate:22050});
+function polishPlan(w,t){const nc0=Math.max(1,...t.regions.filter(r=>r.selected).flatMap(r=>r.takes.map(a=>w.sources[a.source]?.channels.length||1))),mono=!!t.polishMono&&nc0===2,nc=mono?1:nc0,frames=Math.round(trackEnd(t)*w.rate),needed=(frames*nc+(frames+10*w.rate)*2)*4;
+ const out={nc:nc0,inputChannels:nc,mono,frames,needed,budget:ENGINE.bytes,ok:true,reason:'',canMono:false};
+ if(!t.regions.some(r=>r.selected))return {...out,ok:false,reason:'Choose a take on this vocal first.'};
+ if(w.rate<ENGINE.minRate){out.ok=false;out.reason='POLISH works at 22,050 Hz or higher; this song is '+w.rate+' Hz (the processor produces invalid audio below that). Recording, choosing takes, playback and dry export still work.';}
+ else if(nc===2&&frames>ENGINE.stereoFrames){out.ok=false;out.canMono=true;out.reason='This stereo vocal is longer than 3 minutes, which is more than POLISH can process in stereo.';}
+ else if(needed>ENGINE.bytes){out.ok=false;out.reason='This vocal is too long for POLISH in one piece ('+(needed/1048576).toFixed(0)+' MB needed, '+(ENGINE.bytes/1048576)+' MB available for one vocal).';}
+ return out;}
+function pcmChannelsOk(w,t){const p=t.polish;if(!p)return false;const want=polishPlan(w,t).inputChannels,pc=p.session?.pcm;const n=Array.isArray(pc)?pc.length:pc?.nch;return n==null||n===want;}
+// 0.25 (R5): the small, user-chosen POLISH preferences of a vocal. Journalled separately from audio.
+const POLISH_PREFS=['bypass','ownKey','key','scale'];
+function polishPrefs(p){const o={};for(const k of POLISH_PREFS)if(p&&p[k]!==undefined)o[k]=p[k];return o;}
+function validPrefs(o){return !!o&&typeof o==='object'&&Object.entries(o).every(([k,v])=>POLISH_PREFS.includes(k)&&(['key','scale'].includes(k)?Number.isInteger(v)&&v>=0&&v<=11:typeof v==='boolean'));}
+function polishValid(w,t){return !!(t.polish&&t.polish.sourceSig===trackSignature(w,t)&&t.polish.rate===w.rate&&t.polish.channels?.length&&pcmChannelsOk(w,t)&&pcmFinite(t.polish.channels));}
+// 0.25 (UX 1): full-song readiness, one line per vocal lane.
+function readiness(w){const lanes=w.tracks.filter(t=>t.regions.some(r=>r.selected)).map(t=>{const pl=polishPlan(w,t);let state,text;
+  if(t.polish?.bypass){state='dry';text='dry vocal (your choice)';}
+  else if(polishValid(w,t)&&!keyStale(w,t)){state='ready';text='polished';}
+  else if(!pl.ok){state='blocked';text=pl.canMono?'stereo over 3 min: choose mono for POLISH':'too long for POLISH';}
+  else if(t.polish&&polishValid(w,t)){state='key';text='key update needed';}
+  else if(t.polish){state='update';text='needs update';}
+  else {state='todo';text='not polished yet';}
+  return {id:t.id,name:t.name,state,text,ok:pl.ok};});
+ const todo=lanes.filter(l=>['todo','update','key'].includes(l.state)).length,blocked=lanes.filter(l=>l.state==='blocked').length;
+ return {lanes,total:lanes.length,ready:lanes.filter(l=>l.state==='ready'||l.state==='dry').length,todo,blocked,canFinish:!blocked};}
 function duration(w){return Math.max(1,...w.sections.map(s=>s.end),...w.tracks.flatMap(t=>t.regions.map(r=>r.end)),...w.tracks.map(t=>polishValid(w,t)&&!t.polish.bypass?t.polish.channels[0].length/w.rate:0));}
 function validate(w){
  if(!w||w.v!==1||!Array.isArray(w.tracks)||!w.tracks.length||w.tracks.length>LIMITS.tracks||!Array.isArray(w.sections)||w.sections.length>LIMITS.sections||!w.sources||typeof w.sources!=='object')throw Error('Invalid song workspace.');
@@ -61,7 +105,7 @@ function validate(w){
   // trusted here so a history action does not scan 128 MB on the UI thread.
  }
  let nr=0;
- for(const t of w.tracks){seen(t.id);number(t.gainDb,-36,12,'track level');number(t.pan,-1,1,'track pan');if(!Array.isArray(t.regions))throw Error('Invalid recording regions.');
+ for(const t of w.tracks){seen(t.id);number(t.gainDb,-36,12,'track level');if(t.polishMono!=null&&typeof t.polishMono!=='boolean')throw Error('Invalid mono choice.');number(t.pan,-1,1,'track pan');if(!Array.isArray(t.regions))throw Error('Invalid recording regions.');
   for(const r of t.regions){seen(r.id);nr++;range(r.start,r.end);if(r.fadeMs!=null)number(r.fadeMs,0,100,'range fade');if(!Array.isArray(r.takes)||r.takes.length>LIMITS.perRegion)throw Error('Up to 32 attempts for one recording range.');
    const tids=new Set();for(const a of r.takes){seen(a.id);tids.add(a.id);if(!Object.hasOwn(w.sources,a.source))throw Error('Missing recording audio.');number(a.origin,-10,LIMITS.seconds,'take position');number(a.offsetMs||0,-500,500,'take alignment');number(a.gainDb||0,-36,24,'take gain');number(a.trimIn||0,0,LIMITS.seconds,'take trim');number(a.trimOut||0,0,LIMITS.seconds,'take trim');number(a.fadeIn||0,0,5000,'take fade');number(a.fadeOut||0,0,5000,'take fade');if(a.rating!=null&&![0,1,2,3,4,5].includes(a.rating))throw Error('Invalid take rating.');const sp=takeSpan(w,a);if(sp[1]-sp[0]<1)throw Error('A take cannot be trimmed to nothing.');}
    if(r.selected&&!tids.has(r.selected))throw Error('Chosen take is missing.');if(r.reference&&!tids.has(r.reference))throw Error('Reference take is missing.');if(r.selected&&!covers(w,r.takes.find(a=>a.id===r.selected),r))throw Error('Chosen take does not cover its recording range.');
@@ -130,7 +174,7 @@ function mix(w,{start=0,end=duration(w),override=null,excludeTrack=null,excludeR
  }return out;
 }
 function signature(w){return JSON.stringify([w.rate,w.fadeMs,w.masterDb,duration(w),w.tracks.map(t=>[t.id,t.mute,t.solo,t.gainDb,t.pan,t.regions.filter(r=>r.selected).map(r=>{const a=r.takes.find(a=>a.id===r.selected);return [r.start,r.end,r.fadeMs,a.id,a.source,a.origin,a.offsetMs,a.gainDb,a.trimIn||0,a.trimOut||0,a.fadeIn||0,a.fadeOut||0];})])]);}
-function peak(channels){let p=0;for(const c of channels)for(const x of c)p=Math.max(p,Math.abs(x));return p;}
+function peak(channels){let p=0;for(const c of channels)for(const x of c){if(x-x!==0)return Infinity;p=Math.max(p,Math.abs(x));}return p;}
 // Older single-vocal workspaces become a lead track. Keep every take and its
 // original timing. Old named parts become independent (possibly overlapping)
 // navigation markers; new section edits enforce non-overlap.
@@ -205,6 +249,6 @@ function splitRegion(w,t,r,at){if(!(at>r.start+.04&&at<r.end-.04))throw Error('S
  for(const x of [r,right])if(x.selected&&!covers(w,x.takes.find(a=>a.id===x.selected),x))x.selected=null;
  t.regions.splice(t.regions.indexOf(r)+1,0,right);w.selectedRegion=right.id;return [r,right];}
 function setReference(w,t,regs,regionId,takeId){for(const x of regs)x.reference=null;if(!takeId)return;const r=t.regions.find(x=>x.id===regionId);if(!r||!r.takes.some(a=>a.id===takeId))throw Error('That attempt is not here.');r.reference=takeId;}
-const api={LIMITS,splitRegion,setReference,takeSpan,partRegions,partTakes,choosePart,growSection,takeAudio,toPhrases,laneCount,clamp,label,id,empty,clone,range,usage,track,region,origin,covers,duration,validate,checkAudio,addTrack,addSection,findRange,addTake,choose,gc,selectedCount,trackEnd,trackSignature,layoutSig,hashPcm,normalizeSigs,polishKey,keyStale,roomSeconds,polishValid,renderTrack,renderVoice,panGains,mix,signature,peak,migrate,METERS,prefs,beatSec,barBeat,snapTime,beatsIn,countInWindow,loopPasses};
+const api={LIMITS,splitRegion,setReference,takeSpan,partRegions,partTakes,choosePart,growSection,takeAudio,toPhrases,laneCount,clamp,label,id,empty,clone,range,usage,track,region,origin,covers,duration,validate,checkAudio,addTrack,addSection,findRange,addTake,choose,gc,selectedCount,trackEnd,trackSignature,layoutSig,hashPcm,normalizeSigs,samePcm,renderTrackLegacy23,migrationProof,polishKey,songKeyOf,wantedKey,keyStale,monoMix,pcmFinite,acceptPcm,POLISH_PREFS,polishPrefs,validPrefs,ENGINE,polishPlan,readiness,roomSeconds,polishValid,renderTrack,renderVoice,panGains,mix,signature,peak,migrate,METERS,prefs,beatSec,barBeat,snapTime,beatsIn,countInWindow,loopPasses};
 root.SongCore=api;if(typeof module!=='undefined')module.exports=api;
 })(globalThis);

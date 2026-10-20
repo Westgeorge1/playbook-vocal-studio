@@ -1,4 +1,4 @@
-PLAYBOOK VOCAL STUDIO 0.23.0 — START HERE
+PLAYBOOK VOCAL STUDIO 0.25.0 — START HERE
 
 THE SIMPLE WORKFLOW
 
@@ -36,8 +36,8 @@ THE SIMPLE WORKFLOW
 4. Add backing vocals.
    Press + Add vocal track. Name it Harmony, Double, Ad-libs, or anything you like.
    Record and fix phrases on that lane. Your lead and other lanes stay separate.
-   OLDER VERSIONS: a project backup opened in 0.18.3 or earlier shows only the
-   Lead vocal and its parts. Open it in 0.20.0 or newer to get every track.
+   OLDER VERSIONS: a normal backup opens in 0.25.0 or newer. For 0.18.3 use
+   Export song > Compatibility backup (larger); it shows only the Lead vocal and parts.
 
 5. POLISH each voice.
    Press Polish on a vocal lane. Clean, Tune, note edits and effects now belong
@@ -45,6 +45,10 @@ THE SIMPLE WORKFLOW
    Use the Polishing selector to move between lead and harmony. Each keeps its
    own settings. One voice can have light tuning and another stronger tuning;
    one can have reverb while another stays dry.
+   "POLISH: 2 of 3 vocals ready" (next to Room) shows how many lanes still need it.
+   Each vocal can be up to about 7 minutes (stereo: 3 minutes; for longer stereo
+   you can choose to polish a mono version; your stereo recording is kept).
+   POLISH needs a song sample rate of 22,050 Hz or more.
 
 6. Hear the result together.
    Press Hear song in POLISH. It plays every vocal lane using its saved processing
@@ -61,7 +65,7 @@ THE SIMPLE WORKFLOW
    EXPORT THIS VOCAL in the lower POLISH panel exports the selected voice using
    the original detailed export controls.
    Back up project saves all tracks, attempts, sections and editable POLISH
-   settings. Check that the ZIP finished downloading. Autosave is local to this
+   settings (modern backup, no extra copies for older versions). Check that the ZIP finished downloading. Autosave is local to this
    browser and is not a replacement for keeping a backup.
 
 IF YOU RECORD A NEW PHRASE AFTER POLISHING
@@ -81,5 +85,7 @@ USEFUL DETAILS
   lead-in; it is not an instantaneous gapless live punch.
 - Use project backups before removing recordings. Song Undo lasts this session.
 - WAV exports use 32-bit float audio. Effect tails are retained in processed audio.
-- Projects with these features require version 0.20.0 or newer. Older apps cannot
-  restore all lanes and settings. Keep the original ZIP if trying an older app.
+- Normal backups need version 0.25.0 or newer. Older apps cannot restore all lanes
+  and POLISH settings; use a Compatibility backup and keep the original ZIP.
+- "Keep this vocal in its own key" (track settings) keeps that lane's key when the
+  song key changes; changing its key in POLISH changes only that vocal.
