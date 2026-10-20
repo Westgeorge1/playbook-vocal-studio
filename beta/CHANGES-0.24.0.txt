@@ -1,0 +1,37 @@
+Playbook Vocal Studio 0.24.0 — changes (from the independent review of 0.23.1)
+
+Correctness
+- F1  POLISH validity now compares a hash of the lane's real rendered audio, so a fade, trim, gain or timing
+      edit always asks for a POLISH update. Old projects are converted on open (unchanged ones keep their edits).
+      Validity checks no longer change anything. Undo/redo/save/reopen keep the correct state.
+- F2  Listen plays the auditioned take on top inside its range; the rest of the song plays around it. Layer order is unchanged.
+- F3  Split is sample-transparent: splitting one recording changes no sample and keeps POLISH valid.
+      Where two different takes meet, they crossfade (no dip), and outer fades are kept.
+- F4  One song key. Changing it (Song screen or POLISH) marks every polished lane in another key
+      "Key update needed", keeps notes and effects, and blocks processed export until updated.
+      Per-track override: Track settings › "Keep this vocal in its own key".
+- F5  Key, scale, count-in, stop at section end, click volume, backing preference and the mixer are saved through
+      the durable journal straight away. The journal is tagged with the song and revision, and never overwrites a newer project.
+      Also fixed: a 0.24 development regression that skipped autosave restore.
+- F6  Removing the reference take (Delete unchosen, Redo last take, Remove attempt) clears the reference; the confirm says so; Undo restores both.
+- F7  Reference melody and timing comparison works when note counts differ (alignment over steady notes, new ref-align.js;
+      engine files unchanged). Takes that still can't be compared are labelled in Why suggested.
+- F8  Saving for older apps keeps the comp you hear (whole take + phrase fixes, overlaps, splits) and warns exactly where.
+
+Capacity
+- Vocal source limit 256 MB = about 23 min 18 s of mono 48 kHz recording (was 128 MB, about 11 min 39 s).
+- "Room: … of recording" is shown next to the transport before you record.
+- New recordings are stored on the 16-bit grid (−96 dB, bit-exact after save). The autosave writes each recording once
+  to its own storage entry at half size and removes unused ones. Song recordings in project ZIPs are 16-bit WAV.
+- A main vocal longer than 3 minutes in stereo is opened in mono for the POLISH engine (the engine runs out of memory otherwise).
+
+Phone / UX
+- Take editor: Apply / Cancel / Reset stay in a sticky footer; Split and Reference sit in a secondary group.
+- Touch targets are at least 44 px on phones and touch screens. Transport stands out; section tools and zoom are quieter.
+- "Chosen" explains when a take is used only outside a correction on top.
+- POLISH shows "Preview: this vocal" / "Preview: whole song (all lanes)"; the song button is "▶ Whole song".
+
+Tests
+- tests-0.24: core24 (F1/F2/F3/F8 real samples), refalign24 (F7), durable24 (F5 crash after each setting),
+  ui24 (F1/F4/F6 in the browser), ux24, capacity24 (15-minute song end to end), t24, run_all24.sh.
+- Google Fonts are answered locally in tests (tests-0.24/fontstub). tests-0.18/T1366-project.zip and A1366-project.zip ship in the ZIP.

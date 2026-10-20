@@ -8,7 +8,7 @@ const C=SongCore,$=id=>document.getElementById(id),copy=x=>structuredClone(x);
 const MAX_BYTES=256*1024*1024;
 let binding=null,switching=false,lastError='',allowStep=false;
 const bar=document.createElement('div');bar.id='trackPolishBar';bar.hidden=true;
-bar.innerHTML='<label>Polishing <select id="polishTrack" aria-label="Vocal track to polish"></select></label><button id="polishSong">▶ Hear song</button><button id="polishExportSong" title="Every export: the song, the vocal mix, stems, or only this vocal">Export song</button><button id="polishReturn">← Song & vocals</button><label><input type="checkbox" id="polishBypass"> Use dry vocal</label><span id="polishTrackStatus" role="status" aria-live="polite"></span><p>Clean, Tune, edits and effects apply to this vocal only. Play and Mix below audition this track with its fitted backing. Hear song and Export song use all lanes and the song mixer.</p>';
+bar.innerHTML='<label>Polishing <select id="polishTrack" aria-label="Vocal track to polish"></select></label><button id="polishSong" title="Plays every lane with the backing and the song mixer">▶ Whole song</button><button id="polishExportSong" title="Every export: the song, the vocal mix, stems, or only this vocal">Export song</button><button id="polishReturn">← Song & vocals</button><label><input type="checkbox" id="polishBypass"> Use dry vocal</label><span id="polishTrackStatus" role="status" aria-live="polite"></span><span id="polishPreview" class="sg-preview-chip" aria-live="polite">Preview: this vocal</span><p><b>This vocal:</b> Clean, Tune, edits and effects change only this track; ▶ Play and Mix below play only this vocal with its fitted backing. <b>Whole song:</b> ▶ Whole song and Export song play or export all lanes with the song mixer.</p>';
 $('rcSteps').append(bar);
 const W=()=>S.song,T=()=>binding&&W()?.tracks.find(t=>t.id===binding.id);
 function snapshot(){
@@ -25,7 +25,7 @@ function capture(){
  const session=snapshot();if(!session)return false;
  // Never overwrite a history-restored lane with a different source's engine state.
  if(binding.sourceSig!==C.trackSignature(W(),T()))return false;
- const p={v:1,sourceSig:binding.sourceSig,rate:S.rate,session,channels:S.final,bypass:!!T().polish?.bypass};
+ const p={v:1,sourceSig:binding.sourceSig,rate:S.rate,session,channels:S.final,bypass:!!T().polish?.bypass,ownKey:!!T().polish?.ownKey};
  try{budget(W(),p,binding.id);T().polish=p;W().polishTrack=binding.id;lastError='';return true;}
  catch(e){lastError=e.message;render();return false;}
 }
@@ -33,13 +33,15 @@ function detach(){binding=null;lastError='';}
 function needsApply(){return !!(W()&&C.selectedCount(W())&&(!binding||!T()||binding.sourceSig!==C.trackSignature(W(),T())));}
 function notify(text,error=false){SongStudio.notify(text,error);$('polishTrackStatus').textContent=text;if(error)setStatus(text,'warn');}
 // 0.23: which stretches of a vocal really changed since it was polished (compares the saved signature rows).
-function changedRanges(w,t,oldSig){let o;try{o=JSON.parse(oldSig);}catch(e){return null;}if(!Array.isArray(o)||o[0]!==w.rate||o[1]!==w.fadeMs||!Array.isArray(o[2]))return null;
- const n=JSON.parse(C.trackSignature(w,t))[2],key=r=>JSON.stringify(r.slice(0,8).concat([0,0,0,0].map((z,i)=>r[8+i]||0))),ok=new Set(o[2].map(key)),nk=new Set(n.map(key));
- const diff=[...o[2].filter(r=>!nk.has(key(r))),...n.filter(r=>!ok.has(key(r)))],pad=r=>((r[2]??w.fadeMs)||0)/1000+.05;
- return diff.map(r=>[Math.max(0,r[0]-pad(r)),r[1]+pad(r)]).sort((a,b)=>a[0]-b[0]).reduce((m,r)=>{const l=m[m.length-1];if(l&&r[0]<=l[1])l[1]=Math.max(l[1],r[1]);else m.push(r);return m;},[]);}
+function changedRanges(w,t,oldSig,oldPcm){
+ // 0.24: compare the audio the vocal was polished from with the audio now chosen, sample by sample.
+ if(!oldPcm?.length)return null;const n=C.renderTrack(w,t,{end:C.trackEnd(t)}),R=w.rate,out=[];if(n.length!==oldPcm.length)return null;
+ const len=Math.max(n[0].length,oldPcm[0].length);let s=-1;
+ for(let i=0;i<len;i++){let d=false;for(let c=0;c<n.length;c++){if((n[c][i]||0)!==(oldPcm[c][i]||0)){d=true;break;}}if(d&&s<0)s=i;else if(!d&&s>=0){if(out.length&&s/R-out[out.length-1][1]<.25)out[out.length-1][1]=i/R;else out.push([s/R,i/R]);s=-1;}}
+ if(s>=0)out.push([s/R,len/R]);return out.map(([a,b])=>[Math.max(0,a-.05),b+.05]);}
 function hits(ranges,a,b){return !ranges||ranges.some(([s,e])=>a<e&&b>s);}
 function fmtRanges(r){return r?r.map(([a,b])=>a.toFixed(2)+'–'+b.toFixed(2)+' s').join(', '):'the whole vocal';}
-function planKeep(w,t,old){const ranges=changedRanges(w,t,old.sourceSig),s=old.session||{},e=s.edits||{},notes=(s.notes||[]).filter(a=>a[5]>.5);
+function planKeep(w,t,old){const ranges=changedRanges(w,t,old.sourceSig,old.session?.pcm),s=old.session||{},e=s.edits||{},notes=(s.notes||[]).filter(a=>a[5]>.5);
  const part=(list,f)=>{const keep=[],drop=[];for(const x of list||[])(hits(ranges,...f(x))?drop:keep).push(x);return {keep,drop};};
  return {ranges,notes:part(notes,a=>[a[0],a[1]]),breaths:part(e.breaths,b=>[b[0],b[1]]),timing:part(e.timing,x=>[x[0],x[1]]),comp:(e.comp||[]).length,takes:(s.takes||[]).length};}
 async function open(id=W()?.activeTrack){
@@ -67,7 +69,7 @@ async function open(id=W()?.activeTrack){
    else {S.guidePrefs={enabled:true,concern:0,goal:0,bpm:S.guidePrefs.bpm||75,sync:false};S.mix={fit:true,over:1,room:.5};chainEdited=false;S.match=true;await openVocal(pcm,w.rate,w.title+' — '+t.name,false,0);}
   }
   if(S.rate!==w.rate)throw Error('The processor changed the sample rate. This track has not replaced the song audio.');
-  const p={v:1,sourceSig:sig,rate:w.rate,session:snapshot(),channels:S.final,bypass:!!old?.bypass};budget(w,p,id);
+  const p={v:1,sourceSig:sig,rate:w.rate,session:snapshot(),channels:S.final,bypass:!!old?.bypass,ownKey:!!old?.ownKey};budget(w,p,id);
   t.polish=p;w.polishTrack=id;if(w.activeTrack!==id){w.activeTrack=id;w.selectedRegion=null;w.range=null;}binding={id,sourceSig:sig};S.song=w;
   S.loadedNotice='POLISH: '+t.name+'. Changes are saved on this track and heard in your song.';
   setMode('final');allowStep=true;RC.go('polish');window.SongStudio?.syncKey?.();allowStep=false;
@@ -87,7 +89,7 @@ function beforeShow(screen){
 function restored(last){
  detach();const w=W();if(!w)return;
  const saved=w.tracks.find(t=>t.id===w.polishTrack);
- if(saved?.polish){C.polishValid(w,saved);binding={id:saved.id,sourceSig:saved.polish.sourceSig};}
+ if(saved?.polish){binding={id:saved.id,sourceSig:saved.polish.sourceSig};}
  else if(S.main&&S.final?.length&&(!last.song||w.appliedSig)){
   const session=snapshot();if(!session)return;
   const p={v:1,rate:S.rate,sourceSig:'legacy',session,channels:S.final,bypass:false};
@@ -103,10 +105,10 @@ function render(){
  const w=W(),tracks=w?.tracks.filter(t=>t.regions.some(r=>r.selected))||[],selected=binding?.id||w?.activeTrack||'',items=tracks.map(t=>[t.id,t.name]);
  const key=JSON.stringify(items);if($('polishTrack').dataset.key!==key){$('polishTrack').dataset.key=key;$('polishTrack').replaceChildren(...items.map(([id,name])=>{const o=document.createElement('option');o.value=id;o.textContent=name;return o;}));}
  $('polishTrack').value=selected;const locked=switching||sessionLocked();for(const id of ['polishTrack','polishSong','polishExportSong','polishReturn','polishBypass'])$(id).disabled=locked;
- $('polishBypass').checked=!!T()?.polish?.bypass;$('polishSong').textContent=SongStudio.state().playing?'■ Stop song':'▶ Hear song';
+ $('polishBypass').checked=!!T()?.polish?.bypass;$('polishSong').textContent=SongStudio.state().playing?'■ Stop whole song':'▶ Whole song';if($('polishPreview'))$('polishPreview').textContent=SongStudio.state().playing?'Preview: whole song (all lanes)':'Preview: this vocal';
  $('polishTrackStatus').textContent=lastError||(switching?'Opening vocal…':needsApply()?'Recording changed — update this vocal in Song & vocals.':T()?.polish?.bypass?'Dry vocal is used in the song. Your POLISH settings are kept.':'This vocal’s processing is saved in your song.');
 }
-function assertExport(tracks){const stale=tracks.filter(t=>t.polish&&!t.polish.bypass&&!C.polishValid(W(),t));if(stale.length)throw Error('Update POLISH for '+stale.map(t=>t.name).join(', ')+' before exporting, or select Use dry vocal for that track.');if(lastError)throw Error(lastError);}
+function assertExport(tracks){const stale=tracks.filter(t=>t.polish&&!t.polish.bypass&&!C.polishValid(W(),t));if(stale.length)throw Error('Update POLISH for '+stale.map(t=>t.name).join(', ')+' before exporting, or select Use dry vocal for that track.');const keyLag=tracks.filter(t=>C.polishValid(W(),t)&&C.keyStale(W(),t));if(keyLag.length)throw Error('The song key changed. Update POLISH for '+keyLag.map(t=>t.name).join(', ')+' (open it in POLISH; notes and effects are kept), or set that track to keep its own key.');if(lastError)throw Error(lastError);}
 async function pack(meta,files){
  const packAudio=(ch,rate,file)=>{files.push({name:file,data:wavFloat(ch,rate)});return {file,rate,frames:ch[0].length,channels:ch.length};};
  const one=(p,id)=>{if(!p)return null;const session={...p.session,pcm:packAudio(p.session.pcm,p.rate,'pbv-polish-'+id+'-input.wav'),takes:(p.session.takes||[]).map((ch,i)=>packAudio(ch,p.rate,'pbv-polish-'+id+'-take-'+i+'.wav'))};return {...p,session,channels:packAudio(p.channels,p.rate,'pbv-polish-'+id+'-final.wav')};};

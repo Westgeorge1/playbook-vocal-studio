@@ -190,3 +190,28 @@ body.song-studio.sg-onsong #rcExport{display:none}
 #browserDownloads.dl-folded::before{content:"⬇ Downloads";font-weight:600;color:#cfffe6}
 @media(max-width:899px){body #browserDownloads,body.rc-on #browserDownloads{top:auto!important;bottom:8px!important;left:8px!important;right:8px!important;max-width:none!important;max-height:28vh!important}
  body #browserDownloads.dl-folded,body.rc-on #browserDownloads.dl-folded{left:auto!important;right:8px!important}}
+
+/* 0.24: recording room left */
+.sg-room{font-size:12px;opacity:.75;margin:0 6px;white-space:nowrap}.sg-room.low{color:#ffb454;opacity:1;font-weight:600}
+/* 0.24 phone/UX: sticky dialog footer, secondary actions, touch targets, clearer emphasis */
+#songDialog .sg-dialog-buttons{position:sticky;bottom:-20px;margin:12px -20px -20px;padding:10px 20px 14px;background:#162230;border-top:1px solid #2f4357;z-index:2;flex-wrap:wrap;gap:8px}
+#songDialog .sg-dialog-buttons .sg-primary,#songDialog button[data-action="ok"]{background:#2f6aa3;border-color:#92c9ff}
+#songDialog .sg-dialog-secondary{border-top:1px dashed #3a5068;padding-top:10px;gap:8px;flex-wrap:wrap}
+#songDialog .sg-dialog-secondary button{background:transparent;font-weight:500}
+#songStudio button,#songDialog button{min-height:44px}
+#songStudio .sg-star{min-width:44px;min-height:44px}
+@media (max-width:720px),(pointer:coarse){#songStudio input,#songStudio select,#songDialog input,#songDialog select{min-height:44px}#songStudio input[type=checkbox],#songDialog input[type=checkbox]{width:24px;height:24px;min-height:24px}#songStudio label:has(input[type=checkbox]),#songDialog label:has(input[type=checkbox]){min-height:44px}}
+#sgPlay,#sgRecord,#sgStop{font-size:16px;min-width:88px}
+#sgRecord{background:#6d1f2c;border-color:#e0707e}
+.sg-sectionbar button,.sg-tools button{background:#1a2634;font-weight:500}
+.sg-tools [aria-label="Timeline zoom"] button{background:transparent;border-color:#33465a}
+.sg-chosen-note{display:block;color:#f5c875;font-size:12px}
+.sg-preview-chip{display:inline-block;padding:2px 10px;border-radius:999px;background:#24384d;border:1px solid #4c6b8a;font-size:12px;font-weight:600;margin:0 6px}
+/* 0.24: on phones and touch screens every tap target is at least 44 x 44 px (overrides the compact desktop rows) */
+@media (max-width:720px),(pointer:coarse){
+ #songStudio button,#songStudio select,#songDialog button,#songDialog select,#trackPolishBar button,#trackPolishBar select{min-height:44px!important;min-width:44px!important}
+ #songStudio input:not([type=checkbox]):not([type=range]),#songDialog input:not([type=checkbox]):not([type=range]){min-height:44px!important}
+ #songStudio input[type=range]{min-height:44px!important}
+ #songStudio .sg-take button,#songStudio .sg-lane-head .sg-mini,#songStudio .sg-tempo{min-height:44px!important}
+ #songStudio .sg-lane-head .sg-track-name{min-height:44px!important}
+}

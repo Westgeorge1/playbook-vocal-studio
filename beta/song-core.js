@@ -5,14 +5,15 @@
  * No engine/WASM dependency. See tests-0.20/core.test.cjs. */
 (function(root){
 'use strict';
-const LIMITS=Object.freeze({seconds:900,recordSeconds:600,tracks:8,sections:128,regions:256,takes:128,perRegion:32,bytes:128*1024*1024});
+const LIMITS=Object.freeze({seconds:900,recordSeconds:600,tracks:8,sections:128,regions:256,takes:128,perRegion:32,bytes:256*1024*1024});
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 function number(x,a,b,name){if(!Number.isFinite(x)||x<a||x>b)throw Error('Invalid '+name+'.');return x;}
 function label(s,fallback){return String(s||fallback).trim().slice(0,100)||fallback;}
 function id(w,prefix){return prefix+(w.nextId++);}
-function empty(rate=48000){return {v:1,title:'My song',rate,nextId:2,revision:0,tracks:[{id:'v1',name:'Lead vocal',gainDb:0,pan:0,mute:false,solo:false,regions:[]}],sections:[],sources:{},activeTrack:'v1',selectedRegion:null,cursor:0,range:null,lead:2,fadeMs:20,masterDb:-6,appliedSig:null};}
+function empty(rate=48000){return {v:1,uid:Math.random().toString(36).slice(2)+Date.now().toString(36),title:'My song',rate,nextId:2,revision:0,tracks:[{id:'v1',name:'Lead vocal',gainDb:0,pan:0,mute:false,solo:false,regions:[]}],sections:[],sources:{},activeTrack:'v1',selectedRegion:null,cursor:0,range:null,lead:2,fadeMs:20,masterDb:-6,appliedSig:null};}
 function clone(w){return {...w,range:w.range?.slice()||null,sections:w.sections.map(s=>({...s})),sources:{...w.sources},tracks:w.tracks.map(t=>({...t,regions:t.regions.map(r=>({...r,takes:r.takes.map(a=>({...a}))}))}))};}
 function range(a,b){number(a,0,LIMITS.seconds-.04,'start');number(b,a+.04,LIMITS.seconds,'end');}
+function roomSeconds(w){const u=usage(w);return Math.max(0,(LIMITS.bytes-u.bytes)/(w.rate*4));}
 function usage(w){let bytes=0,seconds=0,takes=0;for(const s of Object.values(w.sources)){bytes+=s.channels.reduce((n,c)=>n+c.byteLength,0);seconds+=s.channels[0].length/s.rate;}for(const t of w.tracks)for(const r of t.regions)takes+=r.kind==='legacy-base'?0:r.takes.length;return {bytes,seconds,takes};}
 function track(w,id=w.activeTrack){return w.tracks.find(t=>t.id===id);}
 function region(w,id=w.selectedRegion){return track(w)?.regions.find(r=>r.id===id);}
@@ -21,11 +22,32 @@ function origin(t){return t.origin+(t.offsetMs||0)/1000;}
 function takeSpan(w,t){const s=w.sources[t.source],o=Math.round(origin(t)*w.rate),n=s?s.channels[0].length:0,a=Math.round((t.trimIn||0)*w.rate),b=Math.round((t.trimOut||0)*w.rate);return [o+a,o+Math.max(a,n-b)];}
 function covers(w,t,r){if(!w.sources[t.source])return false;const [lo,hi]=takeSpan(w,t);return lo<=Math.round(r.start*w.rate)&&hi>=Math.round(r.end*w.rate);}
 function trackEnd(t){return Math.max(1,...t.regions.filter(r=>r.selected).map(r=>r.end));}
-function sigRows(w,t,mode){return t.regions.filter(r=>r.selected).map(r=>{const a=r.takes.find(a=>a.id===r.selected),row=[r.start,r.end,r.fadeMs,a.id,a.source,a.origin,a.offsetMs,a.gainDb],ed=[a.trimIn||0,a.trimOut||0,a.fadeIn||0,a.fadeOut||0];return mode==='full'||(mode!=='old'&&ed.some(Boolean))?row.concat(ed):row;});}
-// 0.23: edit fields are only added when used, so signatures saved by 0.20/0.21 (8 fields) still match unchanged audio.
-function trackSignature(w,t){return JSON.stringify([w.rate,w.fadeMs,sigRows(w,t)]);}
-function oldSignatures(w,t){return [JSON.stringify([w.rate,w.fadeMs,sigRows(w,t,'old')]),JSON.stringify([w.rate,w.fadeMs,sigRows(w,t,'full')])];}
-function polishValid(w,t){if(t.polish&&typeof t.polish.sourceSig==='string'&&t.polish.sourceSig!==trackSignature(w,t)&&oldSignatures(w,t).includes(t.polish.sourceSig))t.polish.sourceSig=trackSignature(w,t);return !!(t.polish&&t.polish.sourceSig===trackSignature(w,t)&&t.polish.rate===w.rate&&t.polish.channels?.length);}
+// 0.24 (F1/F3): a vocal's POLISH is valid only for the exact audio it was made from. The signature is
+// a hash of the rendered lane (every sample), so every audio-affecting edit (trim, fade, gain, offset,
+// replacement) is detected, and a split that leaves the audio unchanged keeps POLISH valid. Hashes are
+// cached by layout (sources are immutable). Checking validity has no side effects.
+function layoutSig(w,t){return JSON.stringify([w.rate,w.fadeMs,t.regions.filter(r=>r.selected).map(r=>{const a=r.takes.find(a=>a.id===r.selected);return [r.start,r.end,r.fadeMs,a.id,a.source,a.origin,a.offsetMs,a.gainDb,a.trimIn||0,a.trimOut||0,a.fadeIn||0,a.fadeOut||0];})]);}
+function hashPcm(ch){let h=0x811c9dc5|0,g=0x01000193|0;h=Math.imul(h^ch.length,16777619);for(const c of ch){const u=new Uint32Array(c.buffer,c.byteOffset,c.length);h=Math.imul(h^u.length,16777619);for(let i=0;i<u.length;i++){h=Math.imul(h^u[i],16777619);g=Math.imul(g+u[i]|0,2654435761)^(g>>>13);}}return (h>>>0).toString(16)+(g>>>0).toString(16);}
+const SIGMEMO=new Map(),SRCID=new WeakMap();let srcN=0;const srcTok=s=>{const c=s?.channels?.[0];if(!c)return 0;if(!SRCID.has(c))SRCID.set(c,++srcN);return SRCID.get(c);};
+function trackSignature(w,t){const key=t.regions.some(r=>r.selected)?layoutSig(w,t)+'|'+t.regions.filter(r=>r.selected).map(r=>srcTok(w.sources[r.takes.find(a=>a.id===r.selected).source])).join(','):'';if(!key)return 'pcm1:empty';if(SIGMEMO.has(key))return SIGMEMO.get(key);const s='pcm1:'+w.rate+':'+hashPcm(renderTrack(w,t,{end:trackEnd(t)}));if(SIGMEMO.size>64)SIGMEMO.delete(SIGMEMO.keys().next().value);SIGMEMO.set(key,s);return s;}
+function oldPad(sig){try{const o=JSON.parse(sig);if(!Array.isArray(o)||!Array.isArray(o[2]))return null;return JSON.stringify([o[0],o[1],o[2].map(r=>r.length===8?r.concat([0,0,0,0]):r)]);}catch(e){return null;}}
+// Called once when a song is loaded: converts signatures saved by 0.20–0.23 (layout lists) into audio hashes.
+// If the saved POLISH input audio is present and the same shape, it decides by comparing every sample;
+// otherwise (projects converted from 0.18) the saved layout, with missing edit values = 0, must match exactly.
+function normalizeSigs(w){for(const t of w.tracks){const p=t.polish;if(!p||typeof p.sourceSig!=='string'||p.sourceSig.startsWith('pcm1:')||p.sourceSig==='legacy')continue;
+ const cur=trackSignature(w,t),pcm=p.session?.pcm,r=t.regions.some(x=>x.selected)?renderTrack(w,t,{end:trackEnd(t)}):null;let ok=false;
+ if(r&&pcm?.length===r.length&&pcm[0]?.length===r[0].length){
+  // Same audio, or differences only at seams where two chosen ranges meet (0.24 renders those seams
+  // without the old dip; the take choices are unchanged) -> still valid. Anything else is a real change.
+  const sel=t.regions.filter(x=>x.selected),zones=[];for(const p of sel)for(const q of sel)if(p!==q&&Math.round(p.end*w.rate)===Math.round(q.start*w.rate)){const f=Math.round((Math.max(p.fadeMs??w.fadeMs,q.fadeMs??w.fadeMs))*w.rate/1000)+2,s=Math.round(q.start*w.rate);zones.push([s-f,s+f]);}
+  ok=true;for(let c=0;c<r.length&&ok;c++)for(let i=0;i<r[c].length;i++)if(pcm[c][i]!==r[c][i]&&!zones.some(([a,b])=>i>=a&&i<b)){ok=false;break;}}
+ else ok=oldPad(p.sourceSig)===layoutSig(w,t);
+ p.sourceSig=ok?cur:'stale:'+p.sourceSig;}return w;}
+// 0.24 (F4): one song key. A polished vocal whose TUNE key differs from the song key needs a settings
+// update (its notes and effects are kept) unless the vocal is set to keep its own key.
+function polishKey(t){const P=t.polish?.session?.P;return P&&Number.isFinite(P.key)?{key:P.key,scale:Number.isFinite(P.scale)?P.scale:0}:null;}
+function keyStale(w,t){if(w.key==null||!t.polish||t.polish.bypass||t.polish.ownKey)return false;const k=polishKey(t);return !!k&&(k.key!==w.key||k.scale!==(w.scale??0));}
+function polishValid(w,t){return !!(t.polish&&t.polish.sourceSig===trackSignature(w,t)&&t.polish.rate===w.rate&&t.polish.channels?.length);}
 function duration(w){return Math.max(1,...w.sections.map(s=>s.end),...w.tracks.flatMap(t=>t.regions.map(r=>r.end)),...w.tracks.map(t=>polishValid(w,t)&&!t.polish.bypass?t.polish.channels[0].length/w.rate:0));}
 function validate(w){
  if(!w||w.v!==1||!Array.isArray(w.tracks)||!w.tracks.length||w.tracks.length>LIMITS.tracks||!Array.isArray(w.sections)||w.sections.length>LIMITS.sections||!w.sources||typeof w.sources!=='object')throw Error('Invalid song workspace.');
@@ -48,7 +70,7 @@ function validate(w){
  if(nr>LIMITS.regions)throw Error('This song has reached 256 recording ranges.');
  for(const s of w.sections){seen(s.id);range(s.start,s.end);}
  if(!track(w))throw Error('The recording track is missing.');
- const u=usage(w);if(u.takes>LIMITS.takes||u.bytes>LIMITS.bytes)throw Error('The song has reached 128 takes or 128 MB of vocal audio. Back up and remove unused takes to make room.');
+ const u=usage(w);if(u.takes>LIMITS.takes||u.bytes>LIMITS.bytes)throw Error('The song has reached 128 takes or 256 MB of vocal audio (about 23 minutes of mono recording). Back up and remove unused takes to make room.');
  return w;
 }
 function checkAudio(channels,rate){number(rate,8000,192000,'source sample rate');if(!Array.isArray(channels)||channels.length<1||channels.length>2||!channels[0]?.length)throw Error('Use mono or stereo audio.');const n=channels[0].length;for(const c of channels){if(!(c instanceof Float32Array)||c.length!==n)throw Error('Invalid audio channels.');for(const x of c)if(!Number.isFinite(x))throw Error('The recording contains invalid audio samples.');}}
@@ -72,8 +94,20 @@ function selectedCount(w){return w.tracks.reduce((n,t)=>n+t.regions.filter(r=>r.
 function renderTrack(w,t,{start=0,end=duration(w),override=null,exclude=null}={}){
  const first=Math.round(start*w.rate),last=Math.round(end*w.rate),n=Math.max(1,last-first);
  const nc=Math.max(1,...t.regions.flatMap(r=>r.takes.map(a=>w.sources[a.source].channels.length))),out=Array.from({length:nc},()=>new Float32Array(n));
- for(const r of t.regions){const selected=override?.regionId===r.id?override.takeId:r.selected,a=r.takes.find(a=>a.id===selected);if(!a)continue;const s=w.sources[a.source],o=Math.round(origin(a)*w.rate),[ts,te]=takeSpan(w,a),fi=Math.round((a.fadeIn||0)*w.rate/1000),fo=Math.round((a.fadeOut||0)*w.rate/1000),rs=Math.round(r.start*w.rate),re=Math.round(r.end*w.rate),lo=Math.max(first,rs,ts),hi=Math.min(last,re,te),fade=Math.min(Math.round((r.fadeMs??w.fadeMs)*w.rate/1000),Math.floor((re-rs)/4)),g=Math.pow(10,(a.gainDb||0)/20);
-  for(let i=lo;i<hi;i++){const m=fade?clamp(Math.min(i-rs,re-1-i)/fade,0,1):1,e=(fi?clamp((i-ts)/fi,0,1):1)*(fo?clamp((te-1-i)/fo,0,1):1);for(let c=0;c<nc;c++){const x=i-first;out[c][x]=out[c][x]*(1-m)+s.channels[Math.min(c,s.channels.length-1)][i-o]*g*e*m;}}
+ // 0.24 (F2): an auditioned take is played on top within its own range; the saved order is untouched.
+ let list=t.regions.map(r=>{const selected=override?.regionId===r.id?override.takeId:r.selected,a=r.takes.find(a=>a.id===selected);return a?{r,a}:null;}).filter(Boolean);
+ if(override){const k=list.findIndex(x=>x.r.id===override.regionId);if(k>=0)list.push(list.splice(k,1)[0]);}
+ for(const x of list){const {r,a}=x;x.rs=Math.round(r.start*w.rate);x.re=Math.round(r.end*w.rate);x.o=Math.round(origin(a)*w.rate);[x.ts,x.te]=takeSpan(w,a);x.fade=Math.min(Math.round((r.fadeMs??w.fadeMs)*w.rate/1000),Math.floor((x.re-x.rs)/4));x.fadeS=x.fade;x.fadeE=x.fade;x.lo=x.rs;x.hi=x.re;}
+ // 0.24 (F3): where two chosen ranges meet exactly, a seam inside the same continuous recording plays
+ // sample-for-sample as if unsplit (no fades); a seam between different audio is a true crossfade:
+ // the range rendered first continues past the seam (its recording's handle), the later one fades over it.
+ const same=(p,q)=>p.a.source===q.a.source&&p.o===q.o&&(p.a.gainDb||0)===(q.a.gainDb||0)&&!(p.a.fadeOut)&&!(q.a.fadeIn)&&p.te>=p.re&&q.ts<=q.rs;
+ for(let i=0;i<list.length;i++)for(let j=0;j<list.length;j++){if(i===j)continue;const p=list[i],q=list[j];if(p.re!==q.rs)continue;
+  if(same(p,q)){p.fadeE=0;q.fadeS=0;continue;}
+  if(i<j){const ext=Math.min(q.fadeS,Math.max(0,p.te-p.re));if(ext>0){p.hi=p.re+ext;p.fadeE=0;}}
+  else{const ext=Math.min(p.fadeE,Math.max(0,q.rs-q.ts));if(ext>0){q.lo=q.rs-ext;q.fadeS=0;}}}
+ for(const x of list){const {a}=x,s=w.sources[a.source],fi=Math.round((a.fadeIn||0)*w.rate/1000),fo=Math.round((a.fadeOut||0)*w.rate/1000),lo=Math.max(first,x.lo,x.ts),hi=Math.min(last,x.hi,x.te),g=Math.pow(10,(a.gainDb||0)/20);
+  for(let i=lo;i<hi;i++){const ms=x.fadeS?clamp((i-x.rs)/x.fadeS,0,1):1,me=x.fadeE?clamp((x.re-1-i)/x.fadeE,0,1):1,m=Math.min(ms,me),e=(fi?clamp((i-x.ts)/fi,0,1):1)*(fo?clamp((x.te-1-i)/fo,0,1):1);if(!m)continue;for(let c=0;c<nc;c++){const y=i-first;out[c][y]=out[c][y]*(1-m)+s.channels[Math.min(c,s.channels.length-1)][i-x.o]*g*e*m;}}
  }
  if(exclude){const lo=Math.max(first,Math.round(exclude[0]*w.rate)),hi=Math.min(last,Math.round(exclude[1]*w.rate));for(const c of out)c.fill(0,Math.max(0,lo-first),Math.max(0,hi-first));}
  return out;
@@ -149,7 +183,11 @@ function toPhrases(w){
  for(const g of groups){const takes=g.regs.flatMap(r=>r.takes.map(a=>({r,a}))).sort((x,y)=>(y.r.selected===y.a.id)-(x.r.selected===x.a.id)||(y.a.rating||0)-(x.a.rating||0));
   for(let a=g.start,k=0;a<g.end-.5&&a<899.5;k++){const b=Math.min(g.end,a+60,900);if(b-a<.5)break;const p={id:'p'+(out.nextId++),name:label(g.name+(k?' (cont.)':''),'Part'),start:a,end:b,takes:[],selected:null};
    for(const {r,a:tk} of takes){if(p.takes.length>=32||count>=128){notes.push('Some attempts of '+g.name+' are not included for older versions (take limit).');break;}const au=aud(tk),tb=au.channels.reduce((n,c)=>n+c.byteLength,0);if(bytes+tb>MAXB){notes.push('Some attempts are not included for older versions (size limit).');break;}
-    const id='t'+(out.nextId++);if(r.reference===tk.id&&!p.reference)p.reference=id;p.takes.push({id,name:tk.name,channels:au.channels,rate:w.rate,origin:au.origin,offsetMs:0,gainDb:0,rating:tk.rating||0,sourceTake:tk.id});bytes+=tb;count++;if(r.selected===tk.id&&!p.selected){const lo=Math.round(au.origin*w.rate),hi=lo+au.channels[0].length;if(lo<=Math.round(a*w.rate)&&hi>=Math.round(b*w.rate))p.selected=id;}}
+    const id='t'+(out.nextId++);if(r.reference===tk.id&&!p.reference)p.reference=id;p.takes.push({id,name:tk.name,channels:au.channels,rate:w.rate,origin:au.origin,offsetMs:0,gainDb:0,rating:tk.rating||0,sourceTake:tk.id});bytes+=tb;count++;if(r.selected===tk.id&&!p.selected){const lo=Math.round(au.origin*w.rate),hi=lo+au.channels[0].length;if(lo<=Math.round(a*w.rate)&&hi>=Math.round(b*w.rate)){p.selected=id;
+     // 0.24 (F8): older versions compose phrases over the base again. So that they play exactly what is heard
+     // now, the chosen take's audio inside the phrase is the current comp; outside it keeps its real handles.
+     if(out.base){const A=Math.round(a*w.rate),B=Math.round(b*w.rate),pt=p.takes[p.takes.length-1],fz=Math.round(w.fadeMs*w.rate/1000)+2;let changed=false;pt.channels=pt.channels.map((c,ci)=>{const x=Float32Array.from(c),bc=out.base.channels[Math.min(ci,out.base.channels.length-1)];for(let i=A;i<B&&i<bc.length;i++){const j=i-lo;if(j>=0&&j<x.length){if(Math.abs(x[j]-bc[i])>1e-6&&i>=A+fz&&i<B-fz)changed=true;x[j]=bc[i];}}return x;});
+      if(changed)notes.push(g.name+': another chosen take overlaps it, so older versions get this phrase exactly as it sounds now (the overlapping audio is included in its chosen take).');}}}}
    if(p.takes.length)out.phrases.push(p);a=b;if(out.phrases.length>=128)break;}
  }
  out.selected=out.phrases[0]?.id||null;out.notes=[...new Set(notes)];return out;
@@ -167,6 +205,6 @@ function splitRegion(w,t,r,at){if(!(at>r.start+.04&&at<r.end-.04))throw Error('S
  for(const x of [r,right])if(x.selected&&!covers(w,x.takes.find(a=>a.id===x.selected),x))x.selected=null;
  t.regions.splice(t.regions.indexOf(r)+1,0,right);w.selectedRegion=right.id;return [r,right];}
 function setReference(w,t,regs,regionId,takeId){for(const x of regs)x.reference=null;if(!takeId)return;const r=t.regions.find(x=>x.id===regionId);if(!r||!r.takes.some(a=>a.id===takeId))throw Error('That attempt is not here.');r.reference=takeId;}
-const api={LIMITS,splitRegion,setReference,takeSpan,partRegions,partTakes,choosePart,growSection,takeAudio,toPhrases,laneCount,clamp,label,id,empty,clone,range,usage,track,region,origin,covers,duration,validate,checkAudio,addTrack,addSection,findRange,addTake,choose,gc,selectedCount,trackEnd,trackSignature,polishValid,renderTrack,renderVoice,panGains,mix,signature,peak,migrate,METERS,prefs,beatSec,barBeat,snapTime,beatsIn,countInWindow,loopPasses};
+const api={LIMITS,splitRegion,setReference,takeSpan,partRegions,partTakes,choosePart,growSection,takeAudio,toPhrases,laneCount,clamp,label,id,empty,clone,range,usage,track,region,origin,covers,duration,validate,checkAudio,addTrack,addSection,findRange,addTake,choose,gc,selectedCount,trackEnd,trackSignature,layoutSig,hashPcm,normalizeSigs,polishKey,keyStale,roomSeconds,polishValid,renderTrack,renderVoice,panGains,mix,signature,peak,migrate,METERS,prefs,beatSec,barBeat,snapTime,beatsIn,countInWindow,loopPasses};
 root.SongCore=api;if(typeof module!=='undefined')module.exports=api;
 })(globalThis);

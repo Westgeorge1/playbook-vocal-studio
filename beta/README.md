@@ -1,4 +1,8 @@
-# Playbook Vocal Studio 0.23.1 — song recording, stage 3 of the 0.18.3 feature merge
+# Playbook Vocal Studio 0.24.0 — review fixes, room for a full song, phone tidy-up
+
+- **0.24.0:** fixes F1–F8 from the 0.23.1 review, 256 MB of recording room (about 23 minutes mono) with the room left shown,
+  compact 16-bit storage, sticky take-editor footer and 44 px touch targets (CHANGES-0.24.0.txt, REVIEW-RESPONSE-0.24.0.md,
+  TEST-RESULTS-0.24.0.txt; tests in tests-0.24, run_all24.sh).
 
 - **0.23.1:** autosave survives an immediate reload or a killed tab; the downloads box is a
   small toast that folds to a chip and never covers the transport (CHANGES-0.23.1.txt).
