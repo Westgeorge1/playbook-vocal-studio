@@ -215,3 +215,48 @@ body.song-studio.sg-onsong #rcExport{display:none}
  #songStudio .sg-take button,#songStudio .sg-lane-head .sg-mini,#songStudio .sg-tempo{min-height:44px!important}
  #songStudio .sg-lane-head .sg-track-name{min-height:44px!important}
 }
+
+/* 0.25.1: direct editing access, compact optional helpers, actionable save recovery. */
+.sg-record-helpers{flex:1 0 100%;border-top:1px solid #344456;padding-top:4px}
+.sg-record-helpers summary{cursor:pointer;min-height:44px;display:list-item;align-content:center;color:#c5d8e8}
+.sg-record-helpers .sg-rtools{display:flex;flex-wrap:wrap;gap:8px;padding:4px 0}
+#songStudio .sg-empty-backing,#songStudio .sg-empty-backing .sg-wave{height:100px}
+#songStudio .sg-empty-backing .sg-help,#songStudio .sg-empty-backing label{display:none}
+#songStudio .sg-empty-backing .sg-lane-head{gap:4px;padding:6px 10px}
+#songStudio .sg-wave{scroll-margin-top:230px}
+#editCanvas{scroll-margin-top:12px}
+#storageRecovery{padding:10px 14px;background:#412d18;color:#fff1d7;border:1px solid #e5ae64;display:flex;flex-wrap:wrap;align-items:center;gap:10px;font:14px/1.5 system-ui}
+#storageRecovery[hidden]{display:none!important}
+#storageRecovery span{flex:1 1 280px}
+#storageRecovery button{min-height:44px;border:1px solid #e5ae64;background:#241b11;color:#fff1d7;border-radius:6px;padding:8px 12px;cursor:pointer}
+#storageRecovery :focus-visible{outline:3px solid #fff;outline-offset:2px}
+@media(max-width:720px){
+ #songStudio .sg-transport{padding:8px;gap:6px}
+ #songStudio .sg-transport #sgRecord{min-width:100px}
+ #songStudio .sg-record-helpers{order:20}
+ #songStudio .sg-transport .sg-room{white-space:normal;margin:0}
+ #songStudio .sg-wave{scroll-margin-top:270px}
+ #trackPolishBar #polishTrackStatus{flex:1 0 100%}
+ #trackPolishBar #polishWave,#trackPolishBar #polishControls{background:#1e4850;border-color:#85c5d0}
+}
+
+#songStudio .sg-transport{position:sticky;top:0}
+#songStudio.sg-scrolled .sg-transport{gap:6px;padding:6px}
+/* 0.25.1 adoption: the scrolled bar never hides transport controls (Fix phrase, |◀, Show vocal, helpers stay reachable). */
+/* Scrolled: only read-outs fold away to keep the sticky bar short; every button/select stays. */
+#songStudio.sg-scrolled .sg-transport>#sgRoom,#songStudio.sg-scrolled .sg-transport>#sgReady,#songStudio.sg-scrolled .sg-transport>#sgBarBeat,#songStudio.sg-scrolled .sg-transport>.sg-spacer{display:none}
+#songStudio #sgShowControls[hidden]{display:none!important}
+#songStudio #sgShowControls{min-width:44px;font-size:12px;padding:6px}
+#polishBackToControls{min-height:44px;margin:8px 0;padding:8px 12px;border:1px solid #85c5d0;background:#1e4850;color:#edffff;border-radius:6px;cursor:pointer}
+#songStudio .sg-empty-backing{height:100px!important}
+#songStudio .sg-empty-backing .sg-wave{height:99px!important}
+
+#songStudio.sg-scrolled #sgArmed{font-size:12px;max-width:100%}
+
+#songStudio{overflow-anchor:none}
+
+/* Let labels and touch-sized mixer controls determine each populated lane's
+   height. Size containment keeps the canvas backing pixels from growing the
+   grid row again on every waveform redraw. */
+#songStudio .sg-lane:not(.sg-ruler):not(.sg-empty-backing){height:auto;min-height:176px}
+#songStudio .sg-lane:not(.sg-ruler):not(.sg-empty-backing) .sg-wave{height:100%;min-height:0;contain:size}

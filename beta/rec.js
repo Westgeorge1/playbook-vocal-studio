@@ -549,7 +549,8 @@ function levelUI(pk,hold,clip,ids){const lv=x=>Math.max(0,Math.min(100,(20*Math.
 const BK=Object.assign({since:0,lastBackup:0,lastNag:0},LS('pvs-backup',{}));const saveBK=()=>LSset('pvs-backup',BK);
 const sessionStart=Date.now();let savedAt=0,saveState='idle';
 const origWrite=window.writeRemembered;
-window.writeRemembered=async function(){saveState='saving';syncSaved();try{const r=await origWrite.apply(this,arguments);saveState='ok';savedAt=Date.now();return r;}catch(e){saveState='fail';throw e;}finally{syncSaved();}};
+let saveSequence=0;
+window.writeRemembered=async function(){const seq=++saveSequence;saveState='saving';syncSaved();try{const r=await origWrite.apply(this,arguments);if(seq===saveSequence&&r!==false){saveState='ok';savedAt=Date.now();}return r;}catch(e){if(seq===saveSequence)saveState='fail';throw e;}finally{syncSaved();}};
 const origAdd=window.phraseAddAudio;
 window.phraseAddAudio=async function(){const r=await origAdd.apply(this,arguments);BK.since++;saveBK();maybeNag();return r;};
 const origSaveProject=window.saveProject;

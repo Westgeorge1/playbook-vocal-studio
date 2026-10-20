@@ -1,4 +1,6 @@
-# Playbook Vocal Studio 0.25.0 — every vocal lane can be polished, safer audio and settings
+# Playbook Vocal Studio 0.25.1 — every vocal lane can be polished, safer audio and settings
+
+- **0.25.1:** fixes the independent 0.25.0 review: autosave/Undo, standalone-project recovery, mono/stereo editor rebuilding, exact legacy input in modern backups, and phone editing access. See CHANGES-0.25.1.txt, IMPLEMENTATION-HANDOVER-0.25.1.txt and TEST-RESULTS-0.25.1.txt.
 
 - **0.25.0:** fixes R1–R6 from the 0.24.0 review: a 4-min lead + two 4-min backing vocals all complete POLISH,
   POLISH readiness shown ("POLISH: 2 of 3 vocals ready"), instant capacity refusal, stereo kept on reopen (mono only

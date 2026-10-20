@@ -1,0 +1,123 @@
+PLAYBOOK VOCAL STUDIO 0.25.1 — IMPLEMENTATION HANDOVER
+20 October 2026
+
+Purpose
+Record naturally, redo individual words or phrases, organize the song with
+Intro / Verse / Chorus / Outro labels, keep backing vocals on separate lanes,
+and carry each lane into editable POLISH before hearing/exporting the whole song.
+
+This package is an implementation of the independent 0.25.0 review fixes.
+The selected release suites passed 345 checks, including the full-song workflow.
+It contains the complete static application, an upgrade patch, test sources,
+and current test evidence. The storage isolation probe is reproducible with
+tests-0.25.1/storage_probe.py. It has not been deployed.
+
+Final handover debug revision
+The downloadable package was extracted and retested independently. Visual
+inspection found that fixed lane heights clipped mixer controls, especially on
+phones. Lane heights now follow their controls; canvas size containment prevents
+waveform redraws from making the lane grow repeatedly. The CSS URL was updated
+to refresh cached styles. New layout and missing-input recovery tests are included.
+
+For the agent integrating this update
+1. Keep the original 0.25.0 ZIP and download a project backup from the current
+   app before installing an update. Keep the current public release unchanged
+   until the owner approves deployment.
+2. Use this application folder as the updated static source, or apply
+   upgrade-0.25.0-to-0.25.1.patch to a clean 0.25.0 checkout. For a project with
+   additional changes, inspect/merge the patch; do not overwrite those changes.
+3. Serve the folder over localhost or HTTPS. Do not open index.html directly
+   with file://: browser workers, storage and microphone access need a suitable
+   origin. Example for local development: python3 -m http.server 8000
+4. Verify with node tests-0.25/check25.cjs and node tests-0.25/core25.test.cjs.
+   Then install Python Playwright and supply a Chromium executable:
+     PVS_CHROME=/path/to/chromium python3 tests-0.25.1/run.py
+   Add --capacity for the slower full-song processing/storage/backup test.
+   PVS_USER_PROJECT=/path/to/original-song.zip includes the owner's supplied
+   song recovery test. That private song is not included in this application.
+5. Review TEST-RESULTS-0.25.1.txt. Test with a physical microphone and the owner's
+   target phone/browser before treating the update as device-certified.
+
+Files changed
+- index.html: serialized atomic autosave, shared root/editor audio references,
+  missing-audio recovery, actionable save failures, project-open messaging,
+  correct sample-rate capacity text, version/cache references.
+- song-studio.js: separate read-only history accessor, guarded Undo/Redo,
+  empty-workspace vocal recovery with tuning-key preservation, compact phone
+  recording helpers, direct waveform navigation and scrolling transport.
+- song-polish.js: processing-mode-aware binding/capture, explicit mono/stereo
+  editor rebuild, exact input reconstruction proof for modern backups, recovery
+  of missing final renders, waveform/control navigation, FINAL listening mode.
+- song-core.js: truthful readiness reasons and sample-rate-dependent stereo limit;
+  a missing-audio recovery state cannot be counted as polished/ready.
+- song-studio.css: responsive editing shortcuts, compact optional instrumental
+  lane, sticky transport, accessible storage recovery banner, and content-sized
+  lanes that keep all mixer controls accessible.
+- rec.js: save indicator follows the newest queued save request.
+- Current docs and test runner version expectations; new tests under tests-0.25.1.
+
+Fix details and invariants
+F1 — Undo/autosave
+The duplicate SongStudio.history property was replaced by getHistorySnapshots().
+Cleanup reads snapshots without invoking any user action. Both source recordings
+and processed audio referenced by Undo/Redo are retained. A committed deletion
+clears its written-cache entry. Failed transactions change neither the previous
+save nor those cache entries. Save requests are serialized, and outdated queued
+requests cannot overwrite a newer request. Audio is referenced once per immutable
+buffer set; the root editor no longer embeds a repeated copy in each save.
+
+F2 — Stranded standalone vocal
+Only when the song has no sources, no recording ranges and no per-track POLISH,
+and no legacy phrase recordings, can root vocal audio be recovered into the lead
+lane. The chosen take uses zero region fade, so its PCM matches the root input.
+The root notes, edits, effects and key are attached to that lane. Existing song
+labels/settings remain. Populated multitrack projects are not replaced.
+
+F3 — Mono / stereo
+The binding includes the actual input channel count. capture(), needsApply() and
+the same-lane open shortcut all respect the requested mode. Changing that mode
+rebuilds the editor, keeping the original recording, settings and time edits.
+No implicit mono conversion was added to restoreSession().
+
+F4 — Modern backup fidelity
+A valid signature alone does not prove the current renderer reproduces a migrated
+legacy input. The backup now compares every input sample against reconstruction
+before marking it derived. If they differ, an explicit float input WAV is stored.
+Modern finals still use the existing 16-bit policy; compatibility finals remain
+float. This update does not claim bit-exact float finals from a 16-bit backup.
+
+Missing stored audio
+Editable POLISH metadata is retained and marked recoveryMissing. Such a lane is
+not ready. If its original saved input remains, reopening can rebuild its final
+without resetting the note/breath/timing settings. If its input is missing, the
+update dialog explains what must be rebuilt and what edits cannot be verified.
+A browser quota failure offers an immediate backup action and retry. Browser
+storage capacity still depends on the device; no software fix can guarantee space.
+
+Data compatibility / rollback
+Project ZIP structure remains version 9 / songStudioVersion 2. Use 0.25.1 for
+new backups and recovery metadata. The new browser autosave can contain pcmRef
+objects for root editor audio, takes and backing. An older app should not be
+used to read that newer browser autosave. For rollback, restore the backup made
+before updating. Do not delete the current browser data as an upgrade step.
+
+Engine protection
+worker.js, engine-wasm.js, engine-wasm.wasm, phrase-core.js, phrase-worker.js,
+rec-worklet.js and daw.css are byte-identical to the supplied 0.25.0 build.
+ENGINE-SHA256.txt and check25.cjs verify them.
+
+Known boundaries
+No server or account storage was introduced. Browser saves are local to the app's
+origin. Back up a project before changing domain/path origin, browser profile or
+storage settings. No physical-microphone latency, real singing quality, iOS/Safari,
+Android hardware, low-memory phone or background-termination certification is
+claimed. Existing engine length/rate limits remain in effect.
+
+Packaging
+Generated historical test screenshots, old result outputs and historical test
+audio/project fixtures are omitted. All application/engine assets, test sources
+and license files are retained. For older fixture-based browser suites, copy
+the tests-0.18 audio/ZIP fixtures and tests-0.23/fixtures from the original 0.25.0
+archive. The new 0.25.1 suite builds its own synthetic audio; its optional owner
+project check uses the original song ZIP supplied via PVS_USER_PROJECT.
+The current validation logs are under validation-0.25.1; they contain no song audio.

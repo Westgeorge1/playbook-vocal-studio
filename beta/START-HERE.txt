@@ -1,4 +1,15 @@
-PLAYBOOK VOCAL STUDIO 0.25.0 — START HERE
+PLAYBOOK VOCAL STUDIO 0.25.1 — START HERE
+
+NEW IN THIS UPDATE
+
+FIRST: tap Back up project before using this version. (Older versions cannot
+read its browser autosave; your backup ZIP opens in any version.)
+
+
+Use Show vocal to jump to your recording. On a phone, open Recording helpers
+for Click, Count-in and HEAR ME. The top bar, including Fix phrase, stays visible as you scroll.
+In POLISH, Edit waveform and Sound controls take you straight to those areas.
+If browser saving fails, use Back up project now before closing the app.
 
 THE SIMPLE WORKFLOW
 
@@ -21,8 +32,8 @@ THE SIMPLE WORKFLOW
 
 3. Record part by part (optional).
    Add Intro, Verse, Chorus, Bridge or Outro in Song sections. Click a section (or
-   Next part ▶) and press ● Record part. Keep singing past the end if you like: the
-   part grows to fit. Tick "Stop at part end" if you want it to stop by itself.
+   Next section ▶) and press ● Record section. Keep singing past the end if you like: the
+   part grows to fit. Tick "Stop at section end" if you want it to stop by itself.
    Every take is kept. Rate takes with the stars; "Suggested" and "Why suggested?"
    show which take the check prefers and why. Choose the one you want.
    Redo last take re-sings the newest take; Delete unchosen takes tidies up.
@@ -36,7 +47,7 @@ THE SIMPLE WORKFLOW
 4. Add backing vocals.
    Press + Add vocal track. Name it Harmony, Double, Ad-libs, or anything you like.
    Record and fix phrases on that lane. Your lead and other lanes stay separate.
-   OLDER VERSIONS: a normal backup opens in 0.25.0 or newer. For 0.18.3 use
+   OLDER VERSIONS: a normal backup opens in 0.25.1 or newer. For 0.18.3 use
    Export song > Compatibility backup (larger); it shows only the Lead vocal and parts.
 
 5. POLISH each voice.
@@ -46,12 +57,12 @@ THE SIMPLE WORKFLOW
    own settings. One voice can have light tuning and another stronger tuning;
    one can have reverb while another stays dry.
    "POLISH: 2 of 3 vocals ready" (next to Room) shows how many lanes still need it.
-   Each vocal can be up to about 7 minutes (stereo: 3 minutes; for longer stereo
+   Each vocal can be up to about 7 minutes (stereo: 3 minutes at 48 kHz; for longer stereo
    you can choose to polish a mono version; your stereo recording is kept).
    POLISH needs a song sample rate of 22,050 Hz or more.
 
 6. Hear the result together.
-   Press Hear song in POLISH. It plays every vocal lane using its saved processing
+   Press Whole song in POLISH. It plays every vocal lane using its saved processing
    and the Song & vocals mixer. Play below the POLISH bar auditions the selected
    vocal. The existing Mix panel fits backing for that selected-vocal audition;
    full-song playback/export uses the song lane levels instead.
@@ -85,7 +96,7 @@ USEFUL DETAILS
   lead-in; it is not an instantaneous gapless live punch.
 - Use project backups before removing recordings. Song Undo lasts this session.
 - WAV exports use 32-bit float audio. Effect tails are retained in processed audio.
-- Normal backups need version 0.25.0 or newer. Older apps cannot restore all lanes
+- Normal backups need version 0.25.1 or newer. Older apps cannot restore all lanes
   and POLISH settings; use a Compatibility backup and keep the original ZIP.
 - "Keep this vocal in its own key" (track settings) keeps that lane's key when the
   song key changes; changing its key in POLISH changes only that vocal.

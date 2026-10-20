@@ -72,7 +72,7 @@ function polishPlan(w,t){const nc0=Math.max(1,...t.regions.filter(r=>r.selected)
  const out={nc:nc0,inputChannels:nc,mono,frames,needed,budget:ENGINE.bytes,ok:true,reason:'',canMono:false};
  if(!t.regions.some(r=>r.selected))return {...out,ok:false,reason:'Choose a take on this vocal first.'};
  if(w.rate<ENGINE.minRate){out.ok=false;out.reason='POLISH works at 22,050 Hz or higher; this song is '+w.rate+' Hz (the processor produces invalid audio below that). Recording, choosing takes, playback and dry export still work.';}
- else if(nc===2&&frames>ENGINE.stereoFrames){out.ok=false;out.canMono=true;out.reason='This stereo vocal is longer than 3 minutes, which is more than POLISH can process in stereo.';}
+ else if(nc===2&&frames>ENGINE.stereoFrames){out.ok=false;out.canMono=true;out.reason='This stereo vocal exceeds the POLISH stereo limit of '+(ENGINE.stereoFrames/w.rate/60).toFixed(2)+' minutes at '+w.rate.toLocaleString()+' Hz.';}
  else if(needed>ENGINE.bytes){out.ok=false;out.reason='This vocal is too long for POLISH in one piece ('+(needed/1048576).toFixed(0)+' MB needed, '+(ENGINE.bytes/1048576)+' MB available for one vocal).';}
  return out;}
 function pcmChannelsOk(w,t){const p=t.polish;if(!p)return false;const want=polishPlan(w,t).inputChannels,pc=p.session?.pcm;const n=Array.isArray(pc)?pc.length:pc?.nch;return n==null||n===want;}
@@ -80,12 +80,12 @@ function pcmChannelsOk(w,t){const p=t.polish;if(!p)return false;const want=polis
 const POLISH_PREFS=['bypass','ownKey','key','scale'];
 function polishPrefs(p){const o={};for(const k of POLISH_PREFS)if(p&&p[k]!==undefined)o[k]=p[k];return o;}
 function validPrefs(o){return !!o&&typeof o==='object'&&Object.entries(o).every(([k,v])=>POLISH_PREFS.includes(k)&&(['key','scale'].includes(k)?Number.isInteger(v)&&v>=0&&v<=11:typeof v==='boolean'));}
-function polishValid(w,t){return !!(t.polish&&t.polish.sourceSig===trackSignature(w,t)&&t.polish.rate===w.rate&&t.polish.channels?.length&&pcmChannelsOk(w,t)&&pcmFinite(t.polish.channels));}
+function polishValid(w,t){return !!(t.polish&&!t.polish.recoveryMissing&&t.polish.sourceSig===trackSignature(w,t)&&t.polish.rate===w.rate&&t.polish.channels?.length&&pcmChannelsOk(w,t)&&pcmFinite(t.polish.channels));}
 // 0.25 (UX 1): full-song readiness, one line per vocal lane.
 function readiness(w){const lanes=w.tracks.filter(t=>t.regions.some(r=>r.selected)).map(t=>{const pl=polishPlan(w,t);let state,text;
   if(t.polish?.bypass){state='dry';text='dry vocal (your choice)';}
   else if(polishValid(w,t)&&!keyStale(w,t)){state='ready';text='polished';}
-  else if(!pl.ok){state='blocked';text=pl.canMono?'stereo over 3 min: choose mono for POLISH':'too long for POLISH';}
+  else if(!pl.ok){state='blocked';text=pl.reason;}
   else if(t.polish&&polishValid(w,t)){state='key';text='key update needed';}
   else if(t.polish){state='update';text='needs update';}
   else {state='todo';text='not polished yet';}
