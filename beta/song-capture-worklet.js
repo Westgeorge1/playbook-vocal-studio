@@ -6,6 +6,8 @@ class SongCapture extends AudioWorkletProcessor {
  flush(){if(!this.used)return;const data=this.used===2048?this.buffer:this.buffer.slice(0,this.used);this.port.postMessage({frame:this.block,data},[data.buffer]);this.buffer=new Float32Array(2048);this.used=0;}
  process(inputs){
   if(this.done)return false;
+  // 0.27.0: tell the page the audio clock is really running, so "Recording" is never shown before audio flows.
+  if(!this.started){this.started=true;this.port.postMessage({started:true,frame:currentFrame});}
   const channels=inputs[0],n=channels?.[0]?.length||128,a=Math.max(currentFrame,this.first),b=Math.min(currentFrame+n,this.last);
   for(let frame=a;frame<b;frame++){if(!this.used)this.block=frame;const j=frame-currentFrame;this.buffer[this.used++]=channels?.length?(channels.length>1?(channels[0][j]+channels[1][j])*.5:channels[0][j]):0;if(this.used===2048)this.flush();}
   if(currentFrame+n>=this.last){this.flush();this.done=true;this.port.postMessage({done:true,last:this.last});return false;}

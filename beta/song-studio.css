@@ -260,3 +260,5 @@ body.song-studio.sg-onsong #rcExport{display:none}
    grid row again on every waveform redraw. */
 #songStudio .sg-lane:not(.sg-ruler):not(.sg-empty-backing){height:auto;min-height:176px}
 #songStudio .sg-lane:not(.sg-ruler):not(.sg-empty-backing) .sg-wave{height:100%;min-height:0;contain:size}
+/* 0.26: keep all 44px phone controls while removing excess gaps between mixer rows. */
+@media(max-width:600px){#songStudio .sg-lane-head{gap:5px}}

@@ -11,7 +11,7 @@ function number(x,a,b,name){if(!Number.isFinite(x)||x<a||x>b)throw Error('Invali
 function label(s,fallback){return String(s||fallback).trim().slice(0,100)||fallback;}
 function id(w,prefix){return prefix+(w.nextId++);}
 function empty(rate=48000){return {v:1,uid:Math.random().toString(36).slice(2)+Date.now().toString(36),title:'My song',rate,nextId:2,revision:0,tracks:[{id:'v1',name:'Lead vocal',gainDb:0,pan:0,mute:false,solo:false,regions:[]}],sections:[],sources:{},activeTrack:'v1',selectedRegion:null,cursor:0,range:null,lead:2,fadeMs:20,masterDb:-6,appliedSig:null};}
-function clone(w){return {...w,range:w.range?.slice()||null,sections:w.sections.map(s=>({...s})),sources:{...w.sources},tracks:w.tracks.map(t=>({...t,regions:t.regions.map(r=>({...r,takes:r.takes.map(a=>({...a}))}))}))};}
+function clone(w){return {...w,referenceGuide:w.referenceGuide?structuredClone(w.referenceGuide):undefined,range:w.range?.slice()||null,sections:w.sections.map(s=>({...s})),sources:{...w.sources},tracks:w.tracks.map(t=>({...t,levelMoves:t.levelMoves?.map(m=>({...m})),regions:t.regions.map(r=>({...r,takes:r.takes.map(a=>({...a}))}))}))};}
 function range(a,b){number(a,0,LIMITS.seconds-.04,'start');number(b,a+.04,LIMITS.seconds,'end');}
 function roomSeconds(w){const u=usage(w);return Math.max(0,(LIMITS.bytes-u.bytes)/(w.rate*4));}
 function usage(w){let bytes=0,seconds=0,takes=0;for(const s of Object.values(w.sources)){bytes+=s.channels.reduce((n,c)=>n+c.byteLength,0);seconds+=s.channels[0].length/s.rate;}for(const t of w.tracks)for(const r of t.regions)takes+=r.kind==='legacy-base'?0:r.takes.length;return {bytes,seconds,takes};}
@@ -95,6 +95,7 @@ function readiness(w){const lanes=w.tracks.filter(t=>t.regions.some(r=>r.selecte
 function duration(w){return Math.max(1,...w.sections.map(s=>s.end),...w.tracks.flatMap(t=>t.regions.map(r=>r.end)),...w.tracks.map(t=>polishValid(w,t)&&!t.polish.bypass?t.polish.channels[0].length/w.rate:0));}
 function validate(w){
  if(!w||w.v!==1||!Array.isArray(w.tracks)||!w.tracks.length||w.tracks.length>LIMITS.tracks||!Array.isArray(w.sections)||w.sections.length>LIMITS.sections||!w.sources||typeof w.sources!=='object')throw Error('Invalid song workspace.');
+ if(w.referenceGuide){const RC=root.ReferenceCore||(typeof require==='function'?require('./reference-core.js'):null);if(!RC)throw Error('Reference profile support did not load.');RC.validate(w.referenceGuide);}
  number(w.rate,8000,192000,'song sample rate');number(w.nextId,1,1e9,'identity');number(w.cursor,0,LIMITS.seconds,'playhead');number(w.lead,0,5,'lead-in');number(w.fadeMs,0,100,'join fade');number(w.masterDb,-36,6,'master level');
  if(w.meter!=null&&!METERS.includes(w.meter))throw Error('Invalid time signature.');if(w.countIn!=null&&![0,1,2].includes(w.countIn))throw Error('Invalid count-in.');if(w.clickVol!=null)number(w.clickVol,0,1,'click volume');if(w.key!=null&&!(Number.isInteger(w.key)&&w.key>=0&&w.key<=11))throw Error('Invalid key.');if(w.scale!=null&&!(Number.isInteger(w.scale)&&w.scale>=0&&w.scale<=6))throw Error('Invalid scale.');if(w.backing!=null&&typeof w.backing!=='boolean')throw Error('Invalid backing switch.');
  if(w.range)range(...w.range);const ids=new Set(),seen=x=>{if(typeof x!=='string'||!/^[-_a-zA-Z0-9]+$/.test(x)||ids.has(x))throw Error('Duplicate or invalid song identity.');ids.add(x);};
@@ -105,7 +106,7 @@ function validate(w){
   // trusted here so a history action does not scan 128 MB on the UI thread.
  }
  let nr=0;
- for(const t of w.tracks){seen(t.id);number(t.gainDb,-36,12,'track level');if(t.polishMono!=null&&typeof t.polishMono!=='boolean')throw Error('Invalid mono choice.');number(t.pan,-1,1,'track pan');if(!Array.isArray(t.regions))throw Error('Invalid recording regions.');
+ for(const t of w.tracks){seen(t.id);validateMoves(t);number(t.gainDb,-36,12,'track level');if(t.polishMono!=null&&typeof t.polishMono!=='boolean')throw Error('Invalid mono choice.');number(t.pan,-1,1,'track pan');if(!Array.isArray(t.regions))throw Error('Invalid recording regions.');
   for(const r of t.regions){seen(r.id);nr++;range(r.start,r.end);if(r.fadeMs!=null)number(r.fadeMs,0,100,'range fade');if(!Array.isArray(r.takes)||r.takes.length>LIMITS.perRegion)throw Error('Up to 32 attempts for one recording range.');
    const tids=new Set();for(const a of r.takes){seen(a.id);tids.add(a.id);if(!Object.hasOwn(w.sources,a.source))throw Error('Missing recording audio.');number(a.origin,-10,LIMITS.seconds,'take position');number(a.offsetMs||0,-500,500,'take alignment');number(a.gainDb||0,-36,24,'take gain');number(a.trimIn||0,0,LIMITS.seconds,'take trim');number(a.trimOut||0,0,LIMITS.seconds,'take trim');number(a.fadeIn||0,0,5000,'take fade');number(a.fadeOut||0,0,5000,'take fade');if(a.rating!=null&&![0,1,2,3,4,5].includes(a.rating))throw Error('Invalid take rating.');const sp=takeSpan(w,a);if(sp[1]-sp[0]<1)throw Error('A take cannot be trimmed to nothing.');}
    if(r.selected&&!tids.has(r.selected))throw Error('Chosen take is missing.');if(r.reference&&!tids.has(r.reference))throw Error('Reference take is missing.');if(r.selected&&!covers(w,r.takes.find(a=>a.id===r.selected),r))throw Error('Chosen take does not cover its recording range.');
@@ -158,12 +159,18 @@ function renderTrack(w,t,{start=0,end=duration(w),override=null,exclude=null}={}
 }
 // Processed lanes stay anchored at song time zero. Auditioning an alternative
 // uses the dry comp on that lane; other lanes retain their processing.
+// Phrase volume is a mix-stage envelope: it never changes POLISH input/signatures.
+function validateMoves(t){if(t.levelMoves==null)return;if(!Array.isArray(t.levelMoves)||t.levelMoves.length>128)throw Error('Up to 128 phrase-volume moves per track.');let end=-1;const ids=new Set();for(const m of t.levelMoves){if(typeof m.id!=='string'||ids.has(m.id))throw Error('Invalid phrase-volume identity.');ids.add(m.id);range(m.start,m.end);number(m.db,-12,12,'phrase level');number(m.fadeMs,10,500,'phrase transition');if(m.start<end)throw Error('Phrase-volume moves cannot overlap. Edit or remove the existing move.');end=m.end;}}
+function levelDbAt(t,time){for(const m of t.levelMoves||[]){if(time<m.start)break;if(time<m.end){const fade=Math.min(m.fadeMs/1000,(m.end-m.start)/2),x=clamp(Math.min(time-m.start,m.end-time)/fade,0,1);return m.db*x;}}return 0;}
+function setLevelMove(w,t,{id:mid=null,start,end,db,fadeMs=80}){const moves=(t.levelMoves||[]).filter(m=>m.id!==mid).map(m=>({...m}));if(mid&&!(t.levelMoves||[]).some(m=>m.id===mid))throw Error('That phrase-volume move no longer exists.');moves.push({id:mid||id(w,'lv'),start,end,db,fadeMs});moves.sort((a,b)=>a.start-b.start);validateMoves({levelMoves:moves});t.levelMoves=moves;}
+function applyLevelMoves(ch,t,rate,start){if(!t.levelMoves?.length)return ch;for(const m of t.levelMoves){const lo=Math.max(0,Math.ceil((m.start-start)*rate)),hi=Math.min(ch[0].length,Math.ceil((m.end-start)*rate)),fade=Math.min(m.fadeMs/1000,(m.end-m.start)/2);for(let i=lo;i<hi;i++){const time=start+i/rate,x=clamp(Math.min(time-m.start,m.end-time)/fade,0,1),g=Math.pow(10,m.db*x/20);for(const c of ch)c[i]*=g;}}return ch;}
 function renderVoice(w,t,options={}){
  const {start=0,end=duration(w),override=null,exclude=null,processed=true}=options;
- if(!processed||!polishValid(w,t)||t.polish.bypass||t.regions.some(r=>r.id===override?.regionId))return renderTrack(w,t,options);
+ const finish=ch=>options.automation===false||!processed?ch:applyLevelMoves(ch,t,w.rate,start);
+ if(!processed||!polishValid(w,t)||t.polish.bypass||t.regions.some(r=>r.id===override?.regionId))return finish(renderTrack(w,t,options));
  const first=Math.round(start*w.rate),n=Math.max(1,Math.round(end*w.rate)-first);
  const out=t.polish.channels.map(c=>{const a=new Float32Array(n),lo=Math.max(0,first),hi=Math.min(c.length,first+n);if(hi>lo)a.set(c.subarray(lo,hi),lo-first);return a;});
- if(exclude){const lo=clamp(Math.round(exclude[0]*w.rate)-first,0,n),hi=clamp(Math.round(exclude[1]*w.rate)-first,0,n);for(const c of out)c.fill(0,lo,Math.max(lo,hi));}return out;
+ if(exclude){const lo=clamp(Math.round(exclude[0]*w.rate)-first,0,n),hi=clamp(Math.round(exclude[1]*w.rate)-first,0,n);for(const c of out)c.fill(0,lo,Math.max(lo,hi));}return finish(out);
 }
 // Mono uses equal-power pan. Stereo uses balance without summing channels.
 function panGains(nc,pan){return nc===1?[Math.cos((pan+1)*Math.PI/4),Math.sin((pan+1)*Math.PI/4)]:[pan>0?Math.cos(pan*Math.PI/2):1,pan<0?Math.cos(-pan*Math.PI/2):1];}
@@ -173,7 +180,7 @@ function mix(w,{start=0,end=duration(w),override=null,excludeTrack=null,excludeR
   for(let c=0;c<2;c++){const d=ch[Math.min(c,ch.length-1)],gain=g*pan[c];for(let i=0;i<n;i++)out[c][i]+=d[i]*gain;}
  }return out;
 }
-function signature(w){return JSON.stringify([w.rate,w.fadeMs,w.masterDb,duration(w),w.tracks.map(t=>[t.id,t.mute,t.solo,t.gainDb,t.pan,t.regions.filter(r=>r.selected).map(r=>{const a=r.takes.find(a=>a.id===r.selected);return [r.start,r.end,r.fadeMs,a.id,a.source,a.origin,a.offsetMs,a.gainDb,a.trimIn||0,a.trimOut||0,a.fadeIn||0,a.fadeOut||0];})])]);}
+function signature(w){return JSON.stringify([w.rate,w.fadeMs,w.masterDb,duration(w),w.tracks.map(t=>[t.id,t.mute,t.solo,t.gainDb,t.pan,t.regions.filter(r=>r.selected).map(r=>{const a=r.takes.find(a=>a.id===r.selected);return [r.start,r.end,r.fadeMs,a.id,a.source,a.origin,a.offsetMs,a.gainDb,a.trimIn||0,a.trimOut||0,a.fadeIn||0,a.fadeOut||0];})]),...(w.tracks.some(t=>t.levelMoves?.length)?[w.tracks.map(t=>t.levelMoves||[])]:[])]);}
 function peak(channels){let p=0;for(const c of channels)for(const x of c){if(x-x!==0)return Infinity;p=Math.max(p,Math.abs(x));}return p;}
 // Older single-vocal workspaces become a lead track. Keep every take and its
 // original timing. Old named parts become independent (possibly overlapping)
@@ -249,6 +256,6 @@ function splitRegion(w,t,r,at){if(!(at>r.start+.04&&at<r.end-.04))throw Error('S
  for(const x of [r,right])if(x.selected&&!covers(w,x.takes.find(a=>a.id===x.selected),x))x.selected=null;
  t.regions.splice(t.regions.indexOf(r)+1,0,right);w.selectedRegion=right.id;return [r,right];}
 function setReference(w,t,regs,regionId,takeId){for(const x of regs)x.reference=null;if(!takeId)return;const r=t.regions.find(x=>x.id===regionId);if(!r||!r.takes.some(a=>a.id===takeId))throw Error('That attempt is not here.');r.reference=takeId;}
-const api={LIMITS,splitRegion,setReference,takeSpan,partRegions,partTakes,choosePart,growSection,takeAudio,toPhrases,laneCount,clamp,label,id,empty,clone,range,usage,track,region,origin,covers,duration,validate,checkAudio,addTrack,addSection,findRange,addTake,choose,gc,selectedCount,trackEnd,trackSignature,layoutSig,hashPcm,normalizeSigs,samePcm,renderTrackLegacy23,migrationProof,polishKey,songKeyOf,wantedKey,keyStale,monoMix,pcmFinite,acceptPcm,POLISH_PREFS,polishPrefs,validPrefs,ENGINE,polishPlan,readiness,roomSeconds,polishValid,renderTrack,renderVoice,panGains,mix,signature,peak,migrate,METERS,prefs,beatSec,barBeat,snapTime,beatsIn,countInWindow,loopPasses};
+const api={LIMITS,validateMoves,levelDbAt,setLevelMove,applyLevelMoves,splitRegion,setReference,takeSpan,partRegions,partTakes,choosePart,growSection,takeAudio,toPhrases,laneCount,clamp,label,id,empty,clone,range,usage,track,region,origin,covers,duration,validate,checkAudio,addTrack,addSection,findRange,addTake,choose,gc,selectedCount,trackEnd,trackSignature,layoutSig,hashPcm,normalizeSigs,samePcm,renderTrackLegacy23,migrationProof,polishKey,songKeyOf,wantedKey,keyStale,monoMix,pcmFinite,acceptPcm,POLISH_PREFS,polishPrefs,validPrefs,ENGINE,polishPlan,readiness,roomSeconds,polishValid,renderTrack,renderVoice,panGains,mix,signature,peak,migrate,METERS,prefs,beatSec,barBeat,snapTime,beatsIn,countInWindow,loopPasses};
 root.SongCore=api;if(typeof module!=='undefined')module.exports=api;
 })(globalThis);

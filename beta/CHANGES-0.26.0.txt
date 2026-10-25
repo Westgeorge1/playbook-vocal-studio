@@ -1,0 +1,55 @@
+PLAYBOOK VOCAL STUDIO 0.26.0 — VOCAL FINISHING WORKBENCH
+25 October 2026 • Based on the supplied 0.25.1 application
+
+ADDED
+1. Find what needs improving (on POLISH)
+   Select 0.1–20 seconds and compare Edited raw, Cleaned, Tuned and Final
+   at matched loudness. Each stage has practical advice. Existing uncertain
+   notes and large target moves are counted for review, not scored as mistakes.
+   No tuning or effect parameter is changed by the comparison.
+
+2. Phrase volume (under the timeline selection on Song & Vocals)
+   Add a smooth +/-12 dB move over a chosen word or phrase, with 10–500 ms
+   transitions. Edit/remove moves, or use the song Undo/Redo. A gold line shows
+   the envelope on each vocal lane. Up to 128 non-overlapping moves per lane.
+   The moves are applied AFTER per-lane POLISH, including to a lane using dry
+   vocal. They do not invalidate POLISH or change source recordings.
+   Song playback, vocal mix, finished mix and polished stems include moves.
+   Dry stems exclude them. Saves, reloads and project backups retain them.
+
+3. Finish & check (Song & Vocals, and Export audio)
+   Measure the actual combined vocals and optional backing with K-weighted,
+   gated loudness and a 4x reconstructed true-peak estimate.
+   Keep current loudness, or choose a target; choose a peak ceiling.
+   Preserve dynamics adjusts the whole level. The optional gentle limiter
+   controls peaks with stereo-linked gain and a verified post-render ceiling.
+   Before/after previews are matched in volume. Actual level, maximum limiting
+   and any safety trim are shown. Missing a loudness target is reported.
+   Download a 24-bit finished WAV and optional JSON measurements.
+   This is a separate, explicit finishing render; ordinary exports and song
+   playback do not silently acquire a master limiter.
+
+FIXED DURING VALIDATION
+- Analysis worker distinguishes channel count from transferable channel arrays.
+- The finishing stylesheet is explicitly loaded alongside song-studio.css.
+- Phone mixer-row spacing reduced without reducing 44 px touch controls.
+  Existing 0.25.1 lanes measured 385 px with fallback fonts; now 377 px.
+- Isolated comparison buttons from the effects-chain export selectors.
+- Cancelled async work cannot populate a newly opened check window.
+- Accelerated reconstructed-peak analysis without changing its numerical output.
+- Backups with phrase-volume moves declare a 0.26.0 playback requirement.
+- Corrected old wording that treated -14 LUFS as a universal streaming target.
+
+UNCHANGED
+- All seven locked engine files remain byte-identical to 0.25.1.
+- No second tuner, automatic extra EQ, or automatic musical decisions added.
+- Tuning, source recording, and existing compact-backup precision policies remain.
+- No live website was deployed.
+
+VERSION COMPATIBILITY
+Use 0.26.0 or newer to preserve the SOUND of phrase-volume moves. Earlier versions
+may open the project but ignore the moves and finishing preferences. Keep a
+backup before upgrading. Compatibility backups do not teach old apps these new
+features. Finished WAVs remain ordinary portable audio files.
+
+See START-HERE.txt, QUALITY-NOTES-0.26.0.md, and TEST-RESULTS-0.26.0.txt.

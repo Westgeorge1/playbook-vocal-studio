@@ -1,3 +1,23 @@
+PLAYBOOK VOCAL STUDIO 0.27.0 — REFERENCE-GUIDED FINISH
+
+Reference guide saves a selected vocal profile with the song, offers conservative parameter trials, and renders matched previews in an isolated worker. No settings change until Apply. Song Undo restores profile edits; POLISH Undo restores applied sound changes. Reference measurements are saved; reload the original reference audio for audition. Read REFERENCE-GUIDE-0.27.0.md and TEST-RESULTS-0.27.0.txt.
+
+INCLUDED FROM PLAYBOOK VOCAL STUDIO 0.26.0
+Based on the supplied 0.25.1 build.
+
+Extract the ZIP, then run python serve.py and open the local address it prints.
+Use HTTPS when hosting online for microphone access.
+
+NEW: Song & Vocals > Finish & check
+NEW: Song & Vocals > Phrase volume (under the timeline selection)
+NEW: POLISH > Find what needs improving
+
+See CHANGES-0.26.0.txt and QUALITY-NOTES-0.26.0.md for the new controls.
+Use this complete package for agent integration. No live site has been changed.
+Back up your current song before upgrading. Older versions ignore phrase-volume
+moves; use 0.26.0 or newer for the same playback.
+
+EARLIER START INSTRUCTIONS (0.25.1):
 PLAYBOOK VOCAL STUDIO 0.25.1 — START HERE
 
 NEW IN THIS UPDATE

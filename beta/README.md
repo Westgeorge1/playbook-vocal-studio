@@ -1,3 +1,17 @@
+# Playbook Vocal Studio 0.27.0 — reference-guided finish
+
+Save a preferred vocal's measurement profile with your song, compare it with your own POLISH vocal, and audition small finishing suggestions at matched volume. Apply changes you prefer; Undo restores the previous result. The profile stores measurements, not reference audio.
+
+Back up your song, extract this complete package, run `python serve.py`, and open the address it prints. In POLISH, choose **Reference guide**. See `REFERENCE-GUIDE-0.27.0.md` for the workflow and `TEST-RESULTS-0.27.0.txt` for validation and limits. No live website has been changed.
+
+## Included from 0.26.0 — vocal finishing workbench
+
+Adds matched stage listening, phrase-volume moves, and explicit final-song loudness/peak control. Read `CHANGES-0.26.0.txt`, `QUALITY-NOTES-0.26.0.md`, and `TEST-RESULTS-0.26.0.txt`.
+
+The existing tuning engine is unchanged. Real-vocal listening validation remains necessary.
+
+## Previous release documentation
+
 # Playbook Vocal Studio 0.25.1 — every vocal lane can be polished, safer audio and settings
 
 - **0.25.1:** fixes the independent 0.25.0 review: autosave/Undo, standalone-project recovery, mono/stereo editor rebuilding, exact legacy input in modern backups, and phone editing access. See CHANGES-0.25.1.txt, IMPLEMENTATION-HANDOVER-0.25.1.txt and TEST-RESULTS-0.25.1.txt.

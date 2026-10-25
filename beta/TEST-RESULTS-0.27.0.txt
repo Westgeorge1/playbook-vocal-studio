@@ -1,0 +1,105 @@
+PLAYBOOK VOCAL STUDIO 0.27.0 — TEST RESULTS
+25 October 2026
+
+Release result: reference-guide checks and existing current-app regressions pass,
+with the explicit historical-app exclusions below.
+Functional and numerical checks do not certify subjective vocal quality.
+
+REFERENCE-GUIDE CHECKS
+- 12/12 pure measurement and model checks: finite input, passage bounds,
+  level-invariant tone, low-hum rejection, opposite-polarity stereo, profile
+  validation, deep Undo clones, unchanged audio signatures, bounded changes,
+  protected settings, insufficient singing, high-band coverage and width.
+- 47/47 browser workflow checks at 1366x900 and 390x844 on the 0.27.0 build.
+  Includes loading the supplied stereo vocal; avoiding its quiet intro;
+  rejecting a near-silent profile; saving; reload without reference audio;
+  suggestions from saved measurements; 44px controls and viewport fit;
+  isolated engine rendering; unchanged settings, notes, audio and Undo during
+  preview; intended tonal movement; measured loudness-matched audition with
+  peak protection; mono audition without changing channels; keyboard guards;
+  Apply; exact prior PCM restored by POLISH Undo; stale-passage rejection;
+  cancel/reopen; profile Remove/Song Undo; metadata-only project backup;
+  project reopen; zero browser JavaScript errors.
+- 5/5 additional browser checks: profile-only song persistence without audio
+  sources, cancelled decode ignored after reopening, retained saved profile,
+  and zero JavaScript errors.
+
+REFERENCE AUDIO AND TEST METHOD
+The supplied 48 kHz stereo Suno vocal was measured and used as a real file
+input. Its original recording was not edited or included in this package.
+The controlled comparison used seconds 30-42 and a separate copy high-passed
+at 450 Hz with a second-order Butterworth filter, then peak-scaled to 0.8.
+This deliberate mismatch tests the direction of the suggested body adjustment;
+it does not demonstrate that the reference singer or sound can be recreated.
+
+The selected reference passage measured approximately -19.58 LUFS,
+-7.55 dBTP, 9.86 seconds of voice-like activity and 2.49% side energy.
+Its 14.86 dB sung-frame level range is a P90-P10 statistic; it is not LRA.
+Measurements are in tests-0.27/results/supplied-reference-measurements.json.
+The audio and generated browser projects/screenshots are not bundled.
+
+EXISTING FEATURES AND ENGINE
+- 169 pure core checks across 0.20-0.26 passed (156 inherited plus 13 finishing
+  checks). No existing DSP code was changed.
+- 47/47 0.26 finishing browser checks passed on 0.27.0: phrase-volume edits,
+  Undo/Redo, reload, backup/reopen, matched stage diagnosis, bypassed-chain
+  listening, cancellation, gain/limiter paths, 24-bit stereo WAV export and
+  version-correct measurement JSON. Zero JavaScript errors.
+- 37/37 integration invariants passed. All seven files listed in
+  ENGINE-SHA256.txt are byte-identical to 0.26.0 and the original engine.
+- All eight 0.25.1 suites passed: invariants, core, regressions, UI, recovery,
+  scrolled transport, durable edits and capacity. The capacity suite passed
+  22/22 checks using 15 minutes of source audio across three four-minute
+  lanes plus phrase fixes; separate POLISH edits, playback, finite exports,
+  reload, both backup formats reopening and immediate refusal of an
+  oversized lane while preserving the open editor.
+- The inherited 0.20-0.25 runner completed all 52 selected entries with
+  successful exit codes, including recording, project opening, exports,
+  recovery, UI, capacity, stereo preservation and scrolled transport. Its
+  duplicate capacity25 entry is covered by the capacity251 substitution below.
+  The runner also confirmed that a failing test produces a failing result.
+
+QUALIFICATIONS
+- Twelve assertions that open a separately served historical 0.18.3 app were
+  explicitly skipped using PVS_SKIP_LEGACY_APP=1: t22 and t24 each contain two
+  such assertions and run at three widths. No real 0.18.3 build was supplied.
+  Current-app project opening and compatibility-backup checks still ran.
+- The duplicate temporary-profile capacity25 suite is replaced by the 0.25.1
+  disk-profile capacity251 suite. Their 19 assertion call sites are identical
+  (22 runtime checks). The supplied temporary-profile harness has a documented
+  Chromium storage cap. No product assertion was weakened.
+- Broad inherited suites used APPV=0.27.0. The 0.25.1 wrapper retains its old
+  APPV environment default, but those suites do not assert that version label;
+  all were served from the actual 0.27.0 worktree.
+- The first 0.26 browser regression run completed successfully, but its saved
+  log was incomplete. It was rerun to retain the complete 47-check evidence.
+- Deliberate browser-crash tests can print TargetClosedError in their harness
+  logs. Refer to their assertions and suite exit codes for the result.
+
+REPRODUCING THE NEW CHECKS
+Run node tests-0.27/reference.test.cjs.
+For browser tests, install Python Playwright and set PVS_CHROME to Chromium.
+Run python tests-0.27/run_browser.py edge27.py for the self-contained edges.
+For the main reference workflow, also set PVS_REFERENCE_WAV to the supplied
+vocal and PVS_OWN_WAV to the altered 12-second comparison fixture, then run
+python tests-0.27/run_browser.py. PVS_TEST_OUTPUT chooses the output directory.
+Private vocal fixtures are deliberately not distributed with the app.
+
+NOT VERIFIED
+Subjective real-singer quality, melody correctness, naturalness, physical
+microphone/headphone latency, Safari/iOS, Android hardware, low-memory phones
+or OS background termination. Tests used Linux headless Chromium and emulated
+phone viewports. A short preview's effect state can differ from full-vocal
+rendering because it has at most two seconds of lead-in. Listen to the whole
+vocal after Apply and use Undo if you prefer the previous sound.
+
+No second tuner was added. No live website was deployed.
+
+ADOPTION RUN (our integration, 25 Oct 2026, America/Jamaica)
+- Full suite tests-0.25/run_all25.sh (APPV read from index.html = 0.27.0): 53 suites, 52 exit 0 first pass;
+  t22-1024 timed out once waiting for take checks (box under load), then passed 3 of 4 reruns incl. 2 of 2 on a quiet box.
+- check25.cjs: 52 passed, 0 failed (includes R10, R11, quality-*/reference-* files).
+- Recording fix: tests-0.20 long_recording_test 3 of 3 pass after fix (before fix: failed 2 of 3 on BOTH 0.25.1 and 0.27.0);
+  tests-0.27/mic_start271.py 9/9.
+- Their tests: quality26, reference27, browser26, edge27 pass; browser27 47/0 (one earlier run failed, rerun clean).
+- tests-0.25.1/run.py --capacity: pass (incl. scrolled251).
