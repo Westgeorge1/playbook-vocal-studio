@@ -66,8 +66,10 @@ function acceptPcm(ch,what='This audio'){if(!pcmFinite(ch))throw Object.assign(E
 // 0.25 (R1): POLISH capacity is a property of ONE lane: only the open editor is resident in the engine;
 // completed lanes keep their final render (saved to browser storage once). plan() runs BEFORE the engine is touched.
 // Measured 0.25: the engine returns NaN/Infinity for sessions below 22.05 kHz (tests-0.25/rateprobe.py), and runs out of
-// memory beyond about 3 minutes of 48 kHz stereo. Both limits are checked here, outside the (unchanged) engine.
-const ENGINE=Object.freeze({bytes:256*1024*1024,stereoFrames:180*48000,minRate:22050});
+// memory near the previous 3-minute stereo limit. 0.29 uses a verified conservative
+// 8,000,000-frame ceiling after a 179-second/48 kHz native-chain failure.
+// Both limits are checked here, outside the unchanged engine.
+const ENGINE=Object.freeze({bytes:256*1024*1024,stereoFrames:8000000,minRate:22050});
 function polishPlan(w,t){const nc0=Math.max(1,...t.regions.filter(r=>r.selected).flatMap(r=>r.takes.map(a=>w.sources[a.source]?.channels.length||1))),mono=!!t.polishMono&&nc0===2,nc=mono?1:nc0,frames=Math.round(trackEnd(t)*w.rate),needed=(frames*nc+(frames+10*w.rate)*2)*4;
  const out={nc:nc0,inputChannels:nc,mono,frames,needed,budget:ENGINE.bytes,ok:true,reason:'',canMono:false};
  if(!t.regions.some(r=>r.selected))return {...out,ok:false,reason:'Choose a take on this vocal first.'};

@@ -1,0 +1,7 @@
+#noteEditorFrame{width:100%;height:82vh;min-height:560px;border:0;background:var(--panel);border-radius:8px;display:block}
+#newNotePanel{min-width:0;width:100%}
+#noteRouteStatus{font-size:13px;line-height:1.5;overflow-wrap:anywhere}
+#tunerChoice{max-width:100%;min-height:44px}
+#noteRouteOpen{min-height:44px}
+#legacyTuneControls[hidden],#legacyNoteControls[hidden],#newNotePanel[hidden]{display:none!important}
+@media(max-width:600px){#noteEditorFrame{height:85vh;min-height:540px}#noteRouteHelp{font-size:13px}}

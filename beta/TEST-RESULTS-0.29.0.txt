@@ -1,0 +1,139 @@
+PLAYBOOK VOCAL STUDIO 0.29.0 — TECHNICAL VALIDATION
+2026-10-27
+
+Tested in Chromium headless shell 134.0.6998.35 / Playwright 1.51 on Linux, using the real WebAssembly engine. Desktop 1366x900 and emulated phone viewport 390x844. No physical-device or subjective listening certification.
+
+NEW PATH:
+Editor audit: 21/21 passed.
+Advanced editor: 16/16 passed.
+Full integration: 16/16 passed.
+Edge cases: 28/28 passed.
+Desktop and phone layout: 12/12 passed.
+Final routing and audition: 9/9 passed.
+Concurrent note edits: 5/5 passed.
+Stereo capacity refusal: 3/3 passed.
+Four-minute mono: 2/2 passed.
+166-second stereo: 5/5 passed.
+Actual supplied vocals through import, cleaned, tuned, final, matched stage listening and Finish & check: 9/9 checks passed. The M4A recording was decoded to a float WAV for the headless browser test; native AAC/M4A import was not certified. Both exported WAVs were measured independently with FFmpeg ebur128 true-peak oversampling and remained below -1 dBTP; originals were unchanged. These checks do not establish a preferred preset.
+Seven locked engine files: byte-identical to 0.28.0.
+Static application invariants: see results/invariants.log (52/52 on final code).
+Eleven pure core/quality/reference/policy suites: see results/core/summary.json.
+
+CAPACITY FINDING:
+A 179-second stereo/48 kHz fixture failed with a WebAssembly unreachable error in both the original and new paths, inside the unchanged engine. The shared early guard is now conservatively 8,000,000 frames (166.7 seconds at 48 kHz). The new path completed a 166-second stereo input, returned to Original, and refused an oversized retiming without conversion; Original recovered successfully. Four-minute mono completed and returned to Original. The long tests took about 281 seconds (mono) and 182 seconds (stereo) in this environment with other tests running; these are not mobile-performance guarantees.
+
+LEGACY REGRESSIONS:
+The original-tuner harness uses a disposable application copy with only the fresh-vocal default changed to Original. Production defaults to Playbook Note Editor. New-path tests above exercise the actual default.
+F7-runner-detects-failure exit 0
+h25-check exit 1
+t20-core exit 0
+t20-browser_test exit 0
+t20-long_recording_test exit 0
+t20-edge_cases_test exit 0
+t20-polish_tracks exit 0
+t20-polish_edges-1 exit 0
+t20-polish_edges-2 exit 0
+t20-polish_edges-3 exit 0
+t20-final_ui exit 0
+t21-core exit 0
+t21-1366 exit 0
+t21-1024 exit 0
+t21-390 exit 0
+t22-core exit 0
+t22-1366 exit 1
+t22-1024 exit 1
+t22-390 exit 1
+ports22-900 exit 0
+ports22-1024 exit 0
+ports22-1280 exit 0
+ports22-1366 exit 0
+ports22-390 exit 0
+ports22-360 exit 0
+ports22-long exit 0
+t23-core exit 0
+t24-1366 exit 1
+t24-1024 exit 1
+t24-390 exit 1
+a23-rangesafe exit 0
+b23-old-projects exit 1
+d23-e2e-1366 exit 0
+d23-e2e-390 exit 0
+e231-durable exit 1
+e231-durable-390 exit 1
+e231-downloads exit 1
+g24-core exit 0
+g24-refalign exit 0
+g24-durable exit 1
+g24-ui-1366 exit 1
+g24-ui-390 exit 1
+g24-ux-390 exit 1
+g24-ux-1366 exit 1
+g24-capacity exit 0
+h25-core exit 0
+h25-durable exit 0
+h25-durable-390 exit 0
+h25-stereo exit 0
+m271-micstart exit 0
+s251-scrolled exit 0
+h25-capacity exit 1
+h25-ux-1366 exit 0
+h25-ux-390 exit 0
+ALLDONE
+
+The first legacy static check ran before version text was updated; final invariants were rerun separately and pass (52/52). External real 0.18.3 server checks and historical 0.20–0.22 project-fixture checks could not complete because those external fixtures were not supplied with the recovered 0.28 package. They are recorded as unavailable/failed harness runs, not claimed as passing. An isolated 0.24 browser rerun passed 24/24 current-app checks, with the two external 0.18.3 comparisons explicitly skipped.
+The legacy h25-capacity run hit IndexedDB QuotaExceededError in a temporary browser context. A separate 0.25.1 capacity run using a persistent browser profile passed 22/22 checks: three four-minute vocal lanes, a 15-minute source recording, independent edits, processed stems/mix, reload, both project-backup formats, and immediate refusal of oversized input without changing the open editor. Storage availability remains browser/profile-dependent; this result does not remove browser quota limits. All eight suites in that separate 0.25.1 runner passed.
+
+0.25.1 safety/capacity runner:
+[
+  {
+    "suite": "invariants",
+    "exit": 0,
+    "seconds": 0.1
+  },
+  {
+    "suite": "core",
+    "exit": 0,
+    "seconds": 2.1
+  },
+  {
+    "suite": "regressions",
+    "exit": 0,
+    "seconds": 50.3
+  },
+  {
+    "suite": "ui",
+    "exit": 0,
+    "seconds": 21.0
+  },
+  {
+    "suite": "recovery",
+    "exit": 0,
+    "seconds": 20.4
+  },
+  {
+    "suite": "scrolled",
+    "exit": 0,
+    "seconds": 4.7
+  },
+  {
+    "suite": "durable",
+    "exit": 0,
+    "seconds": 69.4
+  },
+  {
+    "suite": "capacity",
+    "exit": 0,
+    "seconds": 1045.5
+  }
+]
+
+Important limits: original engine is retained; new editor increases memory use; target-device listening, iOS/Android hardware, microphone/headphone latency and low-memory termination remain unverified. Browser-session saves are not a substitute for downloaded project backups. Synthetic pitch tests cover their constructed signals, not every voice or melody. No live deployment.
+
+ADOPTION RUN (our integration, 27 Oct 2026, America/Jamaica)
+- run_all25.sh (fixtures restored, APPV 0.29.0): 53/53 suites pass, incl. d23-e2e 1366/390 (updated for the Note Editor default), mic_start271 9/0, scrolled251, h25-stereo 31/0, h25-capacity 22/0, ux25 1366/390.
+- tests-0.25.1/run.py --capacity: capacity 22/0; regressions failed once (mono dialog timeout), then 18/0 in 3 of 3 reruns.
+- check25.cjs: 60/0 (adds R12 + tuner-routing.js/finish-policy.js; a planted WAV writer in note-editor.html is caught).
+- 0.28: policy 6/6, peak_check pass, browser28 41/0 (updated: version from index.html, Original tuner for its pitch-review checks).
+- 0.29: audit 21/21, integration 16/16, edges 28/28, ui 12/12, final-checks 9/9, concurrent-edits 5/5, safety-limits 3/3, capacity 7/7. All rerun after the audition-gain fix. advanced.py needs the private real-vocal WAVs and was not run. stereo-probe.py is a diagnostic with a pre-existing syntax error (not a release test).
+- 0.26/0.27: quality26, reference27, browser26 47/0, browser27 47/0, edge27 pass.
+- POLISH, three 4-minute lanes (capacity tests, this machine): 140/190/197 s and 774/197/292 s on 0.29.0, against 64/68/71 s on 0.27.0. No safe speedup found: the locked engine renders every stage on each update, and the Note Editor adds a second engine pass.

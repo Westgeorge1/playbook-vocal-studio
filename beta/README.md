@@ -1,3 +1,16 @@
+# Playbook Vocal Studio 0.29.0 — editable notes after cleaning
+
+Read [TUNER-INTEGRATION-0.29.0.md](TUNER-INTEGRATION-0.29.0.md) for the new editor, rollback selector, fixes and limits. Extract this whole folder, run `python serve.py`, and open the local address. The original tuner and its settings are preserved. No live deployment.
+
+## Earlier release notes
+
+# Playbook Vocal Studio 0.28.0 — conservative finishing update
+
+See CHANGES-0.28.0.txt and TEST-RESULTS-0.28.0.txt for this release.
+Back up your project before upgrading. Saved processing settings are preserved.
+
+## Historical 0.27.0 notes
+
 # Playbook Vocal Studio 0.27.0 — reference-guided finish
 
 Save a preferred vocal's measurement profile with your song, compare it with your own POLISH vocal, and audition small finishing suggestions at matched volume. Apply changes you prefer; Undo restores the previous result. The profile stores measurements, not reference audio.

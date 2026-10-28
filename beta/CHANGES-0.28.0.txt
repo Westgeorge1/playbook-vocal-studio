@@ -1,0 +1,62 @@
+PLAYBOOK VOCAL STUDIO 0.28.0 — CONSERVATIVE FINISHING
+26 October 2026
+
+Purpose
+Reduce unnecessary automatic cleaning, make uncertain tuning decisions visible,
+and provide a more conservative final export starting point. This update does
+not certify professional sound quality or approve one preset for every singer.
+
+CLEANING
+- Newly opened raw vocals use Gentle spectral with a 6 dB reduction setting.
+  Cleaning starts bypassed when the engine's original-input SNR estimate is
+  38 dB or higher, or no finite estimate exists. Otherwise cleaning starts on.
+  The 38 dB boundary matches the existing UI's 'Clean' category; this is a
+  conservative heuristic, not a reliable classifier of studio-quality audio.
+- Saved POLISH settings are restored as saved; they are not silently migrated.
+- Try gentle cleaning applies 6 dB, sensitivity 100%, rumble Off, automatic hum,
+  and enables Gentle spectral, with Undo. Users may bypass it or adjust further.
+- Switching cleaner no longer silently raises reduction to its engine-suggested
+  amount. Double-tap reduction returns to 6 dB; rumble returns to Off.
+- Clean & Natural now uses the conservative cleaning choice, keeps existing
+  breath edits, and does not add automatic 8 dB breath cuts. It still turns off
+  tuning and tonal/space processing, and enables the chain limiter at -1.6 dB.
+  It is a starting point for audition, not a final approved sound preset.
+- Voice Focus and hum guidance no longer promise that sung tone is protected or
+  that a hum estimate is conclusive. Compare Before, Cleaned and Removed noise.
+
+PITCH REVIEW
+- A visible count in POLISH opens the existing uncertain-note editor.
+- Each saved lane stores informational pitchReview metadata from actual engine
+  uncertainty flags, separate from the existing 13-value editable-note format.
+- Finish & check lists uncertainty for audible processed lanes, respecting Mute,
+  Solo, dry bypass and whether automatic tuning is enabled. Review opens that
+  lane's existing editor. Nothing forces correction or blocks intentional export.
+- Older sessions with no review metadata say that review is not yet checked;
+  opening POLISH refreshes it. 'No uncertain notes' is not proof of correct melody.
+- The ordinary Export menu also shows a text review summary.
+
+FINAL EXPORT
+- An unconfigured Finish & check defaults to -1.6 dBTP. Explicit saved ceilings
+  are retained. The pure finisher's unspecified ceiling has the same default.
+- Preserve dynamics remains the default. Gentle limiting is still optional.
+- Export guidance and measurement JSON explicitly describe the meter as an
+  estimate and distinguish it from independent verification of the downloaded WAV.
+- The limiter algorithm and 4x meter are unchanged. The new margin was checked
+  against the audit's abrupt 12 kHz boundary signal with FFmpeg; it is not a
+  guarantee of certified true-peak compliance for every possible signal.
+
+INTEGRATION
+New runtime file: finish-policy.js. Include it before index.html's main script.
+Modified: index.html, song-polish.js, song-studio.js, quality-studio.js,
+quality-core.js (default ceiling only), quality-worker.js (cache version only),
+and quality-studio.css (touch-sized review button and phone select layout).
+All seven files in ENGINE-SHA256.txt remain byte-identical.
+Applying the new raw-vocal starting choice requires an additional engine update
+on first opening; this can add processing time, especially on long vocals.
+Existing recording, take selection, effects, reference guide, project backup,
+and Undo routes are retained. No live site was deployed.
+
+Next step
+Listen to your real vocals at matched volume, solo and with the backing. Keep
+only processing that improves clarity while retaining the desired warmth,
+consonants, vibrato and slides. Numerical checks cannot choose the musical finish.

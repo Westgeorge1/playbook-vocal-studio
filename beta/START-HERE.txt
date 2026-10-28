@@ -1,35 +1,15 @@
-PLAYBOOK VOCAL STUDIO 0.27.0 — REFERENCE-GUIDED FINISH
+PLAYBOOK VOCAL STUDIO 0.29.0
 
-Reference guide saves a selected vocal profile with the song, offers conservative parameter trials, and renders matched previews in an isolated worker. No settings change until Apply. Song Undo restores profile edits; POLISH Undo restores applied sound changes. Reference measurements are saved; reload the original reference audio for audition. Read REFERENCE-GUIDE-0.27.0.md and TEST-RESULTS-0.27.0.txt.
+Back up your project before upgrading. Extract the whole folder, run python serve.py,
+and open the local address it prints. Use HTTPS when hosting online for recording.
 
-INCLUDED FROM PLAYBOOK VOCAL STUDIO 0.26.0
-Based on the supplied 0.25.1 build.
+POLISH > TUNE > VOCAL TUNER selects Playbook Note Editor or Original tuner — restore.
+New vocals use the new editor after cleaning. Existing projects keep their saved engine.
+Both sets of note edits are preserved. Use Open note editor to reach the new controls.
 
-Extract the ZIP, then run python serve.py and open the local address it prints.
-Use HTTPS when hosting online for microphone access.
-
-NEW: Song & Vocals > Finish & check
-NEW: Song & Vocals > Phrase volume (under the timeline selection)
-NEW: POLISH > Find what needs improving
-
-See CHANGES-0.26.0.txt and QUALITY-NOTES-0.26.0.md for the new controls.
-Use this complete package for agent integration. No live site has been changed.
-Back up your current song before upgrading. Older versions ignore phrase-volume
-moves; use 0.26.0 or newer for the same playback.
-
-EARLIER START INSTRUCTIONS (0.25.1):
-PLAYBOOK VOCAL STUDIO 0.25.1 — START HERE
-
-NEW IN THIS UPDATE
-
-FIRST: tap Back up project before using this version. (Older versions cannot
-read its browser autosave; your backup ZIP opens in any version.)
-
-
-Use Show vocal to jump to your recording. On a phone, open Recording helpers
-for Click, Count-in and HEAR ME. The top bar, including Fix phrase, stays visible as you scroll.
-In POLISH, Edit waveform and Sound controls take you straight to those areas.
-If browser saving fails, use Back up project now before closing the app.
+Read TUNER-INTEGRATION-0.29.0.md for the workflow, rollback and current limitations.
+The untouched 0.28.0 package is included in the delivery rollback folder.
+No live site has changed.
 
 THE SIMPLE WORKFLOW
 
@@ -77,8 +57,9 @@ THE SIMPLE WORKFLOW
    own settings. One voice can have light tuning and another stronger tuning;
    one can have reverb while another stays dry.
    "POLISH: 2 of 3 vocals ready" (next to Room) shows how many lanes still need it.
-   Each vocal can be up to about 7 minutes (stereo: 3 minutes at 48 kHz; for longer stereo
-   you can choose to polish a mono version; your stereo recording is kept).
+   The existing mono budget is about 7 minutes at 48 kHz; device memory still matters.
+   Stereo is capped at 166.7 seconds at 48 kHz in this release. For longer stereo
+   you can choose to polish a mono version; your stereo recording is kept.
    POLISH needs a song sample rate of 22,050 Hz or more.
 
 6. Hear the result together.
@@ -115,7 +96,8 @@ USEFUL DETAILS
 - A selected phrase gives an exact recording range. R during playback starts with
   lead-in; it is not an instantaneous gapless live punch.
 - Use project backups before removing recordings. Song Undo lasts this session.
-- WAV exports use 32-bit float audio. Effect tails are retained in processed audio.
+- Detailed vocal exports offer float WAV; Finish & check writes the finished 24-bit WAV.
+  Effect tails are retained in processed audio.
 - Normal backups need version 0.25.1 or newer. Older apps cannot restore all lanes
   and POLISH settings; use a Compatibility backup and keep the original ZIP.
 - "Keep this vocal in its own key" (track settings) keeps that lane's key when the

@@ -1,0 +1,29 @@
+PLAYBOOK VOCAL STUDIO 0.29.0 — PLAYBOOK NOTE EDITOR
+
+Includes 0.28.0 (conservative finishing, see CHANGES-0.28.0.txt) and the
+Playbook Note Editor (see TUNER-INTEGRATION-0.29.0.md). New vocals start in the
+Note Editor; older projects keep the Original tuner. Each track can switch back
+under POLISH > TUNE > VOCAL TUNER, and both sets of edits are kept.
+
+ADOPTION FIXES (our integration, 27 October 2026)
+- The Note Editor's WAV writing now lives in one checked file
+  (note-editor-safety.js). Both writers refuse invalid audio.
+- New automatic check R12: the Note Editor writes no WAV elsewhere, its output
+  enters the song only through the POLISH safety gate, and the new files are
+  covered by the "no own WAV writer" and "no duplicate keys" checks.
+- Older tests updated for the new default: they switch a track to the
+  Original tuner where they test the Original tuner's buttons, and read the
+  app version from index.html.
+- Fixed: in the Note Editor, the preview's automatic volume reduction (shown
+  as "Preview level -x dB for headroom") was scheduled but not applied, so a
+  boosted note preview could play up to about 9 dB over full scale (distorted
+  in your headphones; exports were not affected). It is now applied at once.
+- The 0.29 test scripts now report failure when any check fails (they used to
+  print the failure but still finish as passed).
+- FILES-SHA256-0.29.0.txt lists the current package.
+
+KNOWN COSTS
+- POLISH takes longer than 0.27 on long vocals, because the vocal goes through
+  the Note Editor and a second effects pass. See TEST-RESULTS-0.29.0.txt.
+- The stereo POLISH limit is 2.78 minutes at 48 kHz (was about 3).
+- Note Editor edits need 0.29.0 or newer. Back up before updating.

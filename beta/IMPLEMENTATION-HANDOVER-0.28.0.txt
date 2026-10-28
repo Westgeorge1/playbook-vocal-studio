@@ -1,0 +1,34 @@
+PLAYBOOK VOCAL STUDIO 0.28.0 — HANDOVER
+
+Start with CHANGES-0.28.0.txt and TEST-RESULTS-0.28.0.txt. This is a complete static
+application update based on the supplied 0.27.0 archive; it has not been deployed.
+Keep a project backup before upgrading. Keep the original 0.27.0 package available.
+
+Deploy every runtime asset together, including finish-policy.js. index.html uses
+0.28.0 asset URLs; quality-studio.js and quality-worker.js invalidate their own
+cached worker/core references. Do not edit the seven locked engine assets.
+
+The new pitchReview object is informational session metadata. Engine note arrays
+remain 13 values when saved. Review metadata is captured alongside actual PCM
+and settings through the existing acceptPolish path; session restore reconstructs
+engine uncertainty rather than applying cached flags to the engine. Legacy data
+without metadata is reported as unknown until opened in POLISH. Dry, muted and
+non-solo lanes do not create irrelevant final-mix review warnings.
+
+The 38 dB input-SNR boundary and 6 dB cleaning amount are conservative starting
+choices. Do not advertise them as a universal professional preset. The engine's
+noise estimate can be wrong; original/cleaned/removed-signal listening is required.
+The full reset and Clean & Natural actions use the same conservative choice.
+Saved projects are not rewritten to these new settings merely because they open.
+
+Finish & check adds margin, not a replacement true-peak algorithm. Keep its meter
+labelled 'estimate'. Inspect exported WAVs with an independent meter when strict
+peak compliance matters. The report explicitly says the app itself has not run
+that independent check. Physical microphone, Android/iOS and low-memory testing
+remain separate from the automated browser tests in this package.
+
+The release package contains application assets and reproducible test source;
+large historical test-output files and historical generated audio are omitted.
+The supplied original 0.27.0 archive remains the source for historical fixtures.
+The synthetic pitch fixture used by the new browser test is included. User vocal
+recordings are not bundled with the application.

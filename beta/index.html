@@ -2,7 +2,7 @@
 <html lang="en">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Playbook Vocal Studio 0.27.0 · DAW</title>
+<title>Playbook Vocal Studio 0.29.0 · DAW</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,500..800&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
@@ -233,10 +233,10 @@ nav.steps button { flex:1 0 64px; min-height:48px; }
 .phrase-take .metrics { font:13px/1.65 var(--mono); color:var(--muted); }
 .phrase-take.suggested { color:var(--gold); }
 </style>
-<link rel="stylesheet" href="daw.css?v=0.27.0">
-<link rel="stylesheet" href="rec.css?v=0.27.0">
-<link rel="stylesheet" href="rc.css?v=0.27.0">
-<link rel="stylesheet" href="studio.css?v=0.27.0">
+<link rel="stylesheet" href="daw.css?v=0.29.0">
+<link rel="stylesheet" href="rec.css?v=0.29.0">
+<link rel="stylesheet" href="rc.css?v=0.29.0">
+<link rel="stylesheet" href="studio.css?v=0.29.0">
 <link rel="icon" href="data:,">
 
 <!-- 0.16.0 RECORD & COMP: two-step switch (always visible) -->
@@ -407,7 +407,7 @@ nav.steps button { flex:1 0 64px; min-height:48px; }
 <button role="menuitem" data-act="howto">How recording works</button>
 <button role="menuitem" data-act="about">About this engine</button></div></div>
   </nav>
-  <div class="apptitle"><b>Playbook Vocal Studio 0.27.0</b> <span id="dawSong">·</span></div>
+  <div class="apptitle"><b>Playbook Vocal Studio 0.29.0</b> <span id="dawSong">·</span></div>
   <div class="savedind" id="dawSaved" role="status" aria-live="polite" title="Autosave on this browser"></div><div class="headright"><button class="guidebtn" id="guideBtn" aria-haspopup="dialog" aria-controls="guideSheet">✦ SMART GUIDE <span class="count" id="guideCount"></span></button><div class="chip" id="chip">Starting the engine...</div></div>
 </header>
 <div class="busybar" id="busybar"><i></i></div>
@@ -578,6 +578,7 @@ nav.steps button { flex:1 0 64px; min-height:48px; }
       <h2>Adjust</h2>
       <div class="field"><span>CLEANER</span><div class="seg two" id="modeSeg"><button data-cmode="1">VOICE FOCUS</button><button data-cmode="0">GENTLE SPECTRAL</button></div></div>
       <p class="note" id="modeHelp"></p>
+      <p class="note" id="cleanStartHelp">New vocals start with cleaning bypassed when the background estimate is low or unavailable; otherwise Gentle spectral starts at 6 dB. Compare the vocal and Removed noise before increasing it.</p>
       <div class="knobs" id="cleanKnobs"></div>
       <div class="grid2">
         <label class="field"><span>HUM FILTER</span>
@@ -585,7 +586,7 @@ nav.steps button { flex:1 0 64px; min-height:48px; }
         </label>
         <div class="field"><span>CLEANING</span><label class="switch"><input type="checkbox" id="cleanOn" checked> Clean my vocal</label></div>
       </div>
-      <div class="row"><button class="btn primary" id="cleanAuto">Auto settings</button><span class="note">Double-tap a knob to put it back on automatic.</span></div>
+      <div class="row"><button class="btn primary" id="cleanAuto">Try gentle cleaning · 6 dB</button><span class="note">Start low and compare. Double-tap resets reduction to 6 dB, sensitivity to 100%, or rumble to Off.</span></div>
     </div>
     <div class="rack">
       <h2>Listen &amp; compare</h2>
@@ -839,7 +840,7 @@ nav.steps button { flex:1 0 64px; min-height:48px; }
 <p class="note">Use headphones to avoid backing leaking into the mic. Recording from playback uses lead-in; use a selected phrase for an exact replacement. Full instructions: START-HERE.txt.</p></div>
 <div id="helpAbout" hidden>    <div class="rack">
       <h2>Same engine as the desktop app</h2>
-      <p>Playbook Vocal Studio app version 0.27.0. It runs audio engine version 0.12.1 of the Windows app and the FL Studio plugin: Voice focus cleaning, performance edits, tuning, the vocal chain and the Smart Guide. Everything stays on your phone; nothing is uploaded.</p>
+      <p>Playbook Vocal Studio app version 0.29.0. It runs audio engine version 0.12.1 of the Windows app and the FL Studio plugin: Voice focus cleaning, performance edits, tuning, the vocal chain and the Smart Guide. Everything stays on your phone; nothing is uploaded.</p>
       <p class="note" id="engineInfo"></p>
     </div></div>
 </div></div>
@@ -1003,12 +1004,16 @@ nav.steps button { flex:1 0 64px; min-height:48px; }
   </div>
 </div>
 
-<link rel="stylesheet" href="song-studio.css?v=0.27.0">
-<link rel="stylesheet" href="quality-studio.css?v=0.27.0">
-<link rel="stylesheet" href="reference-guide.css?v=0.27.0">
-<script src="quality-core.js?v=0.27.0"></script>
-<script src="reference-core.js?v=0.27.0"></script>
-<script src="song-core.js?v=0.27.0"></script>
+<link rel="stylesheet" href="song-studio.css?v=0.29.0">
+<link rel="stylesheet" href="quality-studio.css?v=0.29.0">
+<link rel="stylesheet" href="reference-guide.css?v=0.29.0">
+<link rel="stylesheet" href="tuner-routing.css?v=0.29.0">
+<script src="note-editor-safety.js?v=0.29.0"></script>
+<script src="finish-policy.js?v=0.29.0"></script>
+<script src="quality-core.js?v=0.29.0"></script>
+<script src="reference-core.js?v=0.29.0"></script>
+<script src="song-core.js?v=0.29.0"></script>
+<script src="tuner-routing.js?v=0.29.0"></script>
 <script>
 // Generated by web/generate-detail-ui.py from VocalDetailSettings.h.
 const DETAIL_PARAMS=[{"id":"chRepairOn","name":"Click / plosive repair","unit":"","low":0.0,"high":1.0,"step":1.0,"initial":0.0,"group":0,"toggle":true,"advanced":false},{"id":"chRepairClicks","name":"Click sensitivity","unit":"%","low":0.0,"high":100.0,"step":1.0,"initial":35.0,"group":0,"toggle":false,"advanced":false},{"id":"chRepairPlosives","name":"Plosive reduction","unit":"%","low":0.0,"high":100.0,"step":1.0,"initial":40.0,"group":0,"toggle":false,"advanced":false},{"id":"chRoomReduceOn","name":"Gentle de-reverb","unit":"","low":0.0,"high":1.0,"step":1.0,"initial":0.0,"group":1,"toggle":true,"advanced":false},{"id":"chRoomReduce","name":"Room-tail reduction","unit":"%","low":0.0,"high":100.0,"step":1.0,"initial":30.0,"group":1,"toggle":false,"advanced":false},{"id":"chRoomDecay","name":"Room decay estimate","unit":"ms","low":100.0,"high":700.0,"step":10.0,"initial":300.0,"group":1,"toggle":false,"advanced":true},{"id":"chPrecisionOn","name":"Precision dynamic EQ","unit":"","low":0.0,"high":1.0,"step":1.0,"initial":0.0,"group":2,"toggle":true,"advanced":false},{"id":"chPrecisionMud","name":"Mud maximum cut","unit":"dB","low":0.0,"high":6.0,"step":0.1,"initial":3.0,"group":2,"toggle":false,"advanced":false},{"id":"chPrecisionNasal","name":"Nasal maximum cut","unit":"dB","low":0.0,"high":6.0,"step":0.1,"initial":3.0,"group":2,"toggle":false,"advanced":false},{"id":"chPrecisionHarsh","name":"Harsh maximum cut","unit":"dB","low":0.0,"high":6.0,"step":0.1,"initial":3.0,"group":2,"toggle":false,"advanced":false},{"id":"chPrecisionMudHz","name":"Mud frequency","unit":"Hz","low":120.0,"high":600.0,"step":1.0,"initial":250.0,"group":2,"toggle":false,"advanced":true},{"id":"chPrecisionNasalHz","name":"Nasal frequency","unit":"Hz","low":500.0,"high":1800.0,"step":1.0,"initial":900.0,"group":2,"toggle":false,"advanced":true},{"id":"chPrecisionHarshHz","name":"Harsh frequency","unit":"Hz","low":1800.0,"high":6500.0,"step":10.0,"initial":3200.0,"group":2,"toggle":false,"advanced":true},{"id":"chPrecisionQ","name":"Band width (Q)","unit":"","low":0.5,"high":4.0,"step":0.05,"initial":1.3,"group":2,"toggle":false,"advanced":true},{"id":"chPrecisionTrigger","name":"Rise above usual balance","unit":"dB","low":0.0,"high":8.0,"step":0.1,"initial":2.0,"group":2,"toggle":false,"advanced":true},{"id":"chPrecisionAttack","name":"EQ attack","unit":"ms","low":2.0,"high":40.0,"step":1.0,"initial":8.0,"group":2,"toggle":false,"advanced":true},{"id":"chPrecisionRelease","name":"EQ release","unit":"ms","low":40.0,"high":400.0,"step":5.0,"initial":120.0,"group":2,"toggle":false,"advanced":true},{"id":"chReverbDuckOn","name":"Reverb ducking","unit":"","low":0.0,"high":1.0,"step":1.0,"initial":0.0,"group":3,"toggle":true,"advanced":false},{"id":"chReverbDuck","name":"Reverb dip","unit":"dB","low":0.0,"high":18.0,"step":0.5,"initial":9.0,"group":3,"toggle":false,"advanced":false},{"id":"chReverbRelease","name":"Reverb recovery","unit":"ms","low":100.0,"high":800.0,"step":10.0,"initial":300.0,"group":3,"toggle":false,"advanced":true},{"id":"chReverbPre","name":"Reverb pre-delay","unit":"ms","low":0.0,"high":100.0,"step":1.0,"initial":22.0,"group":3,"toggle":false,"advanced":true},{"id":"chDoubleOn","name":"Vocal doubler","unit":"","low":0.0,"high":1.0,"step":1.0,"initial":0.0,"group":4,"toggle":true,"advanced":false},{"id":"chDoubleMix","name":"Double blend","unit":"%","low":0.0,"high":25.0,"step":1.0,"initial":12.0,"group":4,"toggle":false,"advanced":false},{"id":"chDoubleWidth","name":"Double width","unit":"%","low":0.0,"high":100.0,"step":1.0,"initial":80.0,"group":4,"toggle":false,"advanced":false},{"id":"chDoubleCents","name":"Double variation","unit":"cents","low":0.0,"high":12.0,"step":0.5,"initial":6.0,"group":4,"toggle":false,"advanced":true},{"id":"chDoubleDelay","name":"Double separation","unit":"ms","low":12.0,"high":35.0,"step":1.0,"initial":22.0,"group":4,"toggle":false,"advanced":true}];
@@ -1157,8 +1162,8 @@ const songSeconds = () => S.original ? S.original.length / S.rate : 0;
 
 // ---------------------------------------------------------------- engine (worker)
 // 0.17.2: the app and the audio engine have separate version numbers
-var APP_VERSION="0.27.0",ENGINE_VERSION="0.12.1";
-const worker = new Worker("worker.js?v=0.27.0");
+var APP_VERSION="0.29.0",ENGINE_VERSION="0.12.1";
+const worker = new Worker("worker.js?v=0.29.0");
 let reqId = 0, engineFailure = null; const pending = {};
 worker.onmessage = ({ data: m }) => {
   if (m.type === "ready") $("engineInfo").textContent = "App version: "+APP_VERSION+" · Audio engine version: "+ENGINE_VERSION+" (WebAssembly, the same audio code as the Windows app, with Voice focus).";
@@ -1172,7 +1177,8 @@ function failEngine(message) {
 }
 worker.onerror = e => failEngine(e.message || "The audio engine stopped. Reload this page and reopen your vocal.");
 worker.onmessageerror = () => failEngine("The audio engine could not return your audio. Reload this page.");
-function engine(msg, transfer) { return new Promise((resolve, reject) => { if (engineFailure) return reject(engineFailure); msg.id = ++reqId; pending[msg.id] = { resolve, reject }; try { worker.postMessage(msg, transfer || []); } catch (err) { delete pending[msg.id]; reject(err); } }); }
+function engineRaw(msg, transfer) { return new Promise((resolve, reject) => { if (engineFailure) return reject(engineFailure); msg.id = ++reqId; pending[msg.id] = { resolve, reject }; try { worker.postMessage(msg, transfer || []); } catch (err) { delete pending[msg.id]; reject(err); } }); }
+function engine(msg,transfer){return NoteTuner.dispatch(msg,transfer,engineRaw);}
 let queue = Promise.resolve();
 const run = (fn, propagate = false) => {
   const job = queue.then(fn); queue = job.catch(err => { setStatus("Problem: " + err.message, "warn"); setBusy(false); });
@@ -1244,10 +1250,12 @@ function absorb(r) {
   }
 }
 function readyStatus() {
-  if(window.SongPolish)SongPolish.capture();
+  if(window.SongPolish){SongPolish.capture();SongPolish.render();}
   if(typeof renderOpen==="function")renderOpen();
   if(typeof syncReference==="function")syncReference();
   if (!S.st || !S.st.rendered) return;
+  if(NoteTuner.failed()){setStatus("Note editor could not apply this change. Choose Original tuner to continue.","warn");return;}
+  if(NoteTuner.enabled()){setStatus("Ready: "+NoteTuner.notes().length+" notes · Playbook Note Editor", "ready");return;}
   const n = S.guide && S.guide.enabled ? S.guide.tips.length : 0;
   setStatus("Ready: " + S.notes.length + " notes" + (n ? " · " + n + " Smart Guide tip" + (n > 1 ? "s" : "") : ""), "ready");
 }
@@ -1282,6 +1290,8 @@ function guidePrefSteps() { const g = S.guidePrefs; return [["guidePrefs", g.ena
 S.guidePrefs = { enabled: true, concern: 0, goal: 0, bpm: 75, sync: false };
 S.mix = { fit: true, over: 1, room: 0.5 }; S.fitBeat = null; S.fitInfo = null;
 function openVocal(samples, rate, name, isSample, importKind=0) {
+  const inputChannels=asChannels(samples);if(inputChannels.length===2&&inputChannels[0].length>SongCore.ENGINE.stereoFrames)throw Error("This stereo vocal exceeds the supported POLISH limit of "+(SongCore.ENGINE.stereoFrames/rate).toFixed(1)+" seconds at this sample rate. Use a shorter stereo section or explicitly choose a mono version in the track settings. The original recordings are kept.");
+  NoteTuner.begin(null,true,name);
   prepareSongChange(); S.loading = "Processing " + name + "…"; S.loadError = ""; renderOpen();
   return run(async () => {
     stopPlayback(); setBusy(true);
@@ -1291,6 +1301,7 @@ function openVocal(samples, rate, name, isSample, importKind=0) {
       Object.assign(S, { name, isSample, selected: -1, takes: [], takeChannels: [], audio: {}, prevCur: null, prevSug: null, fitBeat:null });
       S.edit.sel = null; S.edit.chosen = -1; S.edit.src = null; S.edit.take = 1; S.edit.view = { start: 0, secs: 0 }; S.ovTakes = {};
       absorb(r);
+      if (!importKind) { r = await engine({type:"run", steps:FinishPolicy.steps(FinishPolicy.cleaning(S.st.report)), update:true}); absorb(r); }
       r = await engine({ type: "run", steps: guidePrefSteps(), update: false }); absorb(r);
       fitPitch(); view.start = S.notes.length ? Math.max(0, S.notes[0].start - 0.5) : 0; view.secs = Math.min(12, Math.max(3, songSeconds()));
       if(typeof phraseReset==="function"&&!S.phraseApplying)phraseReset();
@@ -1365,7 +1376,7 @@ $("beatLevel").oninput = () => {
   if(rec&&rec.beatGain)rec.beatGain.gain.setTargetAtTime(S.beatLevel,audioCtx().currentTime,.02);
   for(const g of beatGains)g.gain.setTargetAtTime(S.beatLevel*(typeof dawBeatGain==="function"?dawBeatGain():1),audioCtx().currentTime,.02);
 };
-function sessionLocked() { return !!(S.busy||S.dirty||S.loading||S.beatLoading||S.referenceLoading||S.referenceWorking||S.recStarting||S.phraseWorking||S.songWorking||rec); }
+function sessionLocked() { return !!(S.busy||S.dirty||S.loading||S.beatLoading||S.referenceLoading||S.referenceWorking||S.recStarting||S.phraseWorking||S.songWorking||rec||NoteTuner.failed()||NoteTuner.pending()); }
 function renderOpen() {
   const locked=sessionLocked(),has=!!S.main,phraseAttempts=S.phrases?.phrases.reduce((n,p)=>n+p.takes.length,0)||0;
   $("songName").textContent = has ? S.name : phraseAttempts?phraseAttempts+" takes on RECORD & COMP":"No vocal loaded";
@@ -1478,8 +1489,8 @@ function clipFor(mode) {
 function songLength() {
   if(loop?.phrase)return loop.end;
   if(playbackTarget==="beat")return S.beat?.duration||0;
-  if(playbackTarget==="vocal")return songSeconds();
-  return Math.max(songSeconds(), S.beat && $("beatOn").checked ? S.beat.duration : 0);
+  if(playbackTarget==="vocal")return Math.max(songSeconds(),(S.mode==="after"?S.tuned?.length:S.mode==="final"?S.final?.[0]?.length:0)/S.rate||0);
+  return Math.max(songSeconds(),(NoteTuner.enabled()?S.final?.[0]?.length:0)/S.rate||0,S.beat && $("beatOn").checked ? S.beat.duration : 0);
 }
 function bufferOf(chs,rate=S.rate) { const ctx = audioCtx(), b = ctx.createBuffer(chs.length, chs[0].length, rate); chs.forEach((c, i) => b.copyToChannel(c, i)); return b; }
 async function startPlayback(at, target="mix") {
@@ -1518,6 +1529,7 @@ function stopSources() {
   if(outputMeter)outputMeter.disconnect();outputMeter=null;outputSamples=null;
 }
 function stopPlayback() {
+  NoteTuner.stopAudition();
   playbackRequest++;if(playing)position=currentPos();stopSources();playing=false;playPending=false;cancelAnimationFrame(playbackFrame);playbackFrame=0;updatePlay();
   $("outputSignal").textContent="Output idle";$("playbackStatus").textContent="Paused · tap Play to listen";
 }
@@ -1636,17 +1648,15 @@ const paramKnob = (host, label, id, min, max, step, scale, format, extra) => new
 
 // ---------------------------------------------------------------- CLEAN controls
 const cleanKnobs = {
-  reduction: paramKnob($("cleanKnobs"), "NOISE REDUCTION", "cleanAmount", 0, 30, 0.5, 1, v => v <= 0 ? "Off" : v.toFixed(1) + " dB", { auto: () => S.st ? S.st.suggested.cleanAmount : 30 }),
+  reduction: paramKnob($("cleanKnobs"), "NOISE REDUCTION", "cleanAmount", 0, 30, 0.5, 1, v => v <= 0 ? "Off" : v.toFixed(1) + " dB", { auto: () => 6 }),
   sensitivity: paramKnob($("cleanKnobs"), "SENSITIVITY", "cleanSens", 50, 200, 1, 1, v => v + " %", { auto: () => 100 }),
-  rumble: paramKnob($("cleanKnobs"), "RUMBLE FILTER", "rumble", 0, 150, 1, 1, v => v < 1 ? "Off" : v + " Hz", { auto: () => S.st ? S.st.suggested.rumble : 60 })
+  rumble: paramKnob($("cleanKnobs"), "RUMBLE FILTER", "rumble", 0, 150, 1, 1, v => v < 1 ? "Off" : v + " Hz", { auto: () => 0 })
 };
 $("humSel").onchange = () => setP("humFilter", +$("humSel").value);
 $("cleanOn").onchange = () => { setP("cleanOn", $("cleanOn").checked ? 1 : 0); syncControls(); };
-$("cleanAuto").onclick = () => change([["autoClean"]], 50);
-// switching cleaner: if NOISE REDUCTION was on automatic, move it to the new cleaner's automatic amount
-for (const b of document.querySelectorAll("#modeSeg button")) b.onclick = () => {
-  const wasAuto = S.st && Math.abs(S.P.cleanAmount - S.st.suggested.cleanAmount) < 0.01 && Math.abs(S.P.rumble - S.st.suggested.rumble) < 0.01;
-  setP("cleanMode", +b.dataset.cmode, 50); if (wasAuto) change([["autoClean"]], 50); syncControls(); };
+$("cleanAuto").onclick = () => undoable(FinishPolicy.steps(FinishPolicy.gentle()), 50);
+// Switching cleaner preserves the chosen reduction amount.
+for (const b of document.querySelectorAll("#modeSeg button")) b.onclick = () => { setP("cleanMode", +b.dataset.cmode, 50); syncControls(); };
 
 // ---------------------------------------------------------------- TUNE controls
 KEYS.forEach((k, i) => $("keySel").add(new Option(k, i)));
@@ -1677,7 +1687,7 @@ function syncControls() {
   cleanKnobs.reduction.setQuiet(P.cleanAmount); cleanKnobs.sensitivity.setQuiet(P.cleanSens); cleanKnobs.rumble.setQuiet(P.rumble);
   cleanKnobs.reduction.enable(on); cleanKnobs.sensitivity.enable(on && !vf); cleanKnobs.rumble.enable(on);
   for (const b of document.querySelectorAll("#modeSeg button")) b.setAttribute("aria-pressed", +b.dataset.cmode === (vf ? 1 : 0));
-  $("modeHelp").textContent = vf ? "VOICE FOCUS uses a small neural model to keep the voice and remove steady background noise. Your sung notes are protected. SENSITIVITY isn't used here." + (vfOk ? "" : " (Not available in compatibility mode: the gentle cleaner is used.)")
+  $("modeHelp").textContent = vf ? "VOICE FOCUS can reduce background noise, but may also change sung tone and consonants. Compare BEFORE, CLEANED and REMOVED NOISE. SENSITIVITY isn't used here." + (vfOk ? "" : " (Not available in compatibility mode: the gentle cleaner is used.)")
     : "GENTLE SPECTRAL turns down the steady background between your notes. It can keep delicate singing more natural.";
   $("humSel").value = String(P.humFilter); $("cleanOn").checked = on; $("humSel").disabled = !on;
   const hard = P.style === 2;
@@ -1702,7 +1712,7 @@ function syncControls() {
     const v = r.snrDb >= 50 ? "Very clean" : r.snrDb >= 38 ? "Clean" : r.snrDb >= 26 ? "Some background noise" : r.snrDb >= 16 ? "Noisy" : "Very noisy";
     $("noiseVerdict").textContent = v + " (your voice is " + Math.round(r.snrDb) + " dB above it)";
     $("noiseVerdict").style.color = r.snrDb >= 38 ? "var(--green)" : r.snrDb >= 26 ? "var(--amber)" : "var(--red)";
-    $("humInfo").textContent = r.humHz ? "Electrical hum found (" + r.humHz + " Hz). The noise reduction removes it." : "No electrical hum found.";
+    $("humInfo").textContent = r.humHz ? "Possible electrical hum (" + r.humHz + " Hz). Listen before filtering; this estimate can mistake a musical tone for hum." : "No electrical hum found.";
     $("musicWarn").hidden = !r.music;
   }
   for (const b of document.querySelectorAll("#abSeg button, #cleanListen button")) b.setAttribute("aria-pressed", b.dataset.mode === S.mode);
@@ -2066,15 +2076,13 @@ const PRESET_HELP = ["Warm body, clear words, a dub-style echo and a short room.
   "Bright and upfront: more air and presence, firmer compression, a short slap echo and a bigger space.",
   "Close and soft: extra warmth and body, gentle compression, a small room and no echo.",
   "Clean, dry vocal for mixing in FL Studio: EQ, de-ess and compression only, no echo or reverb.",
-  "Your own voice with its tone untouched: no EQ, compression or effects. This one tap also sets Voice focus cleaning to 15 dB, turns tuning off and turns the detected breaths down 8 dB (check them on EDIT)."];
+  "A conservative starting point: no tonal EQ, compression or added space; tuning off. Cleaning is bypassed for a low or unavailable noise estimate, otherwise Gentle spectral starts at 6 dB. Existing breath edits stay as you chose them. The limiter uses −1.6 dB headroom. Compare before keeping these settings."];
 const PRESET_NAMES = ["Roots Reggae", "Modern Pop", "Warm & Intimate", "Dry Stem", "Clean & Natural"];
-// 0.9.9 one tap: the setup chosen by ear on Vasco's own vocals (Release v4)
+// 0.29.0 starting point for audition; not an approved universal vocal preset.
 function cleanNaturalSteps() {
-  const steps = [["pushUndo"], ["preset", 4]];
-  for (const [id, v] of [["chainOn", 1], ["cleanOn", 1], ["cleanMode", 1], ["cleanAmount", 15], ["amount", 0], ["drift", 0], ["keepInTune", 1], ["followSinging", 1],
-    ["chToneBypass", 1], ["chLimitBypass", 0], ["chLimitCeiling", -1], ["chLimitAuto", 1]]) { steps.push(["set", id, v]); S.P[id] = v; }
-  const have = (S.st && S.st.edits && S.st.edits.breaths) || [];
-  for (const b of (S.st && S.st.breathSuggestions) || []) if (!have.some(x => x[0] < b[1] && x[1] > b[0])) steps.push(["edit", 0, -1, b[0], b[1], 8]);
+  const steps = [["pushUndo"], ["preset", 4], ...FinishPolicy.steps(FinishPolicy.cleaning(S.st?.report,S.P.importKind>.5))];
+  for (const [id, v] of [["chainOn", 1], ["amount", 0], ["drift", 0], ["keepInTune", 1], ["followSinging", 1],
+    ["chToneBypass", 1], ["chLimitBypass", 0], ["chLimitCeiling", FinishPolicy.ceiling], ["chLimitAuto", 1]]) { steps.push(["set", id, v]); S.P[id] = v; }
   return steps;
 }
 const BANDS = [{ name: "BODY", color: "#ff9f6b" }, { name: "MUD", color: "#b48cff" }, { name: "PRESENCE", color: "#5eead4" }, { name: "AIR", color: "#6aa9ff" }];
@@ -2343,6 +2351,7 @@ function syncGuide() {
   $("gMsg").classList.toggle("amber", guideAmber);
   const m = g && g.measured;
   $("gMeasured").textContent = m && S.st && S.st.rendered && g.valid ? "What the guide measured:  background " + (m.gapValid ? Math.round(m.gapContrast) + " dB below your voice" : "(not enough pauses to measure)") + "  |  loud vs quiet words " + Math.round(m.wordSpread) + " dB" + (m.pitchNotes >= 4 ? "  |  notes typically " + Math.round(m.pitchCents) + " cents from target" : "") + "  |  final level " + m.lufs.toFixed(1) + " LUFS" : "";
+  if(NoteTuner.enabled()){$("gPreview").disabled=true;$("gApply").disabled=true;$("gSuggested").disabled=true;$("gMeasured").textContent="Playbook Note Editor is active. Use Find what needs improving for matched cleaning, tuning and final comparisons.";}
 }
 
 // ---------------------------------------------------------------- pages
@@ -2505,7 +2514,7 @@ $("resetSettings").onclick = () => { $("resetConfirm").hidden = false; $("resetY
 $("resetNo").onclick = () => { $("resetConfirm").hidden = true; };
 $("resetYes").onclick = () => {
   $("resetConfirm").hidden = true; endLoop(); chainEdited = false;
-  run(async () => { await exec([["resetSettings"]], true); S.mix.fit = S.P.chMixFit > .5; S.mix.over = +S.P.chMixOver; S.mix.room = +S.P.chMixRoom; syncMix(); scheduleFit(50); persist(); toast("Reset done", "Every setting is back to factory defaults (automatic cleaning, the detected key). Your recordings, takes and note edits are kept. Undo brings your settings back.", 9000); });
+  run(async () => { await exec([["resetSettings"], ...FinishPolicy.steps(FinishPolicy.cleaning(S.st?.report,S.P.importKind>.5))], true); S.mix.fit = S.P.chMixFit > .5; S.mix.over = +S.P.chMixOver; S.mix.room = +S.P.chMixRoom; syncMix(); scheduleFit(50); persist(); toast("Reset done", "Every setting is back to starting settings (conservative cleaning, the detected key). Your recordings, takes and note edits are kept. Undo brings your settings back.", 9000); });
 };
 function updateSettingsText() {
   const P = S.P; if (P.cleanMode == null) return;
@@ -2643,12 +2652,13 @@ async function saveProject(opts) {
   const base = safeName(S.song?.title||(phraseOnly?phraseWorkspace().title:S.name)), srcName = base + " - phone source.wav", src = wavFloat(phraseWorkspaceAudio||S.audio[5]||S.main, phraseOnly?(S.song?.rate||phraseWorkspace().rate):S.rate), files = [{ name: srcName, data: src }];
   const takes = S.takes.slice(1).map((t, i) => { const name = base + " - take " + (i + 1) + ".wav", data = wavFloat(S.takeChannels[i+1]||t, S.rate); files.push({ name, data }); return { file: name, bytes: data.length, trim: 0, pad: 0 }; });
   const g = S.guide || {}, P = { ...S.P, chMixFit: S.mix.fit ? 1 : 0, chMixOver: S.mix.over, chMixRoom: S.mix.room };
-  const root = { format: "Playbook Vocal Studio", version: 9, savedBy: "Playbook Vocal Studio 0.27.0 (phone DAW)",
+  const root = { format: "Playbook Vocal Studio", version: 9, savedBy: "Playbook Vocal Studio 0.29.0 (phone DAW)",
     smartGuide: { enabled: !!S.guidePrefs.enabled, concern: S.guidePrefs.concern || 0, goal: S.guidePrefs.goal, bpm: S.guidePrefs.bpm, tempoSync: !!S.guidePrefs.sync, locked: g.locked || [], dismissed: g.dismissed || {} },
     performance: S.st?.edits||{breaths:[],timing:[],comp:[]}, notePerformance: S.st?.edits||{breaths:[],timing:[],comp:[]}, alternateTakes: takes,
     source: srcName, sourceBytes: src.length, trim: 0, pad: 0, take: false };
   for (const id of [...PROJECT_TUNE, ...PROJECT_CLEAN]) if (P[id] != null) root[id] = P[id];
   for (const id of Object.keys(P)) if (id.startsWith("ch")) root[id] = P[id];
+  root.noteTuner=NoteTuner.state();
   root.notes = phraseOnly?[]:S.st.notes.map(noteToProject);
   if(typeof phraseProjectPack==="function")await phraseProjectPack(root,files);
   root.exportStages = S.exportMask;
@@ -2657,7 +2667,7 @@ async function saveProject(opts) {
   if(!compat&&S.main&&S.song){const lt=S.song.tracks.find(t=>t.id===S.song.polishTrack),pc=lt?.polish?.session?.pcm,cur=S.audio[5]||[S.main];if(lt&&Array.isArray(pc)&&SongCore.polishValid(S.song,lt)&&SongCore.samePcm(pc,cur)){const f=files.find(f=>f.name===srcName);if(f)files.splice(files.indexOf(f),1);root.source=null;root.sourceLane=lt.id;delete root.sourceBytes;}}
   root.backupKind=compat?"compatibility":"modern";
   files.unshift({ name: base + ".pbv", data: new TextEncoder().encode(JSON.stringify(root, null, 1)) });
-  files.push({ name: "READ-ME.txt", data: new TextEncoder().encode((compat?"Playbook Vocal Studio song project, COMPATIBILITY backup (saved on the phone, 0.27.0). It also contains copies for older versions (0.18.3 parts).":"Playbook Vocal Studio song project (saved on the phone, 0.27.0). Modern backup: open it in Playbook Vocal Studio 0.27.0 or newer. Older versions need a Compatibility backup (Export song > Compatibility backup).")+"\r\n\r\nOn the laptop: extract this ZIP into its own folder, keep the files together, then use Open project in the Windows app or FL Studio plugin (0.9.8 or newer) and choose " + base + ".pbv.\r\nOpen multitrack projects in Playbook Vocal Studio 0.27.0 or newer to retain separate tracks, sections, attempts, per-track POLISH and phrase-volume moves (0.24 and earlier may not restore 0.25 POLISH preferences). Older apps open only the last POLISH vocal and will lose the multitrack data if you save over this project. Keep this original ZIP.\r\nOn the phone: SONG PROJECT > Open a song project, then pick this ZIP.\r\n") });
+  files.push({ name: "READ-ME.txt", data: new TextEncoder().encode((compat?"Playbook Vocal Studio song project, COMPATIBILITY backup (saved on the phone, 0.29.0). It also contains copies for older versions (0.18.3 parts).":"Playbook Vocal Studio song project (saved on the phone, 0.29.0). Modern backup: open it in Playbook Vocal Studio 0.29.0 or newer. Older versions need a Compatibility backup (Export song > Compatibility backup).")+"\r\n\r\nOn the laptop: extract this ZIP into its own folder, keep the files together, then use Open project in the Windows app or FL Studio plugin (0.9.8 or newer) and choose " + base + ".pbv.\r\nOpen multitrack projects in Playbook Vocal Studio 0.29.0 or newer to retain separate tracks, sections, attempts, per-track POLISH and phrase-volume moves (0.24 and earlier may not restore 0.25 POLISH preferences). Older apps open only the last POLISH vocal and will lose the multitrack data if you save over this project. Keep this original ZIP.\r\nOn the phone: SONG PROJECT > Open a song project, then pick this ZIP.\r\n") });
   let data;try{data=zip(files);}catch(err){return done(false,"failed","Couldn't save: the project could not be prepared ("+(err&&err.message||"unknown problem")+").");}
   try { const result = await saveDownload(base + (compat?" - song project (compatibility).zip":" - song project.zip"), data); const r=done(true,result==="Saved"?"saved":"requested",result + ": " + base + " - song project.zip. " + whereSaved()); toast(result, base + " - song project.zip. " + whereSaved()); return r; }
   catch (err) { return err && err.code === "declined" ? done(false,"cancelled","Not saved.") : done(false,"failed","Couldn't save: " + (err && err.message || "unknown problem") + "."); }
@@ -2709,7 +2719,7 @@ async function openProjectFiles(list) {
   const name = pbv.name.replace(/\.pbv$/i, "");
   if(!recording)recording=typeof phraseProjectUnpack==="function"?await phraseProjectUnpack(root,files):{};
   return restoreSession({ ...recording, v: root.version>=8?5:2, name, rate: main.rate, pcm: trimPad(main, root.trim, root.pad), takes, takeRates, P, notes, edits, fromProject: true,
-    match: S.match, chainEdited: true, mix: root.chMixFit != null ? { fit: root.chMixFit > .5, over: +root.chMixOver, room: +root.chMixRoom } : null, exportMask: root.exportStages != null ? +root.exportStages : null,
+    noteTuner:root.noteTuner, match: S.match, chainEdited: true, mix: root.chMixFit != null ? { fit: root.chMixFit > .5, over: +root.chMixOver, room: +root.chMixRoom } : null, exportMask: root.exportStages != null ? +root.exportStages : null,
     guide: { enabled: g.enabled !== false, concern: g.concern || 0, goal: g.goal || 0, bpm: g.bpm || 75, sync: !!g.tempoSync, locked: g.locked || [], dismissed: g.dismissed || {} } });
 }
 $("projBtn").onclick = () => $("fileProject").click();
@@ -2730,7 +2740,7 @@ function sessionSnapshot() {
   if(window.SongPolish)SongPolish.capture();
   if(!S.main||!S.st)return typeof phraseSnapshot==="function"?phraseSnapshot(null):null;
   const g=S.guide||{locked:[],dismissed:{}};
-  const snapshot={v:4,name:S.name,rate:S.rate,pcm:S.audio[5]||[S.main],takes:S.takeChannels.slice(1),P:{...S.P},notes:S.st.notes.map(a=>a.slice(0,13)),edits:JSON.parse(JSON.stringify(S.st.edits)),match:S.match,chainEdited,mix:{...S.mix},exportMask:S.exportMask,
+  const snapshot={v:4,name:S.name,rate:S.rate,pcm:S.audio[5]||[S.main],takes:S.takeChannels.slice(1),P:{...S.P},notes:S.st.notes.map(a=>a.slice(0,13)),pitchReview:NoteTuner.enabled()?NoteTuner.pitchReview():FinishPolicy.pitchReview(S.st.notes),noteTuner:NoteTuner.state(),edits:JSON.parse(JSON.stringify(S.st.edits)),match:S.match,chainEdited,mix:{...S.mix},exportMask:S.exportMask,
     guide:{...S.guidePrefs,locked:[...(g.locked||[])],dismissed:{...(g.dismissed||{})}}};
   return typeof phraseSnapshot==="function"?phraseSnapshot(snapshot):snapshot;
 }
@@ -2826,6 +2836,7 @@ async function clearSession(all=false) {
   if(sessionLocked())return;
   prepareSongChange();clearTimeout(fitTimer);clearTimeout(sheetTimer);
   const saved={vocal:sessionSnapshot(),beat:S.beat,beatName:S.beatName,reference:S.reference,referenceName:$("referenceName").textContent,beatOn:$("beatOn").checked,beatLevel:S.beatLevel,all};
+  NoteTuner.begin(null,false);
   S.loading=all?"Clearing session…":"Clearing vocal and takes…";setBusy(true);
   try {
     await run(async()=>{
@@ -2883,6 +2894,8 @@ async function restore() {
  }catch(e){return null;}finally{db?.close();}
 }
 function restoreSession(last) {
+  if(last.noteTuner)NoteTuner.validate(last.noteTuner);
+  NoteTuner.begin(last.noteTuner,false,last.name);
   if(window.SongPolish && !S.songApplying)SongPolish.detach();
   if(last.song)SongCore.validate(last.song);
   // 0.25 (R2): a song project whose editor vocal is a long stereo whole-song mix (not a lane) opens without it rather than converting it.
@@ -3090,7 +3103,7 @@ function phraseAdjust(id,field,value){if(phraseBusy())return;const p=selectedPhr
 function phraseSafeGain(channels){let peak=0;for(const c of channels)for(const x of c)peak=Math.max(peak,Math.abs(x));return peak>.891251?.891251/peak:1;}
 async function phraseListen(id){if(phraseBusy())return;try{const w=phraseWorkspace(),p=selectedPhrase();let channels,start=0,end,rate=w.rate,gain=1;if(id){const t=p?.takes.find(t=>t.id===id);if(!t)return;const excerpt=PhraseCore.audition(t,p);channels=excerpt;start=p.start;end=channels[0].length/rate;gain=PhraseCore.matchGains(p)[id]||phraseSafeGain(channels);}else{channels=PhraseCore.compose(w);end=channels[0].length/rate;gain=phraseSafeGain(channels);start=0;}if(!end)throw new Error('No audio in this phrase.');endLoop();loop={phrase:true,chs:channels,rate,gain,start:0,end,noBeat:!$('phraseCompareBeat').checked,beatOffset:start,oneShot:true};const ok=await startPlayback(0);phraseMessage(ok?(id?'Playing attempt at a matched level':'Playing assembled vocal')+($('phraseCompareBeat').checked&&S.beat?' with backing.':'.'):'Audio could not start. '+$('playbackStatus').textContent);}catch(e){phraseMessage(e.message);}}
 function phraseFailWorker(error){if(phraseWorker)phraseWorker.terminate();phraseWorker=null;for(const j of phraseJobs.values()){clearTimeout(j.timer);j.reject(new Error(error));}phraseJobs.clear();}
-function phraseWorkerRequest(t,p){return new Promise((resolve,reject)=>{if(!phraseWorker){phraseWorker=new Worker('phrase-worker.js?v=0.27.0');phraseWorker.onmessage=({data:m})=>{const j=phraseJobs.get(m.id);if(!j)return;clearTimeout(j.timer);phraseJobs.delete(m.id);m.error?j.reject(new Error(m.error)):j.resolve(m.profile);};phraseWorker.onerror=e=>phraseFailWorker(e.message||'Take analysis stopped. Retry analysis.');phraseWorker.onmessageerror=()=>phraseFailWorker('Take analysis returned unreadable data.');}const id=++phraseSerial,channels=t.channels.map(c=>c.slice());phraseJobs.set(id,{resolve,reject,timer:setTimeout(()=>phraseFailWorker('Take analysis timed out. Your recording is kept; retry analysis.'),120000)});try{phraseWorker.postMessage({id,take:{...t,channels,profile:null},phrase:{start:p.start,end:p.end}},channels.map(c=>c.buffer));}catch(e){const j=phraseJobs.get(id);clearTimeout(j.timer);phraseJobs.delete(id);reject(e);}});}
+function phraseWorkerRequest(t,p){return new Promise((resolve,reject)=>{if(!phraseWorker){phraseWorker=new Worker('phrase-worker.js?v=0.29.0');phraseWorker.onmessage=({data:m})=>{const j=phraseJobs.get(m.id);if(!j)return;clearTimeout(j.timer);phraseJobs.delete(m.id);m.error?j.reject(new Error(m.error)):j.resolve(m.profile);};phraseWorker.onerror=e=>phraseFailWorker(e.message||'Take analysis stopped. Retry analysis.');phraseWorker.onmessageerror=()=>phraseFailWorker('Take analysis returned unreadable data.');}const id=++phraseSerial,channels=t.channels.map(c=>c.slice());phraseJobs.set(id,{resolve,reject,timer:setTimeout(()=>phraseFailWorker('Take analysis timed out. Your recording is kept; retry analysis.'),120000)});try{phraseWorker.postMessage({id,take:{...t,channels,profile:null},phrase:{start:p.start,end:p.end}},channels.map(c=>c.buffer));}catch(e){const j=phraseJobs.get(id);clearTimeout(j.timer);phraseJobs.delete(id);reject(e);}});}
 function phraseAnalyze(t,p){const token={};t.analysisToken=token;t.profile=null;t.analysisError=null;phraseJobQueue=phraseJobQueue.then(async()=>{if(t.analysisToken!==token||!S.phrases?.phrases.includes(p)||!p.takes.includes(t))return;try{const profile=await phraseWorkerRequest(t,p);if(t.analysisToken===token){t.profile=profile;t.profileKey=phraseProfileKey(t,p);}}catch(e){if(t.analysisToken===token)t.analysisError=e.message;}finally{if(t.analysisToken===token){delete t.analysisToken;syncPhraseUI();persist();}}});return phraseJobQueue;}
 // 0.18.3 (review 06): a check result belongs to one part span and take position; Undo / Redo / trim / split that change them run it again
 function phraseProfileKey(t,p){return [p.start,p.end,t.origin,t.offsetMs||0,t.channels[0]?.length||0].join(',');}
@@ -3118,16 +3131,16 @@ phraseBind();
 
 </script>
 
-<script src="daw.js?v=0.27.0"></script>
-<script src="recovery.js?v=0.27.0"></script>
-<script src="rec.js?v=0.27.0"></script>
-<script src="rc.js?v=0.27.0"></script>
-<script src="edit-core.js?v=0.27.0"></script>
-<script src="studio.js?v=0.27.0"></script>
+<script src="daw.js?v=0.29.0"></script>
+<script src="recovery.js?v=0.29.0"></script>
+<script src="rec.js?v=0.29.0"></script>
+<script src="rc.js?v=0.29.0"></script>
+<script src="edit-core.js?v=0.29.0"></script>
+<script src="studio.js?v=0.29.0"></script>
 
-<script src="ref-align.js?v=0.27.0"></script>
-<script src="song-studio.js?v=0.27.0"></script>
-<script src="song-polish.js?v=0.27.0"></script>
-<script src="quality-studio.js?v=0.27.0"></script>
-<script src="reference-preview.js?v=0.27.0"></script>
-<script src="reference-guide.js?v=0.27.0"></script>
+<script src="ref-align.js?v=0.29.0"></script>
+<script src="song-studio.js?v=0.29.0"></script>
+<script src="song-polish.js?v=0.29.0"></script>
+<script src="quality-studio.js?v=0.29.0"></script>
+<script src="reference-preview.js?v=0.29.0"></script>
+<script src="reference-guide.js?v=0.29.0"></script>

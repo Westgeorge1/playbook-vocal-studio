@@ -1,0 +1,68 @@
+PLAYBOOK VOCAL STUDIO 0.28.0 — TEST RESULTS
+26 October 2026 (Jamaica)
+
+Result: targeted update checks and the selected current-app regression coverage
+passed. These are engineering and workflow checks, not a sound-quality certificate.
+
+NEW UPDATE
+- 41/41 browser checks on desktop (1366 x 900) and phone layout (390 x 844).
+  Actual shipped WebAssembly, real controls, conservative new-vocal defaults,
+  cleaner switching, Clean & Natural, Undo restoring PCM, retained saved settings,
+  uncertainty flags from the controlled A5 probe, note review, manual confirmation,
+  reload, backup review metadata, saved export ceilings, invalidated stale exports,
+  24-bit WAV, measurement JSON, touch targets and zero JavaScript errors.
+- 6/6 policy checks, including clean/noisy/unknown input decisions, review-metadata
+  validation, Mute/Solo/dry/tuning-off summaries, and explicit versus default ceiling.
+- Patch applies to the supplied 0.27.0 and exactly reproduces all 8 changed/new
+  runtime files. All 7 locked engine files remain byte-identical.
+
+REAL-VOCAL PIPELINE
+- 13/13 checks on three six-second excerpts from two supplied recordings.
+  Actual file import, per-lane POLISH, all four stage previews, Finish & check,
+  downloaded 24-bit WAV, independent FFmpeg peak measurement and input integrity.
+- Going On, 4.64-10.64 s: cleaning bypassed (estimated SNR 42.1 dB); final -9.4 dBTP.
+- Going On, 24-30 s: cleaning bypassed (estimated SNR 45.3 dB); final -9.1 dBTP.
+- Mary, 6.58-12.58 s: Gentle spectral 6 dB (estimated SNR 30.6 dB); final -10.5 dBTP.
+  These choices follow a heuristic; they do not establish that the source is
+  pristine or that the resulting tone is preferable. No listening score is claimed.
+
+FINAL PEAK BOUNDARY
+The abrupt phase-offset 12 kHz / 48 kHz stress signal at the new default ceiling
+measured -1.601 dBTP in the app and -1.1 dBTP in FFmpeg ebur128. This reproduces
+the tested headroom workaround. It does not fix or certify the meter algorithm,
+or guarantee the same discrepancy on every input. Explicit saved ceilings remain.
+
+REGRESSION COVERAGE
+- 198 pure core/model/measurement checks across 0.20-0.27 passed.
+- 52/52 integration invariants passed on the final source.
+- 47/47 existing finishing browser checks passed.
+- 5/5 reference-guide persistence/cancellation edge checks passed;
+  its 12 pure reference/model checks are included in the 198 above.
+- All 8 current 0.25.1 regression suites passed: invariants, core, regressions,
+  UI, recovery, scrolled controls, durable edits and full capacity.
+- Capacity: 22/22 checks passed using 15 minutes of source audio, three four-minute
+  mono lanes and phrase fixes. Independent edits, playback, finite stems/mix,
+  autosave/reload, modern and compatibility backups and immediate refusal of an
+  oversized lane were checked. First-open POLISH took approximately 101, 115 and
+  124 seconds per four-minute lane on this test host; this is not a phone benchmark.
+- 47 completed historical-runner entries passed across the three logged batches.
+  Additional old core checks and scrolled/durable tests are also represented by
+  the completed core and 0.25.1 suites. The broad runner was split into selected
+  batches; the two older capacity scenarios were superseded by the current
+  persistent-profile 0.25.1 capacity suite, rather than repeated.
+- External opening in the separate 0.18.3 application was explicitly skipped
+  (PVS_SKIP_LEGACY_APP=1); current-app archive assertions still ran. That historical
+  application was not available, so its compatibility is not newly certified.
+
+LIMITS
+Chromium desktop/headless and emulated phone layout; no physical Android/iOS
+microphone, low-memory-device or headphone-latency certification. User vocals were
+short test excerpts; this update has not established perceptual quality across all
+songs or a universal professional preset. The core DSP, tuning/formant algorithms
+and true-peak estimator are unchanged. A new raw vocal requires an additional
+engine update to apply the conservative start, which can add opening time.
+
+REPRODUCE
+Read tests-0.28/README.txt. Test source, synthetic fixture, selected logs and JSON
+results are included. Historical large generated audio and browser screenshots are
+omitted. The original supplied 0.27.0 archive retains the historical fixtures.
