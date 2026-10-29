@@ -4,7 +4,13 @@ const scales=['chromatic','major','minor','harmonicMinor','majorPentatonic','min
 function number(v,a,b,label){if(!Number.isFinite(v)||v<a||v>b)throw Error('Invalid '+label+'.');return v;}
 function audio(ch,sr){number(sr,8000,192000,'sample rate');if(!Number.isInteger(sr)||!Array.isArray(ch)||ch.length<1||ch.length>2||!ch[0]?.length)throw Error('Use nonempty mono or stereo audio.');const n=ch[0].length;if(n/sr>900||n*ch.length*4>256*1024*1024)throw Error('Use a vocal up to 15 minutes and 256 MB of decoded audio.');for(const c of ch){if(Object.prototype.toString.call(c)!=='[object Float32Array]'||c.length!==n)throw Error('Audio channels must have equal lengths.');for(const v of c)if(!Number.isFinite(v))throw Error('The audio contains invalid samples.');}return ch;}
 function edits(e,frames){if(!e||typeof e!=='object')throw Error('Invalid note-editor settings.');if(e.scale!=null&&!scales.includes(e.scale))throw Error('Unsupported musical scale.');if(e.key!=null&&(!Number.isInteger(e.key)||e.key<0||e.key>11))throw Error('Invalid musical key.');
-for(const [k,a,b] of [['smooth',0,1],['formant',-12,12],['ref',415,466],['breath',-60,0],['bpm',0,240],['gridDiv',1,16],['down',-900,900],['rVol',0,2]])if(e[k]!=null)number(e[k],a,b,k);
+for(const [k,a,b] of [['smooth',0,1],['detSplit',.4,1.2],['formant',-12,12],['ref',415,466],['breath',-60,0],['bpm',0,240],['gridDiv',1,16],['down',-900,900],['rVol',0,2]])if(e[k]!=null)number(e[k],a,b,k);
+if(e.soundProfile!=null&&!['approved-original','reviewed-031'].includes(e.soundProfile))throw Error('Invalid tuner sound profile.');
+if(e.highNoteGuard!=null&&typeof e.highNoteGuard!=='boolean')throw Error('Invalid high-note fix setting.');
+if(e.resampler!=null&&!['browser','standalone'].includes(e.resampler))throw Error('Invalid analysis resampler.');
+if(e.autoMode!=null&&!['natural','classic'].includes(e.autoMode))throw Error('Invalid automatic tuning mode.');
+if(e.autoSpeed!=null)number(e.autoSpeed,20,200,'automatic note transition');
+for(const k of ['autoKeepInTune','autoExpression','autoKeepBlue'])if(e[k]!=null&&typeof e[k]!=='boolean')throw Error('Invalid automatic tuning option.');
 if(e.loop){number(e.loop.a,0,1800,'loop start');number(e.loop.b,e.loop.a,1800,'loop end');}
 if(e.layers)for(const k of ['up','down','dbl'])if(e.layers[k])number(e.layers[k].vol??.6,0,1,'harmony level');
 if(e.notes){if(!Array.isArray(e.notes)||e.notes.length>100000)throw Error('Invalid note list.');let end=-1;for(const row of e.notes){const n=Array.isArray(row)?{i0:row[0],i1:row[1],center:row[2],shift:row[3],drift:row[4],dt:row[5],st:row[6],fm:row[7],vib:row[8],gain:row[9],tr:row[10]}:row;

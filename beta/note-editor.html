@@ -122,6 +122,15 @@ select{font:600 14px var(--f-body);color:var(--ink);background:var(--panel);bord
 .msg{font-size:13px;color:var(--muted)}
 .msg.err{color:var(--off)}
 .foot{font-size:12.5px;color:var(--muted);margin:0}
+/* Keep tools and long preset names reachable on narrow touch screens. */
+@media (max-width:600px){
+  .btn,.btn.sm,.iconBtn,.zoom .btn,select,.sel input[type=number],.toggle{min-height:44px}
+  .seg button{min-height:44px}
+  .tools>.seg{display:flex;flex-wrap:wrap;max-width:100%;width:100%}
+  .tools>.seg button{flex:1 0 auto}
+  .row .btn{max-width:100%;white-space:normal;height:auto;min-height:44px;line-height:1.25;padding:10px 12px;justify-content:center}
+  .chk{min-height:44px}
+}
 </style>
 
 <div class="app">
@@ -262,20 +271,33 @@ select{font:600 14px var(--f-body);color:var(--ink);background:var(--panel);bord
       </div>
     </div>
 
+    <div class="panel" id="tuningPresets">
+      <div class="phead"><h2>Vocal tuning presets</h2></div>
+      <p class="hint" id="presetKeyHint"></p>
+      <button id="useDetectedKey" class="btn soft" type="button" hidden>Use detected key</button>
+      <div class="row">
+        <button id="presetSnapSmooth" class="btn primary" type="button">Snap all + Smooth 25%</button>
+        <button id="presetCenterSmooth" class="btn" type="button">85% correction + Smooth 25%</button>
+      </div>
+      <p class="hint">Choose the song key first. Both presets act on every note, turn on Classic Smooth at 25%, and turn Keep blue notes off. Apply once, then correct individual notes. Undo restores the previous settings.</p>
+      <p class="hint" id="presetSoundHint"></p>
+    </div>
+
     <div class="panel" id="correctPanel">
       <div class="phead"><h2>Correct pitch</h2></div>
-      <label class="slider" for="cCenter"><span>Pitch center</span><input type="range" id="cCenter" min="0" max="100" step="1" value="80"><output id="cCenterOut">80%</output></label>
+      <label class="slider" for="cCenter"><span>Pitch center</span><input type="range" id="cCenter" min="0" max="100" step="1" value="85"><output id="cCenterOut">85%</output></label>
       <label class="slider" for="cDrift"><span>Steady drift</span><input type="range" id="cDrift" min="0" max="100" step="1" value="0"><output id="cDriftOut">0%</output></label>
       <label class="chk" for="keepBlue"><input type="checkbox" id="keepBlue"> Keep blue notes</label>
       <p class="hint">Off (normal): every note is tuned into the key. On: a note you clearly sang outside the key stays on that note. Only use it if a song sounds wrong with it off.</p>
       <div class="row"><button id="cApply" class="btn primary" type="button" disabled>Select notes to correct</button></div>
-      <p class="hint">Corrects only the notes you've selected, including a single note. Select all to apply these amounts to the whole vocal. Pitch center at 100% puts the selected notes right on the key; 60–85% keeps some of your natural pitch. Snap all corrects every note at once. Smooth below controls automatic correction across the vocal.</p>
+      <p class="hint">Corrects only the notes you've selected, including a single note. Select all to apply these amounts to the whole vocal. Pitch center at 100% puts the selected notes right on the key; 60–85% keeps some of your natural pitch. Snap all corrects every note at once. Automatic tuning below controls correction across the vocal. Natural mode leaves your explicit note edits in charge.</p>
     </div>
 
     <div class="panel" id="smoothPanel">
-      <div class="phead"><h2>Smooth</h2><button id="smoothOn" class="toggle" type="button" aria-pressed="true">On</button></div>
+      <div class="phead"><h2>Automatic tuning</h2><button id="smoothOn" class="toggle" type="button" aria-pressed="true">On</button></div>
+      <label class="slider" for="autoMode"><span>Mode</span><select id="autoMode"><option value="classic" selected>Classic Smooth</option><option value="natural">Natural</option></select></label>
       <div class="knobWrap">
-        <div id="knob" role="slider" tabindex="0" aria-label="Smooth amount" aria-valuemin="0" aria-valuemax="100" aria-valuenow="25">
+        <div id="knob" role="slider" tabindex="0" aria-label="Automatic tuning amount" aria-valuemin="0" aria-valuemax="100" aria-valuenow="25">
           <svg viewBox="0 0 120 120" aria-hidden="true">
             <path id="kTrack" fill="none" stroke="var(--line)" stroke-width="9" stroke-linecap="round"/>
             <path id="kArc" fill="none" stroke="var(--accent)" stroke-width="9" stroke-linecap="round"/>
@@ -284,9 +306,16 @@ select{font:600 14px var(--f-body);color:var(--ink);background:var(--panel);bord
           </svg>
           <span class="kNum" id="kNum">25%</span>
         </div>
-        <div class="scale-ticks"><span>0–15 barely there</span><span>20–35 natural</span><span>50+ tight</span><span>90+ robotic</span></div>
+        <div class="scale-ticks" id="autoTicks"></div>
       </div>
-      <p class="hint">Runs after your note edits. It gently pulls any leftover off-pitch toward the nearest note in your key, catching what editing missed. Drag the knob up or down; double-tap to reset to 25%.</p>
+      <p class="hint" id="autoHint"></p>
+      <div id="naturalOptions">
+        <label class="slider" for="autoSpeed"><span>Note transition</span><input type="range" id="autoSpeed" min="20" max="200" step="5" value="70"><output id="autoSpeedOut">70 ms</output></label>
+        <label class="chk"><input type="checkbox" id="autoKeepInTune" checked> Leave in-tune notes alone</label>
+        <label class="chk"><input type="checkbox" id="autoExpression" checked> Keep expressive slides</label>
+        <label class="chk"><input type="checkbox" id="autoKeepBlue" checked> Keep clearly sung out-of-key notes</label>
+        <p class="hint" id="autoStatus" role="status"></p>
+      </div>
     </div>
 
     <div class="panel" id="voicePanel">
@@ -331,6 +360,8 @@ select{font:600 14px var(--f-body);color:var(--ink);background:var(--panel);bord
       <p class="hint">Left cuts notes more readily, for fast runs. Right keeps notes together, for slides and vocals with reverb.</p>
       <div class="row"><button id="redetect" class="btn soft" type="button">Re-detect notes</button></div>
       <p class="hint">Re-detecting clears your note edits. Undo brings them back.</p>
+      <label class="chk" for="highNoteGuard"><input type="checkbox" id="highNoteGuard"> High-note fix</label>
+      <p class="hint" id="highNoteHint">Optional. Stops high notes (around D#4 and above) being read an octave or more too low, which can add a rough undertone when tuned. Turning it on or off re-reads the pitch and clears note edits; apply your preset again afterwards. Compare by ear before using it on a release.</p>
     </div>
   </section>
 
@@ -344,7 +375,8 @@ select{font:600 14px var(--f-body);color:var(--ink);background:var(--panel);bord
   <p class="foot">Everything runs on your device; your audio is never uploaded.</p>
 </div>
 
-<script src="note-editor-safety.js?v=0.29.0"></script>
+<script src="note-editor-safety.js?v=0.31.4"></script>
+<script src="natural-tuning.js?v=0.31.1"></script>
 <script>
 (() => {
 "use strict";
@@ -358,13 +390,16 @@ const SCALES = { major:[0,2,4,5,7,9,11], minor:[0,2,3,5,7,8,10], harmonicMinor:[
 const KEY_W = 50, MIDI_LO = 33, MIDI_HI = 96, RULER_H = 24;
 const STEPS = { pitch:[1,5,10], time:[5,10,20], split:[1,5,10], vol:[1,3,6], select:[1,5,10] };
 const TP = { gate:0.02, maxD:0.5, tauBias:0.06, uv:0.4, sw:0.25, jw:0.08, jcap:0.9 };
+// High-note fix limits: only periods shorter than 36 samples at 11,025 Hz (above about 306 Hz / D#4).
+const HNG = { maxTau:36, dTol:0.1 };
 
 const S = {
+  highNoteGuard:false, resampler:"browser",
   sr:44100, sourceChannels:null, analysisChannel:0, tunedChannels:null, quality:null, orig:null, dur:0, durOut:0, m:new Float32Array(0), rms:null, hop:0.01, tOff:0,
   notes:[], edited:null, final:null, shift:null, fmtArr:null,
   marks:new Int32Array(0), per:new Float32Array(0),
   mapIn:Float64Array.of(0, 1), mapOut:Float64Array.of(0, 1),
-  key:0, scale:"major", smooth:0.25, smoothOn:true, free:false, formant:0, tool:"pitch", stepIdx:{ pitch:1, time:1, split:1, vol:1, select:1 },
+  key:0, scale:"major", smooth:.25, smoothOn:true, autoMode:"classic", soundProfile:"approved-original", autoSpeed:70, autoKeepInTune:true, autoExpression:true, autoKeepBlue:true, autoInfo:null, free:false, formant:0, tool:"pitch", stepIdx:{ pitch:1, time:1, split:1, vol:1, select:1 },
   ref:440, hoverCut:null,
   view:{t0:0, pxs:120, top:72, rowH:22},
   sel:-1, mode:"tuned", playMode:"tuned", playing:false, src:null, ctx:null,
@@ -456,7 +491,8 @@ function constrain(i){
 }
 
 /* ---------- pitch analysis (YIN at 11 kHz) ---------- */
-async function analyze(buffer){
+async function analyze(buffer, soundProfile=S.soundProfile, opts={highNoteGuard:S.highNoteGuard,resampler:S.resampler}){
+  const guard=soundProfile==="approved-original"&&opts.highNoteGuard===true;
   const sr = buffer.sampleRate, N = buffer.length, ch = buffer.numberOfChannels;
   const channels = Array.from({length:ch},(_,c)=>buffer.getChannelData(c).slice());
   Safety.audio(channels,sr);
@@ -466,7 +502,9 @@ async function analyze(buffer){
   setBusy(true, "Preparing audio", 0.02);
   const AR = 11025;
   let ds;
-  try {
+  // New approved-sound imports use the same resampler as the approved listening references.
+  if (opts.resampler === "standalone") ds = downsample(mono, sr, AR);
+  else try {
     const OAC = window.OfflineAudioContext || window.webkitOfflineAudioContext;
     const off = new OAC(1, Math.max(1, Math.ceil(N*AR/sr)), AR);
     const mb = off.createBuffer(1, N, sr); mb.getChannelData(0).set(mono);
@@ -493,13 +531,22 @@ async function analyze(buffer){
     for (let tau = 1; tau <= tMax + 1; tau++){ run += d[tau]; d[tau] = run > 0 ? d[tau]*tau/run : 1; }
     const mins = [];
     for (let tau = tMin; tau <= tMax; tau++) if (d[tau] < TP.maxD && d[tau] <= d[tau-1] && d[tau] < d[tau+1]) mins.push(tau);
-    const pick = mins.slice(0, K); // ascending lag: keep the fundamental among candidates
+    // Original candidate ranking is the owner-approved sound. Saved 0.31 sessions retain their tracker.
+    if(soundProfile==="approved-original")mins.sort((a,b)=>d[a]-d[b]);
+    // Optional high-note fix: a high sung note also dips at 2x, 3x... its period, and the original
+    // ranking can pick one of those (an octave or more too low). Prefer the shortest matching period.
+    let credit=-1,creditD=0;
+    if(guard&&mins.length){const best=mins[0],dv=x=>{const p=d[x-1],q=d[x],r=d[x+1],e=p-2*q+r;return e>0?q-(p-r)*(p-r)/(8*e):q;},
+      tr=x=>{const p=d[x-1],q=d[x],r=d[x+1],e=p-2*q+r;return e?x+.5*(p-r)/e:x;},bt=tr(best);
+      const near=mins.filter(x=>x<HNG.maxTau&&x<best&&dv(x)<=dv(best)+HNG.dTol).sort((a,b)=>a-b).find(x=>{const t=tr(x),q=Math.round(bt/t);return q>=2&&Math.abs(bt-q*t)<=Math.max(1.5,.02*bt);});
+      if(near!=null){for(let i=mins.length-1;i>=0;i--)if(mins[i]<near)mins.splice(i,1);mins.splice(mins.indexOf(near),1);mins.unshift(near);credit=near;creditD=d[best];}}
+    const pick = mins.slice(0, K).sort((a,b)=>a-b);
     pick.forEach((tau, k) => {
       let tb = tau; const a = d[tau-1], b = d[tau], c = d[tau+1], den = a - 2*b + c;
       if (den !== 0) tb = tau + 0.5*(a - c)/den;
-      if(tau<40){let num=tb,den=1;for(let q=2;q<=Math.min(8,Math.floor(tMax/tb));q++){const near=mins.find(t=>Math.abs(t-q*tb)<1.5&&d[t]<=d[tau]+.03);if(near!=null){const aa=d[near-1],bb=d[near],cc=d[near+1],dd=aa-2*bb+cc,t=near+(dd?.5*(aa-cc)/dd:0);if(Math.abs(t/q-tb)<.6){num+=q*t;den+=q*q;}}}tb=num/den;}
+      if(soundProfile!=="approved-original"&&tau<40){let num=tb,den=1;for(let q=2;q<=Math.min(8,Math.floor(tMax/tb));q++){const near=mins.find(t=>Math.abs(t-q*tb)<1.5&&d[t]<=d[tau]+.03);if(near!=null){const aa=d[near-1],bb=d[near],cc=d[near+1],dd=aa-2*bb+cc,t=near+(dd?.5*(aa-cc)/dd:0);if(Math.abs(t/q-tb)<.6){num+=q*t;den+=q*q;}}}tb=num/den;}
       candM[f*K + k] = 69 + 12*Math.log2((AR/tb)/440);
-      candC[f*K + k] = d[tau] + TP.tauBias*k; candD[f*K+k] = d[tau];
+      candC[f*K + k] = (tau===credit?creditD:d[tau]) + TP.tauBias*k; candD[f*K+k] = d[tau];
     });
     candN[f] = pick.length;
   }
@@ -771,7 +818,11 @@ function curvesFor(notes){
     }
   }
   const amt = S.smoothOn ? S.smooth : 0;
-  if (amt > 0){
+  let autoInfo=null;
+  if(amt>0 && S.autoMode==="natural"){
+    autoInfo=NaturalTuning.apply({edited,notes,hop:S.hop,amount:amt,ref:S.ref,pcs:allowedPcs(),speedMs:S.autoSpeed,keepInTune:S.autoKeepInTune,expression:S.autoExpression,keepBlue:S.autoKeepBlue,quality:S.quality,sibilants:S.sib});
+    final.set(autoInfo.final);
+  } else if (amt > 0){
     const pcs = allowedPcs();
     const tau = 0.14*(1 - amt) + 0.012, a = Math.exp(-S.hop/tau);
     const corr = new Float32Array(n), handTgt = new Float32Array(n).fill(NaN);
@@ -786,10 +837,11 @@ function curvesFor(notes){
     for (let i = 0; i < n; i++) final[i] = edited[i];
   }
   for (let i = 0; i < n; i++) shift[i] = m[i] === m[i] ? final[i] - m[i] : 0;
-  return { edited, final, shift, fmt, gain, ...buildMapFor(notes) };
+  return { edited, final, shift, fmt, gain, autoInfo, ...buildMapFor(notes) };
 }
 function computeCurves(){
   const c = curvesFor(S.notes);
+  S.autoInfo=c.autoInfo;automaticUI();
   S.curves = c; S.edited = c.edited; S.final = c.final; S.shift = c.shift; S.fmtArr = c.fmt;
   S.mapIn = c.mapIn; S.mapOut = c.mapOut; S.durOut = c.durOut;
   S.layerCurves = {};
@@ -853,9 +905,10 @@ function renderTuned(c, r0, r1, source){
     ts += Math.max(1, hopOut);
   }
   for (let i = 0; i < LEN; i++) out[i] /= Math.max(ws[i], 0.7);
-  // With no time move, pass unaffected audio through exactly. A local note
+  // Approved full-vocal Smooth retains the standalone resynthesis. With Smooth
+  // off, retain the integrated neutral/local-edit bypass. A local note
   // edit must not resynthesize the rest of the vocal; fade at edit boundaries.
-  if(c.mapIn.every((v,i)=>Math.abs(v-c.mapOut[i])<1e-12)){
+  if(!(S.soundProfile==="approved-original"&&S.autoMode==="classic"&&S.smoothOn&&S.smooth>0)&&c.mapIn.every((v,i)=>Math.abs(v-c.mapOut[i])<1e-12)){
     const wet=new Float32Array(nF),pad=Math.max(1,Math.ceil(.035/S.hop)),fade=Math.max(1,Math.ceil(.02/S.hop));
     for(let f=0;f<nF;f++)if(Math.abs(sh[f])>1e-7||Math.abs(fm[f])>1e-7||Math.abs(gn[f]-1)>1e-7){
       for(let j=Math.max(0,f-pad-fade);j<=Math.min(nF-1,f+pad+fade);j++)wet[j]=Math.max(wet[j],Math.min(1,(pad+fade-Math.abs(j-f))/fade));
@@ -974,6 +1027,7 @@ function makeDemo(){
 /* ---------- loading ---------- */
 function setBusy(on, text, frac){
   S.busy = on; $("busy").hidden = !on;
+  presetUI();
   if (text) $("busyText").textContent = text;
   if (frac != null) $("busyFill").style.width = Math.round(frac*100) + "%";
 }
@@ -993,12 +1047,15 @@ async function applyAnalysis(d, label){
   $("fileName").textContent = label;
 }
 function refreshAll(){ updateNotePanel(); updateStatus(); draw(); drawOverview(); updateTime(); }
-async function loadBuffer(buffer, label, demo){
+async function loadBuffer(buffer, label, demo, soundProfile="approved-original", savedSettings=null){
   stop();
-  applyEdits({key:0,scale:"major",smooth:.25,smoothOn:true,formant:0,ref:440,breath:0,bpm:0,gridDiv:2,down:0,gridSnap:false,rVol:.7,rMute:false,layers:{up:{on:false,vol:.6},down:{on:false,vol:.6},dbl:{on:false,vol:.5}}});
   setBusy(true, "Preparing audio", 0);
   try {
-    const r = await analyze(buffer);
+    // Analyze and validate before replacing the currently open audio or edits.
+    const guardOn=savedSettings?.highNoteGuard===true, resampler=savedSettings?(savedSettings.resampler||"browser"):"standalone";
+    const r = await analyze(buffer,soundProfile,{highNoteGuard:guardOn,resampler});
+    if(savedSettings)Safety.edits(savedSettings,r.m.length);
+    applyEdits({key:0,scale:"major",smooth:.25,smoothOn:true,autoMode:"classic",soundProfile,highNoteGuard:guardOn,resampler,detSplit:savedSettings?.detSplit??.7,autoSpeed:70,autoKeepInTune:true,autoExpression:true,autoKeepBlue:true,formant:0,ref:440,breath:0,bpm:0,gridDiv:2,down:0,gridSnap:false,rVol:.7,rMute:false,layers:{up:{on:false,vol:.6},down:{on:false,vol:.6},dbl:{on:false,vol:.5}}});
     await applyAnalysis({ mono:r.mono, sr:r.sr, m:r.m, rms:r.rms, hop:r.hop, tOff:r.tOff, notes:segment(r.m,r.quality), channels:r.channels, analysisChannel:r.analysisChannel, quality:r.quality }, label);
     S.isDemo = !!demo;
     $("infoMsg").hidden = true;
@@ -1015,7 +1072,7 @@ async function loadBuffer(buffer, label, demo){
     } else setSave("");
     if (!S.notes.length) showLoadMsg("The file opened, but no sung notes were found. Use a solo vocal track, not the full mix.");
   } catch (e){
-    showLoadMsg("The file opened but couldn't be analysed. " + e.message); if(EMBED)throw e;
+    showLoadMsg("The file opened but couldn't be analysed. " + e.message); if(EMBED||savedSettings)throw e;
   }
   setBusy(false);
   refreshAll();
@@ -1064,11 +1121,15 @@ const idbSet = (k, v) => idbOp("readwrite", s => s.put(v, k)).then(() => true, (
 const idbDel = k => idbOp("readwrite", s => s.delete(k)).then(() => true, () => false);
 function setSave(t){ $("saveState").textContent = t ? "· " + t : ""; }
 const editsRecord = () => ({ id:S.sessionId, v:2, notes:S.notes.map(n => [n.i0, n.i1, n.center, n.shift, n.drift, n.dt, n.st, n.fm, n.vib, n.gain, n.tr, n.man ? 1 : 0,n.review ? 1 : 0]), key:S.key, scale:S.scale,
-  smooth:S.smooth, smoothOn:S.smoothOn, formant:S.formant, ref:S.ref, loop:{ a:S.loop.a, b:S.loop.b, on:S.loop.on }, rVol:S.rVol, rMute:S.rMute,
-  breath:S.breath, keepBlue:S.keepBlue, bpm:S.bpm, gridDiv:S.gridDiv, down:S.down, gridSnap:S.gridSnap,
+  smooth:S.smooth, smoothOn:S.smoothOn, autoMode:S.autoMode,soundProfile:S.soundProfile,autoSpeed:S.autoSpeed,autoKeepInTune:S.autoKeepInTune,autoExpression:S.autoExpression,autoKeepBlue:S.autoKeepBlue, formant:S.formant, ref:S.ref, loop:{ a:S.loop.a, b:S.loop.b, on:S.loop.on }, rVol:S.rVol, rMute:S.rMute,
+  breath:S.breath, keepBlue:S.keepBlue, detSplit:S.det.split, highNoteGuard:S.highNoteGuard, resampler:S.resampler, bpm:S.bpm, gridDiv:S.gridDiv, down:S.down, gridSnap:S.gridSnap,
   layers:{ up:{ ...S.layers.up }, down:{ ...S.layers.down }, dbl:{ ...S.layers.dbl } } });
 function applyEdits(e){
   if (!e) return; Safety.edits(e,S.m.length);
+  S.soundProfile=e.soundProfile||"reviewed-031";
+  // Older saved states lack these fields and keep their original analysis path.
+  S.highNoteGuard=e.highNoteGuard===true; S.resampler=e.resampler||"browser"; highNoteUI();
+  S.det.split=e.detSplit??.7; $("detSplit").value=S.det.split*100; $("detSplitOut").textContent=detLabel(S.det.split);
   if (e.v === 2 && e.notes) S.notes = e.notes.map(a => mkNote({ i0:a[0], i1:a[1], center:a[2], shift:a[3], drift:a[4], dt:a[5], st:a[6], fm:a[7], vib:a[8], gain:a[9], tr:a[10], man:!!a[11],review:!!a[12] }));
   else (e.notes || []).forEach((v, i) => { const nt = S.notes[i]; if (nt && v){ nt.shift = v[0]; nt.drift = v[1]; nt.dt = v[2]; nt.st = v[3]; nt.fm = v[4]; } });
   setBreath(e.breath || 0, false);
@@ -1079,11 +1140,14 @@ function applyEdits(e){
   setRef(e.ref || 440, false);
   S.key = e.key || 0; $("key").value = S.key;
   S.scale = e.scale || "major"; $("scale").value = S.scale;
-  setSmooth((e.smooth == null ? 0.25 : e.smooth)*100, false); setSmoothOn(e.smoothOn !== false, false); setFormant(e.formant || 0, false);
+  // Saved projects without a mode retain the exact previous Smooth algorithm.
+  S.autoMode=e.autoMode||"classic";S.autoSpeed=e.autoSpeed??70;S.autoKeepInTune=e.autoKeepInTune!==false;S.autoExpression=e.autoExpression!==false;S.autoKeepBlue=e.autoKeepBlue!==false;automaticUI();
+  setSmooth((e.smooth == null ? (S.autoMode==="natural"?.85:.25) : e.smooth)*100, false); setSmoothOn(e.smoothOn !== false, false); setFormant(e.formant || 0, false);
   if (e.loop) S.loop = { a:e.loop.a, b:e.loop.b, on:!!e.loop.on };
   S.rVol = e.rVol == null ? 0.7 : e.rVol; S.rMute = !!e.rMute;
   setLoopUI(); riddimUI();
 }
+function highNoteUI(){const c=$("highNoteGuard");if(!c)return;c.checked=!!S.highNoteGuard;c.disabled=S.soundProfile!=="approved-original";$("highNoteHint").hidden=false;}
 function saveAudioRecord(){
   if(EMBED)return Promise.resolve(true);
   return idbSet("audio", { id:S.sessionId, name:S.fileLabel, baseName:S.baseName, sr:S.sr, orig:S.orig, channels:S.sourceChannels, analysisChannel:S.analysisChannel, quality:S.quality, m:S.m, rms:S.rms, hop:S.hop, tOff:S.tOff,
@@ -1117,7 +1181,7 @@ $("freshBtn").onclick = async () => {
   stop(); await idbDel("audio"); await idbDel("edits"); await idbDel("riddim");
   $("restoreBar").hidden = true; S.riddim = null; riddimUI(); S.sessionId = "";
   await loadDemo();
-  applyEdits({ key:0, scale:"major", smooth:0.25, smoothOn:true, formant:0 }); changed();
+  applyEdits({ key:0, scale:"major", smooth:.25, smoothOn:true,autoMode:"classic",soundProfile:"approved-original", formant:0 }); changed();
 };
 function readZip(ab){
   if(ab.byteLength>300*1024*1024)throw Error("Session archive is too large.");
@@ -1363,7 +1427,7 @@ function updateStatus(){
   const C = S.colors;
   $("status").innerHTML =
     `<span><b>${S.notes.length}</b> notes found</span>` +
-    (S.notes.some(n=>n.review)?`<span><b>${S.notes.filter(n=>n.review).length}</b> notes need listening review</span>`:"") +
+    (S.notes.some(autoReview)?`<span><b>${S.notes.filter(autoReview).length}</b> notes need listening review</span>`:"") +
     `<span><i class="dot" style="background:${C.ok}"></i><b>${S.notes.length - off}</b> on a key</span>` +
     `<span><i class="dot" style="background:${C.off}"></i><b>${off}</b> off pitch</span>` +
     (moved ? `<span><b>${moved}</b> retimed</span>` : "") +
@@ -1958,6 +2022,36 @@ $("cApply").onclick = () => {
   changed();
 };
 
+/* Explicit whole-vocal presets. Selection-only correction above is unchanged. */
+function applyVocalPreset(kind){
+  if(S.busy||!S.orig||!S.notes.length||!["snap","centre"].includes(kind))return;
+  pushHist();
+  S.autoMode="classic";S.keepBlue=false;$("keepBlue").checked=false;
+  setSmooth(25,false);setSmoothOn(true,false);
+  if(kind==="snap")S.notes.forEach((_,i)=>snapNote(i));
+  else S.notes.forEach(nt=>{nt.shift=.85*(snapP(nt.center)-nt.center);nt.drift=0;nt.man=false;});
+  $("cCenter").value=85;$("cCenterOut").textContent="85%";
+  $("cDrift").value=0;$("cDriftOut").textContent="0%";
+  changed();
+}
+$("presetSnapSmooth").onclick=()=>applyVocalPreset("snap");
+$("presetCenterSmooth").onclick=()=>applyVocalPreset("centre");
+function presetUI(){
+  const disabled=S.busy||!S.orig||!S.notes.length;
+  for(const id of ["presetSnapSmooth","presetCenterSmooth"])$(id).disabled=disabled;
+  const k=S.notes.length?detectKey(S.notes,refOff()):null,usable=k&&k.r>.3;
+  const current=KEY_NAMES[S.key]+" "+S.scale;
+  $("presetKeyHint").textContent=usable?"Using "+current+" · detected "+KEY_NAMES[k.key]+" "+k.scale+". Check against your song or backing track.":"Using "+current+". Check against your song or backing track.";
+  const b=$("useDetectedKey");b.hidden=!usable||(k.key===S.key&&k.scale===S.scale);b.disabled=disabled;
+  b.textContent=usable?"Use detected "+KEY_NAMES[k.key]+" "+k.scale:"Use detected key";
+  $("presetSoundHint").textContent=S.soundProfile==="approved-original"?"Original supplied editor sound. These are the two settings approved in the listening comparison.":"This saved project retains its previous tuner sound and note edits. Import a fresh vocal to use the approved original sound.";
+}
+$("useDetectedKey").onclick=()=>{
+  if(S.busy||!S.orig)return;const k=detectKey(S.notes,refOff());if(!k||k.r<=.3)return;
+  pushHist();S.key=k.key;S.scale=k.scale;$("key").value=k.key;$("scale").value=k.scale;
+  changed();
+};
+
 /* ---------- beat grid ---------- */
 function gridUI(){
   $("bpm").value = S.bpm > 0 ? (Math.round(S.bpm*10)/10) : "";
@@ -2027,7 +2121,25 @@ $("bpmDetect").onclick = async () => {
 
 /* ---------- note detection settings ---------- */
 const detLabel = v => v < 0.6 ? "More notes" : v > 0.85 ? "Fewer notes" : "Normal";
-$("detSplit").oninput = e => { S.det.split = e.target.value/100; $("detSplitOut").textContent = detLabel(S.det.split); };
+$("detSplit").oninput = e => { pushHist("detSplit"); S.det.split = e.target.value/100; $("detSplitOut").textContent = detLabel(S.det.split); saveSoon(); };
+async function reanalyzePitch(next){
+  if(!S.orig||S.busy)return false;
+  const keep={...editsRecord(),...next,notes:null},buf=fakeBuffer(S.sourceChannels,S.sr);
+  stop();setBusy(true,"Re-reading pitch",0);
+  try{
+    const r=await analyze(buf,S.soundProfile,{highNoteGuard:keep.highNoteGuard===true,resampler:keep.resampler||"browser"});
+    await applyAnalysis({mono:r.mono,sr:r.sr,m:r.m,rms:r.rms,hop:r.hop,tOff:r.tOff,notes:segment(r.m,r.quality),channels:r.channels,analysisChannel:r.analysisChannel,quality:r.quality},S.fileLabel);
+    applyEdits(keep);computeCurves();
+    if(!S.isDemo&&!EMBED&&S.sessionId)await saveAudioRecord();
+    showLoadMsg("");changed();return true;
+  }catch(e){showLoadMsg("Pitch could not be re-read. "+e.message);highNoteUI();return false;}
+  finally{setBusy(false);refreshAll();}
+}
+$("highNoteGuard").onchange=async e=>{
+  const want=e.target.checked;
+  if(S.notes.some(n=>n.shift||n.man||n.dt||n.st!==1)&&!confirm("Re-reading the pitch clears your note edits (they cannot be undone). Continue?")){e.target.checked=!want;return;}
+  await reanalyzePitch({highNoteGuard:want});
+};
 $("redetect").onclick = () => {
   if (!S.orig) return;
   pushHist();
@@ -2211,6 +2323,22 @@ edEl.addEventListener("drop", e => { const f = e.dataTransfer && e.dataTransfer.
 document.addEventListener("dragover", e => e.preventDefault());
 document.addEventListener("drop", e => e.preventDefault());
 
+/* The classic curve is retained for existing projects. Natural is opt-in for them. */
+function automaticUI(){
+ presetUI();
+ if(!$("autoMode"))return;const natural=S.autoMode==="natural";
+ $("autoMode").value=S.autoMode;$("naturalOptions").hidden=!natural;
+ $("autoSpeed").value=S.autoSpeed;$("autoSpeedOut").textContent=S.autoSpeed+" ms";
+ for(const k of ["autoKeepInTune","autoExpression","autoKeepBlue"])$(k).checked=S[k];
+ $("autoTicks").textContent=natural?"0% off · 85% gentle centre correction · 100% full centre correction":"0–15 barely there · 20–35 natural · 50+ tight · 90+ robotic";
+ $("autoHint").textContent=natural?"Moves stable note centres while keeping vibrato and note movement. Notes you edit by hand keep your choices. Uncertain or large pitch changes need your review. Check the key and tuning reference above. Double-tap resets to 85%.":"Classic Smooth pulls each pitch frame toward the nearest scale note after manual editing. Existing projects keep this mode. Use a whole-vocal preset above for Snap all or 85% centre correction plus Smooth. Double-tap resets to 25%.";
+ const info=S.autoInfo;$("autoStatus").textContent=!S.smoothOn?"Automatic tuning is off.":info?info.corrected.length+" notes corrected · "+info.untouched.length+" left as sung or edited · "+info.review.length+" need manual review.":"Natural tuning starts gently; compare before keeping it.";
+}
+$("autoMode").onchange=e=>{pushHist();S.autoMode=e.target.value;setSmooth(S.autoMode==="natural"?85:25,false);automaticUI();changed();};
+$("autoSpeed").oninput=e=>{pushHist("autoSpeed");S.autoSpeed=+e.target.value;automaticUI();changed();};
+for(const k of ["autoKeepInTune","autoExpression","autoKeepBlue"])$(k).onchange=e=>{pushHist();S[k]=e.target.checked;changed();};
+function autoReview(n,i){return !!n.review||!!S.autoInfo?.review.includes(i);}
+
 /* ---------- Smooth knob ---------- */
 const knob = $("knob");
 const pt = a => { const r = a*Math.PI/180; return [60 + 48*Math.sin(r), 60 - 48*Math.cos(r)]; };
@@ -2228,7 +2356,7 @@ function setSmooth(v, fire){
 let kd = null, kTap = 0;
 knob.addEventListener("pointerdown", e => {
   knob.setPointerCapture(e.pointerId);
-  const now = performance.now(); if (now - kTap < 320){ pushHist(); setSmooth(25, true); kTap = 0; kd = null; return; } kTap = now;
+  const now = performance.now(); if (now - kTap < 320){ pushHist(); setSmooth(S.autoMode==="natural"?85:25, true); kTap = 0; kd = null; return; } kTap = now;
   pushHist("knob");
   kd = { y:e.clientY, x:e.clientX, v:S.smooth*100 };
 });
@@ -2244,7 +2372,7 @@ function setSmoothOn(on, fire){
   $("smoothPanel").classList.toggle("knob-off", !on); if (fire) changed();
 }
 $("smoothOn").onclick = () => { pushHist(); setSmoothOn(!S.smoothOn, true); };
-setSmooth(25, false);
+setSmooth(S.smooth*100, false);
 
 /* ---------- export: 24-bit WAV in a zip ---------- */
 // 0.29.0 R12: the editor's WAV writers live only in note-editor-safety.js.
@@ -2315,14 +2443,22 @@ $("export").onclick = async () => {
 function bridgeState(){return {v:1,rate:S.sr,frames:S.orig?.length||0,channels:S.sourceChannels?.length||1,settings:editsRecord()};}
 window.PlaybookNoteEditor={
  async load(channels,sr,opts={}){
-  Safety.audio(channels,sr);hostMute=true;
-  try{await loadBuffer(fakeBuffer(channels,sr),opts.name||"Cleaned vocal",true);if(opts.state){if(opts.state.v!==1||opts.state.rate!==sr||opts.state.frames!==channels[0].length||opts.state.channels!==channels.length)throw Error("Saved note edits do not fit this vocal.");Safety.edits(opts.state.settings,S.m.length);applyEdits(opts.state.settings);}
+  Safety.audio(channels,sr);
+  Safety.edits({key:opts.key,scale:opts.scale,bpm:opts.bpm},0);
+  if(opts.state){
+    if(opts.state.v!==1||opts.state.rate!==sr||opts.state.frames!==channels[0].length||opts.state.channels!==channels.length)throw Error("Saved note edits do not fit this vocal.");
+    Safety.edits(opts.state.settings,Math.max(0,Math.floor((Math.ceil(channels[0].length*11025/sr)-490)/110)));
+  }
+  hostMute=true;
+  try{await loadBuffer(fakeBuffer(channels,sr),opts.name||"Cleaned vocal",true,opts.state?(opts.state.settings.soundProfile||"reviewed-031"):"approved-original",opts.state?.settings);if(opts.state)applyEdits(opts.state.settings);
+  if(!opts.state&&opts.automatic===false)setSmoothOn(false,false);
+  if(!opts.state&&Number.isFinite(opts.referenceHz)&&opts.referenceHz>=415&&opts.referenceHz<=466)setRef(opts.referenceHz,false);
   if(Number.isInteger(opts.key)){S.key=opts.key;$("key").value=S.key;}if(opts.scale){S.scale=opts.scale;$("scale").value=S.scale;}if(opts.bpm!=null)S.bpm=opts.bpm;
   if(EMBED)for(const k of ["up","down","dbl"])S.layers[k].on=false;
   computeCurves();refreshAll();return bridgeState();}finally{hostMute=false;setBusy(false);}
  },
- render(){ensureRendered();return {channels:S.tunedChannels,sampleRate:S.sr,state:bridgeState(),notes:S.notes.map(n=>({start:span(n).oa,end:span(n).ob,centre:n.center,target:n.center+n.shift,enabled:true,review:!!n.review})),duration:S.durOut};},
- reviewNext(){const i=S.notes.findIndex((n,i)=>n.review&&i>S.sel),j=i>=0?i:S.notes.findIndex(n=>n.review);if(j<0)return;selectOnly(j);S.playhead=span(S.notes[j]).oa;S.view.t0=Math.max(0,S.playhead-.3);changed();},
+ render(){ensureRendered();return {channels:S.tunedChannels,sampleRate:S.sr,state:bridgeState(),notes:S.notes.map((n,i)=>({start:span(n).oa,end:span(n).ob,centre:n.center,target:n.center+n.shift,enabled:true,review:autoReview(n,i)})),duration:S.durOut};},
+ reviewNext(){const i=S.notes.findIndex((n,i)=>autoReview(n,i)&&i>S.sel),j=i>=0?i:S.notes.findIndex(autoReview);if(j<0)return;selectOnly(j);S.playhead=span(S.notes[j]).oa;S.view.t0=Math.max(0,S.playhead-.3);changed();},
  state:bridgeState,
  key(key,scale){if(S.key===key&&S.scale===scale)return;hostMute=true;try{S.key=key;S.scale=scale;$("key").value=key;$("scale").value=scale;changed();}finally{hostMute=false;}},
  onChange(fn){hostChanged=fn;},
@@ -2333,12 +2469,12 @@ window.PlaybookNoteEditor={
  clear(){hostMute=true;try{stop();S.orig=null;S.sourceChannels=null;S.tunedChannels=null;S.notes=[];resetRenders();}finally{hostMute=false;}},
  embedded:EMBED
 };
-if(EMBED){document.documentElement.classList.add("hosted");const style=document.createElement("style");style.textContent='.hosted .loadWrap,.hosted #saveSession,.hosted #restoreBar,.hosted .export,.hosted #rFile,.hosted #rTune,.hosted #freshBtn,.hosted #saveState,.hosted #harmPanel,.hosted #rRemove{display:none!important}.hosted .wrap{max-width:none;padding:8px}.hosted #rName{font-size:12px}';document.head.appendChild(style);$("abOrig").textContent="Cleaned input";
+if(EMBED){document.documentElement.classList.add("hosted");document.documentElement.dataset.theme="dark";const style=document.createElement("style");style.textContent='.hosted .loadWrap,.hosted #saveSession,.hosted #restoreBar,.hosted .export,.hosted #rFile,.hosted #rTune,.hosted #freshBtn,.hosted #saveState,.hosted #harmPanel,.hosted #rRemove{display:none!important}.hosted .wrap{max-width:none;padding:8px}.hosted #rName{font-size:12px}';document.head.appendChild(style);$("abOrig").textContent="Cleaned input";
  const help=document.createElement("p");help.className="hint";help.textContent="This editor processes the selected vocal. Use Song & vocals for separate backing-vocal tracks. Play here auditions tuning; use FINAL in Vocal Studio to hear the vocal effects.";$("harmPanel").after(help);
 }
 
 const reviewButton=document.createElement("button");reviewButton.id="approveReview";reviewButton.className="btn sm";reviewButton.textContent="Confirm selected notes";reviewButton.title="Mark the selected notes as checked after listening";$("notePanel").append(reviewButton);
-reviewButton.onclick=()=>{const ids=selIdx();if(!ids.length)return;pushHist();ids.forEach(i=>S.notes[i].review=false);changed();};
+reviewButton.onclick=()=>{const ids=selIdx();if(!ids.length)return;pushHist();ids.forEach(i=>{if(S.autoMode==="natural"&&S.autoInfo?.review.includes(i))S.notes[i].man=true;S.notes[i].review=false;});changed();};
 /* ---------- boot ---------- */
 readColors();
 const reTheme = () => { readColors(); draw(); drawOverview(); updateStatus(); updateNotePanel(); };

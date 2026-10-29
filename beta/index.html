@@ -2,7 +2,7 @@
 <html lang="en">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Playbook Vocal Studio 0.29.0 · DAW</title>
+<title>Playbook Vocal Studio 0.31.4 · DAW</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,500..800&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
@@ -233,10 +233,10 @@ nav.steps button { flex:1 0 64px; min-height:48px; }
 .phrase-take .metrics { font:13px/1.65 var(--mono); color:var(--muted); }
 .phrase-take.suggested { color:var(--gold); }
 </style>
-<link rel="stylesheet" href="daw.css?v=0.29.0">
-<link rel="stylesheet" href="rec.css?v=0.29.0">
-<link rel="stylesheet" href="rc.css?v=0.29.0">
-<link rel="stylesheet" href="studio.css?v=0.29.0">
+<link rel="stylesheet" href="daw.css?v=0.31.4">
+<link rel="stylesheet" href="rec.css?v=0.31.4">
+<link rel="stylesheet" href="rc.css?v=0.31.4">
+<link rel="stylesheet" href="studio.css?v=0.31.4">
 <link rel="icon" href="data:,">
 
 <!-- 0.16.0 RECORD & COMP: two-step switch (always visible) -->
@@ -407,7 +407,7 @@ nav.steps button { flex:1 0 64px; min-height:48px; }
 <button role="menuitem" data-act="howto">How recording works</button>
 <button role="menuitem" data-act="about">About this engine</button></div></div>
   </nav>
-  <div class="apptitle"><b>Playbook Vocal Studio 0.29.0</b> <span id="dawSong">·</span></div>
+  <div class="apptitle"><b>Playbook Vocal Studio 0.31.4</b> <span id="dawSong">·</span></div>
   <div class="savedind" id="dawSaved" role="status" aria-live="polite" title="Autosave on this browser"></div><div class="headright"><button class="guidebtn" id="guideBtn" aria-haspopup="dialog" aria-controls="guideSheet">✦ SMART GUIDE <span class="count" id="guideCount"></span></button><div class="chip" id="chip">Starting the engine...</div></div>
 </header>
 <div class="busybar" id="busybar"><i></i></div>
@@ -631,13 +631,17 @@ nav.steps button { flex:1 0 64px; min-height:48px; }
       <div class="row"><label class="switch"><input type="checkbox" id="chainOn" checked> Use the vocal chain</label><span class="note">Listen with <strong>FINAL</strong> on the bar below; <strong>TUNED</strong> is without the chain.</span></div>
     </div>
     <div class="rack">
-      <h2>EQ</h2>
-      <canvas id="eqCanvas" aria-label="EQ graph: drag the coloured points"></canvas>
+      <h2>EQ · Low, Mid &amp; High</h2>
+      <div class="legend" aria-label="EQ frequency bands">
+        <span><i style="background:#ff9f6b"></i>LOW (Body)</span><span><i style="background:#b48cff"></i>LOW-MID (Mud)</span><span><i style="background:#5eead4"></i>HIGH-MID (Presence)</span><span><i style="background:#6aa9ff"></i>HIGH (Air)</span>
+      </div>
+      <canvas id="eqCanvas" aria-label="EQ graph: drag the coloured frequency-band points" aria-describedby="eqGainHelp"></canvas>
       <div class="legend"><span><i style="background:rgba(163,175,185,.6)"></i>your voice before</span><span><i style="background:var(--mint)"></i>after the chain</span><span><i style="background:var(--gold)"></i>EQ curve</span><span>drag a point: left/right = frequency, up/down = boost/cut</span></div>
       <div class="bandinfo" id="bandInfo"></div>
       <div class="knobs" id="bandKnobs"></div>
+      <p class="note" id="eqGainHelp"><strong>GAIN</strong> boosts (+) or cuts (−) the selected band in dB; 0 dB leaves that band unchanged. Select a coloured point to choose its band. FREQUENCY chooses where it acts; WIDTH controls how much of the surrounding range it affects. Overall vocal loudness is controlled under Level.</p>
       <div class="knobs" id="tameKnobs"></div>
-      <p class="note">TAME BOOM and TAME HARSH are a dynamic EQ: they turn the boom range (around 250 Hz) or the harsh range (around 3 kHz) down only on the notes where it builds up. The EQ points above set the steady tone.</p>
+      <p class="note">TAME BOOM and TAME HARSH are a dynamic EQ: they turn the low-mid boom range (around 250 Hz) or the high-mid harsh range (around 3 kHz) down only on the notes where it builds up. The EQ points above set the steady tone.</p>
     </div>
     <div class="rack">
       <h2>Dynamics &amp; tone</h2>
@@ -645,11 +649,11 @@ nav.steps button { flex:1 0 64px; min-height:48px; }
       <p class="note">PEAK CONTROL is a fast first compressor that only catches sudden loud words, so COMPRESS can stay gentle: two light stages sound smoother than one hard one. WORD LEVELING gently evens out loud and quiet words before both (at most ±6 dB). Try 20–30 %.</p>
     </div>
     <div class="rack">
-      <h2>Second EQ</h2>
+      <h2>Second EQ · Low, Mid &amp; High</h2>
       <label class="switch"><input type="checkbox" id="eq2On"> Use the second EQ</label>
       <div class="knobs" id="eq2Knobs"></div>
       <details class="how" id="eq2Adv"><summary>Advanced frequencies</summary><div class="knobs" id="eq2FreqKnobs"></div></details>
-      <p class="note">Final tone shaping after compression and warmth, before echo and reverb. BODY = low shelf, MID = bell, HIGH = high shelf, each ±6 dB. Small moves (0.5–1.5 dB) are usually enough. Double-tap a gain knob for flat.</p>
+      <p class="note">Final tone shaping after compression and warmth, before echo and reverb. LOW GAIN (Body) adjusts warmth and bass; MID GAIN adjusts the middle frequencies; HIGH GAIN adjusts brightness and air. Each boosts (+) or cuts (−) its band by up to 6 dB; 0 dB is unchanged. Low and High are shelf filters; Mid is a bell. Double-tap a gain knob to return it to 0 dB.</p>
     </div>
     <div class="rack">
       <h2>Echo &amp; space</h2>
@@ -772,9 +776,9 @@ nav.steps button { flex:1 0 64px; min-height:48px; }
   <section class="page" id="page-save">
     <div class="rack">
       <h2>Save to your phone</h2>
-      <p>Each save is a ZIP holding a 24-bit WAV, the same quality as the desktop app's export. Open it with your Files app, or move it to your laptop and drop the WAV at the very start of your FL Studio playlist. It starts at 0:00, so it lines up with the beat.</p>
+      <p>Audio exports are ZIP files containing 24-bit WAV audio. Song project saves also include recordings, tracks and editable settings. Open audio exports with your Files app, or move them to your laptop and place the vocal WAV at 0:00 in your DAW to keep it aligned with the beat.</p>
       <div class="savelist">
-        <div class="saveitem"><div><b>Song project</b><p>All vocal tracks, attempts, sections and each track’s POLISH settings in one ZIP. Reopen in version 0.20.0 or newer for every track. Older versions (0.18.3) open only the Lead vocal and its sections.</p></div><button class="btn primary" id="saveProject">Save</button></div>
+        <div class="saveitem"><div><b>Song project</b><p>All vocal tracks, attempts, sections and each track’s POLISH settings in one ZIP. Reopen in version 0.31.4 or newer to retain the current cleaner, tuner, track and phrase-volume settings. Keep a separate backup before using an older version.</p></div><button class="btn primary" id="saveProject">Save</button></div>
         <div class="saveitem"><div><b>Final vocal</b><p>All your edits, cleaned, tuned and through the vocal chain (stereo, with its echo and reverb). Drop it on your beat.</p></div><button class="btn primary" data-save="final">Save</button></div>
         <div class="saveitem"><div><b>Tuned vocal (dry)</b><p>All edits, cleaned and tuned, no vocal chain. Use it if you'll add your own effects in FL Studio.</p></div><button class="btn" data-save="tuned">Save</button></div>
         <div class="saveitem"><div><b>Cleaned vocal</b><p>All edits and breath reduction, cleaned, not tuned.</p></div><button class="btn" data-save="cleaned">Save</button></div>
@@ -800,7 +804,7 @@ nav.steps button { flex:1 0 64px; min-height:48px; }
     </div>
     <div class="rack" id="resetRack">
       <h2>Start over</h2>
-      <p>Put every setting (CLEAN, TUNE, CHAIN, Second EQ &amp; limiter, the custom export choice and Smart Guide choices) back to factory defaults. Your recordings, takes and note edits are kept, and Undo brings your settings back.</p>
+      <p>Reset the original cleaner, original tuner, CHAIN, Second EQ &amp; limiter, custom export and Smart Guide settings. Studio Spectral and the Playbook Note Editor keep their own settings and Undo controls. Your recordings, takes and note edits are kept, and Undo brings your settings back.</p>
       <button class="btn" id="resetSettings">Reset all settings…</button>
       <div class="confirmbox" id="resetConfirm" hidden>
         <p><strong>Reset all settings?</strong> Your recordings, takes and note edits stay.</p>
@@ -840,7 +844,7 @@ nav.steps button { flex:1 0 64px; min-height:48px; }
 <p class="note">Use headphones to avoid backing leaking into the mic. Recording from playback uses lead-in; use a selected phrase for an exact replacement. Full instructions: START-HERE.txt.</p></div>
 <div id="helpAbout" hidden>    <div class="rack">
       <h2>Same engine as the desktop app</h2>
-      <p>Playbook Vocal Studio app version 0.29.0. It runs audio engine version 0.12.1 of the Windows app and the FL Studio plugin: Voice focus cleaning, performance edits, tuning, the vocal chain and the Smart Guide. Everything stays on your phone; nothing is uploaded.</p>
+      <p>Playbook Vocal Studio app version 0.31.0. It runs audio engine version 0.12.1 of the Windows app and the FL Studio plugin: Voice focus cleaning, performance edits, tuning, the vocal chain and the Smart Guide. Everything stays on your phone; nothing is uploaded.</p>
       <p class="note" id="engineInfo"></p>
     </div></div>
 </div></div>
@@ -1004,21 +1008,24 @@ nav.steps button { flex:1 0 64px; min-height:48px; }
   </div>
 </div>
 
-<link rel="stylesheet" href="song-studio.css?v=0.29.0">
-<link rel="stylesheet" href="quality-studio.css?v=0.29.0">
-<link rel="stylesheet" href="reference-guide.css?v=0.29.0">
-<link rel="stylesheet" href="tuner-routing.css?v=0.29.0">
-<script src="note-editor-safety.js?v=0.29.0"></script>
-<script src="finish-policy.js?v=0.29.0"></script>
-<script src="quality-core.js?v=0.29.0"></script>
-<script src="reference-core.js?v=0.29.0"></script>
-<script src="song-core.js?v=0.29.0"></script>
-<script src="tuner-routing.js?v=0.29.0"></script>
+<link rel="stylesheet" href="song-studio.css?v=0.31.4">
+<link rel="stylesheet" href="quality-studio.css?v=0.31.4">
+<link rel="stylesheet" href="reference-guide.css?v=0.31.4">
+<link rel="stylesheet" href="tuner-routing.css?v=0.31.4">
+<script src="note-editor-safety.js?v=0.31.4"></script>
+<script src="finish-policy.js?v=0.31.4"></script>
+<script src="quality-core.js?v=0.31.4"></script>
+<script src="reference-core.js?v=0.31.4"></script>
+<script src="song-core.js?v=0.31.4"></script>
+<link rel="stylesheet" href="noise-cleaner.css?v=0.31.4">
+<script src="noise-core.js?v=0.31.4"></script>
+<script src="noise-cleaner.js?v=0.31.4"></script>
+<script src="tuner-routing.js?v=0.31.4"></script>
 <script>
 // Generated by web/generate-detail-ui.py from VocalDetailSettings.h.
-const DETAIL_PARAMS=[{"id":"chRepairOn","name":"Click / plosive repair","unit":"","low":0.0,"high":1.0,"step":1.0,"initial":0.0,"group":0,"toggle":true,"advanced":false},{"id":"chRepairClicks","name":"Click sensitivity","unit":"%","low":0.0,"high":100.0,"step":1.0,"initial":35.0,"group":0,"toggle":false,"advanced":false},{"id":"chRepairPlosives","name":"Plosive reduction","unit":"%","low":0.0,"high":100.0,"step":1.0,"initial":40.0,"group":0,"toggle":false,"advanced":false},{"id":"chRoomReduceOn","name":"Gentle de-reverb","unit":"","low":0.0,"high":1.0,"step":1.0,"initial":0.0,"group":1,"toggle":true,"advanced":false},{"id":"chRoomReduce","name":"Room-tail reduction","unit":"%","low":0.0,"high":100.0,"step":1.0,"initial":30.0,"group":1,"toggle":false,"advanced":false},{"id":"chRoomDecay","name":"Room decay estimate","unit":"ms","low":100.0,"high":700.0,"step":10.0,"initial":300.0,"group":1,"toggle":false,"advanced":true},{"id":"chPrecisionOn","name":"Precision dynamic EQ","unit":"","low":0.0,"high":1.0,"step":1.0,"initial":0.0,"group":2,"toggle":true,"advanced":false},{"id":"chPrecisionMud","name":"Mud maximum cut","unit":"dB","low":0.0,"high":6.0,"step":0.1,"initial":3.0,"group":2,"toggle":false,"advanced":false},{"id":"chPrecisionNasal","name":"Nasal maximum cut","unit":"dB","low":0.0,"high":6.0,"step":0.1,"initial":3.0,"group":2,"toggle":false,"advanced":false},{"id":"chPrecisionHarsh","name":"Harsh maximum cut","unit":"dB","low":0.0,"high":6.0,"step":0.1,"initial":3.0,"group":2,"toggle":false,"advanced":false},{"id":"chPrecisionMudHz","name":"Mud frequency","unit":"Hz","low":120.0,"high":600.0,"step":1.0,"initial":250.0,"group":2,"toggle":false,"advanced":true},{"id":"chPrecisionNasalHz","name":"Nasal frequency","unit":"Hz","low":500.0,"high":1800.0,"step":1.0,"initial":900.0,"group":2,"toggle":false,"advanced":true},{"id":"chPrecisionHarshHz","name":"Harsh frequency","unit":"Hz","low":1800.0,"high":6500.0,"step":10.0,"initial":3200.0,"group":2,"toggle":false,"advanced":true},{"id":"chPrecisionQ","name":"Band width (Q)","unit":"","low":0.5,"high":4.0,"step":0.05,"initial":1.3,"group":2,"toggle":false,"advanced":true},{"id":"chPrecisionTrigger","name":"Rise above usual balance","unit":"dB","low":0.0,"high":8.0,"step":0.1,"initial":2.0,"group":2,"toggle":false,"advanced":true},{"id":"chPrecisionAttack","name":"EQ attack","unit":"ms","low":2.0,"high":40.0,"step":1.0,"initial":8.0,"group":2,"toggle":false,"advanced":true},{"id":"chPrecisionRelease","name":"EQ release","unit":"ms","low":40.0,"high":400.0,"step":5.0,"initial":120.0,"group":2,"toggle":false,"advanced":true},{"id":"chReverbDuckOn","name":"Reverb ducking","unit":"","low":0.0,"high":1.0,"step":1.0,"initial":0.0,"group":3,"toggle":true,"advanced":false},{"id":"chReverbDuck","name":"Reverb dip","unit":"dB","low":0.0,"high":18.0,"step":0.5,"initial":9.0,"group":3,"toggle":false,"advanced":false},{"id":"chReverbRelease","name":"Reverb recovery","unit":"ms","low":100.0,"high":800.0,"step":10.0,"initial":300.0,"group":3,"toggle":false,"advanced":true},{"id":"chReverbPre","name":"Reverb pre-delay","unit":"ms","low":0.0,"high":100.0,"step":1.0,"initial":22.0,"group":3,"toggle":false,"advanced":true},{"id":"chDoubleOn","name":"Vocal doubler","unit":"","low":0.0,"high":1.0,"step":1.0,"initial":0.0,"group":4,"toggle":true,"advanced":false},{"id":"chDoubleMix","name":"Double blend","unit":"%","low":0.0,"high":25.0,"step":1.0,"initial":12.0,"group":4,"toggle":false,"advanced":false},{"id":"chDoubleWidth","name":"Double width","unit":"%","low":0.0,"high":100.0,"step":1.0,"initial":80.0,"group":4,"toggle":false,"advanced":false},{"id":"chDoubleCents","name":"Double variation","unit":"cents","low":0.0,"high":12.0,"step":0.5,"initial":6.0,"group":4,"toggle":false,"advanced":true},{"id":"chDoubleDelay","name":"Double separation","unit":"ms","low":12.0,"high":35.0,"step":1.0,"initial":22.0,"group":4,"toggle":false,"advanced":true}];
+const DETAIL_PARAMS=[{"id":"chRepairOn","name":"Click / plosive repair","unit":"","low":0.0,"high":1.0,"step":1.0,"initial":0.0,"group":0,"toggle":true,"advanced":false},{"id":"chRepairClicks","name":"Click sensitivity","unit":"%","low":0.0,"high":100.0,"step":1.0,"initial":35.0,"group":0,"toggle":false,"advanced":false},{"id":"chRepairPlosives","name":"Plosive reduction","unit":"%","low":0.0,"high":100.0,"step":1.0,"initial":40.0,"group":0,"toggle":false,"advanced":false},{"id":"chRoomReduceOn","name":"Gentle de-reverb","unit":"","low":0.0,"high":1.0,"step":1.0,"initial":0.0,"group":1,"toggle":true,"advanced":false},{"id":"chRoomReduce","name":"Room-tail reduction","unit":"%","low":0.0,"high":100.0,"step":1.0,"initial":30.0,"group":1,"toggle":false,"advanced":false},{"id":"chRoomDecay","name":"Room decay estimate","unit":"ms","low":100.0,"high":700.0,"step":10.0,"initial":300.0,"group":1,"toggle":false,"advanced":true},{"id":"chPrecisionOn","name":"Precision dynamic EQ","unit":"","low":0.0,"high":1.0,"step":1.0,"initial":0.0,"group":2,"toggle":true,"advanced":false},{"id":"chPrecisionMud","name":"Low-mid maximum cut (mud)","unit":"dB","low":0.0,"high":6.0,"step":0.1,"initial":3.0,"group":2,"toggle":false,"advanced":false},{"id":"chPrecisionNasal","name":"Mid maximum cut (nasal)","unit":"dB","low":0.0,"high":6.0,"step":0.1,"initial":3.0,"group":2,"toggle":false,"advanced":false},{"id":"chPrecisionHarsh","name":"High-mid maximum cut (harsh)","unit":"dB","low":0.0,"high":6.0,"step":0.1,"initial":3.0,"group":2,"toggle":false,"advanced":false},{"id":"chPrecisionMudHz","name":"Low-mid frequency (mud)","unit":"Hz","low":120.0,"high":600.0,"step":1.0,"initial":250.0,"group":2,"toggle":false,"advanced":true},{"id":"chPrecisionNasalHz","name":"Mid frequency (nasal)","unit":"Hz","low":500.0,"high":1800.0,"step":1.0,"initial":900.0,"group":2,"toggle":false,"advanced":true},{"id":"chPrecisionHarshHz","name":"High-mid frequency (harsh)","unit":"Hz","low":1800.0,"high":6500.0,"step":10.0,"initial":3200.0,"group":2,"toggle":false,"advanced":true},{"id":"chPrecisionQ","name":"Band width (Q)","unit":"","low":0.5,"high":4.0,"step":0.05,"initial":1.3,"group":2,"toggle":false,"advanced":true},{"id":"chPrecisionTrigger","name":"Rise above usual balance","unit":"dB","low":0.0,"high":8.0,"step":0.1,"initial":2.0,"group":2,"toggle":false,"advanced":true},{"id":"chPrecisionAttack","name":"EQ attack","unit":"ms","low":2.0,"high":40.0,"step":1.0,"initial":8.0,"group":2,"toggle":false,"advanced":true},{"id":"chPrecisionRelease","name":"EQ release","unit":"ms","low":40.0,"high":400.0,"step":5.0,"initial":120.0,"group":2,"toggle":false,"advanced":true},{"id":"chReverbDuckOn","name":"Reverb ducking","unit":"","low":0.0,"high":1.0,"step":1.0,"initial":0.0,"group":3,"toggle":true,"advanced":false},{"id":"chReverbDuck","name":"Reverb dip","unit":"dB","low":0.0,"high":18.0,"step":0.5,"initial":9.0,"group":3,"toggle":false,"advanced":false},{"id":"chReverbRelease","name":"Reverb recovery","unit":"ms","low":100.0,"high":800.0,"step":10.0,"initial":300.0,"group":3,"toggle":false,"advanced":true},{"id":"chReverbPre","name":"Reverb pre-delay","unit":"ms","low":0.0,"high":100.0,"step":1.0,"initial":22.0,"group":3,"toggle":false,"advanced":true},{"id":"chDoubleOn","name":"Vocal doubler","unit":"","low":0.0,"high":1.0,"step":1.0,"initial":0.0,"group":4,"toggle":true,"advanced":false},{"id":"chDoubleMix","name":"Double blend","unit":"%","low":0.0,"high":25.0,"step":1.0,"initial":12.0,"group":4,"toggle":false,"advanced":false},{"id":"chDoubleWidth","name":"Double width","unit":"%","low":0.0,"high":100.0,"step":1.0,"initial":80.0,"group":4,"toggle":false,"advanced":false},{"id":"chDoubleCents","name":"Double variation","unit":"cents","low":0.0,"high":12.0,"step":0.5,"initial":6.0,"group":4,"toggle":false,"advanced":true},{"id":"chDoubleDelay","name":"Double separation","unit":"ms","low":12.0,"high":35.0,"step":1.0,"initial":22.0,"group":4,"toggle":false,"advanced":true}];
 const DETAIL_NAMES=["Click / plosive repair", "Gentle de-reverb", "Precision dynamic EQ", "Reverb ducking", "Vocal doubler"];
-const DETAIL_HELP=["Before tuning: reduces isolated clicks and sudden low-frequency puffs. Start low. Listen to Removed for consonants or low notes being taken away.", "Before tuning: reduces declining room tails, up to 6 dB. Reverb under sustained singing may remain. Stop if endings sound gated or watery.", "After the first EQ: dips mud, nasal or harsh bands only when they rise above their usual balance. Turn down the older Tame controls if the voice becomes thin.", "Lowers only the added reverb while you sing, then lets it recover. Set a REVERB amount in CHAIN first. Pre-delay separates the words from the room.", "Adds two quiet, slightly changing delayed copies around the centre vocal. Keep the blend low and check Mono. This adds thickness, not noise repair."];
+const DETAIL_HELP=["Before tuning: reduces isolated clicks and sudden low-frequency puffs. Start low. Listen to Removed for consonants or low notes being taken away.", "Before tuning: reduces declining room tails, up to 6 dB. Reverb under sustained singing may remain. Stop if endings sound gated or watery.", "After the first EQ: dips low-mid (mud), mid (nasal) or high-mid (harsh) bands only when they rise above their usual balance. Turn down the older Tame controls if the voice becomes thin.", "Lowers only the added reverb while you sing, then lets it recover. Set a REVERB amount in CHAIN first. Pre-delay separates the words from the room.", "Adds two quiet, slightly changing delayed copies around the centre vocal. Keep the blend low and check Mono. This adds thickness, not noise repair."];
 
 // Shared by audio, custom export and song projects. The browser cannot confirm that
 // a file reached disk, so its result deliberately says "Download requested".
@@ -1162,8 +1169,8 @@ const songSeconds = () => S.original ? S.original.length / S.rate : 0;
 
 // ---------------------------------------------------------------- engine (worker)
 // 0.17.2: the app and the audio engine have separate version numbers
-var APP_VERSION="0.29.0",ENGINE_VERSION="0.12.1";
-const worker = new Worker("worker.js?v=0.29.0");
+var APP_VERSION="0.31.4",ENGINE_VERSION="0.12.1";
+const worker = new Worker("worker.js?v=0.31.4");
 let reqId = 0, engineFailure = null; const pending = {};
 worker.onmessage = ({ data: m }) => {
   if (m.type === "ready") $("engineInfo").textContent = "App version: "+APP_VERSION+" · Audio engine version: "+ENGINE_VERSION+" (WebAssembly, the same audio code as the Windows app, with Voice focus).";
@@ -1178,7 +1185,7 @@ function failEngine(message) {
 worker.onerror = e => failEngine(e.message || "The audio engine stopped. Reload this page and reopen your vocal.");
 worker.onmessageerror = () => failEngine("The audio engine could not return your audio. Reload this page.");
 function engineRaw(msg, transfer) { return new Promise((resolve, reject) => { if (engineFailure) return reject(engineFailure); msg.id = ++reqId; pending[msg.id] = { resolve, reject }; try { worker.postMessage(msg, transfer || []); } catch (err) { delete pending[msg.id]; reject(err); } }); }
-function engine(msg,transfer){return NoteTuner.dispatch(msg,transfer,engineRaw);}
+function engine(msg,transfer){return NoteTuner.dispatch(msg,transfer,(m,t)=>NoiseCleaner.dispatch(m,t,engineRaw));}
 let queue = Promise.resolve();
 const run = (fn, propagate = false) => {
   const job = queue.then(fn); queue = job.catch(err => { setStatus("Problem: " + err.message, "warn"); setBusy(false); });
@@ -1291,7 +1298,7 @@ S.guidePrefs = { enabled: true, concern: 0, goal: 0, bpm: 75, sync: false };
 S.mix = { fit: true, over: 1, room: 0.5 }; S.fitBeat = null; S.fitInfo = null;
 function openVocal(samples, rate, name, isSample, importKind=0) {
   const inputChannels=asChannels(samples);if(inputChannels.length===2&&inputChannels[0].length>SongCore.ENGINE.stereoFrames)throw Error("This stereo vocal exceeds the supported POLISH limit of "+(SongCore.ENGINE.stereoFrames/rate).toFixed(1)+" seconds at this sample rate. Use a shorter stereo section or explicitly choose a mono version in the track settings. The original recordings are kept.");
-  NoteTuner.begin(null,true,name);
+  NoteTuner.begin(null,!importKind,name);
   prepareSongChange(); S.loading = "Processing " + name + "…"; S.loadError = ""; renderOpen();
   return run(async () => {
     stopPlayback(); setBusy(true);
@@ -1376,7 +1383,7 @@ $("beatLevel").oninput = () => {
   if(rec&&rec.beatGain)rec.beatGain.gain.setTargetAtTime(S.beatLevel,audioCtx().currentTime,.02);
   for(const g of beatGains)g.gain.setTargetAtTime(S.beatLevel*(typeof dawBeatGain==="function"?dawBeatGain():1),audioCtx().currentTime,.02);
 };
-function sessionLocked() { return !!(S.busy||S.dirty||S.loading||S.beatLoading||S.referenceLoading||S.referenceWorking||S.recStarting||S.phraseWorking||S.songWorking||rec||NoteTuner.failed()||NoteTuner.pending()); }
+function sessionLocked() { return !!(S.busy||S.dirty||S.loading||S.beatLoading||S.referenceLoading||S.referenceWorking||S.recStarting||S.phraseWorking||S.songWorking||rec||NoteTuner.failed()||NoteTuner.pending()||NoiseCleaner.locked()); }
 function renderOpen() {
   const locked=sessionLocked(),has=!!S.main,phraseAttempts=S.phrases?.phrases.reduce((n,p)=>n+p.takes.length,0)||0;
   $("songName").textContent = has ? S.name : phraseAttempts?phraseAttempts+" takes on RECORD & COMP":"No vocal loaded";
@@ -2076,16 +2083,16 @@ const PRESET_HELP = ["Warm body, clear words, a dub-style echo and a short room.
   "Bright and upfront: more air and presence, firmer compression, a short slap echo and a bigger space.",
   "Close and soft: extra warmth and body, gentle compression, a small room and no echo.",
   "Clean, dry vocal for mixing in FL Studio: EQ, de-ess and compression only, no echo or reverb.",
-  "A conservative starting point: no tonal EQ, compression or added space; tuning off. Cleaning is bypassed for a low or unavailable noise estimate, otherwise Gentle spectral starts at 6 dB. Existing breath edits stay as you chose them. The limiter uses −1.6 dB headroom. Compare before keeping these settings."];
+  "A conservative starting point: no tonal EQ, compression or added space; tuning off. Cleaning is bypassed for a low or unavailable noise estimate, otherwise Gentle spectral starts at 6 dB. Note Editor and Studio Spectral choices stay as you set them. Existing breath edits stay as you chose them. The limiter uses −1.6 dB headroom. Compare before keeping these settings."];
 const PRESET_NAMES = ["Roots Reggae", "Modern Pop", "Warm & Intimate", "Dry Stem", "Clean & Natural"];
-// 0.29.0 starting point for audition; not an approved universal vocal preset.
+// 0.31.0 starting point for audition; not an approved universal vocal preset.
 function cleanNaturalSteps() {
   const steps = [["pushUndo"], ["preset", 4], ...FinishPolicy.steps(FinishPolicy.cleaning(S.st?.report,S.P.importKind>.5))];
   for (const [id, v] of [["chainOn", 1], ["amount", 0], ["drift", 0], ["keepInTune", 1], ["followSinging", 1],
     ["chToneBypass", 1], ["chLimitBypass", 0], ["chLimitCeiling", FinishPolicy.ceiling], ["chLimitAuto", 1]]) { steps.push(["set", id, v]); S.P[id] = v; }
   return steps;
 }
-const BANDS = [{ name: "BODY", color: "#ff9f6b" }, { name: "MUD", color: "#b48cff" }, { name: "PRESENCE", color: "#5eead4" }, { name: "AIR", color: "#6aa9ff" }];
+const BANDS = [{ name: "LOW (BODY)", color: "#ff9f6b" }, { name: "LOW-MID (MUD)", color: "#b48cff" }, { name: "HIGH-MID (PRESENCE)", color: "#5eead4" }, { name: "HIGH (AIR)", color: "#6aa9ff" }];
 let chainEdited = false;
 const pct = v => Math.round(v) + " %";
 const chainKnob = (host, label, color, min, max, step, id, scale, format) => new Knob(host, { label, color, min, max, step, value: min, format,
@@ -2118,12 +2125,12 @@ function finKnob(host, label, color, min, max, step, id, format, auto, map) {
 }
 const MAP_BODY = logMap(60, 600), MAP_MID = logMap(200, 5000), MAP_HIGH = logMap(2000, 16000), MAP_Q = logMap(0.3, 4);
 const eq2Knobs = {
-  body: finKnob($("eq2Knobs"), "BODY", "#ff9f6b", -6, 6, 0.25, "chToneBodyGain", fmtDb, 0),
-  mid: finKnob($("eq2Knobs"), "MID", "var(--mint)", -6, 6, 0.25, "chToneMidGain", fmtDb, 0),
-  high: finKnob($("eq2Knobs"), "HIGH", "#6aa9ff", -6, 6, 0.25, "chToneHighGain", fmtDb, 0)
+  body: finKnob($("eq2Knobs"), "LOW GAIN", "#ff9f6b", -6, 6, 0.25, "chToneBodyGain", fmtDb, 0),
+  mid: finKnob($("eq2Knobs"), "MID GAIN", "var(--mint)", -6, 6, 0.25, "chToneMidGain", fmtDb, 0),
+  high: finKnob($("eq2Knobs"), "HIGH GAIN", "#6aa9ff", -6, 6, 0.25, "chToneHighGain", fmtDb, 0)
 };
 const eq2FreqKnobs = {
-  body: finKnob($("eq2FreqKnobs"), "BODY FREQ", "#ff9f6b", 0, 1000, 1, "chToneBodyFreq", fmtHz, 180, MAP_BODY),
+  body: finKnob($("eq2FreqKnobs"), "LOW FREQ", "#ff9f6b", 0, 1000, 1, "chToneBodyFreq", fmtHz, 180, MAP_BODY),
   mid: finKnob($("eq2FreqKnobs"), "MID FREQ", "var(--mint)", 0, 1000, 1, "chToneMidFreq", fmtHz, 1000, MAP_MID),
   q: finKnob($("eq2FreqKnobs"), "MID WIDTH (Q)", "var(--mint)", 0, 1000, 1, "chToneMidQ", q => q.toFixed(2), 1, MAP_Q),
   high: finKnob($("eq2FreqKnobs"), "HIGH FREQ", "#6aa9ff", 0, 1000, 1, "chToneHighFreq", fmtHz, 8000, MAP_HIGH)
@@ -2176,7 +2183,7 @@ const BAND_TYPE = [1, 0, 0, 2];
 const bandKnobs = {
   freq: new Knob($("bandKnobs"), { label: "FREQUENCY", color: "var(--gold)", min: 0, max: 1000, step: 1, value: 500, format: v => fmtHz(sliderToHz(v)),
     onChange: (v, c) => { S.P[bandId(selBand, "Freq")] = sliderToHz(v); chainEdited = true; drawEq(); syncBandInfo(); if (c) setP(bandId(selBand, "Freq"), sliderToHz(v), 250); } }),
-  gain: new Knob($("bandKnobs"), { label: "BOOST / CUT", color: "var(--gold)", min: -12, max: 12, step: 0.5, value: 0, format: v => (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v).toFixed(1) + " dB",
+  gain: new Knob($("bandKnobs"), { label: "GAIN", color: "var(--gold)", min: -12, max: 12, step: 0.5, value: 0, format: v => (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v).toFixed(1) + " dB",
     onChange: (v, c) => { S.P[bandId(selBand, "Gain")] = v; chainEdited = true; drawEq(); syncBandInfo(); if (c) setP(bandId(selBand, "Gain"), v, 250); } }),
   q: new Knob($("bandKnobs"), { label: "WIDTH", color: "var(--gold)", min: 0, max: 100, step: 1, value: 50, format: v => { const q = sliderToQ(v); return q < 0.8 ? "Wide" : q < 2 ? "Medium" : "Narrow"; },
     onChange: (v, c) => { S.P[bandId(selBand, "Q")] = sliderToQ(v); chainEdited = true; drawEq(); syncBandInfo(); if (c) setP(bandId(selBand, "Q"), sliderToQ(v), 250); } })
@@ -2184,7 +2191,7 @@ const bandKnobs = {
 function syncBandInfo() {
   const P = S.P; if (P.chEq0Freq == null) return;
   const b = selBand, type = BAND_TYPE[b], g = P[bandId(b, "Gain")];
-  $("bandInfo").innerHTML = `<b style="color:${BANDS[b].color}">${BANDS[b].name}</b> · ${fmtHz(P[bandId(b, "Freq")])} · ${g > 0 ? "+" : g < 0 ? "−" : ""}${Math.abs(g).toFixed(1)} dB · ${type === 1 ? "low shelf" : type === 2 ? "high shelf" : "bell"}`;
+  $("bandInfo").innerHTML = `<b style="color:${BANDS[b].color}">${BANDS[b].name}</b> · ${fmtHz(P[bandId(b, "Freq")])} · Gain ${g > 0 ? "+" : g < 0 ? "−" : ""}${Math.abs(g).toFixed(1)} dB · ${type === 1 ? "low shelf" : type === 2 ? "high shelf" : "bell"}`;
   bandKnobs.q.enable(type === 0 && P.chainOn > .5);
 }
 function syncChain() {
@@ -2210,7 +2217,7 @@ function syncChainText() {
 }
 for (const b of document.querySelectorAll("#presetSeg button")) b.onclick = () => {
   const p = +b.dataset.preset; chainEdited = false; S.P.chainPreset = p;
-  if (p === 4) { change(cleanNaturalSteps(), 30); setStatus("Clean & Natural: Voice focus 15 dB, tuning off, breaths down 8 dB, your tone untouched.", "busy"); syncControls(); }
+  if (p === 4) { change(cleanNaturalSteps(), 30); setStatus(NoteTuner.enabled()?"Clean & Natural: conservative effects. Your noise-removal and note-editor choices are kept.":"Clean & Natural: conservative cleaning, automatic tuning off, existing breath edits kept.", "busy"); syncControls(); }
   else change([["preset", p]], 30);
   syncChain(); };
 $("chainOn").onchange = () => { setP("chainOn", $("chainOn").checked ? 1 : 0); syncChain(); };
@@ -2281,7 +2288,7 @@ function drawEq() {
 // ---------------------------------------------------------------- SMART GUIDE
 const PARAM_NAMES = { cleanOn: "CLEAN", cleanAmount: "Noise reduction", cleanSens: "Sensitivity", style: "Tuning style", amount: "Pitch correction", speed: "Note speed", drift: "Steady notes", noteVibrato: "This note's vibrato",
   chDeEss: "De-ess", chCompress: "Compression", chLevelRide: "Word leveling", chPeak: "Peak control", chEchoDuck: "Echo duck", chBoomTame: "Tame boom", chHarshTame: "Tame harsh", chEchoMs: "Echo time", chReverb: "Reverb", chLevel: "Vocal level",
-  chToneBodyGain: "Second EQ body", chToneMidGain: "Second EQ mid", chToneHighGain: "Second EQ high", chLimitCeiling: "Limiter ceiling" };
+  chToneBodyGain: "Second EQ low gain (body)", chToneMidGain: "Second EQ mid gain", chToneHighGain: "Second EQ high gain", chLimitCeiling: "Limiter ceiling" };
 function changeValue(id, v) {
   if (id === "cleanOn") return v > .5 ? "On" : "Off";
   if (id === "style") return ["Natural", "Polished", "Hard Tune"][Math.round(v)] || v;
@@ -2514,19 +2521,26 @@ $("resetSettings").onclick = () => { $("resetConfirm").hidden = false; $("resetY
 $("resetNo").onclick = () => { $("resetConfirm").hidden = true; };
 $("resetYes").onclick = () => {
   $("resetConfirm").hidden = true; endLoop(); chainEdited = false;
-  run(async () => { await exec([["resetSettings"], ...FinishPolicy.steps(FinishPolicy.cleaning(S.st?.report,S.P.importKind>.5))], true); S.mix.fit = S.P.chMixFit > .5; S.mix.over = +S.P.chMixOver; S.mix.room = +S.P.chMixRoom; syncMix(); scheduleFit(50); persist(); toast("Reset done", "Every setting is back to starting settings (conservative cleaning, the detected key). Your recordings, takes and note edits are kept. Undo brings your settings back.", 9000); });
+  run(async () => { await exec([["resetSettings"], ...FinishPolicy.steps(FinishPolicy.cleaning(S.st?.report,S.P.importKind>.5))], true); S.mix.fit = S.P.chMixFit > .5; S.mix.over = +S.P.chMixOver; S.mix.room = +S.P.chMixRoom; syncMix(); scheduleFit(50); persist(); toast("Reset done", "Original cleaner, original tuner and vocal-chain settings are back to their starting values. Studio Spectral and note-editor settings are kept. Your recordings, takes and note edits are kept. Undo brings your settings back.", 9000); });
 };
 function updateSettingsText() {
   const P = S.P; if (P.cleanMode == null) return;
   const e = S.st ? S.st.edits : { breaths: [], timing: [], comp: [] }, hand = S.notes.filter(n => n.manual || Math.abs(n.gain) > 0.01 || !n.enabled).length;
-  const band = b => { const g = P[bandId(b, "Gain")]; return (BANDS[b].name + "          ").slice(0, 9) + fmtHz(P[bandId(b, "Freq")]) + "  " + (g > 0 ? "+" : "") + g.toFixed(1) + " dB" + (BAND_TYPE[b] === 0 ? "  Q " + P[bandId(b, "Q")].toFixed(2) : ""); };
+  const band = b => { const g = P[bandId(b, "Gain")]; return BANDS[b].name.padEnd(23, " ") + fmtHz(P[bandId(b, "Freq")]) + "  " + (g > 0 ? "+" : "") + g.toFixed(1) + " dB" + (BAND_TYPE[b] === 0 ? "  Q " + P[bandId(b, "Q")].toFixed(2) : ""); };
   $("settingsText").textContent =
 `PERFORMANCE  ${e.breaths.length} breath, ${e.timing.length} timing, ${e.comp.length} comp edits${S.takes.length > 1 ? " (" + (S.takes.length - 1) + " extra takes)" : ""}
-CLEAN   ${P.cleanOn > .5 ? "on" : "off"} · ${P.cleanMode > .5 ? "Voice focus" : "Gentle spectral"}
+${NoiseCleaner.active()?`CLEAN   ${NoiseCleaner.state().on?'on':'bypassed'} · Studio Spectral
+  Maximum reduction ${NoiseCleaner.state().reduction} dB
+  Noise threshold   ${NoiseCleaner.state().sensitivity} dB
+  Smoothing         ${NoiseCleaner.state().smoothing}
+  Vocal protection  ${NoiseCleaner.state().protect}
+  Rumble high-pass  ${NoiseCleaner.state().highpass} Hz
+  Hum               ${NoiseCleaner.state().hum||'off'}
+  Noise profile     ${NoiseCleaner.state().profile?.kind||'not captured'}`:`CLEAN   ${P.cleanOn > .5 ? "on" : "off"} · ${P.cleanMode > .5 ? "Voice focus" : "Gentle spectral"}
   Noise reduction  ${(+P.cleanAmount).toFixed(1)} dB
   Sensitivity      ${Math.round(P.cleanSens)} %${P.cleanMode > .5 ? " (not used by Voice focus)" : ""}
   Rumble filter    ${P.rumble < 1 ? "off" : Math.round(P.rumble) + " Hz"}
-  Hum filter       ${["Automatic", "50 Hz filter", "60 Hz filter"][P.humFilter]}
+  Hum filter       ${["Automatic", "50 Hz filter", "60 Hz filter"][P.humFilter]}`}
 TUNE
   Key / scale      ${SHORT[P.key]} ${SCALES[P.scale]}
   Style            ${["Natural", "Polished", "Hard Tune"][P.style]}
@@ -2558,7 +2572,7 @@ CHAIN   ${P.chainOn < .5 ? "off" : PRESET_NAMES[Math.round(P.chainPreset)] + (ch
   Warmth           ${Math.round(P.chWarmth * 100)} %
   Echo             ${Math.round(P.chEcho * 100)} %, ${Math.round(P.chEchoMs)} ms, repeats ${Math.round(P.chRepeats * 100)} %, duck ${Math.round(P.chEchoDuck * 100)} %
   Reverb           ${Math.round(P.chReverb * 100)} %, room ${Math.round(P.chRoom * 100)} %
-  Second EQ        ${P.chToneBypass > .5 ? "bypassed" : "body " + fmtDb(+P.chToneBodyGain) + " @ " + fmtHz(P.chToneBodyFreq) + ", mid " + fmtDb(+P.chToneMidGain) + " @ " + fmtHz(P.chToneMidFreq) + " Q " + (+P.chToneMidQ).toFixed(2) + ", high " + fmtDb(+P.chToneHighGain) + " @ " + fmtHz(P.chToneHighFreq)}
+  Second EQ        ${P.chToneBypass > .5 ? "bypassed" : "low gain (body) " + fmtDb(+P.chToneBodyGain) + " @ " + fmtHz(P.chToneBodyFreq) + ", mid gain " + fmtDb(+P.chToneMidGain) + " @ " + fmtHz(P.chToneMidFreq) + " Q " + (+P.chToneMidQ).toFixed(2) + ", high gain " + fmtDb(+P.chToneHighGain) + " @ " + fmtHz(P.chToneHighFreq)}
   Vocal level      ${(+P.chLevel).toFixed(1)} LUFS
   Output limiter   ${P.chLimitBypass > .5 ? "bypassed" : "ceiling " + (+P.chLimitCeiling).toFixed(1) + " dBTP, release " + (P.chLimitAuto > .5 ? "automatic" : Math.round(P.chLimitRelease) + " ms")}
 MIX WITH BEAT  ${S.mix.fit ? "fit on: vocal " + S.mix.over.toFixed(1) + " dB above the beat, make room " + Math.round(S.mix.room * 100) + " %" : "off"}`;
@@ -2652,7 +2666,7 @@ async function saveProject(opts) {
   const base = safeName(S.song?.title||(phraseOnly?phraseWorkspace().title:S.name)), srcName = base + " - phone source.wav", src = wavFloat(phraseWorkspaceAudio||S.audio[5]||S.main, phraseOnly?(S.song?.rate||phraseWorkspace().rate):S.rate), files = [{ name: srcName, data: src }];
   const takes = S.takes.slice(1).map((t, i) => { const name = base + " - take " + (i + 1) + ".wav", data = wavFloat(S.takeChannels[i+1]||t, S.rate); files.push({ name, data }); return { file: name, bytes: data.length, trim: 0, pad: 0 }; });
   const g = S.guide || {}, P = { ...S.P, chMixFit: S.mix.fit ? 1 : 0, chMixOver: S.mix.over, chMixRoom: S.mix.room };
-  const root = { format: "Playbook Vocal Studio", version: 9, savedBy: "Playbook Vocal Studio 0.29.0 (phone DAW)",
+  const root = { format: "Playbook Vocal Studio", version: 9, savedBy: "Playbook Vocal Studio 0.31.4 (phone DAW)",
     smartGuide: { enabled: !!S.guidePrefs.enabled, concern: S.guidePrefs.concern || 0, goal: S.guidePrefs.goal, bpm: S.guidePrefs.bpm, tempoSync: !!S.guidePrefs.sync, locked: g.locked || [], dismissed: g.dismissed || {} },
     performance: S.st?.edits||{breaths:[],timing:[],comp:[]}, notePerformance: S.st?.edits||{breaths:[],timing:[],comp:[]}, alternateTakes: takes,
     source: srcName, sourceBytes: src.length, trim: 0, pad: 0, take: false };
@@ -2667,7 +2681,7 @@ async function saveProject(opts) {
   if(!compat&&S.main&&S.song){const lt=S.song.tracks.find(t=>t.id===S.song.polishTrack),pc=lt?.polish?.session?.pcm,cur=S.audio[5]||[S.main];if(lt&&Array.isArray(pc)&&SongCore.polishValid(S.song,lt)&&SongCore.samePcm(pc,cur)){const f=files.find(f=>f.name===srcName);if(f)files.splice(files.indexOf(f),1);root.source=null;root.sourceLane=lt.id;delete root.sourceBytes;}}
   root.backupKind=compat?"compatibility":"modern";
   files.unshift({ name: base + ".pbv", data: new TextEncoder().encode(JSON.stringify(root, null, 1)) });
-  files.push({ name: "READ-ME.txt", data: new TextEncoder().encode((compat?"Playbook Vocal Studio song project, COMPATIBILITY backup (saved on the phone, 0.29.0). It also contains copies for older versions (0.18.3 parts).":"Playbook Vocal Studio song project (saved on the phone, 0.29.0). Modern backup: open it in Playbook Vocal Studio 0.29.0 or newer. Older versions need a Compatibility backup (Export song > Compatibility backup).")+"\r\n\r\nOn the laptop: extract this ZIP into its own folder, keep the files together, then use Open project in the Windows app or FL Studio plugin (0.9.8 or newer) and choose " + base + ".pbv.\r\nOpen multitrack projects in Playbook Vocal Studio 0.29.0 or newer to retain separate tracks, sections, attempts, per-track POLISH and phrase-volume moves (0.24 and earlier may not restore 0.25 POLISH preferences). Older apps open only the last POLISH vocal and will lose the multitrack data if you save over this project. Keep this original ZIP.\r\nOn the phone: SONG PROJECT > Open a song project, then pick this ZIP.\r\n") });
+  files.push({ name: "READ-ME.txt", data: new TextEncoder().encode((compat?"Playbook Vocal Studio song project, COMPATIBILITY backup (saved on the phone, 0.31.4). It also contains copies for older versions (0.18.3 parts).":"Playbook Vocal Studio song project (saved on the phone, 0.31.4). Modern backup: open it in Playbook Vocal Studio 0.31.4 or newer. Older versions need a Compatibility backup (Export song > Compatibility backup).")+"\r\n\r\nOn the laptop: extract this ZIP into its own folder, keep the files together, then use Open project in the Windows app or FL Studio plugin (0.9.8 or newer) and choose " + base + ".pbv.\r\nOpen multitrack projects in Playbook Vocal Studio 0.31.4 or newer to retain separate tracks, sections, attempts, per-track POLISH and phrase-volume moves (0.24 and earlier may not restore 0.25 POLISH preferences). Older apps open only the last POLISH vocal and will lose the multitrack data if you save over this project. Keep this original ZIP.\r\nOn the phone: SONG PROJECT > Open a song project, then pick this ZIP.\r\n") });
   let data;try{data=zip(files);}catch(err){return done(false,"failed","Couldn't save: the project could not be prepared ("+(err&&err.message||"unknown problem")+").");}
   try { const result = await saveDownload(base + (compat?" - song project (compatibility).zip":" - song project.zip"), data); const r=done(true,result==="Saved"?"saved":"requested",result + ": " + base + " - song project.zip. " + whereSaved()); toast(result, base + " - song project.zip. " + whereSaved()); return r; }
   catch (err) { return err && err.code === "declined" ? done(false,"cancelled","Not saved.") : done(false,"failed","Couldn't save: " + (err && err.message || "unknown problem") + "."); }
@@ -3103,7 +3117,7 @@ function phraseAdjust(id,field,value){if(phraseBusy())return;const p=selectedPhr
 function phraseSafeGain(channels){let peak=0;for(const c of channels)for(const x of c)peak=Math.max(peak,Math.abs(x));return peak>.891251?.891251/peak:1;}
 async function phraseListen(id){if(phraseBusy())return;try{const w=phraseWorkspace(),p=selectedPhrase();let channels,start=0,end,rate=w.rate,gain=1;if(id){const t=p?.takes.find(t=>t.id===id);if(!t)return;const excerpt=PhraseCore.audition(t,p);channels=excerpt;start=p.start;end=channels[0].length/rate;gain=PhraseCore.matchGains(p)[id]||phraseSafeGain(channels);}else{channels=PhraseCore.compose(w);end=channels[0].length/rate;gain=phraseSafeGain(channels);start=0;}if(!end)throw new Error('No audio in this phrase.');endLoop();loop={phrase:true,chs:channels,rate,gain,start:0,end,noBeat:!$('phraseCompareBeat').checked,beatOffset:start,oneShot:true};const ok=await startPlayback(0);phraseMessage(ok?(id?'Playing attempt at a matched level':'Playing assembled vocal')+($('phraseCompareBeat').checked&&S.beat?' with backing.':'.'):'Audio could not start. '+$('playbackStatus').textContent);}catch(e){phraseMessage(e.message);}}
 function phraseFailWorker(error){if(phraseWorker)phraseWorker.terminate();phraseWorker=null;for(const j of phraseJobs.values()){clearTimeout(j.timer);j.reject(new Error(error));}phraseJobs.clear();}
-function phraseWorkerRequest(t,p){return new Promise((resolve,reject)=>{if(!phraseWorker){phraseWorker=new Worker('phrase-worker.js?v=0.29.0');phraseWorker.onmessage=({data:m})=>{const j=phraseJobs.get(m.id);if(!j)return;clearTimeout(j.timer);phraseJobs.delete(m.id);m.error?j.reject(new Error(m.error)):j.resolve(m.profile);};phraseWorker.onerror=e=>phraseFailWorker(e.message||'Take analysis stopped. Retry analysis.');phraseWorker.onmessageerror=()=>phraseFailWorker('Take analysis returned unreadable data.');}const id=++phraseSerial,channels=t.channels.map(c=>c.slice());phraseJobs.set(id,{resolve,reject,timer:setTimeout(()=>phraseFailWorker('Take analysis timed out. Your recording is kept; retry analysis.'),120000)});try{phraseWorker.postMessage({id,take:{...t,channels,profile:null},phrase:{start:p.start,end:p.end}},channels.map(c=>c.buffer));}catch(e){const j=phraseJobs.get(id);clearTimeout(j.timer);phraseJobs.delete(id);reject(e);}});}
+function phraseWorkerRequest(t,p){return new Promise((resolve,reject)=>{if(!phraseWorker){phraseWorker=new Worker('phrase-worker.js?v=0.31.4');phraseWorker.onmessage=({data:m})=>{const j=phraseJobs.get(m.id);if(!j)return;clearTimeout(j.timer);phraseJobs.delete(m.id);m.error?j.reject(new Error(m.error)):j.resolve(m.profile);};phraseWorker.onerror=e=>phraseFailWorker(e.message||'Take analysis stopped. Retry analysis.');phraseWorker.onmessageerror=()=>phraseFailWorker('Take analysis returned unreadable data.');}const id=++phraseSerial,channels=t.channels.map(c=>c.slice());phraseJobs.set(id,{resolve,reject,timer:setTimeout(()=>phraseFailWorker('Take analysis timed out. Your recording is kept; retry analysis.'),120000)});try{phraseWorker.postMessage({id,take:{...t,channels,profile:null},phrase:{start:p.start,end:p.end}},channels.map(c=>c.buffer));}catch(e){const j=phraseJobs.get(id);clearTimeout(j.timer);phraseJobs.delete(id);reject(e);}});}
 function phraseAnalyze(t,p){const token={};t.analysisToken=token;t.profile=null;t.analysisError=null;phraseJobQueue=phraseJobQueue.then(async()=>{if(t.analysisToken!==token||!S.phrases?.phrases.includes(p)||!p.takes.includes(t))return;try{const profile=await phraseWorkerRequest(t,p);if(t.analysisToken===token){t.profile=profile;t.profileKey=phraseProfileKey(t,p);}}catch(e){if(t.analysisToken===token)t.analysisError=e.message;}finally{if(t.analysisToken===token){delete t.analysisToken;syncPhraseUI();persist();}}});return phraseJobQueue;}
 // 0.18.3 (review 06): a check result belongs to one part span and take position; Undo / Redo / trim / split that change them run it again
 function phraseProfileKey(t,p){return [p.start,p.end,t.origin,t.offsetMs||0,t.channels[0]?.length||0].join(',');}
@@ -3131,16 +3145,16 @@ phraseBind();
 
 </script>
 
-<script src="daw.js?v=0.29.0"></script>
-<script src="recovery.js?v=0.29.0"></script>
-<script src="rec.js?v=0.29.0"></script>
-<script src="rc.js?v=0.29.0"></script>
-<script src="edit-core.js?v=0.29.0"></script>
-<script src="studio.js?v=0.29.0"></script>
+<script src="daw.js?v=0.31.4"></script>
+<script src="recovery.js?v=0.31.4"></script>
+<script src="rec.js?v=0.31.4"></script>
+<script src="rc.js?v=0.31.4"></script>
+<script src="edit-core.js?v=0.31.4"></script>
+<script src="studio.js?v=0.31.4"></script>
 
-<script src="ref-align.js?v=0.29.0"></script>
-<script src="song-studio.js?v=0.29.0"></script>
-<script src="song-polish.js?v=0.29.0"></script>
-<script src="quality-studio.js?v=0.29.0"></script>
-<script src="reference-preview.js?v=0.29.0"></script>
-<script src="reference-guide.js?v=0.29.0"></script>
+<script src="ref-align.js?v=0.31.4"></script>
+<script src="song-studio.js?v=0.31.4"></script>
+<script src="song-polish.js?v=0.31.4"></script>
+<script src="quality-studio.js?v=0.31.4"></script>
+<script src="reference-preview.js?v=0.31.4"></script>
+<script src="reference-guide.js?v=0.31.4"></script>

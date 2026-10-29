@@ -262,3 +262,13 @@ body.song-studio.sg-onsong #rcExport{display:none}
 #songStudio .sg-lane:not(.sg-ruler):not(.sg-empty-backing) .sg-wave{height:100%;min-height:0;contain:size}
 /* 0.26: keep all 44px phone controls while removing excess gaps between mixer rows. */
 @media(max-width:600px){#songStudio .sg-lane-head{gap:5px}}
+/* 0.31.4: on phones, give the save status and engine status their own short row instead of cutting them off. */
+@media (max-width:520px){
+  .menubar{flex-wrap:wrap;row-gap:0}
+  .menubar .menus{flex:1 1 auto;min-width:0}
+  .menubar::after{content:"";order:9;flex-basis:100%;height:0}
+  .menubar .headright{display:contents}
+  .menubar .guidebtn{order:2;margin-left:auto}
+  body #dawSaved,body.song-studio #dawSaved{position:static;order:10;flex:0 0 auto;max-width:none;align-self:center;margin:0;padding:0 6px 4px;background:none;overflow:visible;text-overflow:clip;white-space:normal}
+  .menubar .chip{order:11;flex:1 1 0;min-width:0;max-width:none;margin:0 0 4px 6px;white-space:normal;line-height:1.2;text-align:right;padding:4px 8px}
+}

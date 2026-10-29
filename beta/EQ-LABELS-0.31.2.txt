@@ -1,0 +1,49 @@
+PLAYBOOK VOCAL STUDIO 0.31.2 — CLEARER EQ LABELS
+2026-10-29
+
+Open POLISH > Vocal chain.
+
+FIRST EQ
+LOW (Body): the existing Body band.
+LOW-MID (Mud): the existing Mud band.
+HIGH-MID (Presence): the existing Presence band.
+HIGH (Air): the existing Air band.
+GAIN: the existing Boost / Cut knob for the selected band, measured in dB.
+
+The four band names are visible in a colour legend and the selected-band
+readout. The original frequency, gain and width controls are unchanged.
+The first EQ's bands remain freely adjustable in frequency; the labels describe
+their usual roles, not new fixed frequency limits.
+
+SECOND EQ
+LOW GAIN: the existing Body gain (low shelf).
+MID GAIN: the existing Mid gain (bell).
+HIGH GAIN: the existing High gain (high shelf).
+Advanced frequencies now call Body frequency LOW FREQ.
+
+Gain in these EQs means boost (+) or cut (-) of that frequency band. Zero dB
+leaves the band unchanged. It is not a newly added microphone/input gain stage.
+Overall vocal loudness remains under Level.
+
+The dynamic-EQ descriptions also identify the low-mid, mid and high-mid bands.
+Their reduction controls still say maximum cut because they reduce excess
+frequencies dynamically. Settings summaries and reference-guide suggestions use
+the same clearer labels.
+
+UNCHANGED SOUND
+This is a label/help-text update. Parameter identifiers, ranges, defaults,
+control bindings, audio processing and saved-project structure are unchanged.
+Both approved tuner presets, Studio Spectral noise removal, the original tuner
+and rollback copies are retained. Existing projects keep their settings.
+
+VERIFICATION
+60 existing static invariants passed. Changed JavaScript parses successfully;
+HTML control identifiers/ranges/defaults are unchanged and local assets exist.
+All other runtime source, including the tuners and noise-removal DSP, is byte
+identical to 0.31.1. The source audit confirms only intended display text,
+summary formatting and version strings changed in executable files.
+No fresh browser-layout/device or audio-render test is claimed for this label
+update. Historical audio test reports remain labelled with their version.
+
+Download and extract the whole folder, then run python serve.py as before.
+This package has not been deployed to GitHub or v0.

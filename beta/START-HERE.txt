@@ -1,104 +1,55 @@
-PLAYBOOK VOCAL STUDIO 0.29.0
+PLAYBOOK VOCAL STUDIO 0.31.4
 
-Back up your project before upgrading. Extract the whole folder, run python serve.py,
-and open the local address it prints. Use HTTPS when hosting online for recording.
+New in 0.31.4: read CHANGES-0.31.4.md. Optional High-note fix (off by default),
+new imports match the approved tuning references exactly, phone layout fixes.
+Reviewed handover: read REVIEW-0.31.3.md for checks, fixes and known limits.
+EQ labels include Low, Mid, High and Gain. The approved tuning sound is kept.
 
-POLISH > TUNE > VOCAL TUNER selects Playbook Note Editor or Original tuner — restore.
-New vocals use the new editor after cleaning. Existing projects keep their saved engine.
-Both sets of note edits are preserved. Use Open note editor to reach the new controls.
+Extract this whole folder. Run python serve.py and open its printed address.
+Keep the scripts, styles and WebAssembly file together. Online microphone use
+requires HTTPS. This package has not been uploaded to GitHub or v0.
 
-Read TUNER-INTEGRATION-0.29.0.md for the workflow, rollback and current limitations.
-The untouched 0.28.0 package is included in the delivery rollback folder.
-No live site has changed.
+CLEAN -> TUNE -> VOCAL EFFECTS -> FINISH & CHECK
+The Studio Spectral noise remover and Original cleaner remain available.
 
-THE SIMPLE WORKFLOW
+TUNING
+Import a fresh vocal to use the approved original tuner sound. New vocals start
+with Classic Smooth on at 25%, Keep blue notes off. This alone is not either
+complete preset: open TUNE > Open note editor > Vocal tuning presets.
 
-1. Record your lead vocal.
-   Load your instrumental if you have one. Select Lead vocal and press Record.
-   Sing the song, then press Stop. The recording stays together as one take.
-   Need a beat? Turn on ♩ Click (or press C) and pick a Count-in of 1 or 2 bars.
-   Tempo and time signature are under Recording settings (or tap the BPM button).
-   🎧 HEAR ME lets you hear your own voice while recording. Use headphones.
-   Punch in: press Play, then press R where you want to re-sing; R again to stop.
-   The song keeps playing and the new bit blends in with short fades.
+1. Check the key/scale and reference against the song or backing. The detected
+   key is a suggestion. Use detected key if appropriate, then apply a preset.
+   The approved reference recording used G major, A=440; other songs can differ.
+2. Start with Snap all + Smooth 25% (the primary button).
+   Alternative: 85% correction + Smooth 25%.
+   High notes (about D#4 and above): in the note editor, Note detection >
+   High-note fix stops them being read an octave low, which can add a rough
+   undertone. Turn it on before applying the preset; compare by ear.
+3. Listen, select any note that needs fixing and adjust only that note.
+   Applying a whole-vocal preset again can change manual pitch choices.
+4. Use FINAL for the full vocal chain and Finish & check for export.
 
-2. Fix a word or phrase.
-   Drag over that spot, or enter its start and end in seconds. Press Fix phrase.
-   Record again as many times as needed. Listen, then Choose the attempt you like.
-   The rest of your recording stays in place. Repeat with lead-in makes another
-   attempt each pass. A partial attempt is kept but cannot replace a longer phrase.
-   ⟲ Loop (or L) records the selection round and round without gaps; every pass
-   becomes an attempt. Press Stop when you have enough. Esc cancels a recording.
+Both presets are explicit whole-vocal commands, not continuously repeated
+centre correction. The separate Snap all command retains the current Smooth
+setting. Correct pitch still acts only on selected notes, including one note.
 
-3. Record part by part (optional).
-   Add Intro, Verse, Chorus, Bridge or Outro in Song sections. Click a section (or
-   Next section ▶) and press ● Record section. Keep singing past the end if you like: the
-   part grows to fit. Tick "Stop at section end" if you want it to stop by itself.
-   Every take is kept. Rate takes with the stars; "Suggested" and "Why suggested?"
-   show which take the check prefers and why. Choose the one you want.
-   Redo last take re-sings the newest take; Delete unchosen takes tidies up.
-   Edit on a take trims it, changes its level, adds fades or moves its timing.
-   Nothing is cut from the recording; Undo puts it back.
-   Split here (in Edit) cuts the range in two at the playhead; both halves keep
-   every take. Use as reference marks the take the others are compared with.
-   Set the song Key and Scale in Recording settings; POLISH TUNE uses the same key.
-   With / Without in the transport chooses whether you hear the backing.
+EXISTING PROJECTS AND ROLLBACK
+Existing projects keep their previous detector, rendering and settings. They
+are labelled in the editor. Import a fresh vocal for the approved sound; the
+update does not silently re-analyse and discard your saved note edits.
 
-4. Add backing vocals.
-   Press + Add vocal track. Name it Harmony, Double, Ad-libs, or anything you like.
-   Record and fix phrases on that lane. Your lead and other lanes stay separate.
-   OLDER VERSIONS: a normal backup opens in 0.25.1 or newer. For 0.18.3 use
-   Export song > Compatibility backup (larger); it shows only the Lead vocal and parts.
+Back up your project before opening a new version. Original tuner — restore
+is still available in TUNE. Both tuner states remain in the project. For the
+complete prior runtime, run rollback/0.31.0/serve.py in that folder and open
+your pre-update project backup. The reviewed 0.29 runtime ZIP is also kept.
+Do not overwrite the only copy of a project with an older version.
 
-5. POLISH each voice.
-   Press Polish on a vocal lane. Clean, Tune, note edits and effects now belong
-   to that vocal only. Your changes are saved automatically on that track.
-   Use the Polishing selector to move between lead and harmony. Each keeps its
-   own settings. One voice can have light tuning and another stronger tuning;
-   one can have reverb while another stays dry.
-   "POLISH: 2 of 3 vocals ready" (next to Room) shows how many lanes still need it.
-   The existing mono budget is about 7 minutes at 48 kHz; device memory still matters.
-   Stereo is capped at 166.7 seconds at 48 kHz in this release. For longer stereo
-   you can choose to polish a mono version; your stereo recording is kept.
-   POLISH needs a song sample rate of 22,050 Hz or more.
+The full supplied vocal reproduces both approved original presets sample-for-
+sample in offline DSP tests. Real Chromium workflows and desktop/phone-sized
+layouts were checked for this release. Physical phone, Safari, actual microphone
+hardware and speaker/headphone listening still need a device acceptance check.
 
-6. Hear the result together.
-   Press Whole song in POLISH. It plays every vocal lane using its saved processing
-   and the Song & vocals mixer. Play below the POLISH bar auditions the selected
-   vocal. The existing Mix panel fits backing for that selected-vocal audition;
-   full-song playback/export uses the song lane levels instead.
-   Back in Song & vocals, adjust each lane's volume, pan, Mute and Solo.
-   Use dry vocal bypasses a lane's POLISH while keeping its settings.
-
-7. Export or back up.
-   Export song in POLISH offers the finished vocal mix, song with backing,
-   separate polished stems, or dry stems. Stems all start at 0:00. A track you
-   have not polished stays dry. Muted tracks remain in separate stem exports.
-   EXPORT THIS VOCAL in the lower POLISH panel exports the selected voice using
-   the original detailed export controls.
-   Back up project saves all tracks, attempts, sections and editable POLISH
-   settings (modern backup, no extra copies for older versions). Check that the ZIP finished downloading. Autosave is local to this
-   browser and is not a replacement for keeping a backup.
-
-IF YOU RECORD A NEW PHRASE AFTER POLISHING
-
-Only the affected vocal shows Update needed. Other vocals keep their processing.
-Press Polish on the changed track. The app keeps its cleaning, tuning settings
-and effects, but asks before resetting manual note, breath and timing edits that
-belonged to the previous performance. Back up first if you need that old version.
-Until updated, song playback uses the new dry vocal on that lane. Processed export
-asks you to update it or explicitly choose Use dry vocal in its track settings.
-
-USEFUL DETAILS
-
-- Use headphones so backing music does not leak acoustically into your microphone.
-- R starts/stops recording; Space stops recording or plays/pauses on Song & vocals.
-- A selected phrase gives an exact recording range. R during playback starts with
-  lead-in; it is not an instantaneous gapless live punch.
-- Use project backups before removing recordings. Song Undo lasts this session.
-- Detailed vocal exports offer float WAV; Finish & check writes the finished 24-bit WAV.
-  Effect tails are retained in processed audio.
-- Normal backups need version 0.25.1 or newer. Older apps cannot restore all lanes
-  and POLISH settings; use a Compatibility backup and keep the original ZIP.
-- "Keep this vocal in its own key" (track settings) keeps that lane's key when the
-  song key changes; changing its key in POLISH changes only that vocal.
+To return to 0.31.3, extract rollback/pre-0.31.4-runtime.zip into a separate
+folder and run serve.py. To restore the exact pre-review application, extract
+rollback/pre-review-0.31.2-runtime.zip into a separate folder and run serve.py.
+The Original tuner and Original cleaner selectors also remain available.

@@ -1,0 +1,35 @@
+PLAYBOOK VOCAL STUDIO 0.31.4 — FRESH TEST RESULTS
+2026-10-29 · Linux · Chromium 1243 (Playwright) · Node 22
+
+NEW 0.31.4 CHECKS — tests-0.31.4/fixes_review.py: 19 passed, 0 failed
+(editor hosted in a real iframe, so it runs embedded exactly as in the app)
+- Embedded editor uses the dark studio theme.
+- Fresh import: High-note fix off, approved resampler recorded.
+- Fix off keeps the approved detector unchanged.
+- Fix on: synthetic C2–A5 detected within 10 cents; Snap all output within 10 cents
+  (worst 8.7 cents at A5); no added sub-harmonic tone (all below -80 dB; fix off: -32 to -37 dB
+  on G4–E5, -55 dB on A5).
+- Fix on: notes below D#4 detected exactly as with fix off.
+- Fix on: harmonic-rich low notes and high notes with a weak fundamental — no octave jumps.
+- Bundled real vocal in its own range: fix on gives identical notes and identical audio.
+- Same vocal raised an octave: fix off read 6 of 12 notes an octave low; fix on kept every note
+  in the sung range.
+- Saved fix setting and note positions restore on reopen; invalid values rejected with the open
+  vocal unchanged; cancelling the confirmation keeps note edits.
+- New browser import is sample-identical to the approved-reference resampler.
+- A project saved by 0.31.3 reopens with identical audio (compared with the 0.31.3 runtime).
+- Top bar at 320 and 390 px: full save/engine status, no overflow. No page errors.
+
+EXISTING SUITES RE-RUN ON 0.31.4
+PASS 16 Node core/invariant suites, incl. 60 static invariants (check25) and the approved-preset
+     suite (both approved presets still reproduce the original editor sample-for-sample).
+PASS editor_review 14, editor_advanced 8, layout_review 34 (320/390/768/1366 px),
+     controls_review 21, noise remover 25, finishing/quality 47, scrolled transport 15.
+KNOWN tests-0.29/audit.py: 20 passed, 1 failed — "Steady harmonic pitch tracking C2–A5".
+     This checks the default (fix off) detector and is the same documented limitation as 0.31.3.
+     The same measurement passes with the High-note fix on (see above).
+Engine lock: the seven files in ENGINE-SHA256.txt are byte-identical.
+
+NOT VERIFIED
+Owner listening comparison of the High-note fix on real high vocals; physical phones, Safari,
+real microphone/headphones (open since 0.31.3).
