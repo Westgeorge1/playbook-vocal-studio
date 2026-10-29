@@ -26,3 +26,11 @@ Guarded by check25 R13 (fails on the old code) and tests-0.31.4/clean_restore314
   (a run shared with other suites showed 133/510/185 s, and h25-capacity 307/173/353 s, both from load).
 - Engine 7/7 byte-identical (ENGINE-SHA256.txt).
 - Summaries: tests-0.31.4/results/.
+
+## Hotfix (29 Oct 2026): Record explains a blocked or missing microphone
+West reported that Record "does nothing" on the live beta. The live beta loads and records normally in Chrome and Firefox
+(fresh browser, phone size, and a browser that still had a 0.29 song saved). When the browser blocks the microphone
+for the page, Record only showed the browser's own words "Permission denied", which looked like nothing happened.
+song-studio.js now says what to do: allow the microphone from the lock icon and reload, plug in a microphone, close
+other apps using it, or open the link in Chrome/Safari instead of inside the GitHub app. Test: tests-0.31.4/mic_messages314.py
+(6/0; 3 fail on the previous code). Not an engine file; engine still 7/7.

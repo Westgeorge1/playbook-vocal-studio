@@ -134,11 +134,17 @@ function bpm(){return C.clamp(+$('bpm').value||75,50,200);}
 function prefs(){return C.prefs(W());}
 function beatLen(){return C.beatSec(bpm());}
 function barLen(){return beatLen()*prefs().meter;}
+// 0.31.4 hotfix: the browser's own wording ("Permission denied") looked like Record did nothing; say what to do.
+function micError(e){const n=e&&e.name||'';
+ if(n==='NotAllowedError'||n==='SecurityError'||n==='PermissionDeniedError')return Error('Record needs your microphone, and the browser is blocking it for this page. Click the lock or settings icon left of the web address, set Microphone to Allow, reload the page, then press Record again. (Inside the GitHub app or another app, open the link in Chrome or Safari instead.)');
+ if(n==='NotFoundError'||n==='OverconstrainedError'||n==='DevicesNotFoundError')return Error('No microphone was found. Plug in or switch on your microphone or headset, then press Record again.');
+ if(n==='NotReadableError'||n==='AbortError'||n==='TrackStartError')return Error('The microphone is busy or could not start. Close other apps or tabs that use it (calls, recorders, FL Studio), then press Record again.');
+ return e;}
 async function openMic(){
- if(!navigator.mediaDevices?.getUserMedia)throw Error('Microphone recording needs HTTPS or localhost. Open the hosted app in a browser.');
+ if(!navigator.mediaDevices?.getUserMedia)throw Error('Microphone recording is not available in this view. Open the link directly in Chrome or Safari (not inside the GitHub app or another app).');
  const ctx=await resumeAudio();if(!ctx.audioWorklet)throw Error('This browser needs AudioWorklet support. Use a current Chrome, Edge or Safari browser.');
  if(workletContext!==ctx){await ctx.audioWorklet.addModule('song-capture-worklet.js?v=0.27.0');workletContext=ctx;}
- if(window.pvsRecPrepare)pvsRecPrepare();const stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});return {ctx,stream};
+ if(window.pvsRecPrepare)pvsRecPrepare();let stream;try{stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});}catch(e){throw micError(e);}return {ctx,stream};
 }
 function wire(c){const ctx=c.ctx;
  c.src=ctx.createMediaStreamSource(c.stream);c.gain=ctx.createGain();c.gain.gain.value=Math.pow(10,UI.micGainDb/20);
