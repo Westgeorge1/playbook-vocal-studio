@@ -272,3 +272,6 @@ body.song-studio.sg-onsong #rcExport{display:none}
   body #dawSaved,body.song-studio #dawSaved{position:static;order:10;flex:0 0 auto;max-width:none;align-self:center;margin:0;padding:0 6px 4px;background:none;overflow:visible;text-overflow:clip;white-space:normal}
   .menubar .chip{order:11;flex:1 1 0;min-width:0;max-width:none;margin:0 0 4px 6px;white-space:normal;line-height:1.2;text-align:right;padding:4px 8px}
 }
+
+/* 0.31.5: Record stays tappable while the app is busy, so a tap can explain why it is waiting */
+#sgRecord.sg-wait,#sgStartRecord.sg-wait{opacity:.5;cursor:wait}
