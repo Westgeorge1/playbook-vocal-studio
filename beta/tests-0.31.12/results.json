@@ -1,0 +1,1153 @@
+{
+  "version": "0.31.12",
+  "browserChecks": 275,
+  "suites": {
+    "workspace": {
+      "passed": 47,
+      "failed": 0,
+      "errors": [],
+      "checks": [
+        {
+          "name": "Four workspaces visible at the top",
+          "pass": true
+        },
+        {
+          "name": "Recording can expand during a take",
+          "pass": true
+        },
+        {
+          "name": "Recording keeps the live controls and timeline",
+          "pass": true
+        },
+        {
+          "name": "Expanded recording has a modal label",
+          "pass": true
+        },
+        {
+          "name": "Maximized recording fills the viewport",
+          "pass": true
+        },
+        {
+          "name": "Keyboard resize works during recording",
+          "pass": true
+        },
+        {
+          "name": "Docking does not stop the take",
+          "pass": true
+        },
+        {
+          "name": "Escape docks recording without cancelling it",
+          "pass": true
+        },
+        {
+          "name": "A real capture produces an audible saved take",
+          "pass": true
+        },
+        {
+          "name": "Expanded recording Undo works",
+          "pass": true
+        },
+        {
+          "name": "Expanded recording Redo restores the take",
+          "pass": true
+        },
+        {
+          "name": "All recording controls restores file and section tools",
+          "pass": true
+        },
+        {
+          "name": "Full screen enters or safely expands",
+          "pass": true
+        },
+        {
+          "name": "390\u00d7844 recording fits the viewport",
+          "pass": true
+        },
+        {
+          "name": "390\u00d7844 return button is reachable",
+          "pass": true
+        },
+        {
+          "name": "390\u00d7844 focused recording exposes the timeline",
+          "pass": true
+        },
+        {
+          "name": "980\u00d71760 recording fits the viewport",
+          "pass": true
+        },
+        {
+          "name": "980\u00d71760 return button is reachable",
+          "pass": true
+        },
+        {
+          "name": "980\u00d71760 focused recording exposes the timeline",
+          "pass": true
+        },
+        {
+          "name": "320\u00d7740 recording fits the viewport",
+          "pass": true
+        },
+        {
+          "name": "320\u00d7740 return button is reachable",
+          "pass": true
+        },
+        {
+          "name": "320\u00d7740 focused recording exposes the timeline",
+          "pass": true
+        },
+        {
+          "name": "844\u00d7390 recording fits the viewport",
+          "pass": true
+        },
+        {
+          "name": "844\u00d7390 return button is reachable",
+          "pass": true
+        },
+        {
+          "name": "844\u00d7390 focused recording exposes the timeline",
+          "pass": true
+        },
+        {
+          "name": "Blocked popup falls back to expansion with explanation",
+          "pass": true
+        },
+        {
+          "name": "Save failure keeps the original project active",
+          "pass": true
+        },
+        {
+          "name": "Original is locked while the child restores",
+          "pass": true
+        },
+        {
+          "name": "Original cannot overwrite the shared autosave",
+          "pass": true
+        },
+        {
+          "name": "Original releases the audio engine while standing by",
+          "pass": true
+        },
+        {
+          "name": "Separate window restores the recording",
+          "pass": true
+        },
+        {
+          "name": "Returning during recording stops and keeps the new take",
+          "pass": true
+        },
+        {
+          "name": "Returning preserves project and track edits",
+          "pass": true
+        },
+        {
+          "name": "Return closes the separate window",
+          "pass": true
+        },
+        {
+          "name": "Closing the separate window restores its latest autosave",
+          "pass": true
+        },
+        {
+          "name": "Separate tuning window opens the live note editor",
+          "pass": true
+        },
+        {
+          "name": "Tuning edits survive returning to the original tab",
+          "pass": true
+        },
+        {
+          "name": "Child restore failure leaves original studio usable",
+          "pass": true
+        },
+        {
+          "name": "Reloading the popup reconnects to the standby",
+          "pass": true
+        },
+        {
+          "name": "Failed return save leaves the workspace open",
+          "pass": true
+        },
+        {
+          "name": "Reloaded standby reconnects and returns safely",
+          "pass": true
+        },
+        {
+          "name": "wave opens in a separate browser window",
+          "pass": true
+        },
+        {
+          "name": "ref opens in a separate browser window",
+          "pass": true
+        },
+        {
+          "name": "Cancelling a handoff keeps the original session",
+          "pass": true
+        },
+        {
+          "name": "Closing the original tab leaves a usable independent studio",
+          "pass": true
+        },
+        {
+          "name": "Expired popup links cannot become autosave writers",
+          "pass": true
+        },
+        {
+          "name": "No browser JavaScript errors",
+          "pass": true
+        }
+      ]
+    },
+    "editors": {
+      "passed": 73,
+      "failed": 0,
+      "errors": [],
+      "checks": [
+        {
+          "name": "Tuning opens as a dialog",
+          "pass": true
+        },
+        {
+          "name": "Tuning gains at least 250 pixels of width",
+          "pass": true
+        },
+        {
+          "name": "Live note iframe is never reloaded",
+          "pass": true
+        },
+        {
+          "name": "Maximize fills the browser",
+          "pass": true
+        },
+        {
+          "name": "Corner drag resizes window",
+          "pass": true
+        },
+        {
+          "name": "Title drag moves window",
+          "pass": true
+        },
+        {
+          "name": "Resize supports keyboard",
+          "pass": true
+        },
+        {
+          "name": "Focus notes keeps playback and tools visible",
+          "pass": true
+        },
+        {
+          "name": "All tuning controls restores presets",
+          "pass": true
+        },
+        {
+          "name": "Size changes preserve all note edits",
+          "pass": true
+        },
+        {
+          "name": "Size changes preserve rendered audio",
+          "pass": true
+        },
+        {
+          "name": "Individual-note correction applies in work window",
+          "pass": true
+        },
+        {
+          "name": "Note Undo restores earlier tuning",
+          "pass": true
+        },
+        {
+          "name": "Return docks without losing edits",
+          "pass": true
+        },
+        {
+          "name": "Return restores launcher focus",
+          "pass": true
+        },
+        {
+          "name": "Background controls unlock",
+          "pass": true
+        },
+        {
+          "name": "Escape works inside the embedded tuner",
+          "pass": true
+        },
+        {
+          "name": "Waveform selection and zoom survive maximize",
+          "pass": true
+        },
+        {
+          "name": "Audio edits work in expanded window",
+          "pass": true,
+          "detail": {
+            "breaths": [
+              [
+                0.3,
+                0.8,
+                6
+              ]
+            ],
+            "timing": [],
+            "comp": []
+          }
+        },
+        {
+          "name": "Sound controls leaves the work window",
+          "pass": true
+        },
+        {
+          "name": "Top editing action opens the work window",
+          "pass": true
+        },
+        {
+          "name": "Keyboard focus stays in work window",
+          "pass": true
+        },
+        {
+          "name": "Reference comparison has its own expanded view",
+          "pass": true
+        },
+        {
+          "name": "notes window stays within 768\u00d71024",
+          "pass": true
+        },
+        {
+          "name": "notes Return stays visible 768",
+          "pass": true
+        },
+        {
+          "name": "notes content fits width 768",
+          "pass": true
+        },
+        {
+          "name": "Tuner content fits width 768",
+          "pass": true
+        },
+        {
+          "name": "wave window stays within 768\u00d71024",
+          "pass": true
+        },
+        {
+          "name": "wave Return stays visible 768",
+          "pass": true
+        },
+        {
+          "name": "wave content fits width 768",
+          "pass": true
+        },
+        {
+          "name": "ref window stays within 768\u00d71024",
+          "pass": true
+        },
+        {
+          "name": "ref Return stays visible 768",
+          "pass": true
+        },
+        {
+          "name": "ref content fits width 768",
+          "pass": true
+        },
+        {
+          "name": "notes window stays within 390\u00d7844",
+          "pass": true
+        },
+        {
+          "name": "notes Return stays visible 390",
+          "pass": true
+        },
+        {
+          "name": "notes content fits width 390",
+          "pass": true
+        },
+        {
+          "name": "Tuner content fits width 390",
+          "pass": true
+        },
+        {
+          "name": "Phone focus view exposes the note canvas",
+          "pass": true
+        },
+        {
+          "name": "wave window stays within 390\u00d7844",
+          "pass": true
+        },
+        {
+          "name": "wave Return stays visible 390",
+          "pass": true
+        },
+        {
+          "name": "wave content fits width 390",
+          "pass": true
+        },
+        {
+          "name": "ref window stays within 390\u00d7844",
+          "pass": true
+        },
+        {
+          "name": "ref Return stays visible 390",
+          "pass": true
+        },
+        {
+          "name": "ref content fits width 390",
+          "pass": true
+        },
+        {
+          "name": "notes window stays within 320\u00d7740",
+          "pass": true
+        },
+        {
+          "name": "notes Return stays visible 320",
+          "pass": true
+        },
+        {
+          "name": "notes content fits width 320",
+          "pass": true
+        },
+        {
+          "name": "Tuner content fits width 320",
+          "pass": true
+        },
+        {
+          "name": "wave window stays within 320\u00d7740",
+          "pass": true
+        },
+        {
+          "name": "wave Return stays visible 320",
+          "pass": true
+        },
+        {
+          "name": "wave content fits width 320",
+          "pass": true
+        },
+        {
+          "name": "ref window stays within 320\u00d7740",
+          "pass": true
+        },
+        {
+          "name": "ref Return stays visible 320",
+          "pass": true
+        },
+        {
+          "name": "ref content fits width 320",
+          "pass": true
+        },
+        {
+          "name": "notes window stays within 844\u00d7390",
+          "pass": true
+        },
+        {
+          "name": "notes Return stays visible 844",
+          "pass": true
+        },
+        {
+          "name": "notes content fits width 844",
+          "pass": true
+        },
+        {
+          "name": "Tuner content fits width 844",
+          "pass": true
+        },
+        {
+          "name": "wave window stays within 844\u00d7390",
+          "pass": true
+        },
+        {
+          "name": "wave Return stays visible 844",
+          "pass": true
+        },
+        {
+          "name": "wave content fits width 844",
+          "pass": true
+        },
+        {
+          "name": "ref window stays within 844\u00d7390",
+          "pass": true
+        },
+        {
+          "name": "ref Return stays visible 844",
+          "pass": true
+        },
+        {
+          "name": "ref content fits width 844",
+          "pass": true
+        },
+        {
+          "name": "Take editor maximizes",
+          "pass": true
+        },
+        {
+          "name": "Take edit Apply still saves",
+          "pass": true
+        },
+        {
+          "name": "Take editor reopens at normal size",
+          "pass": true
+        },
+        {
+          "name": "Take edit Cancel leaves saved value",
+          "pass": true
+        },
+        {
+          "name": "Project reload retains tuning after work windows",
+          "pass": true
+        },
+        {
+          "name": "Legacy take dialog remains usable from expanded editing",
+          "pass": true
+        },
+        {
+          "name": "Legacy take editor redraws at maximized size",
+          "pass": true
+        },
+        {
+          "name": "Legacy take selection survives maximize",
+          "pass": true
+        },
+        {
+          "name": "No JavaScript errors in UI workflows",
+          "pass": true,
+          "detail": []
+        }
+      ]
+    },
+    "recording": {
+      "passed": 38,
+      "failed": 0,
+      "errors": [],
+      "checks": [
+        {
+          "name": "390px version",
+          "pass": true
+        },
+        {
+          "name": "390px empty tuner settings do not block recording",
+          "pass": true
+        },
+        {
+          "name": "390px empty settings preserve song",
+          "pass": true
+        },
+        {
+          "name": "390px blocked Record remains accessible",
+          "pass": true
+        },
+        {
+          "name": "390px blocked reason visible above toolbar",
+          "pass": true
+        },
+        {
+          "name": "390px dialog explains actual blocker",
+          "pass": true
+        },
+        {
+          "name": "390px diagnostic identifies busy engine",
+          "pass": true
+        },
+        {
+          "name": "390px blocked Record never requests microphone",
+          "pass": true
+        },
+        {
+          "name": "390px blocked Record keeps genuine lock",
+          "pass": true
+        },
+        {
+          "name": "390px no-audio changes preserve another pending edit",
+          "pass": true
+        },
+        {
+          "name": "390px Record captures input after settings change",
+          "pass": true
+        },
+        {
+          "name": "390px Stop saves an audible take",
+          "pass": true
+        },
+        {
+          "name": "390px microphone stream closes",
+          "pass": true
+        },
+        {
+          "name": "390px reload preserves recorded take",
+          "pass": true
+        },
+        {
+          "name": "Loaded-vocal tuner opens",
+          "pass": true
+        },
+        {
+          "name": "Loaded vocal still waits for processing",
+          "pass": true
+        },
+        {
+          "name": "Loaded-vocal processing finishes",
+          "pass": true
+        },
+        {
+          "name": "390px denied microphone shows visible dialog",
+          "pass": true
+        },
+        {
+          "name": "390px permission help is actionable",
+          "pass": true
+        },
+        {
+          "name": "390px denied microphone releases setup lock",
+          "pass": true
+        },
+        {
+          "name": "980px version",
+          "pass": true
+        },
+        {
+          "name": "980px empty tuner settings do not block recording",
+          "pass": true
+        },
+        {
+          "name": "980px empty settings preserve song",
+          "pass": true
+        },
+        {
+          "name": "980px blocked Record remains accessible",
+          "pass": true
+        },
+        {
+          "name": "980px blocked reason visible above toolbar",
+          "pass": true
+        },
+        {
+          "name": "980px dialog explains actual blocker",
+          "pass": true
+        },
+        {
+          "name": "980px diagnostic identifies busy engine",
+          "pass": true
+        },
+        {
+          "name": "980px blocked Record never requests microphone",
+          "pass": true
+        },
+        {
+          "name": "980px blocked Record keeps genuine lock",
+          "pass": true
+        },
+        {
+          "name": "980px no-audio changes preserve another pending edit",
+          "pass": true
+        },
+        {
+          "name": "980px Record captures input after settings change",
+          "pass": true
+        },
+        {
+          "name": "980px Stop saves an audible take",
+          "pass": true
+        },
+        {
+          "name": "980px microphone stream closes",
+          "pass": true
+        },
+        {
+          "name": "980px reload preserves recorded take",
+          "pass": true
+        },
+        {
+          "name": "980px denied microphone shows visible dialog",
+          "pass": true
+        },
+        {
+          "name": "980px permission help is actionable",
+          "pass": true
+        },
+        {
+          "name": "980px denied microphone releases setup lock",
+          "pass": true
+        },
+        {
+          "name": "No page errors",
+          "pass": true
+        }
+      ]
+    },
+    "restore": {
+      "passed": 56,
+      "failed": 0,
+      "errors": [],
+      "checks": [
+        {
+          "name": "390px real saved lane can reopen without render",
+          "pass": true
+        },
+        {
+          "name": "390px stale lane still keeps duplicate editor safely",
+          "pass": true
+        },
+        {
+          "name": "390px unique root P never skipped",
+          "pass": true
+        },
+        {
+          "name": "390px unique root notes never skipped",
+          "pass": true
+        },
+        {
+          "name": "390px unique root edits never skipped",
+          "pass": true
+        },
+        {
+          "name": "390px unique root noteTuner never skipped",
+          "pass": true
+        },
+        {
+          "name": "390px unique root pcm never skipped",
+          "pass": true
+        },
+        {
+          "name": "390px unique root takes never skipped",
+          "pass": true
+        },
+        {
+          "name": "390px unique root guide never skipped",
+          "pass": true
+        },
+        {
+          "name": "390px saved song opens despite stalled DSP",
+          "pass": true
+        },
+        {
+          "name": "390px no vocal reprocessing on startup",
+          "pass": true
+        },
+        {
+          "name": "390px saved audio, settings, edits, backing preserved",
+          "pass": true
+        },
+        {
+          "name": "390px autosave/reload retains all saved lane data",
+          "pass": true
+        },
+        {
+          "name": "390px project backup preserves originals/settings and standard WAV output",
+          "pass": true
+        },
+        {
+          "name": "390px saved song plays without reprocessing",
+          "pass": true
+        },
+        {
+          "name": "390px Record starts and saves new take after reopen",
+          "pass": true
+        },
+        {
+          "name": "390px new and previous recordings survive reload",
+          "pass": true
+        },
+        {
+          "name": "390px POLISH opens on demand with real processor",
+          "pass": true
+        },
+        {
+          "name": "390px POLISH renders after deferred startup",
+          "pass": true
+        },
+        {
+          "name": "980px real saved lane can reopen without render",
+          "pass": true
+        },
+        {
+          "name": "980px stale lane still keeps duplicate editor safely",
+          "pass": true
+        },
+        {
+          "name": "980px unique root P never skipped",
+          "pass": true
+        },
+        {
+          "name": "980px unique root notes never skipped",
+          "pass": true
+        },
+        {
+          "name": "980px unique root edits never skipped",
+          "pass": true
+        },
+        {
+          "name": "980px unique root noteTuner never skipped",
+          "pass": true
+        },
+        {
+          "name": "980px unique root pcm never skipped",
+          "pass": true
+        },
+        {
+          "name": "980px unique root takes never skipped",
+          "pass": true
+        },
+        {
+          "name": "980px unique root guide never skipped",
+          "pass": true
+        },
+        {
+          "name": "980px saved song opens despite stalled DSP",
+          "pass": true
+        },
+        {
+          "name": "980px no vocal reprocessing on startup",
+          "pass": true
+        },
+        {
+          "name": "980px saved audio, settings, edits, backing preserved",
+          "pass": true
+        },
+        {
+          "name": "980px autosave/reload retains all saved lane data",
+          "pass": true
+        },
+        {
+          "name": "980px project backup preserves originals/settings and standard WAV output",
+          "pass": true
+        },
+        {
+          "name": "980px saved song plays without reprocessing",
+          "pass": true
+        },
+        {
+          "name": "980px Record starts and saves new take after reopen",
+          "pass": true
+        },
+        {
+          "name": "980px new and previous recordings survive reload",
+          "pass": true
+        },
+        {
+          "name": "980px POLISH opens on demand with real processor",
+          "pass": true
+        },
+        {
+          "name": "980px POLISH renders after deferred startup",
+          "pass": true
+        },
+        {
+          "name": "original stalled restore blocks Record until worker is stopped",
+          "pass": true
+        },
+        {
+          "name": "reproduces vocalLoaded + outstanding update diagnostics",
+          "pass": true
+        },
+        {
+          "name": "timeout terminates worker and drains requests",
+          "pass": true
+        },
+        {
+          "name": "timeout clears only incomplete live editor",
+          "pass": true
+        },
+        {
+          "name": "timeout warns that saved project is protected",
+          "pass": true
+        },
+        {
+          "name": "failed restore never overwrites saved project",
+          "pass": true
+        },
+        {
+          "name": "late worker result is ignored",
+          "pass": true
+        },
+        {
+          "name": "new recording works after timeout",
+          "pass": true
+        },
+        {
+          "name": "new recording cannot replace protected old project",
+          "pass": true
+        },
+        {
+          "name": "note stalled restore blocks Record until worker is stopped",
+          "pass": true
+        },
+        {
+          "name": "timeout terminates worker and drains requests",
+          "pass": true
+        },
+        {
+          "name": "timeout clears only incomplete live editor",
+          "pass": true
+        },
+        {
+          "name": "timeout warns that saved project is protected",
+          "pass": true
+        },
+        {
+          "name": "failed restore never overwrites saved project",
+          "pass": true
+        },
+        {
+          "name": "late worker result is ignored",
+          "pass": true
+        },
+        {
+          "name": "new recording works after timeout",
+          "pass": true
+        },
+        {
+          "name": "new recording cannot replace protected old project",
+          "pass": true
+        },
+        {
+          "name": "No page errors",
+          "pass": true
+        }
+      ]
+    },
+    "deletion": {
+      "passed": 61,
+      "failed": 0,
+      "errors": [],
+      "checks": [
+        {
+          "name": "390px track controls fit a compact touch lane",
+          "pass": true
+        },
+        {
+          "name": "390px delete buttons are visible without a menu",
+          "pass": true
+        },
+        {
+          "name": "390px Cancel keeps all recordings",
+          "pass": true
+        },
+        {
+          "name": "390px deletes only the selected unchosen attempt",
+          "pass": true
+        },
+        {
+          "name": "390px Undo restores the attempt and source samples",
+          "pass": true
+        },
+        {
+          "name": "390px Redo removes the attempt again",
+          "pass": true
+        },
+        {
+          "name": "390px chosen/reference deletion is explained",
+          "pass": true
+        },
+        {
+          "name": "390px chosen/reference pointers clear without selecting another take",
+          "pass": true
+        },
+        {
+          "name": "390px shared source remains on the other track",
+          "pass": true
+        },
+        {
+          "name": "390px cancelled clear keeps the track recordings",
+          "pass": true
+        },
+        {
+          "name": "390px Clear recordings retains empty track, backing, sections and other track",
+          "pass": true
+        },
+        {
+          "name": "390px Undo clear restores every attempt",
+          "pass": true
+        },
+        {
+          "name": "390px Redo clear leaves the track empty",
+          "pass": true
+        },
+        {
+          "name": "390px deletes a whole track and preserves the other track",
+          "pass": true
+        },
+        {
+          "name": "390px Undo track deletion restores its recording",
+          "pass": true
+        },
+        {
+          "name": "390px last-track deletion explains the empty replacement",
+          "pass": true
+        },
+        {
+          "name": "390px deleting last track leaves a new ready-to-record lane",
+          "pass": true
+        },
+        {
+          "name": "390px Undo restores deleted last track with both takes",
+          "pass": true
+        },
+        {
+          "name": "390px deleted tracks stay deleted after reload",
+          "pass": true
+        },
+        {
+          "name": "390px new recording works after deleting the last track",
+          "pass": true
+        },
+        {
+          "name": "390px deletion disabled while processing",
+          "pass": true
+        },
+        {
+          "name": "980px track controls fit a compact touch lane",
+          "pass": true
+        },
+        {
+          "name": "980px delete buttons are visible without a menu",
+          "pass": true
+        },
+        {
+          "name": "980px Cancel keeps all recordings",
+          "pass": true
+        },
+        {
+          "name": "980px deletes only the selected unchosen attempt",
+          "pass": true
+        },
+        {
+          "name": "980px Undo restores the attempt and source samples",
+          "pass": true
+        },
+        {
+          "name": "980px Redo removes the attempt again",
+          "pass": true
+        },
+        {
+          "name": "980px chosen/reference deletion is explained",
+          "pass": true
+        },
+        {
+          "name": "980px chosen/reference pointers clear without selecting another take",
+          "pass": true
+        },
+        {
+          "name": "980px shared source remains on the other track",
+          "pass": true
+        },
+        {
+          "name": "980px cancelled clear keeps the track recordings",
+          "pass": true
+        },
+        {
+          "name": "980px Clear recordings retains empty track, backing, sections and other track",
+          "pass": true
+        },
+        {
+          "name": "980px Undo clear restores every attempt",
+          "pass": true
+        },
+        {
+          "name": "980px Redo clear leaves the track empty",
+          "pass": true
+        },
+        {
+          "name": "980px deletes a whole track and preserves the other track",
+          "pass": true
+        },
+        {
+          "name": "980px Undo track deletion restores its recording",
+          "pass": true
+        },
+        {
+          "name": "980px last-track deletion explains the empty replacement",
+          "pass": true
+        },
+        {
+          "name": "980px deleting last track leaves a new ready-to-record lane",
+          "pass": true
+        },
+        {
+          "name": "980px Undo restores deleted last track with both takes",
+          "pass": true
+        },
+        {
+          "name": "980px deleted tracks stay deleted after reload",
+          "pass": true
+        },
+        {
+          "name": "980px new recording works after deleting the last track",
+          "pass": true
+        },
+        {
+          "name": "980px deletion disabled while processing",
+          "pass": true
+        },
+        {
+          "name": "take fixture has a real POLISH editor",
+          "pass": true
+        },
+        {
+          "name": "take deletion releases cached editor without waiting for DSP",
+          "pass": true
+        },
+        {
+          "name": "take snapshot excludes deleted editor audio",
+          "pass": true
+        },
+        {
+          "name": "take Undo restores exact POLISH output and recordings",
+          "pass": true
+        },
+        {
+          "name": "take Redo does not resurrect POLISH on an empty lane",
+          "pass": true
+        },
+        {
+          "name": "take reload does not recover the deleted recording",
+          "pass": true
+        },
+        {
+          "name": "clear fixture has a real POLISH editor",
+          "pass": true
+        },
+        {
+          "name": "clear deletion releases cached editor without waiting for DSP",
+          "pass": true
+        },
+        {
+          "name": "clear snapshot excludes deleted editor audio",
+          "pass": true
+        },
+        {
+          "name": "clear Undo restores exact POLISH output and recordings",
+          "pass": true
+        },
+        {
+          "name": "clear Redo does not resurrect POLISH on an empty lane",
+          "pass": true
+        },
+        {
+          "name": "clear journal recovery does not recover the deleted recording",
+          "pass": true
+        },
+        {
+          "name": "track fixture has a real POLISH editor",
+          "pass": true
+        },
+        {
+          "name": "track deletion releases cached editor without waiting for DSP",
+          "pass": true
+        },
+        {
+          "name": "track snapshot excludes deleted editor audio",
+          "pass": true
+        },
+        {
+          "name": "track Undo restores exact POLISH output and recordings",
+          "pass": true
+        },
+        {
+          "name": "track Redo does not resurrect POLISH on an empty lane",
+          "pass": true
+        },
+        {
+          "name": "track reload does not recover the deleted recording",
+          "pass": true
+        },
+        {
+          "name": "No page errors",
+          "pass": true
+        }
+      ]
+    }
+  }
+}

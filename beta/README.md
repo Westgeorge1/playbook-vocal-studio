@@ -1,4 +1,12 @@
-# Playbook Vocal Studio 0.31.11
+# Playbook Vocal Studio 0.31.12
+
+Choose **Recording**, **Vocal tuning**, **Audio editing**, or **Reference comparison** in the **Workspace** row at the top. **Expand** gives the selected tool its own movable, resizable workspace. Phones fill the browser automatically. Recording opens with **Focus timeline**; choose **All controls** to restore the file and section tools. **Maximize**, **Full screen**, and **Return to studio** are in each window header.
+
+**Pop out ↗** opens a separate browser window (or tab, depending on the browser). It saves and reopens this project, then puts the original tab on standby to prevent competing saves. **Return to main tab** saves your changes and returns there; an active recording is stopped and kept. Undo history starts fresh when transferring between browser windows. Expanding inside the app retains the live session and Undo. Stop recording before opening a separate window. If pop-ups are blocked, the app explains it and expands the workspace here.
+
+See CHANGES-0.31.12.md and TEST-RESULTS-0.31.12.txt. Beta only; the main site stays at 0.14.0.
+
+# Previous release: 0.31.11
 
 Visible **Delete recording** buttons on recording cards, plus **Clear recordings** and **Delete track** beside each vocal track. Confirm before removing; Undo restores it during the current session. Deleting the last track leaves a fresh empty lane, with backing and song sections kept. See CHANGES-0.31.11.md and TEST-RESULTS-0.31.11.txt. Beta only.
 

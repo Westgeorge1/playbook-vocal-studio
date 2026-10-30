@@ -1,3 +1,16 @@
+PLAYBOOK VOCAL STUDIO 0.31.12 — COMPLETE WORKSPACE WINDOWS
+
+At the top, use Workspace to choose Recording, Vocal tuning, Audio editing or Reference comparison.
+- Expand: work in a larger view with the current recording, edits and Undo intact.
+- Maximize / Full screen: use the browser area or the device screen where supported.
+- Pop out: save and reopen the project in a separate browser window or tab. The original tab waits. Stop recording first. Undo history starts fresh in the other window.
+- Return to main tab: save and return; any recording underway is stopped and kept.
+
+Recording opens in Focus timeline. All controls restores file and song-section tools. Return to studio docks the same live view, including while recording.
+Phones automatically fill the browser. If a separate window is blocked, use Expand or allow pop-ups for this site.
+
+See CHANGES-0.31.12.md and TEST-RESULTS-0.31.12.txt. Beta only; the main site remains 0.14.0.
+
 PLAYBOOK VOCAL STUDIO 0.31.11 — VISIBLE DELETE CONTROLS
 
 To remove one recording, tap its waveform or select its range, then choose Delete recording on its attempt card.

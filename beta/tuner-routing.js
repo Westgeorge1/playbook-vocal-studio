@@ -17,7 +17,7 @@ class Client{
  send(m){return new Promise((resolve,reject)=>{const id=++this.n,timer=setTimeout(()=>{this.jobs.delete(id);reject(Error('Vocal effects took too long. Your original tuner is available.'));},240000);this.jobs.set(id,{resolve,reject,timer});this.w.postMessage({...m,id});});}
  close(){this.fail(Error('Tuning track changed.'));this.w.terminate();}
 }
-async function editor(){if(api)return api;if(!iframe){iframe=document.createElement('iframe');iframe.id='noteEditorFrame';iframe.title='Playbook vocal note editor';iframe.src='note-editor.html?embed=1&v=0.31.11';$('newNotePanel').append(iframe);}
+async function editor(){if(api)return api;if(!iframe){iframe=document.createElement('iframe');iframe.id='noteEditorFrame';iframe.title='Playbook vocal note editor';iframe.src='note-editor.html?embed=1&v=0.31.12';$('newNotePanel').append(iframe);}
  const start=performance.now();while(!iframe.contentWindow?.PlaybookNoteEditor){if(performance.now()-start>20000)throw Error('The note editor could not open. Switch to Original tuner and retry.');await new Promise(r=>setTimeout(r,30));}
  api=iframe.contentWindow.PlaybookNoteEditor;api.onChange(edited);api.onPlay(()=>{endLoop();stopPlayback();window.SongStudio?.stopPlay();});return api;
 }
@@ -55,7 +55,7 @@ async function decorate(r,msg){
   return {...r,state:st,noteEditor:true,mask:(r.mask||0)|24,audio:{...r.audio,3:cache.tuned,4:cache.final},spectrum:p.spectrum||r.spectrum};
  }catch(e){error=e.message;if(typeof S!=='undefined')S.dirty=true;throw e;}finally{processing=false;ui();}
 }
-async function alternate(ch,P){if(cfg.editor?.channels===1&&ch.length===2&&SongCore.samePcm([ch[0]],[ch[1]]))ch=[ch[0]];const f=document.createElement('iframe');f.hidden=true;f.src='note-editor.html?embed=1&v=0.31.11';document.body.append(f);try{const start=performance.now();while(!f.contentWindow?.PlaybookNoteEditor){if(performance.now()-start>20000)throw Error('Alternate tuning preview could not open.');await new Promise(r=>setTimeout(r,30));}const e=f.contentWindow.PlaybookNoteEditor;await e.load(ch,cache.rate,{state:cfg.editor,key:P.key,scale:scales[P.scale]});return e.render().channels.map(c=>Float32Array.from(c));}finally{f.remove();}}
+async function alternate(ch,P){if(cfg.editor?.channels===1&&ch.length===2&&SongCore.samePcm([ch[0]],[ch[1]]))ch=[ch[0]];const f=document.createElement('iframe');f.hidden=true;f.src='note-editor.html?embed=1&v=0.31.12';document.body.append(f);try{const start=performance.now();while(!f.contentWindow?.PlaybookNoteEditor){if(performance.now()-start>20000)throw Error('Alternate tuning preview could not open.');await new Promise(r=>setTimeout(r,30));}const e=f.contentWindow.PlaybookNoteEditor;await e.load(ch,cache.rate,{state:cfg.editor,key:P.key,scale:scales[P.scale]});return e.render().channels.map(c=>Float32Array.from(c));}finally{f.remove();}}
 function sheet(mask){return 'Playbook Vocal Studio '+APP_VERSION+'\nTuning: Playbook Note Editor (after background cleaning)\nStage mask: '+mask+'\nOriginal tuner remains available.\n\nNote-editor settings:\n'+JSON.stringify(cfg.editor?.settings,null,2)+'\n\nCleaning and vocal-chain settings:\n'+JSON.stringify(Object.fromEntries(Object.entries(cache.P||{}).filter(([k])=>!['amount','drift','speed','expression','style'].includes(k))),null,2);}
 async function dispatch(msg,transfer,raw){
  if(enabled()&&cache.tuned){
