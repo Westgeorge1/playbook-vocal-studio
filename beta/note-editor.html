@@ -132,6 +132,13 @@ select{font:600 14px var(--f-body);color:var(--ink);background:var(--panel);bord
   .row .btn{max-width:100%;white-space:normal;height:auto;min-height:44px;line-height:1.25;padding:10px 12px;justify-content:center}
   .chk{min-height:44px}
 }
+
+/* 0.31.8 optional note-focused workspace; controls and audio state remain intact. */
+.hosted.work-window.focus-notes .app{height:100dvh;min-height:360px;padding:8px;gap:8px}
+.hosted.work-window.focus-notes .app>header,.hosted.work-window.focus-notes .riddim,.hosted.work-window.focus-notes .panels,.hosted.work-window.focus-notes .app>.hint{display:none}
+.hosted.work-window.focus-notes .tools>*:not(.seg):not(.zoom):not(#undo):not(#redo){display:none}
+.hosted.work-window.focus-notes .editor{height:auto!important;min-height:180px;flex:1 0 180px}
+.hosted.work-window.focus-notes .transport,.hosted.work-window.focus-notes .tools,.hosted.work-window.focus-notes #overview,.hosted.work-window.focus-notes #status{flex-shrink:0}
 </style>
 
 <div class="app">
@@ -2505,7 +2512,7 @@ window.PlaybookNoteEditor={
  clear(){hostMute=true;try{stop();S.orig=null;S.sourceChannels=null;S.tunedChannels=null;S.notes=[];resetRenders();}finally{hostMute=false;}},
  embedded:EMBED
 };
-if(EMBED){document.documentElement.classList.add("hosted");document.documentElement.dataset.theme="dark";const style=document.createElement("style");style.textContent='.hosted .loadWrap,.hosted #saveSession,.hosted #restoreBar,.hosted .export,.hosted #rFile,.hosted #rTune,.hosted #freshBtn,.hosted #saveState,.hosted #harmPanel,.hosted #rRemove{display:none!important}.hosted .wrap{max-width:none;padding:8px}.hosted #rName{font-size:12px}';document.head.appendChild(style);$("abOrig").textContent="Cleaned input";
+if(EMBED){document.documentElement.classList.add("hosted");document.documentElement.dataset.theme="dark";const style=document.createElement("style");style.textContent='.hosted .loadWrap,.hosted #saveSession,.hosted #restoreBar,.hosted .export,.hosted #rFile,.hosted #rTune,.hosted #freshBtn,.hosted #saveState,.hosted #harmPanel,.hosted #rRemove{display:none!important}.hosted .wrap{max-width:none;padding:8px}.hosted .app{max-width:none}.hosted.work-window .app{padding:10px 12px 32px}.hosted.work-window .editor{height:clamp(300px,58vh,900px)}.hosted #rName{font-size:12px}';document.head.appendChild(style);$("abOrig").textContent="Cleaned input";
  const help=document.createElement("p");help.className="hint";help.textContent="This editor processes the selected vocal. Use Song & vocals for separate backing-vocal tracks. Play here auditions tuning; use FINAL in Vocal Studio to hear the vocal effects.";$("harmPanel").after(help);
 }
 

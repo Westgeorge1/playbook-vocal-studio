@@ -1,3 +1,9 @@
+PLAYBOOK VOCAL STUDIO 0.31.8 — EXPANDABLE WORK WINDOWS
+
+In POLISH choose Open tuning window or Open editing window. Expand above the dock also opens the active workspace. Drag the title to move, drag the lower-right corner to resize, or use Maximize. Focus notes makes more room for the piano roll; All tuning controls restores the settings. Return to studio or Escape docks the same editor. Take-editing dialogs also have Maximize.
+
+Back up your project before upgrading. These windows stay inside the app browser tab.
+
 PLAYBOOK VOCAL STUDIO 0.31.7
 
 New in 0.31.7: the Song screen says "key not set" until you choose your song key, and the tuning

@@ -1,0 +1,48 @@
+/* Keep the live editors in their original DOM; only their presentation changes. */
+#workWindowOpen{justify-self:end;margin:4px 8px;min-height:40px}
+.arrange{grid-template-rows:minmax(150px,1fr) auto auto auto}
+#workWindowShade{position:fixed;inset:0;background:#02070dd6;z-index:8500}
+body.ww-open{overflow:hidden}
+#dock.ww-window{position:fixed;z-index:8501;display:grid;grid-template-rows:auto auto minmax(0,1fr) auto;min-width:0;min-height:0;max-width:none;border:1px solid #6d879d;border-radius:12px;background:var(--panel);box-shadow:0 22px 85px #000b;overflow:hidden}
+#dock.ww-window.ww-maximized{inset:0!important;width:100vw!important;height:100dvh!important;border-radius:0}
+.ww-titlebar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:#1c2c3a;color:#edf4f9;padding:8px 12px;cursor:move;touch-action:none}
+.ww-titlebar strong{flex:1;min-width:120px;font:700 17px var(--body,system-ui)}
+.ww-titlebar button,.ww-footer button{font:600 13px var(--body,system-ui);min-height:40px;border-radius:7px;border:1px solid #617b90;background:#263f52;color:#fff;padding:6px 12px;cursor:pointer}
+.ww-titlebar #workWindowClose{border-color:#e1b959;color:#ffe3a0}
+.ww-titlebar :focus-visible,.ww-footer :focus-visible{outline:3px solid #f5c875;outline-offset:2px}
+#dock.ww-window .dtabs{display:flex;overflow-x:auto;padding:5px 10px;flex-wrap:wrap;gap:5px}
+#dock.ww-window .dtabs button{min-height:38px;white-space:normal;letter-spacing:.02em}
+#dock.ww-window #dockToggle,#dock.ww-window .ww-inline-open{display:none}
+#dock.ww-window .dbody{overflow:auto;max-height:none;min-height:0;padding:10px;overscroll-behavior:contain}
+#dock.ww-window[data-workspace="notes"]:has(#newNotePanel:not([hidden])) .dbody{padding:0;overflow:hidden}
+#dock.ww-window[data-workspace="notes"] #dockNotes:has(#newNotePanel:not([hidden])),#dock.ww-window #newNotePanel{height:100%;min-height:0}
+#dock.ww-window #noteEditorFrame{height:100%;min-height:0;border-radius:0}
+#dock.ww-window #editCanvas,#dock.ww-window #notesCanvas{height:clamp(260px,48dvh,760px)}
+#dock.ww-window #takeCanvas{height:clamp(180px,30dvh,480px)}
+.ww-footer{display:flex;align-items:center;justify-content:space-between;background:#16212b;color:#afc4d4;font:12px var(--body,system-ui);padding:0 0 0 12px}
+.ww-footer button{cursor:nwse-resize;touch-action:none;min-width:42px;padding:0;border-radius:6px 0 0 0}
+.ww-dragging iframe{pointer-events:none}
+#vocalEditor .stdialog:not(.stsmall){resize:both;min-width:min(580px,100%);max-width:100%;min-height:min(360px,calc(100dvh - 32px))}
+#vocalEditor .stdialog header{position:sticky;top:-14px;background:var(--rcp);z-index:2;flex-wrap:wrap;padding:6px 0}
+#vocalEditor .stdialog.ww-take-max{width:100%;height:calc(100dvh - 32px);max-width:none;resize:none}
+#vocalEditor .ww-take-max .stcanvas{height:clamp(220px,45dvh,700px)}
+#songDialog:has(.sg-editor){resize:both;min-width:min(560px,calc(100vw - 24px));max-width:calc(100vw - 16px)}
+#sgEditMaximize{margin-bottom:12px}
+#songDialog.ww-take-max{width:calc(100vw - 16px);height:calc(100dvh - 16px);max-height:none;resize:none}
+#songDialog.ww-take-max .sg-editor{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 30px}
+@media(max-width:719px),(max-height:459px){
+ #workWindowOpen{min-height:44px;max-width:calc(100% - 16px)}
+ .ww-titlebar{padding:6px 8px;gap:5px;cursor:default}
+ .ww-titlebar strong{flex-basis:100%;font-size:15px}
+ .ww-titlebar button{min-height:44px;flex:1;padding:6px;font-size:13px}
+ #dock.ww-window .dtabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));padding:4px;gap:4px}
+ #dock.ww-window .dtabs button{font-size:11px;padding:5px 3px;min-height:44px}
+ #dock.ww-window .dtabs small{display:none}
+ #dock.ww-window .dbody{padding:6px}
+ #dock.ww-window .selrow{flex-wrap:wrap}
+ #songDialog.ww-take-max .sg-editor{grid-template-columns:1fr}
+ #songDialog:has(.sg-editor),#vocalEditor .stdialog:not(.stsmall){resize:none;min-width:0}
+ #vocalEditor .stdialog.ww-take-max{height:calc(100dvh - 8px)}
+ .ww-titlebar{padding-top:max(6px,env(safe-area-inset-top))}
+ #dock.ww-window .dbody{padding-bottom:env(safe-area-inset-bottom,0px)}
+}
