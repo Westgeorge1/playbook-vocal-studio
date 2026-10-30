@@ -1,3 +1,15 @@
+PLAYBOOK VOCAL STUDIO 0.31.11 — VISIBLE DELETE CONTROLS
+
+To remove one recording, tap its waveform or select its range, then choose Delete recording on its attempt card.
+
+Beside each vocal track name:
+- Clear recordings removes all attempts while keeping the track and mixer controls.
+- Delete track removes the lane and its recordings. Deleting the final lane leaves a new empty Lead vocal track.
+
+Each action asks you to confirm. Cancel keeps everything. Undo at the top restores the removal until you close/reload the session. Backing music, song sections and other tracks are kept.
+
+See CHANGES-0.31.11.md and TEST-RESULTS-0.31.11.txt. The saved-project recording fix from 0.31.10 is retained; the main site stays at 0.14.0.
+
 PLAYBOOK VOCAL STUDIO 0.31.10 — REOPEN SAVED SONGS FOR RECORDING
 
 Open the beta normally. Saved tracks, POLISH audio and edits are kept. The app avoids processing an identical saved editor vocal again until you choose POLISH.

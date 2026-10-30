@@ -284,3 +284,14 @@ body.song-studio.sg-onsong #rcExport{display:none}
 /* 0.31.9: recording failures remain readable in phone and desktop mode. */
 #songDialog textarea[readonly]{box-sizing:border-box;width:100%;max-width:100%;font:12px/1.4 monospace;background:#0b1119;color:#edf4f9;border:1px solid #60758b;padding:8px}
 #songDialog details summary{cursor:pointer;min-height:44px;display:flex;align-items:center}
+
+/* Visible removal actions; the existing lane grid grows with touch controls. */
+#songStudio button.sg-danger{color:#ffc0c0;border-color:#865a62;background:#302029}
+#songStudio button.sg-danger:not(:disabled):hover{background:#492b35}
+#songStudio .sg-delete-controls{gap:4px;padding-top:2px;border-top:1px solid var(--song-line)}
+#songStudio .sg-lane-head>.sg-row:first-child{display:grid;grid-template-columns:minmax(0,1fr) auto}
+#songStudio .sg-lane-head .sg-track-name{min-width:0}
+#songStudio .sg-lane-head>.sg-row:has([data-polish]){flex-wrap:nowrap}
+#songStudio .sg-polish-state{min-width:0;overflow-wrap:anywhere}
+#songStudio .sg-lane-head label:has([data-level]),#songStudio .sg-lane-head label:has([data-pan]){flex-wrap:nowrap;gap:3px}
+@media(max-width:600px){#songStudio .sg-lane-head input[data-level],#songStudio .sg-lane-head input[data-pan]{width:52px!important}}

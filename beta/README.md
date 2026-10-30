@@ -1,4 +1,8 @@
-# Playbook Vocal Studio 0.31.10
+# Playbook Vocal Studio 0.31.11
+
+Visible **Delete recording** buttons on recording cards, plus **Clear recordings** and **Delete track** beside each vocal track. Confirm before removing; Undo restores it during the current session. Deleting the last track leaves a fresh empty lane, with backing and song sections kept. See CHANGES-0.31.11.md and TEST-RESULTS-0.31.11.txt. Beta only.
+
+# Previous release: 0.31.10
 
 Saved songs reopen for recording without reprocessing an editor vocal already kept in a track. POLISH opens when you choose to edit. Unique editor sessions still use full restoration; a processor that does not answer stops after two minutes, with the saved project protected from autosave. See CHANGES-0.31.10.md and TEST-RESULTS-0.31.10.txt. Beta only.
 

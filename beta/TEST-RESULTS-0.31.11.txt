@@ -1,0 +1,38 @@
+Playbook Vocal Studio 0.31.11 — recording/track deletion, 2026-10-30
+
+Baseline: beta commit 8a203248cfd6d6eefcd65bfb19fe58fe6a379220.
+
+155 browser checks passed; no JavaScript page errors:
+- tests-0.31.11/delete.cjs: 61 checks.
+- tests-0.31.11/recording.cjs: 38 recording regression checks.
+- tests-0.31.10/restore.cjs: 56 saved-project restoration regressions, rerun
+  against the 0.31.11 runtime. Results are in tests-0.31.11/restore-results.json.
+
+Chromium 153; touch-enabled 390x844 and 980x1760 viewports. Synthetic audio
+streams exercised the real recording worklet; real DSP generated POLISH
+fixtures. This is not a physical Android microphone test.
+
+Deletion checks cover: directly visible controls; touch lanes at most 380 px
+high; confirmation and Cancel; chosen/unchosen attempts; reference-pointer
+cleanup; shared sources retained on another track; clearing recordings while
+keeping the lane, backing, sections and other lanes; track deletion including
+the final track; Undo/Redo; durable deletion after reload; recording into the
+fresh lane; removal disabled while processing. Phone and desktop-mode layout
+screenshots were inspected.
+
+For Delete recording, Clear recordings and Delete track on a POLISHed lane:
+the incomplete/deleted editor is released without another native job, autosave
+contains no deleted root audio, Undo after an explicit save restores exact
+POLISH samples, Redo does not reattach processing to an empty lane, and reload
+does not resurrect the recording. The clear test also simulates an older
+IndexedDB save plus a newer removal journal, verifying crash recovery.
+
+Eight existing core suites passed (173 assertions): 0.20, 0.21, 0.22, 0.23,
+range safety, 0.24, reference alignment and 0.25. The existing static invariant
+checker passed 78 checks. Historical tests were run from a scratch mirror of
+the current runtime; its handover heading was labelled with the runtime under
+test. Test-only paths were adjusted by the mirror, not the application.
+
+JavaScript syntax, git whitespace and byte-lock checks passed. Native DSP,
+recording worklets, project format and the main/root 0.14.0 app are unchanged.
+Undo is available during the open session, not after closing or reloading it.

@@ -38,6 +38,17 @@ const monoOf=C.monoMix;
 function processingInput(w,t){const pcm=C.renderTrack(w,t,{end:C.trackEnd(t)});return C.polishPlan(w,t).mono?[monoOf(pcm)]:pcm;}
 function bindingMatches(w,t){return !!(binding&&t&&binding.id===t.id&&binding.sourceSig===C.trackSignature(w,t)&&binding.inputChannels===C.polishPlan(w,t).inputChannels);}
 function detach(){binding=null;lastError='';}
+// A deleted lane must not survive as the root editor and reappear on reload.
+// Its saved processing remains in SongStudio's Undo snapshot. Reopening that
+// lane after Undo uses its saved session; clearing this view needs no DSP job.
+function releaseDeleted(){
+ const w=W(),t=binding&&C.track(w,binding.id);
+ if(!S.main||switching||S.songApplying||!w||(binding?t?.regions.length:w.tracks.some(t=>t.regions.length)))return;
+ detach();endLoop();stopPlayback();NoteTuner.begin(null,false);clearTimeout(fitTimer);clearTimeout(sheetTimer);
+ Object.assign(S,{name:'',st:null,guide:null,notes:[],audio:{},takes:[],takeChannels:[],main:null,original:null,cleaned:null,removed:null,tuned:null,final:null,comped:null,frames:null,after:null,ovRaw:null,ovClean:null,ovComp:null,ovTakes:{},specBefore:null,specAfter:null,prevCur:null,prevSug:null,custom:null,detail:null,fitBeat:null,fitInfo:null,selected:-1,loadedNotice:'',loadError:''});
+ S.edit.sel=null;S.edit.src=null;S.edit.chosen=-1;S.edit.view={start:0,secs:0};
+ renderOpen();syncEdit();drawAll();
+}
 function needsApply(){return !!(W()&&C.selectedCount(W())&&!bindingMatches(W(),T()));}
 function notify(text,error=false){SongStudio.notify(text,error);$('polishTrackStatus').textContent=text;if(error)setStatus(text,'warn');}
 // 0.23: which stretches of a vocal really changed since it was polished (compares the saved signature rows).
@@ -155,7 +166,7 @@ $('polishExportSong').onclick=()=>{capture();const id=T()?.id;RC.go('rc');SongSt
 $('polishSong').onclick=async()=>{if(SongStudio.state().playing){SongStudio.stopPlay();render();return;}capture();try{await SongStudio.play(0);}catch(e){notify(e.message,true);}render();};
 $('polishBypass').onchange=()=>{const t=T();if(!t?.polish)return;const bypass=$('polishBypass').checked;SongStudio.setPolishPref(t.id,{bypass},bypass?'Dry vocal enabled. Processing settings are kept.':'Processed vocal enabled.');render();};
 for(const b of document.querySelectorAll('.savebtn'))b.textContent='EXPORT THIS VOCAL ▾';
-window.SongPolish={open,capture,detach,restored,beforeShow,render,pack,unpack,needsApply,assertExport,snapshot,acceptPolish,monoOf,state:()=>({binding:binding?{...binding}:null,switching,error:lastError,refusal:lastRefusal})};
+window.SongPolish={open,capture,detach,releaseDeleted,restored,beforeShow,render,pack,unpack,needsApply,assertExport,snapshot,acceptPolish,monoOf,state:()=>({binding:binding?{...binding}:null,switching,error:lastError,refusal:lastRefusal})};
 if(S.song&&S.main)restored({song:S.song});
 setInterval(render,400);
 })();
