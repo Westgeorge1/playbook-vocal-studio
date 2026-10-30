@@ -1,3 +1,7 @@
+PLAYBOOK VOCAL STUDIO 0.31.9 — RECORDING FEEDBACK
+
+Record starts normally or shows a visible explanation if it is blocked. If the issue persists, expand Details for troubleshooting and include them in your report. See CHANGES-0.31.9.md.
+
 PLAYBOOK VOCAL STUDIO 0.31.8 — EXPANDABLE WORK WINDOWS
 
 In POLISH choose Open tuning window or Open editing window. Expand above the dock also opens the active workspace. Drag the title to move, drag the lower-right corner to resize, or use Maximize. Focus notes makes more room for the piano roll; All tuning controls restores the settings. Return to studio or Escape docks the same editor. Take-editing dialogs also have Maximize.

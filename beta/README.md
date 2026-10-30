@@ -1,4 +1,8 @@
-# Playbook Vocal Studio 0.31.8
+# Playbook Vocal Studio 0.31.9
+
+Recording feedback fix: an empty vocal no longer gets stuck waiting for a tuning job. If Record cannot start, it opens a visible explanation with troubleshooting details. See CHANGES-0.31.9.md and TEST-RESULTS-0.31.9.txt. Beta only.
+
+# Previous release: 0.31.8
 
 Expandable work windows: choose **Open tuning window** or **Open editing window** in POLISH. Move and resize the window, use **Maximize**, or select **Focus notes** for more piano-roll space. **Return to studio** docks the same editor. Phones fill the browser automatically.
 

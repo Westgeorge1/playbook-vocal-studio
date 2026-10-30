@@ -280,3 +280,7 @@ body.song-studio.sg-onsong #rcExport{display:none}
 
 /* 0.31.5: Record stays tappable while the app is busy, so a tap can explain why it is waiting */
 #sgRecord.sg-wait,#sgStartRecord.sg-wait{opacity:.5;cursor:wait}
+
+/* 0.31.9: recording failures remain readable in phone and desktop mode. */
+#songDialog textarea[readonly]{box-sizing:border-box;width:100%;max-width:100%;font:12px/1.4 monospace;background:#0b1119;color:#edf4f9;border:1px solid #60758b;padding:8px}
+#songDialog details summary{cursor:pointer;min-height:44px;display:flex;align-items:center}

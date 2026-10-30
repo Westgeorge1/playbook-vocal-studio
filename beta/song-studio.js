@@ -46,7 +46,17 @@ modal.addEventListener('cancel',e=>{e.preventDefault();finishDialog('cancel');})
 // 0.22.0 (port of 0.18.3 review 08): Tab and Shift+Tab stay inside an open dialog; page shortcuts do nothing.
 modal.addEventListener('keydown',e=>{if(e.key!=='Tab'||!modal.open)return;const f=[...modal.querySelectorAll('button,input,select,textarea,a[href],[tabindex]:not([tabindex="-1"])')].filter(x=>!x.disabled&&!x.hidden&&x.getClientRects().length);if(!f.length)return;const i=f.indexOf(document.activeElement);e.preventDefault();f[(i<0?0:i+(e.shiftKey?-1:1)+f.length)%f.length].focus();});
 function busy(){return !!window.QualityStudio?.locked()||UI.busy||UI.opening||!!UI.capture||sessionLocked();}
-function message(text,error=false){$('sgStatus').textContent=text;$('sgStatus').classList.toggle('error',error);}
+function message(text,error=false){$('sgStatus').textContent=text;$('sgStatus').classList.toggle('error',error);if(error&&UI.shown)requestAnimationFrame(()=>{
+ const box=$('sgStatus').getBoundingClientRect(),bar=host.querySelector('.sg-transport').getBoundingClientRect();
+ if(box.top<bar.bottom+8||box.bottom>host.getBoundingClientRect().bottom)host.scrollTo({top:Math.max(0,host.scrollTop+box.top-bar.bottom-8),behavior:'instant'});
+});}
+function recordProblem(text){
+ message(text,true);
+ // A sticky toolbar can cover inline feedback, especially in a phone's desktop mode.
+ // Keep a blocked Record action accessible and show the reason above the whole page.
+ const details={version:APP_VERSION,loading:S.loading||false,engineBusy:!!S.busy,changesPending:!!S.dirty,engineRequests:Object.keys(pending).length,queuedChanges:S.queued||0,tuningPending:NoteTuner.pending(),tuningFailed:NoteTuner.failed(),noiseBusy:NoiseCleaner.locked(),songBusy:!!S.songWorking,studioBusy:UI.busy,vocalLoaded:!!S.main,secure:window.isSecureContext,microphoneAvailable:!!navigator.mediaDevices?.getUserMedia};
+ dialog('Recording could not start','<p>'+esc(text)+'</p><details><summary>Details for troubleshooting</summary><p>These details contain no recordings. Include them when reporting a problem.</p><textarea readonly rows="8" aria-label="Recording troubleshooting details">'+esc(JSON.stringify(details,null,2))+'</textarea></details>',[['close','Close']]);
+}
 function clock(t){t=Math.max(0,t);return Math.floor(t/60)+':'+(t%60).toFixed(1).padStart(4,'0');}
 function current(){const p=UI.play;if(!p)return W().cursor;const t=audioCtx().currentTime;return p.map?p.map(Math.max(t,p.when)):p.start+Math.max(0,t-p.when);}
 function backup(){UI.undo.push(C.clone(W()));if(UI.undo.length>30)UI.undo.shift();UI.redo=[];}
@@ -161,7 +171,7 @@ function captureBase(w,t,extra){return {w,trackId:t.id,regionId:null,handle:.15,
 async function record(bounded=false,repeat=false){
  if(UI.capture){await stopRecording();return;}if(UI.opening){UI.cancelOpen=true;return;}
  if(!bounded&&UI.play&&!UI.play.forRecording&&!UI.busy&&!sessionLocked())return punchIn();
- if(busy()){message(window.lockReason?.()||'Please wait: another task is still running.',true);return;}
+ if(busy()){recordProblem(window.lockReason?.()||'Please wait: another task is still running.');return;}
  const partId=UI.pendingPart||null;UI.pendingPart=null;
  const w=W(),t=T(),range=bounded?w.range?.slice():null;if(bounded&&!range){message('Select the word or phrase first.',true);return;}
  const loopMode=bounded&&UI.loop;
@@ -189,7 +199,7 @@ async function record(bounded=false,repeat=false){
   c.timer=setTimeout(()=>stopRecording('Recording reached its time or storage limit.'),((c.last-c.first)/c.rate+lead+2)*1000);
   UI.capture=c;UI.opening=false;render();
   message(loopMode?'Loop recording '+clock(a)+'–'+clock(b)+' on '+t.name+'. Sing every pass; each pass becomes an attempt. Press Stop when you are done.':(a>Math.max(-20,a-lead)?(pr.countIn?'Count-in: '+pr.countIn+' bar'+(pr.countIn>1?'s':'')+', then sing. ':'Listen to the lead-in, then sing. '):'')+'Recording '+t.name+(range?' from '+clock(a)+' to '+clock(b)+'.':' until you press Stop.'));
- }catch(e){if(c)unwire(c);else for(const tr of stream?.getTracks()||[])tr.stop();UI.opening=false;S.songWorking=false;stopPlay(false);message(e.message,true);render();}
+ }catch(e){if(c)unwire(c);else for(const tr of stream?.getTracks()||[])tr.stop();UI.opening=false;S.songWorking=false;stopPlay(false);render();if(UI.cancelOpen)message(e.message);else recordProblem(e.message);}
 }
 // Punch-in on the fly: the song is already playing; R starts a capture on the armed
 // lane at the current position without restarting playback; R again punches out.
@@ -207,7 +217,7 @@ async function punchIn(){
   const v=p.voices.find(v=>v.id===t.id),at=Math.max(ctx.currentTime,ctxAt(p,a));if(v)for(const g of [v.left,v.right]){g.gain.cancelScheduledValues(at);g.gain.setTargetAtTime(0,at,.005);}
   c.timer=setTimeout(()=>stopRecording('Recording reached its time or storage limit.'),(b-a+2)*1000);
   render();message('Punched in at '+clock(a)+' on '+t.name+'. Press R to punch out; the song keeps playing.');
- }catch(e){if(c)unwire(c);else for(const tr of stream?.getTracks()||[])tr.stop();UI.capture=null;UI.opening=false;S.songWorking=false;message(e.message,true);render();}
+ }catch(e){if(c)unwire(c);else for(const tr of stream?.getTracks()||[])tr.stop();UI.capture=null;UI.opening=false;S.songWorking=false;render();if(UI.cancelOpen)message(e.message);else recordProblem(e.message);}
 }
 async function stopRecording(reason='',{cancel=false}={}){
  UI.repeat=false;$('sgRepeat').checked=false;
@@ -280,7 +290,7 @@ async function exportAudio(opts={}){if(busy())return;window.SongPolish?.capture(
 async function auditionMono(id){const w=W(),t=C.track(w,id);if(!t)return;const a=Math.max(0,Math.min(w.cursor||0,C.trackEnd(t)-1)),b=Math.min(C.trackEnd(t),a+8),ch=C.renderTrack(w,t,{start:a,end:b}),m=ch.length>1?window.SongPolish.monoOf(ch):ch[0];const ctx=new AudioContext({sampleRate:w.rate}),buf=ctx.createBuffer(1,m.length,w.rate);buf.copyToChannel(m,0);const src=ctx.createBufferSource();src.buffer=buf;src.connect(ctx.destination);message('Playing 8 s of '+t.name+' in mono from '+clock(a)+'.');await new Promise(res=>{src.onended=res;src.start();setTimeout(res,(b-a)*1000+500);});try{ctx.close();}catch(e){}}
 async function polish(id){return window.SongPolish?.open(typeof id==='string'?id:W().activeTrack);}
 
-function renderTransport(){const c=UI.capture,locked=busy();if(!c){$('sgMeter').value=0;$('sgClip').textContent='';}$('sgRecord').textContent=c?(c.started?'■ Stop & keep':'■ Stop (mic starting…)'):UI.opening?'Cancel setup':'● Record';$('sgRecord').classList.toggle('recording',!!c);{const w=!c&&!UI.opening&&locked;$('sgRecord').disabled=false;$('sgRecord').classList.toggle('sg-wait',w);$('sgRecord').setAttribute('aria-disabled',String(w));$('sgRecord').title=w?(window.lockReason?.()||'Please wait'):'Record (R)';}$('sgPlay').textContent=UI.play?'❚❚ Pause':'▶ Play';$('sgPlay').disabled=locked;$('sgStop').disabled=!(c||UI.opening||UI.play);$('sgHome').disabled=locked;$('sgArmed').textContent=c&&current()<c.a?'Get ready · '+(c.a-current()).toFixed(1)+' s · '+T().name:'Recording track: '+(T()?.name||'Lead vocal');$('sgClock').textContent=clock(current());renderGrid();
+function renderTransport(){const c=UI.capture,locked=busy();if(!c){$('sgMeter').value=0;$('sgClip').textContent='';}$('sgRecord').textContent=c?(c.started?'■ Stop & keep':'■ Stop (mic starting…)'):UI.opening?'Cancel setup':'● Record';$('sgRecord').classList.toggle('recording',!!c);{const w=!c&&!UI.opening&&locked;$('sgRecord').disabled=false;$('sgRecord').classList.toggle('sg-wait',w);$('sgRecord').removeAttribute('aria-disabled');$('sgRecord').title=w?(window.lockReason?.()||'Please wait'):'Record (R)';}$('sgPlay').textContent=UI.play?'❚❚ Pause':'▶ Play';$('sgPlay').disabled=locked;$('sgStop').disabled=!(c||UI.opening||UI.play);$('sgHome').disabled=locked;$('sgArmed').textContent=c&&current()<c.a?'Get ready · '+(c.a-current()).toFixed(1)+' s · '+T().name:'Recording track: '+(T()?.name||'Lead vocal');$('sgClock').textContent=clock(current());renderGrid();
  $('rcUndo').disabled=locked||!UI.undo.length;$('rcRedo').disabled=locked||!UI.redo.length;
 }
 function render(){if(!UI.shown){polishStatus();return;}if(UI.drag){draw();return;}const w=W(),t=T(),r=R(),lk=busy();
@@ -301,7 +311,7 @@ function render(){if(!UI.shown){polishStatus();return;}if(UI.drag){draw();return
  }
  const rd=C.readiness(w);$('sgReady').textContent=rd.total?'POLISH: '+rd.ready+' of '+rd.total+' vocals ready'+(rd.todo?' · '+rd.todo+' to do':'')+(rd.blocked?' · '+rd.blocked+' need your choice':''):'';$('sgReady').title=rd.lanes.map(l=>l.name+': '+l.text).join('\n')||'No chosen vocals yet';$('sgReady').classList.toggle('low',!!rd.blocked);
  const u=C.usage(w),room=C.roomSeconds(w);$('sgRoom').textContent='Room: '+(room>=60?Math.floor(room/60)+' min '+String(Math.floor(room%60)).padStart(2,'0')+' s':Math.floor(room)+' s')+' of recording';$('sgRoom').classList.toggle('low',room<120);$('sgCapacity').textContent=w.tracks.length+' / 8 tracks · '+u.takes+' / 128 takes · '+(u.bytes/1048576).toFixed(1)+' / 256 MB of vocal sources (room for about '+Math.floor(room/60)+' min more mono recording). Undo keeps earlier audio in memory until you close this session.';
- renderPart(lk);const empty=!w.tracks.some(t=>t.regions.length);$('sgStart').hidden=!empty||!!UI.capture||UI.opening;$('sgStartBacking').hidden=!!S.beat;for(const id of ['sgStartImport','sgStartOpen','sgStartBacking'])$(id).disabled=lk;$('sgStartRecord').classList.toggle('sg-wait',!!lk);$('sgStartRecord').setAttribute('aria-disabled',String(!!lk));const wb=$('beatOn').checked;$('sgWith').setAttribute('aria-pressed',wb);$('sgWithout').setAttribute('aria-pressed',!wb);renderTransport();draw();polishStatus();}
+ renderPart(lk);const empty=!w.tracks.some(t=>t.regions.length);$('sgStart').hidden=!empty||!!UI.capture||UI.opening;$('sgStartBacking').hidden=!!S.beat;for(const id of ['sgStartImport','sgStartOpen','sgStartBacking'])$(id).disabled=lk;$('sgStartRecord').classList.toggle('sg-wait',!!lk);$('sgStartRecord').removeAttribute('aria-disabled');const wb=$('beatOn').checked;$('sgWith').setAttribute('aria-pressed',wb);$('sgWithout').setAttribute('aria-pressed',!wb);renderTransport();draw();polishStatus();}
 
 // Timeline waveforms are sampled from immutable source arrays. Rendering the
 // full audio comp on each animation frame would be expensive on a phone.

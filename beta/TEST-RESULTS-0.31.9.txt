@@ -1,0 +1,25 @@
+Playbook Vocal Studio 0.31.9 — recording regression checks, 2026-10-30
+
+Baseline: beta commit 4d27f73dbeaf602883bb17198ce44202462c19cb.
+Before the fix, note-tuner settings changed with no editor vocal left
+S.dirty=true, NoteTuner.pending()=true and sessionLocked()=true after the
+debounce elapsed. This state never initiated an audio job.
+
+Browser regression: 38 checks passed, no JavaScript page errors.
+Chromium 153, touch-enabled 390x844 and 980x1760 viewports (phone and phone
+desktop-mode layouts). No autoplay bypass flag was used. A synthetic audio
+MediaStream exercised the actual capture worklet, take saving and reload.
+
+Verified: empty-vocal settings do not lock Record; song data is preserved;
+blocked Record stays accessible and displays a fully visible reason dialog;
+diagnostics identify the busy engine; blocked recording never requests the
+microphone or clears a legitimate lock; unrelated pending edits are kept;
+recording starts, keeps an audible take, releases the mic stream, and survives
+reload; a loaded vocal still processes actual noise-setting changes; denied
+microphone access shows actionable help and releases the setup lock.
+
+JavaScript syntax and git whitespace checks passed. All files outside beta,
+and the seven locked engine files plus song-capture-worklet.js, are unchanged.
+
+This is not a physical Android microphone test. The user's exact phone lock
+remains unconfirmed; the new dialog makes its cause observable if it persists.
