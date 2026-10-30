@@ -1,0 +1,40 @@
+Playbook Vocal Studio 0.31.10 — saved-project recording recovery, 2026-10-30
+
+Baseline: beta commit 5c58bcd54f01eaceabdc6844419b95c29ac4ef63.
+
+94 browser checks passed; no JavaScript page errors.
+- tests-0.31.10/recording.cjs: 38 checks (the 0.31.9 recording regressions).
+- tests-0.31.10/restore.cjs: 56 checks (saved-song startup and engine failure).
+Results are checked in beside the scripts.
+
+Chromium 153, touch-enabled 390x844 and 980x1760 viewports. Synthetic microphone
+streams exercised the real capture worklet. No autoplay-bypass flag was used.
+Real DSP generated saved fixtures with non-default cleaning, breath edits,
+manual native note edits and backing settings. The restore fault test withholds
+native update replies; test-only document routing shortens the production
+120-second request deadline to 5 seconds.
+
+Verified on both layouts:
+- An exact duplicate editor session reopens from saved tracks with no native
+  vocal open/update jobs, including while update replies are withheld.
+- Unique root parameters, notes, edits, tuner state, PCM, alternate takes and
+  guide settings do not take the shortcut. Stale saved processing remains kept.
+- All source/processed PCM, settings, notes, edits and backing survive autosave
+  and reload. Backup pack/unpack retains originals and editor settings exactly;
+  processed output matches the existing standard 16-bit WAV backup encoding.
+- Playback and recording work before POLISH is reopened. New and previous takes
+  survive reload, and POLISH subsequently opens and renders with the real engine.
+
+Fault recovery verified with original and note-tuner configurations:
+- A missing update reply blocks Record while the request is active. The original
+  tuner case reproduces loading + engineBusy + vocalLoaded + one pending update,
+  with noiseBusy false, matching the supplied phone diagnostics.
+- Timeout terminates the worker, drains requests, clears the incomplete live
+  editor and ignores a late result. Autosave pauses with an explicit warning.
+- A new microphone take can be captured; both immediate and subsequent autosave
+  attempts leave the original saved project byte-for-byte unchanged.
+
+JavaScript syntax and git whitespace checks passed. The root app and all locked
+engine/worklet files remain unchanged. This is browser emulation with synthetic
+input, not a physical Android microphone test; the underlying reason for the
+phone's slow/stalled processor remains unmeasured.

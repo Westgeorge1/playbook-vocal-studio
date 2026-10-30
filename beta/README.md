@@ -1,4 +1,8 @@
-# Playbook Vocal Studio 0.31.9
+# Playbook Vocal Studio 0.31.10
+
+Saved songs reopen for recording without reprocessing an editor vocal already kept in a track. POLISH opens when you choose to edit. Unique editor sessions still use full restoration; a processor that does not answer stops after two minutes, with the saved project protected from autosave. See CHANGES-0.31.10.md and TEST-RESULTS-0.31.10.txt. Beta only.
+
+# Previous release: 0.31.9
 
 Recording feedback fix: an empty vocal no longer gets stuck waiting for a tuning job. If Record cannot start, it opens a visible explanation with troubleshooting details. See CHANGES-0.31.9.md and TEST-RESULTS-0.31.9.txt. Beta only.
 

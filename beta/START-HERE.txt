@@ -1,3 +1,11 @@
+PLAYBOOK VOCAL STUDIO 0.31.10 — REOPEN SAVED SONGS FOR RECORDING
+
+Open the beta normally. Saved tracks, POLISH audio and edits are kept. The app avoids processing an identical saved editor vocal again until you choose POLISH.
+
+If an older project still needs processing and a request does not finish within two minutes, the app stops that processor and pauses autosave to protect the saved project. New recordings can be backed up separately. Reload to retry opening the saved project. Do not choose Start fresh or clear browser data if you need that project.
+
+See CHANGES-0.31.10.md and TEST-RESULTS-0.31.10.txt. The main site is unchanged.
+
 PLAYBOOK VOCAL STUDIO 0.31.9 — RECORDING FEEDBACK
 
 Record starts normally or shows a visible explanation if it is blocked. If the issue persists, expand Details for troubleshooting and include them in your report. See CHANGES-0.31.9.md.

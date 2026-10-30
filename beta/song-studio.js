@@ -54,7 +54,7 @@ function recordProblem(text){
  message(text,true);
  // A sticky toolbar can cover inline feedback, especially in a phone's desktop mode.
  // Keep a blocked Record action accessible and show the reason above the whole page.
- const details={version:APP_VERSION,loading:S.loading||false,engineBusy:!!S.busy,changesPending:!!S.dirty,engineRequests:Object.keys(pending).length,queuedChanges:S.queued||0,tuningPending:NoteTuner.pending(),tuningFailed:NoteTuner.failed(),noiseBusy:NoiseCleaner.locked(),songBusy:!!S.songWorking,studioBusy:UI.busy,vocalLoaded:!!S.main,secure:window.isSecureContext,microphoneAvailable:!!navigator.mediaDevices?.getUserMedia};
+ const details={version:APP_VERSION,loading:S.loading||false,engineBusy:!!S.busy,changesPending:!!S.dirty,engineRequests:Object.keys(pending).length,engineJobs:Object.values(pending).map(p=>({type:p.type,update:p.update,seconds:Math.round((Date.now()-p.started)/1000)})),engineError:engineFailure?.message||false,autosavePaused:!!S.restorePaused,queuedChanges:S.queued||0,tuningPending:NoteTuner.pending(),tuningFailed:NoteTuner.failed(),noiseBusy:NoiseCleaner.locked(),songBusy:!!S.songWorking,studioBusy:UI.busy,vocalLoaded:!!S.main,secure:window.isSecureContext,microphoneAvailable:!!navigator.mediaDevices?.getUserMedia};
  dialog('Recording could not start','<p>'+esc(text)+'</p><details><summary>Details for troubleshooting</summary><p>These details contain no recordings. Include them when reporting a problem.</p><textarea readonly rows="8" aria-label="Recording troubleshooting details">'+esc(JSON.stringify(details,null,2))+'</textarea></details>',[['close','Close']]);
 }
 function clock(t){t=Math.max(0,t);return Math.floor(t/60)+':'+(t%60).toFixed(1).padStart(4,'0');}
