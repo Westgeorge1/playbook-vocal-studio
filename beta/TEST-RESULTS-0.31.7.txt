@@ -1,0 +1,13 @@
+PLAYBOOK VOCAL STUDIO 0.31.7 TEST RESULTS (2026-10-30, Linux, Chrome/Chromium headless)
+check25.cjs 78/0 (R1-R16 + docs). core25 50/0. Engine 7/7 byte-identical (ENGINE-SHA256.txt).
+run_all25.sh: every suite exit 0 (64 incl. r314 clean-restore, r314 mic-messages, r315 record-stuck 11/0,
+  r316 restore-error 19/0, r317 key-check, r314 fixes-review 19/0, r311 approved sample-exact).
+  t22-1024 failed once under load, passed in run 1 and isolated. h25-stereo 31/0 after the R16 redesign.
+tests-0.31.7/run_extra317.sh: policy28, quality26, reference27, core30, ext30, natural31, approved311, t30 browser/edges/
+  reads-and-locks/capacity 7/7, browser-natural, t313 editor/layout/controls/advanced/reference, t314 fixes+clean,
+  t315/t316/t317, peak28, browser28, t29 audit/integration/edges/ui/final-checks/concurrent-edits/safety-limits/capacity,
+  browser26, edge27: all exit 0. tests-0.25.1/run.py: exit 0 (regressions 18/0 after the banner fix); --capacity 22/0,
+  POLISH 137/170/182 s.
+browser27: original private fixtures were lost in a box restart; with regenerated fixtures (/workspace/fixtures27) one
+  check ("saved profile generates conservative body trial") fails identically on 0.31.5, so it is a fixture limit, not
+  a 0.31.7 change (reference-guide code is unchanged).

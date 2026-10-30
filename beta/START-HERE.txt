@@ -1,6 +1,8 @@
-PLAYBOOK VOCAL STUDIO 0.31.5
+PLAYBOOK VOCAL STUDIO 0.31.7
 
-New in 0.31.5: Record always starts or says why (read CHANGES-0.31.5.md). New in 0.31.4: read CHANGES-0.31.4.md. Optional High-note fix (off by default),
+New in 0.31.7: the Song screen says "key not set" until you choose your song key, and the tuning
+presets ask first if your singing sounds like a different key (read CHANGES-0.31.7.md). New in 0.31.6: a saved project that cannot be loaded is never overwritten; you get Try again /
+Back up / Start fresh (read CHANGES-0.31.6.md). New in 0.31.5: Record always starts or says why (read CHANGES-0.31.5.md). New in 0.31.4: read CHANGES-0.31.4.md. Optional High-note fix (off by default),
 new imports match the approved tuning references exactly, phone layout fixes.
 Reviewed handover: read REVIEW-0.31.3.md for checks, fixes and known limits.
 EQ labels include Low, Mid, High and Gain. The approved tuning sound is kept.

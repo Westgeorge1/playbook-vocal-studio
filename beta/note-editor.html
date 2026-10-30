@@ -103,6 +103,7 @@ select{font:600 14px var(--f-body);color:var(--ink);background:var(--panel);bord
 .panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
 .phead{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .hint{margin:0;color:var(--muted);font-size:13.5px;max-width:62ch}
+.hint.keywarn{color:#ffcf70;font-weight:600}
 .noteHead{display:flex;align-items:baseline;gap:12px}
 .noteName{font-family:var(--f-display);font-size:34px;font-weight:700;line-height:1}
 .cents{font-family:var(--f-mono);font-size:14px;font-variant-numeric:tabular-nums}
@@ -375,7 +376,7 @@ select{font:600 14px var(--f-body);color:var(--ink);background:var(--panel);bord
   <p class="foot">Everything runs on your device; your audio is never uploaded.</p>
 </div>
 
-<script src="note-editor-safety.js?v=0.31.5"></script>
+<script src="note-editor-safety.js?v=0.31.7"></script>
 <script src="natural-tuning.js?v=0.31.1"></script>
 <script>
 (() => {
@@ -1899,8 +1900,8 @@ $("undo").onclick = undo; $("redo").onclick = redo;
 const keySel = $("key");
 for(const [value,label] of [["harmonicMinor","Harmonic minor"],["majorPentatonic","Major pentatonic"],["minorPentatonic","Minor pentatonic"],["blues","Blues"]]){const o=document.createElement("option");o.value=value;o.textContent=label;$("scale").appendChild(o);}
 KEY_NAMES.forEach((n, i) => { const o = document.createElement("option"); o.value = i; o.textContent = n; keySel.appendChild(o); });
-keySel.onchange = () => { pushHist(); S.key = +keySel.value; changed(); };
-$("scale").onchange = e => { pushHist(); S.scale = e.target.value; changed(); };
+keySel.onchange = () => { pushHist(); S.key = +keySel.value; S.keyChosen=true; releaseKeyHold(); changed(); };
+$("scale").onchange = e => { pushHist(); S.scale = e.target.value; S.keyChosen=true; releaseKeyHold(); changed(); };
 $("free").onchange = e => { S.free = e.target.checked; };
 $("snapAll").onclick = () => { pushHist(); S.notes.forEach((_, i) => snapNote(i)); changed(); };
 $("resetAll").onclick = () => { pushHist(); S.notes.forEach(n => Object.assign(n, NOTE_DEFAULTS)); changed(); };
@@ -2023,8 +2024,37 @@ $("cApply").onclick = () => {
 };
 
 /* Explicit whole-vocal presets. Selection-only correction above is unchanged. */
+// 0.31.7: a whole-vocal preset pulls every note to the key's scale. New songs start on C major until the singer sets a key,
+// so a vocal sung in another key was tuned to wrong notes without a word. Only while the song key has NOT been chosen
+// (the host says so through keyChosen(false); standalone use and chosen keys are never asked), ask first when the singing
+// suggests a key with different notes (a relative major/minor has the same notes). Cancel changes nothing.
+const keyPcs=(key,scale)=>new Set((SCALES[scale]||[]).map(x=>(x+key)%12));
+function keyMismatch(){
+  if(S.keyChosen!==false)return null;
+  const k=S.notes.length?detectKey(S.notes,refOff()):null;if(!k||k.r<=.3)return null;
+  const a=keyPcs(S.key,S.scale),b=keyPcs(k.key,k.scale);if(a.size===b.size&&[...a].every(x=>b.has(x)))return null;
+  return k;
+}
+const keyAsked=new Set();
+// 0.31.7 adoption (R16): automatic tuning (Classic Smooth, on for new vocals) also pulls every note to the key's scale.
+// When a NEW vocal opens while the song key is NOT chosen and the singing suggests a key with different notes, automatic
+// tuning is switched off (S.smoothHeld, saved as plain smoothOn:false so reopening sounds the same) and the panel says why.
+// Choosing a key in the editor, "Use detected", a preset (asked first) or the On switch turns it back on.
+// Saved projects and chosen keys are never touched (sample-identical).
+function keyHeld(){try{const k=keyMismatch();return !!k&&!keyAsked.has(S.key+S.scale+">"+k.key+k.scale);}catch(_){return false;}}
+// Switching tuning off on its own needs real evidence: at least 3 different sung pitch classes and a confident detection
+// (or a runner-up that is only the relative major/minor, i.e. the same notes).
+function holdSure(){try{const k=keyMismatch();const pcs=new Set(S.notes.map(n=>((Math.round(n.center)%12)+12)%12));if(!k||pcs.size<3)return false;if(k.sure)return true;const a=keyPcs(k.key,k.scale),b=k.other?keyPcs(k.other.key,k.other.scale):null;return !!b&&a.size===b.size&&[...a].every(x=>b.has(x));}catch(_){return false;}}
+function releaseKeyHold(){if(!S.smoothHeld)return;setSmoothOn(true,false);}
+function confirmPresetKey(){
+  const k=keyMismatch();if(!k)return true;const id=S.key+S.scale+">"+k.key+k.scale;if(keyAsked.has(id))return true;
+  const cur=KEY_NAMES[S.key]+" "+S.scale,det=KEY_NAMES[k.key]+" "+k.scale;
+  const ok=confirm("Check the key before tuning.\n\nTuning is set to "+cur+", but your singing sounds like "+det+(k.sure?"":" (not certain)")+". Tuning to the wrong key moves notes to the wrong pitch.\n\nOK: tune to "+cur+" anyway.\nCancel: go back, then tap \"Use detected "+det+"\" or choose your key.");
+  if(ok)keyAsked.add(id);return ok;
+}
 function applyVocalPreset(kind){
   if(S.busy||!S.orig||!S.notes.length||!["snap","centre"].includes(kind))return;
+  if(!confirmPresetKey())return;
   pushHist();
   S.autoMode="classic";S.keepBlue=false;$("keepBlue").checked=false;
   setSmooth(25,false);setSmoothOn(true,false);
@@ -2041,14 +2071,16 @@ function presetUI(){
   for(const id of ["presetSnapSmooth","presetCenterSmooth"])$(id).disabled=disabled;
   const k=S.notes.length?detectKey(S.notes,refOff()):null,usable=k&&k.r>.3;
   const current=KEY_NAMES[S.key]+" "+S.scale;
-  $("presetKeyHint").textContent=usable?"Using "+current+" · detected "+KEY_NAMES[k.key]+" "+k.scale+". Check against your song or backing track.":"Using "+current+". Check against your song or backing track.";
+  const clash=usable&&keyMismatch();
+  $("presetKeyHint").textContent=clash?"⚠ Tuning to "+current+", but your singing sounds like "+KEY_NAMES[k.key]+" "+k.scale+". Choose the right key before applying a preset.":usable?"Using "+current+" · detected "+KEY_NAMES[k.key]+" "+k.scale+". Check against your song or backing track.":"Using "+current+". Check against your song or backing track.";
+  $("presetKeyHint").classList.toggle("keywarn",!!clash);
   const b=$("useDetectedKey");b.hidden=!usable||(k.key===S.key&&k.scale===S.scale);b.disabled=disabled;
   b.textContent=usable?"Use detected "+KEY_NAMES[k.key]+" "+k.scale:"Use detected key";
   $("presetSoundHint").textContent=S.soundProfile==="approved-original"?"Original supplied editor sound. These are the two settings approved in the listening comparison.":"This saved project retains its previous tuner sound and note edits. Import a fresh vocal to use the approved original sound.";
 }
 $("useDetectedKey").onclick=()=>{
   if(S.busy||!S.orig)return;const k=detectKey(S.notes,refOff());if(!k||k.r<=.3)return;
-  pushHist();S.key=k.key;S.scale=k.scale;$("key").value=k.key;$("scale").value=k.scale;
+  pushHist();S.key=k.key;S.scale=k.scale;S.keyChosen=true;releaseKeyHold();$("key").value=k.key;$("scale").value=k.scale;
   changed();
 };
 
@@ -2332,7 +2364,7 @@ function automaticUI(){
  for(const k of ["autoKeepInTune","autoExpression","autoKeepBlue"])$(k).checked=S[k];
  $("autoTicks").textContent=natural?"0% off · 85% gentle centre correction · 100% full centre correction":"0–15 barely there · 20–35 natural · 50+ tight · 90+ robotic";
  $("autoHint").textContent=natural?"Moves stable note centres while keeping vibrato and note movement. Notes you edit by hand keep your choices. Uncertain or large pitch changes need your review. Check the key and tuning reference above. Double-tap resets to 85%.":"Classic Smooth pulls each pitch frame toward the nearest scale note after manual editing. Existing projects keep this mode. Use a whole-vocal preset above for Snap all or 85% centre correction plus Smooth. Double-tap resets to 25%.";
- const info=S.autoInfo;$("autoStatus").textContent=!S.smoothOn?"Automatic tuning is off.":info?info.corrected.length+" notes corrected · "+info.untouched.length+" left as sung or edited · "+info.review.length+" need manual review.":"Natural tuning starts gently; compare before keeping it.";
+ const info=S.autoInfo;$("autoStatus").textContent=(!S.smoothOn&&S.smoothHeld)?"⚠ Automatic tuning is waiting: the song key is not set and your singing sounds like a different key than "+KEY_NAMES[S.key]+" "+S.scale+". Choose your key (or tap Use detected) and it turns back on, or tap On to tune to "+KEY_NAMES[S.key]+" "+S.scale+".":!S.smoothOn?"Automatic tuning is off.":info?info.corrected.length+" notes corrected · "+info.untouched.length+" left as sung or edited · "+info.review.length+" need manual review.":"Natural tuning starts gently; compare before keeping it.";
 }
 $("autoMode").onchange=e=>{pushHist();S.autoMode=e.target.value;setSmooth(S.autoMode==="natural"?85:25,false);automaticUI();changed();};
 $("autoSpeed").oninput=e=>{pushHist("autoSpeed");S.autoSpeed=+e.target.value;automaticUI();changed();};
@@ -2367,7 +2399,7 @@ knob.addEventListener("keydown", e => {
   if (d){ e.preventDefault(); pushHist("knob"); setSmooth(S.smooth*100 + d, true); }
 });
 function setSmoothOn(on, fire){
-  S.smoothOn = on; const b = $("smoothOn");
+  S.smoothHeld = false; S.smoothOn = on; const b = $("smoothOn");
   b.setAttribute("aria-pressed", on); b.textContent = on ? "On" : "Off";
   $("smoothPanel").classList.toggle("knob-off", !on); if (fire) changed();
 }
@@ -2449,7 +2481,7 @@ window.PlaybookNoteEditor={
     if(opts.state.v!==1||opts.state.rate!==sr||opts.state.frames!==channels[0].length||opts.state.channels!==channels.length)throw Error("Saved note edits do not fit this vocal.");
     Safety.edits(opts.state.settings,Math.max(0,Math.floor((Math.ceil(channels[0].length*11025/sr)-490)/110)));
   }
-  hostMute=true;
+  hostMute=true;S.smoothHeld=false;S.holdEligible=!opts.state;
   try{await loadBuffer(fakeBuffer(channels,sr),opts.name||"Cleaned vocal",true,opts.state?(opts.state.settings.soundProfile||"reviewed-031"):"approved-original",opts.state?.settings);if(opts.state)applyEdits(opts.state.settings);
   if(!opts.state&&opts.automatic===false)setSmoothOn(false,false);
   if(!opts.state&&Number.isFinite(opts.referenceHz)&&opts.referenceHz>=415&&opts.referenceHz<=466)setRef(opts.referenceHz,false);
@@ -2460,6 +2492,10 @@ window.PlaybookNoteEditor={
  render(){ensureRendered();return {channels:S.tunedChannels,sampleRate:S.sr,state:bridgeState(),notes:S.notes.map((n,i)=>({start:span(n).oa,end:span(n).ob,centre:n.center,target:n.center+n.shift,enabled:true,review:autoReview(n,i)})),duration:S.durOut};},
  reviewNext(){const i=S.notes.findIndex((n,i)=>autoReview(n,i)&&i>S.sel),j=i>=0?i:S.notes.findIndex(autoReview);if(j<0)return;selectOnly(j);S.playhead=span(S.notes[j]).oa;S.view.t0=Math.max(0,S.playhead-.3);changed();},
  state:bridgeState,
+ keyChosen(chosen){S.keyChosen=chosen!==false;const eligible=S.holdEligible;S.holdEligible=false;let change=false;
+  try{if(S.keyChosen&&S.smoothHeld){releaseKeyHold();change=true;}
+  else if(!S.keyChosen&&eligible&&S.orig&&S.smoothOn&&keyHeld()&&holdSure()){setSmoothOn(false,false);S.smoothHeld=true;change=true;}
+  if(change){computeCurves();refreshAll();}automaticUI();}catch(_){}},
  key(key,scale){if(S.key===key&&S.scale===scale)return;hostMute=true;try{S.key=key;S.scale=scale;$("key").value=key;$("scale").value=scale;changed();}finally{hostMute=false;}},
  onChange(fn){hostChanged=fn;},
  onPlay(fn){hostPlay=fn;},

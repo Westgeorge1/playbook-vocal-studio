@@ -550,7 +550,7 @@ const BK=Object.assign({since:0,lastBackup:0,lastNag:0},LS('pvs-backup',{}));con
 const sessionStart=Date.now();let savedAt=0,saveState='idle';
 const origWrite=window.writeRemembered;
 let saveSequence=0;
-window.writeRemembered=async function(){const seq=++saveSequence;saveState='saving';syncSaved();try{const r=await origWrite.apply(this,arguments);if(seq===saveSequence&&r!==false){saveState='ok';savedAt=Date.now();}return r;}catch(e){if(seq===saveSequence)saveState='fail';throw e;}finally{syncSaved();}};
+window.writeRemembered=async function(){const seq=++saveSequence;saveState='saving';syncSaved();try{const r=await origWrite.apply(this,arguments);if(seq===saveSequence){if(r!==false){saveState='ok';savedAt=Date.now();}else if(typeof S!=='undefined'&&S.restorePaused)saveState='paused';else saveState=savedAt?'ok':'idle';}return r;}catch(e){if(seq===saveSequence)saveState='fail';throw e;}finally{syncSaved();}};
 const origAdd=window.phraseAddAudio;
 window.phraseAddAudio=async function(){const r=await origAdd.apply(this,arguments);BK.since++;saveBK();maybeNag();return r;};
 const origSaveProject=window.saveProject;
@@ -558,13 +558,13 @@ const origSaveProject=window.saveProject;
 if(typeof origSaveProject==='function')window.saveProject=async function(){$('saveStatus').textContent='';const r=await origSaveProject.apply(this,arguments);const msg=(r&&r.msg)||$('saveStatus').textContent||'',bad=r&&typeof r.ok==='boolean'?!r.ok:(!msg||/fail|could not|couldn|not saved|error|first|wait/i.test(msg)); // 0.18.3: the explicit result decides
   if(!bad&&r?.status==='saved'){BK.since=0;BK.lastBackup=Date.now();saveBK();syncSaved();}
   PV.lastSave={ok:!bad,status:r&&r.status||(bad?'failed':'saved'),msg};if(msg)phraseMessage((bad?'Project backup: ':r?.status==='requested'?'Project backup prepared — ':'Project backup saved — ')+msg);if(bad&&msg)toast(/^Not saved/.test(msg)?'Project backup cancelled':'Project backup not saved',msg,8000);return r||PV.lastSave;};
-PV.autosaveText=()=>{const tm=d=>new Date(d).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});return saveState==='fail'?'⚠ The last autosave failed.':savedAt?'Last autosaved at '+tm(savedAt)+'.':'Automatic after every change.';};
+PV.autosaveText=()=>{const tm=d=>new Date(d).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});return saveState==='fail'?'⚠ The last autosave failed.':saveState==='paused'?'⚠ Autosave is paused until your saved project opens. Use Back up project.':savedAt?'Last autosaved at '+tm(savedAt)+'.':'Automatic after every change.';};
 function maybeNag(){const every=+P.backupEvery||0;if(!every||BK.since<every)return;if(Date.now()-BK.lastNag<10*60000)return;BK.lastNag=Date.now();saveBK();
   toast('Back up your takes',BK.since+' new takes since your last project download. Browser storage can be cleared by the phone — Settings ▾ › Save project with every take (Ctrl+S).',9000);}
 PV._nag=maybeNag;PV._bk=BK;
 function syncSaved(){const el=$('dawSaved');if(!el)return;const tm=d=>new Date(d).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
   el.className='savedind '+saveState+(BK.since>=(+P.backupEvery||Infinity)?' nag':'');
-  el.textContent=saveState==='saving'?'● saving…':saveState==='fail'?'⚠ not saved':savedAt?'✓ saved '+tm(savedAt):'';
+  el.textContent=saveState==='saving'?'● saving…':saveState==='fail'?'⚠ not saved':saveState==='paused'?'⚠ autosave paused':savedAt?'✓ saved '+tm(savedAt):'';
   if(BK.since&&+P.backupEvery&&BK.since>=+P.backupEvery)el.textContent+=' · back up ('+BK.since+' new)';
   el.title='Autosave on this browser'+(savedAt?' · last '+tm(savedAt):'')+(BK.lastBackup?' · last project download '+new Date(BK.lastBackup).toLocaleString():' · no project download yet');
   if($('bkInfo'))$('bkInfo').textContent=(savedAt?'Autosaved on this browser at '+tm(savedAt)+'. ':'Autosave runs after every change. ')+(BK.lastBackup?'Last project download: '+new Date(BK.lastBackup).toLocaleString()+'. ':'No project download yet. ')+BK.since+' new take'+(BK.since===1?'':'s')+' since.';}

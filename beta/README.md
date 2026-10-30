@@ -1,6 +1,6 @@
-# Playbook Vocal Studio 0.31.5
+# Playbook Vocal Studio 0.31.7
 
-0.31.5 fixes Record staying switched off on a phone while a saved project loads (CHANGES-0.31.5.md). 0.31.4 adds an optional High-note fix (off by default), makes new imports match the
+0.31.7 also opens normally in private mode (with a backup reminder) and automatic tuning waits for your key instead of tuning to C major (CHANGES-0.31.7-adoption.md). 0.31.7 stops a new song being tuned to C major by mistake: an unset key is shown as "key not set", and while it is unset the tuning presets ask first when your singing suggests another key (CHANGES-0.31.7.md). 0.31.6 protects a saved project that cannot be read or opened: autosave pauses instead of replacing it, with Try again, Back up and Start fresh (CHANGES-0.31.6.md). 0.31.5 fixes Record staying switched off on a phone while a saved project loads (CHANGES-0.31.5.md). 0.31.4 adds an optional High-note fix (off by default), makes new imports match the
 approved tuning references sample-for-sample in the browser, and fixes the phone top bar
 and embedded editor theme. Read **CHANGES-0.31.4.md** and **TEST-RESULTS-0.31.4.txt**.
 

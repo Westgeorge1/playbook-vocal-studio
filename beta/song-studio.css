@@ -228,6 +228,11 @@ body.song-studio.sg-onsong #rcExport{display:none}
 #storageRecovery{padding:10px 14px;background:#412d18;color:#fff1d7;border:1px solid #e5ae64;display:flex;flex-wrap:wrap;align-items:center;gap:10px;font:14px/1.5 system-ui}
 #storageRecovery[hidden]{display:none!important}
 #storageRecovery span{flex:1 1 280px}
+#storageRecovery button[hidden]{display:none}
+#storageRecovery.paused{padding:8px 12px;gap:8px}
+#storageRecovery.paused span{flex:1 1 100%}
+#storageRecovery.paused button{padding:6px 10px}
+#storageRecovery button:disabled{opacity:.6;cursor:wait}
 #storageRecovery button{min-height:44px;border:1px solid #e5ae64;background:#241b11;color:#fff1d7;border-radius:6px;padding:8px 12px;cursor:pointer}
 #storageRecovery :focus-visible{outline:3px solid #fff;outline-offset:2px}
 @media(max-width:720px){
