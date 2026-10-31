@@ -1,50 +1,72 @@
-PLAYBOOK VOCAL STUDIO — RECORD & TAKES (phone 0.13.0)
+NOTE FOR 0.22.0 AND OLDER VERSIONS
+A project saved by 0.22.0 opens in 0.18.3 with the Lead vocal and its parts
+(one part per song section, with their takes and the chosen take). Harmony,
+double and ad-lib tracks are NOT shown in 0.18.3 or earlier; open the project
+in 0.20.0 or newer to get every track. The sections below describe 0.18.3.
 
-Open the browser app directly in Chrome. Wear headphones.
+PLAYBOOK VOCAL STUDIO 0.20.0 — START HERE
 
-1. Open RECORD, then Load backing track. OPEN also has a backing-only preview
-   and its volume/mute controls. The microphone records only your voice; the
-   backing plays in your headphones. Speaker playback may bleed into the mic.
-2. Tap Continue from here to create your first phrase. Change Start and End
-   in seconds, give the phrase a name and tap Update this phrase's boundaries.
-   The default is eight seconds. A phrase can be 0.5–60 seconds long.
-3. Set a lead-in, then Record this phrase. Watch the countdown and mic meter.
-   You hear the backing and existing vocal before the phrase. The old vocal is
-   muted inside the phrase. Recording stops just after End. Stop and keep
-   attempt lets you finish early; incomplete attempts remain available.
-4. Tap Redo this part for another attempt. No earlier attempt is overwritten.
-   Alternatively import a phrase recording; its beginning is placed at Start.
-5. Listen to each take with or without backing. Playback levels are matched
-   for comparison. Use Alignment if a recording sounds early or late; positive
-   milliseconds move it later. Assembly level changes its final contribution.
-6. Set the song's key and scale if known. You can choose one attempt as a melody
-   and timing reference. Read the estimated pitch, clipping and background
-   measurements. The suggestion is advisory: choose the delivery you prefer.
-7. Tap Choose. The resume position moves to that phrase's end. Continue from
-   here starts the next phrase. You can tap the timeline or use the resume
-   slider to move elsewhere. Select any earlier phrase to redo it again.
-8. Hear assembled vocal + backing checks the whole sequence. Join fade softens
-   the edges (20 ms by default). Later-created phrases replace earlier ones in
-   overlaps. Unchosen regions retain the starting vocal or silence.
-9. Apply chosen takes to vocal loads the assembly into CLEAN, TUNE and CHAIN.
-   Current sound settings remain; note and performance edits on the previous
-   assembly reset. The source attempts stay in RECORD. Finish the sound, then
-   use SAVE to export the vocal or rough mix.
-10. Save project with every take downloads a complete song ZIP, including the
-    backing, original attempts, choices and resume position. Reopen it through
-    OPEN > Song project. Phone 0.13.0 or newer restores editable phrases;
-    desktop opens the assembled vocal. Browser autosave is also available but
-    is not a replacement for downloaded backups.
+THE SIMPLE WORKFLOW
 
-Clear take choice restores the starting vocal (or silence) for that phrase
-when you Apply again. Remove deletes an attempt/phrase from the workspace;
-Undo last change brings it back. OPEN's Clear vocal & takes removes all vocal
-work while keeping the backing. New session clears everything. Undo clear is
-available until a new vocal or recording replaces that undo point.
+1. Record your lead vocal.
+   Load your instrumental if you have one. Select Lead vocal and press Record.
+   Sing the song, then press Stop. The recording stays together as one take.
 
-Keep the page visible while recording. Switching away stops and keeps the
-attempt. If decoding fails but microphone bytes exist, Download last microphone
-file for recovery saves them for another import. A storage warning means you
-should download a project immediately. Microphone permissions, sound output and
-latency vary by phone and headphones; the alignment control is provided for
-listening corrections.
+2. Fix a word or phrase.
+   Drag over that spot, or enter its start and end in seconds. Press Fix phrase.
+   Record again as many times as needed. Listen, then Choose the attempt you like.
+   The rest of your recording stays in place. Repeat with lead-in makes another
+   attempt each pass. A partial attempt is kept but cannot replace a longer phrase.
+
+3. Label your song.
+   Add Intro, Verse, Chorus, Bridge or Outro in Song sections. These labels help
+   you navigate; they do not cut or move your recordings.
+
+4. Add backing vocals.
+   Press + Add vocal track. Name it Harmony, Double, Ad-libs, or anything you like.
+   Record and fix phrases on that lane. Your lead and other lanes stay separate.
+
+5. POLISH each voice.
+   Press Polish on a vocal lane. Clean, Tune, note edits and effects now belong
+   to that vocal only. Your changes are saved automatically on that track.
+   Use the Polishing selector to move between lead and harmony. Each keeps its
+   own settings. One voice can have light tuning and another stronger tuning;
+   one can have reverb while another stays dry.
+
+6. Hear the result together.
+   Press Hear song in POLISH. It plays every vocal lane using its saved processing
+   and the Song & vocals mixer. Play below the POLISH bar auditions the selected
+   vocal. The existing Mix panel fits backing for that selected-vocal audition;
+   full-song playback/export uses the song lane levels instead.
+   Back in Song & vocals, adjust each lane's volume, pan, Mute and Solo.
+   Use dry vocal bypasses a lane's POLISH while keeping its settings.
+
+7. Export or back up.
+   Export song in POLISH offers the finished vocal mix, song with backing,
+   separate polished stems, or dry stems. Stems all start at 0:00. A track you
+   have not polished stays dry. Muted tracks remain in separate stem exports.
+   EXPORT THIS VOCAL in the lower POLISH panel exports the selected voice using
+   the original detailed export controls.
+   Back up project saves all tracks, attempts, sections and editable POLISH
+   settings. Check that the ZIP finished downloading. Autosave is local to this
+   browser and is not a replacement for keeping a backup.
+
+IF YOU RECORD A NEW PHRASE AFTER POLISHING
+
+Only the affected vocal shows Update needed. Other vocals keep their processing.
+Press Polish on the changed track. The app keeps its cleaning, tuning settings
+and effects, but asks before resetting manual note, breath and timing edits that
+belonged to the previous performance. Back up first if you need that old version.
+Until updated, song playback uses the new dry vocal on that lane. Processed export
+asks you to update it or explicitly choose Use dry vocal in its track settings.
+
+USEFUL DETAILS
+
+- Use headphones so backing music does not leak acoustically into your microphone.
+- R starts/stops recording; Space stops recording or plays/pauses on Song & vocals.
+- A selected phrase gives an exact recording range. R during playback starts with
+  lead-in; it is not an instantaneous gapless live punch.
+- Use project backups before removing recordings. Song Undo lasts this session.
+- WAV exports use 32-bit float audio. Effect tails are retained in processed audio.
+- Projects with these features require version 0.20.0 or newer. Older apps cannot
+  restore all lanes and settings. Keep the original ZIP if trying an older app.

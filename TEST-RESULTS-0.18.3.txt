@@ -1,0 +1,42 @@
+Playbook Vocal Studio 0.18.3 — test results
+App 0.18.3 · audio engine 0.12.1. Engine files byte-identical (sha256sum -c ENGINE-SHA256.txt: all OK).
+Real headless Chrome with a fake microphone (tests-0.18/voice48k.wav), plus the node suites.
+
+Final full run (tests-0.18/run_all.sh, in the background with logs; summary in tests-0.18/run_all.out): exit 0
+  T183   76 pass 0 fail   new: review findings 01–08, usability, widths / zoom, phones, 0.18.2 <-> 0.18.3 projects
+  T1024  74 pass 0 fail   new in the routine run: t182.py at 1024 x 768
+  T182   74 / 0   T182W 74 / 0 (1920)   R172 58 / 0   F1366 42 / 0   F1920 42 / 0
+  T1366  37 / 0   T1920 37 / 0   A1366 35 / 0   A1920 35 / 0   B 27 / 0   D 11 / 0   OLD 14 / 0
+  PH 24 / 0   P 22 / 0   C 10 / 0   POL 24 / 0   COMPAT 4 / 0   audit: PASS, 0 page errors   NODE: all 8 suites passed
+  = 720 browser checks passed, 0 failed, + the control audit and 8 node suites.
+
+t183.py sections (each also run on its own while building):
+  A 01 backup-first import: prep fails / download fails / cancelled → no picker, takes kept; Try again → backup + picker  7 / 0
+  B 04 song length with a whole vocal: 36 s at 48 kHz, 150 s at 44.1 kHz, fit, clock, play near the end, reload      6 / 0
+  C 02 Settings ▾ Back up in backing-only and Recovered-audio-only sessions, reopened in a fresh profile; empty = reason  6 / 0
+  D 03 tempo after reload: parts only, takes before POLISH, backing only                                              5 / 0
+  E 05 backing level: lane menu + lane fader, all controls agree, reload, playback gain, project reopen               6 / 0
+  F 06 trim / split / Undo / Redo re-run the take check                                                               5 / 0
+  G 07 900, 1024, 1280, 1366 px, 1366 at 125 % and 150 %: controls on screen, no sideways scroll, every primary
+       action clicked; phones 360 / 390                                                                              22 / 0
+  H 08 choice dialogs: name, inert page, Tab / Shift+Tab, shortcuts paused, Esc / Enter, focus back, nested          9 / 0
+  U usability: start card, Help folding, labels, reasons on unavailable controls                                    8 / 0
+  K 0.18.2 project -> 0.18.3 and 0.18.3 project -> 0.18.2                                                            2 / 0
+
+The same t183 checks run against 0.18.2 (tests-0.18/ON182.log, ON182E.log): the checks for every finding fail there
+(01 picker opens / no retry, 02 Back up unavailable, 03 tempo back to 75, 04 song 20.5 s, 05 menu level lost on
+reload, 06 check not re-run, 08 Tab leaves the dialog). So the tests catch the bugs that were reported.
+
+Test changes (not app changes), with reasons:
+  - t182.py E "click on Chorus in the zoomed view": the click position was measured before selecting Verse, and
+    the Part view then follows Verse, so the click could land elsewhere (a race in the test). Now a fixed view first.
+  - t182.py E "Ctrl + wheel zooms": aimed at 5.0 s, which is scrolled out of view at 1024 px after the Hand drag.
+    Now aims at the middle of the view.
+  - run_all.sh: polish17.py runs right after sessA.py (it opens the project sessA makes; before, a race).
+  - version checks updated to 0.18.3.
+
+Fixtures: voice48k / imp-part / imp-short / imp-song .wav and p015 / p016 -markers-ratings.zip ship in tests-0.18;
+vocal36.wav and vocal150-44k.wav are made by mkfix183.py (same bytes every run).
+
+Not tested on hardware: physical phones, real microphones and headphones, real browser zoom (the zoom checks use
+the equivalent CSS viewport). See VALIDATION.txt.

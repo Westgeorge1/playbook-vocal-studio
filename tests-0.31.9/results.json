@@ -1,0 +1,157 @@
+{
+  "rows": [
+    {
+      "name": "390px version",
+      "pass": true
+    },
+    {
+      "name": "390px empty tuner settings do not block recording",
+      "pass": true
+    },
+    {
+      "name": "390px empty settings preserve song",
+      "pass": true
+    },
+    {
+      "name": "390px blocked Record remains accessible",
+      "pass": true
+    },
+    {
+      "name": "390px blocked reason visible above toolbar",
+      "pass": true
+    },
+    {
+      "name": "390px dialog explains actual blocker",
+      "pass": true
+    },
+    {
+      "name": "390px diagnostic identifies busy engine",
+      "pass": true
+    },
+    {
+      "name": "390px blocked Record never requests microphone",
+      "pass": true
+    },
+    {
+      "name": "390px blocked Record keeps genuine lock",
+      "pass": true
+    },
+    {
+      "name": "390px no-audio changes preserve another pending edit",
+      "pass": true
+    },
+    {
+      "name": "390px Record captures input after settings change",
+      "pass": true
+    },
+    {
+      "name": "390px Stop saves an audible take",
+      "pass": true
+    },
+    {
+      "name": "390px microphone stream closes",
+      "pass": true
+    },
+    {
+      "name": "390px reload preserves recorded take",
+      "pass": true
+    },
+    {
+      "name": "Loaded-vocal tuner opens",
+      "pass": true
+    },
+    {
+      "name": "Loaded vocal still waits for processing",
+      "pass": true
+    },
+    {
+      "name": "Loaded-vocal processing finishes",
+      "pass": true
+    },
+    {
+      "name": "390px denied microphone shows visible dialog",
+      "pass": true
+    },
+    {
+      "name": "390px permission help is actionable",
+      "pass": true
+    },
+    {
+      "name": "390px denied microphone releases setup lock",
+      "pass": true
+    },
+    {
+      "name": "980px version",
+      "pass": true
+    },
+    {
+      "name": "980px empty tuner settings do not block recording",
+      "pass": true
+    },
+    {
+      "name": "980px empty settings preserve song",
+      "pass": true
+    },
+    {
+      "name": "980px blocked Record remains accessible",
+      "pass": true
+    },
+    {
+      "name": "980px blocked reason visible above toolbar",
+      "pass": true
+    },
+    {
+      "name": "980px dialog explains actual blocker",
+      "pass": true
+    },
+    {
+      "name": "980px diagnostic identifies busy engine",
+      "pass": true
+    },
+    {
+      "name": "980px blocked Record never requests microphone",
+      "pass": true
+    },
+    {
+      "name": "980px blocked Record keeps genuine lock",
+      "pass": true
+    },
+    {
+      "name": "980px no-audio changes preserve another pending edit",
+      "pass": true
+    },
+    {
+      "name": "980px Record captures input after settings change",
+      "pass": true
+    },
+    {
+      "name": "980px Stop saves an audible take",
+      "pass": true
+    },
+    {
+      "name": "980px microphone stream closes",
+      "pass": true
+    },
+    {
+      "name": "980px reload preserves recorded take",
+      "pass": true
+    },
+    {
+      "name": "980px denied microphone shows visible dialog",
+      "pass": true
+    },
+    {
+      "name": "980px permission help is actionable",
+      "pass": true
+    },
+    {
+      "name": "980px denied microphone releases setup lock",
+      "pass": true
+    },
+    {
+      "name": "No page errors",
+      "pass": true
+    }
+  ],
+  "errors": []
+}

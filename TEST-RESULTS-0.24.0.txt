@@ -1,0 +1,50 @@
+Playbook Vocal Studio 0.24.0 — full test run 2026-10-19 22:43 (UTC-5), tests-0.24/run_all24.sh, app on :8746
+44 of 44 suites passed (856 PASS lines, 0 FAIL lines).
+
+F7-runner-detects-failure exit 0
+t20-core exit 0
+t20-browser_test exit 0
+t20-long_recording_test exit 0
+t20-edge_cases_test exit 0
+t20-polish_tracks exit 0
+t20-polish_edges-1 exit 0
+t20-polish_edges-2 exit 0
+t20-polish_edges-3 exit 0
+t20-final_ui exit 0
+t21-core exit 0
+t21-1366 exit 0
+t21-1024 exit 0
+t21-390 exit 0
+t22-core exit 0
+t22-1366 exit 0
+t22-1024 exit 0
+t22-390 exit 0
+ports22-900 exit 0
+ports22-1024 exit 0
+ports22-1280 exit 0
+ports22-1366 exit 0
+ports22-390 exit 0
+ports22-360 exit 0
+ports22-long exit 0
+t23-core exit 0
+t24-1366 exit 0
+t24-1024 exit 0
+t24-390 exit 0
+a23-rangesafe exit 0
+b23-old-projects exit 0
+d23-e2e-1366 exit 0
+d23-e2e-390 exit 0
+e231-durable exit 0
+e231-durable-390 exit 0
+e231-downloads exit 0
+g24-core exit 0
+g24-refalign exit 0
+g24-durable exit 0
+g24-ui-1366 exit 0
+g24-ui-390 exit 0
+g24-ux-390 exit 0
+g24-ux-1366 exit 0
+g24-capacity exit 0
+ALLDONE
+
+0.24 regressions against 0.23.1: core24 fails F1/F2/F3/F8; refalign24 3/9; durable24 fails 5+; ui24 8/19; capacity24 song refused (128 MB cap).

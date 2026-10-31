@@ -1,0 +1,32 @@
+PLAYBOOK VOCAL STUDIO 0.32.3 | MAIN RELEASE VALIDATION
+31 October 2026
+
+Checked on Chromium 153 using newly generated test vocals and isolated browser profiles.
+
+APPLICATION SUITES
+Cleanup: 18/18
+Tuning: 44/47
+Tuning workspace: 40/40
+Editor layout and editing: 74/74
+Separate windows: 47/47
+Recording: 38/38
+Project restoration: 56/56
+Deletion, Undo and cleanup: 61/61
+
+The three historical 0.31.13 final-audio fingerprints in the tuning suite differ in this runtime, the same discrepancy previously observed in the released 0.32.1 and 0.32.2 comparison. Those expectations have been retained. No cause for the historical difference is asserted.
+
+INDEPENDENT RELEASE CHECKS
+- Upgrade and autosave isolation: 13/13. A real 0.14.0 project opened. A 0.32.2 compact cleanup project reopened with original audio, edited audio, selection and settings. Main and both preview locations survived a legacy overwrite independently. Deleting the main recordings preserved beta audio. Tested two simultaneous first opens, rollback under a simulated storage failure, successful retry, and opening a portable project backup.
+- Approved tuning: compared candidate versus 0.32.2 and independently versus 0.31.12. Given the same vocal and reference (A = 443.8 Hz), the sample rates, channel lengths and SHA-256 hashes of the tuned and final PCM matched for no whole-vocal preset, Snap all + Smooth 25%, and 85% correction + Smooth 25%.
+- Actual blind playback: instrumented Web Audio in the browser. Starting from Cleaned input, X/Y/Z produced three different tuned buffers. Checked switching back to input before each Hear button.
+- Layout: at 320, 390 and 768 CSS pixels and in landscape, the note editor and reference selector stayed within the tested viewport.
+- End-to-end cleanup: 18/18 additional checks. Imported a stereo WAV, used the finder and spectrogram, auditioned all three outputs, verified 6 dB attenuation, downloaded both WAVs, kept the original and reopened the project backup.
+- Mixing and finishing: 7/7 additional checks. Backing import, phrase level, noise-profile learning, a vocal-chain control and finishing worked. The downloaded stereo PCM WAV was 24-bit at 48 kHz.
+
+HOW TO REPEAT
+Set PVS_CHROME to a Chromium executable, use Playwright, and serve the studio over HTTP(S). The tests launch loopback servers. For the recording, pop-out, deletion and restoration suites, place the source in a directory named beta under the test server root. PVS_TEST_OUT selects a results directory.
+- tests-0.32.3/upgrade.cjs expects PVS_OLD_MAIN (unpacked 0.14.0) and PVS_OLD_BETA (unpacked 0.32.2).
+- tests-0.32.3/playback.cjs expects PVS_REFERENCE_DIR, a previously released unpacked source directory, and compares that version with this release in the same browser.
+- Use tests-0.32.3/{cleanup,recording,restore,windows}.cjs and the existing tests-0.32.0/{tuning,editors,workspace-editor}.cjs and tests-0.31.11/delete.cjs for the application suites.
+
+Physical Android microphones, Bluetooth/headphone routing, latency and subjective listening on a real performance remain device checks.

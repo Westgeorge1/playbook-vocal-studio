@@ -1,0 +1,822 @@
+Playbook Vocal Studio 0.15.0 — automated test results (2026-10-18 09:56 Havana time, Chrome + fake microphone)
+
+== Control audit 0.13.0 -> 0.15.0 ==
+ids 311 fails 0 errors [] []
+guideBtn               PASS  handlers: click
+guideCount             PASS  state-dependent/hidden in both (same as 0.13)
+chip                   PASS  
+busybar                PASS  
+sessionStatus          PASS  
+sessionOpen            PASS  handlers: click
+tab-open               REPLACED  old step tab kept in DOM (hidden, still wired); navigation now via File › Session & tracks / “My tracks”
+tab-record             REPLACED  old step tab kept in DOM (hidden, still wired); navigation now via PHRASE inspector tab (key 1)
+tab-edit               REPLACED  old step tab kept in DOM (hidden, still wired); navigation now via WAVE EDIT dock tab
+tab-clean              REPLACED  old step tab kept in DOM (hidden, still wired); navigation now via CLEAN tab (key 2)
+tab-tune               REPLACED  old step tab kept in DOM (hidden, still wired); navigation now via TUNE tab (key 3) + NOTE EDITOR dock
+tab-chain              REPLACED  old step tab kept in DOM (hidden, still wired); navigation now via CHAIN tab (key 4)
+tab-save               REPLACED  old step tab kept in DOM (hidden, still wired); navigation now via SAVE / EXPORT button / File › Save-Export
+page-open              PASS  
+sessionRack            PASS  
+openRecord             PASS  handlers: click
+newSession             PASS  handlers: click
+undoClear              PASS  state-dependent/hidden in both (same as 0.13); handlers: click
+clearStatus            PASS  
+beatName               PASS  
+beatInfo               PASS  
+beatPick               PASS  handlers: click
+beatPlay               PASS  handlers: click
+fileBeat               PASS  handlers: change
+beatOn                 PASS  handlers: change
+beatLevelText          PASS  
+beatLevel              PASS  handlers: input
+beatRemove             PASS  handlers: click
+songName               PASS  
+vocalStatus            PASS  
+songInfo               PASS  
+vocalPlay              PASS  handlers: click
+finalPlay              PASS  handlers: click
+clearVocal             PASS  handlers: click
+recBtn                 PASS  handlers: click
+recLabel               PASS  
+recBox                 PASS  state-dependent/hidden in both (same as 0.13)
+recTime                PASS  state-dependent/hidden in both (same as 0.13)
+recMeter               PASS  state-dependent/hidden in both (same as 0.13)
+recNote                PASS  state-dependent/hidden in both (same as 0.13)
+recBlocked             PASS  state-dependent/hidden in both (same as 0.13)
+captureBtn             PASS  handlers: click
+fileCapture            PASS  handlers: change
+captureNote            PASS  
+importKind             PASS  
+pickBtn                PASS  handlers: click
+fileVocal              PASS  handlers: change
+referenceRack          PASS  
+referencePick          PASS  handlers: click
+fileReference          PASS  handlers: change
+referenceName          PASS  
+referenceStartA        PASS  handlers: input
+referenceStartB        PASS  handlers: input
+referenceLength        PASS  handlers: input
+referencePrepare       PASS  handlers: click
+referenceA             PASS  handlers: click
+referenceB             PASS  handlers: click
+referenceStop          PASS  handlers: click
+referenceStatus        PASS  
+referenceMetrics       PASS  
+projBtn                PASS  handlers: click
+fileProject            PASS  handlers: change
+projStatus             PASS  
+engineInfo             PASS  
+page-record            PASS  
+phraseTitle            PASS  handlers: change
+phraseBaseInfo         PASS  
+phraseBacking          PASS  handlers: click
+phraseListenSong       PASS  handlers: click
+phraseStop             PASS  handlers: click
+phraseBackingInfo      PASS  
+phraseTimeline         PASS  handlers: pointerdown
+phraseCursorText       PASS  
+phraseCursor           PASS  handlers: input
+phraseContinue         PASS  handlers: click
+phraseAtPlayhead       PASS  handlers: click
+phraseList             PASS  
+phraseLabel            PASS  
+phraseStart            PASS  
+phraseEnd              PASS  
+phraseNew              PASS  handlers: click
+phraseBounds           PASS  handlers: click
+phraseLead             PASS  handlers: change
+phraseFade             PASS  handlers: change
+phraseRecord           PASS  handlers: click
+phraseRecordLabel      PASS  
+phraseRecBox           PASS  state-dependent/hidden in both (same as 0.13)
+phraseRecTime          PASS  state-dependent/hidden in both (same as 0.13)
+phraseRecMeter         PASS  state-dependent/hidden in both (same as 0.13)
+phraseRecNote          PASS  state-dependent/hidden in both (same as 0.13)
+phraseImport           PASS  handlers: click
+phraseUnchoose         PASS  handlers: click
+phraseRemove           PASS  handlers: click
+phraseUndo             PASS  state-dependent/hidden in both (same as 0.13); handlers: click
+phraseFile             PASS  handlers: change
+phraseRecover          PASS  state-dependent/hidden in both (same as 0.13); handlers: click
+phraseStatus           PASS  
+phraseKey              PASS  handlers: change
+phraseScale            PASS  handlers: change
+phraseReference        PASS  handlers: change
+phraseCompareBeat      PASS  
+phraseRecommendation   PASS  
+phraseTakes            PASS  
+phraseAssemblyInfo     PASS  
+phraseApply            PASS  handlers: click
+phraseSave             PASS  handlers: click
+phraseSaveStatus       PASS  
+page-edit              PASS  
+editTabs               PASS  
+editHelp               PASS  
+editWaveTitle          PASS  
+editCanvas             PASS  handlers: pointercancel,pointerdown,pointermove,pointerup
+editScroll             PASS  state-dependent/hidden in both (same as 0.13); handlers: input
+selStart               PASS  handlers: change
+selEnd                 PASS  handlers: change
+editZoom               PASS  handlers: click
+editFit                PASS  handlers: click
+hearMain               PASS  handlers: click
+hearRaw                PASS  handlers: click
+hearFinal              PASS  handlers: click
+breathRack             PASS  
+breathKnobs            PASS  
+breathApply            PASS  handlers: click
+breathNext             PASS  handlers: click
+breathRemove           PASS  handlers: click
+timingRack             PASS  state-dependent/hidden in both (same as 0.13)
+timingKnobs            PASS  state-dependent/hidden in both (same as 0.13)
+timingApply            PASS  state-dependent/hidden in both (same as 0.13); handlers: click
+timingRemove           PASS  state-dependent/hidden in both (same as 0.13); handlers: click
+compRack               PASS  state-dependent/hidden in both (same as 0.13)
+takeRec                PASS  state-dependent/hidden in both (same as 0.13); handlers: click
+takeRecLabel           PASS  state-dependent/hidden in both (same as 0.13)
+fileTakeCapture        PASS  state-dependent/hidden in both (same as 0.13); handlers: change
+fileTake               PASS  state-dependent/hidden in both (same as 0.13); handlers: change
+takeRecBox             PASS  state-dependent/hidden in both (same as 0.13)
+takeRecTime            PASS  state-dependent/hidden in both (same as 0.13)
+takeRecMeter           PASS  state-dependent/hidden in both (same as 0.13)
+takeSel                PASS  state-dependent/hidden in both (same as 0.13); handlers: change
+takeCanvas             PASS  state-dependent/hidden in both (same as 0.13); handlers: pointercancel,pointerdown,pointermove,pointerup
+srcStart               PASS  state-dependent/hidden in both (same as 0.13); handlers: change
+srcEnd                 PASS  state-dependent/hidden in both (same as 0.13); handlers: change
+matchRange             PASS  state-dependent/hidden in both (same as 0.13); handlers: click
+hearTake               PASS  state-dependent/hidden in both (same as 0.13); handlers: click
+compApply              PASS  state-dependent/hidden in both (same as 0.13); handlers: click
+compRemove             PASS  state-dependent/hidden in both (same as 0.13); handlers: click
+editList               PASS  
+editUndo               PASS  handlers: click
+editRedo               PASS  handlers: click
+editStatus             PASS  
+page-clean             PASS  
+noiseBig               PASS  
+noiseVerdict           PASS  
+humInfo                PASS  
+musicWarn              PASS  state-dependent/hidden in both (same as 0.13)
+modeSeg                PASS  
+modeHelp               PASS  
+cleanKnobs             PASS  
+humSel                 PASS  handlers: change
+cleanOn                PASS  handlers: change
+cleanAuto              PASS  handlers: click
+cleanCanvas            PASS  handlers: pointerdown
+cleanListen            PASS  
+page-tune              PASS  
+keySel                 PASS  handlers: change
+scaleSel               PASS  handlers: change
+keyInfo                PASS  
+useKey                 PASS  state-dependent/hidden in both (same as 0.13); handlers: click
+styleSeg               PASS  
+styleHelp              PASS  
+tuneKnobs              PASS  
+preserve               PASS  handlers: change
+snapKey                PASS  handlers: change
+protect                PASS  handlers: change
+protectExpression      PASS  handlers: change
+keepInTune             PASS  handlers: change
+followSinging          PASS  handlers: change
+matchVol               PASS  handlers: change
+rangeSeg               PASS  
+learnRange             PASS  handlers: click
+rangeInfo              PASS  
+notesCanvas            PASS  handlers: pointercancel,pointerdown,pointermove,pointerup
+noteInfo               PASS  
+shapePanel             PASS  state-dependent/hidden in both (same as 0.13)
+pitchHz                PASS  state-dependent/hidden in both (same as 0.13)
+pitchSub               PASS  state-dependent/hidden in both (same as 0.13)
+notePane               PASS  state-dependent/hidden in both (same as 0.13)
+noteKnobs              PASS  state-dependent/hidden in both (same as 0.13)
+intoPane               PASS  state-dependent/hidden in both (same as 0.13)
+intoKnobs              PASS  state-dependent/hidden in both (same as 0.13)
+shapeHelp              PASS  state-dependent/hidden in both (same as 0.13)
+noteDown               PASS  handlers: click
+noteUp                 PASS  handlers: click
+noteKeep               PASS  handlers: click
+noteApprove            PASS  state-dependent/hidden in both (same as 0.13); handlers: click
+noteReset              PASS  handlers: click
+noteSplit              PASS  handlers: click
+noteMerge              PASS  handlers: click
+loopPhrase             PASS  handlers: click
+nextUnsure             PASS  handlers: click
+undoBtn                PASS  handlers: click
+redoBtn                PASS  handlers: click
+resetAll               PASS  handlers: click
+zoomOut                PASS  handlers: click
+zoomIn                 PASS  handlers: click
+page-chain             PASS  
+presetSeg              PASS  
+presetHelp             PASS  
+resetPreset            PASS  handlers: click
+resetFinishing         PASS  
+chainOn                PASS  handlers: change
+eqCanvas               PASS  handlers: pointercancel,pointerdown,pointermove,pointerup
+bandInfo               PASS  
+bandKnobs              PASS  
+tameKnobs              PASS  
+dynKnobs               PASS  
+eq2On                  PASS  handlers: change
+eq2Knobs               PASS  
+eq2Adv                 PASS  
+eq2FreqKnobs           PASS  state-dependent/hidden in both (same as 0.13)
+spaceKnobs             PASS  
+bpm                    PASS  handlers: change
+mixFit                 PASS  handlers: change
+mixKnobs               PASS  
+mixInfo                PASS  
+levelKnobs             PASS  
+limitOn                PASS  handlers: change
+limitAuto              PASS  handlers: change
+limitKnobs             PASS  
+limitWarn              PASS  state-dependent/hidden in both (same as 0.13)
+chainReadout           PASS  
+page-save              PASS  
+saveProject            PASS  handlers: click
+saveStatus             PASS  
+customRack             PASS  
+stageQuick             PASS  
+stagesBefore           PASS  
+stagesChainHead        PASS  
+stagesChain            PASS  
+hearCustom             PASS  handlers: click
+hearFull               PASS  handlers: click
+hearStop               PASS  handlers: click
+saveCustom             PASS  handlers: click
+customStatus           PASS  
+sheetText              PASS  state-dependent/hidden in both (same as 0.13)
+resetRack              PASS  
+resetSettings          PASS  handlers: click
+resetConfirm           PASS  state-dependent/hidden in both (same as 0.13)
+resetYes               PASS  state-dependent/hidden in both (same as 0.13); handlers: click
+resetNo                PASS  state-dependent/hidden in both (same as 0.13); handlers: click
+settingsText           PASS  
+copySettings           PASS  handlers: click
+copyStatus             PASS  
+toast                  PASS  state-dependent/hidden in both (same as 0.13)
+toastTitle             PASS  state-dependent/hidden in both (same as 0.13)
+toastText              PASS  state-dependent/hidden in both (same as 0.13)
+toastClose             PASS  state-dependent/hidden in both (same as 0.13); handlers: click
+stepper                PASS  state-dependent/hidden in both (same as 0.13)
+stepLabel              PASS  state-dependent/hidden in both (same as 0.13)
+stepMinus              PASS  state-dependent/hidden in both (same as 0.13); handlers: keydown,pointercancel,pointerdown,pointerleave,pointerup
+stepValue              PASS  state-dependent/hidden in both (same as 0.13)
+stepPlus               PASS  state-dependent/hidden in both (same as 0.13); handlers: keydown,pointercancel,pointerdown,pointerleave,pointerup
+stepAuto               PASS  state-dependent/hidden in both (same as 0.13); handlers: click
+stepDone               PASS  state-dependent/hidden in both (same as 0.13); handlers: click
+guideSheet             PASS  
+guideOn                PASS  handlers: change
+guideClose             PASS  handlers: click
+guideConcern           PASS  handlers: change
+guideGoal              PASS  handlers: change
+guideBpm               PASS  handlers: change
+guideSync              PASS  handlers: change
+tipBadge               PASS  
+tipTitle               PASS  
+tipReason              PASS  
+tipListen              PASS  
+tipChange              PASS  
+tipGainCost            PASS  
+gPreview               PASS  handlers: click
+gCurrent               PASS  handlers: click
+gSuggested             PASS  handlers: click
+gStop                  PASS  handlers: click
+gApply                 PASS  handlers: click
+gLater                 PASS  handlers: click
+gKeep                  PASS  handlers: click
+gOpen                  PASS  handlers: click
+gMsg                   PASS  
+gMeasured              PASS  
+gUndo                  PASS  handlers: click
+gReset                 PASS  handlers: click
+detailSheet            PASS  handlers: keydown
+detailClose            PASS  handlers: click
+detailChain            PASS  handlers: change
+detailReset            PASS  handlers: click
+detailControls         PASS  
+detailEffect           PASS  handlers: change
+detailPrepare          PASS  handlers: click
+detailA                PASS  handlers: click
+detailB                PASS  handlers: click
+detailRemoved          PASS  handlers: click
+detailStop             PASS  handlers: click
+detailMono             PASS  handlers: change
+detailStatus           PASS  
+playbackStatus         PASS  
+outputSignal           PASS  
+progress               PASS  handlers: pointerdown,pointermove
+progressFill           PASS  
+toStart                PASS  handlers: click
+playBtn                PASS  handlers: click
+playIcon               PASS  
+playLabel              PASS  
+timeText               PASS  
+abSeg                  PASS  
+
+== Control audit 0.14.0 -> 0.15.0 ==
+ids 352 fails 0 errors [] []
+daw                    PASS  
+dawSong                PASS  
+guideBtn               PASS  handlers: click
+guideCount             PASS  state-dependent/hidden in both (same as 0.13)
+chip                   PASS  
+busybar                PASS  
+toStart                PASS  handlers: click
+playBtn                PASS  handlers: click
+playIcon               PASS  
+playLabel              PASS  
+dawStop                PASS  handlers: click
+dawRec                 PASS  handlers: click
+dawLoop                PASS  handlers: click
+dawTime                PASS  
+dawBars                PASS  
+timeText               PASS  
+progress               PASS  handlers: pointerdown,pointermove
+progressFill           PASS  
+dawTempo               PASS  handlers: click
+dawBpm                 PASS  
+dawKey                 PASS  
+dawMicMeter            PASS  
+dawOutMeter            PASS  
+dawRecStat             PASS  
+abSeg                  PASS  
+dawUndo                PASS  handlers: click
+dawRedo                PASS  handlers: click
+dawUndoCtx             PASS  
+laneHeads              PASS  
+tlScroll               PASS  handlers: scroll,wheel
+tlInner                PASS  
+dawCanvas              PASS  handlers: contextmenu,dblclick,pointercancel,pointerdown,pointermove,pointerup
+tlActions              PASS  
+phraseContinue         PASS  handlers: click
+phraseAtPlayhead       PASS  handlers: click
+phraseApply            PASS  handlers: click
+phraseLead             PASS  handlers: change
+phraseFade             PASS  handlers: change
+dawZoomOut             PASS  handlers: click
+dawZoomFit             PASS  handlers: click
+dawZoomIn              PASS  handlers: click
+dock                   PASS  handlers: pointerdown
+dockToggle             PASS  handlers: click
+dockNotes              PASS  
+notesCanvas            PASS  handlers: pointercancel,pointerdown,pointermove,pointerup
+noteInfo               PASS  
+shapePanel             PASS  state-dependent/hidden in both (same as 0.13)
+pitchHz                PASS  state-dependent/hidden in both (same as 0.13)
+pitchSub               PASS  state-dependent/hidden in both (same as 0.13)
+notePane               PASS  state-dependent/hidden in both (same as 0.13)
+noteKnobs              PASS  state-dependent/hidden in both (same as 0.13)
+intoPane               PASS  state-dependent/hidden in both (same as 0.13)
+intoKnobs              PASS  state-dependent/hidden in both (same as 0.13)
+shapeHelp              PASS  state-dependent/hidden in both (same as 0.13)
+noteDown               PASS  handlers: click
+noteUp                 PASS  handlers: click
+noteKeep               PASS  handlers: click
+noteApprove            PASS  state-dependent/hidden in both (same as 0.13); handlers: click
+noteReset              PASS  handlers: click
+noteSplit              PASS  handlers: click
+noteMerge              PASS  handlers: click
+loopPhrase             PASS  handlers: click
+nextUnsure             PASS  handlers: click
+undoBtn                PASS  handlers: click
+redoBtn                PASS  handlers: click
+resetAll               PASS  handlers: click
+zoomOut                PASS  handlers: click
+zoomIn                 PASS  handlers: click
+page-edit              PASS  
+editTabs               PASS  
+editHelp               PASS  
+editWaveTitle          PASS  
+editCanvas             PASS  handlers: pointercancel,pointerdown,pointermove,pointerup
+editScroll             PASS  state-dependent/hidden in both (same as 0.13); handlers: input
+selStart               PASS  handlers: change
+selEnd                 PASS  handlers: change
+editZoom               PASS  handlers: click
+editFit                PASS  handlers: click
+hearMain               PASS  handlers: click
+hearRaw                PASS  handlers: click
+hearFinal              PASS  handlers: click
+breathRack             PASS  
+breathKnobs            PASS  
+breathApply            PASS  handlers: click
+breathNext             PASS  handlers: click
+breathRemove           PASS  handlers: click
+timingRack             PASS  state-dependent/hidden in both (same as 0.13)
+timingKnobs            PASS  state-dependent/hidden in both (same as 0.13)
+timingApply            PASS  state-dependent/hidden in both (same as 0.13); handlers: click
+timingRemove           PASS  state-dependent/hidden in both (same as 0.13); handlers: click
+compRack               PASS  state-dependent/hidden in both (same as 0.13)
+takeRec                PASS  state-dependent/hidden in both (same as 0.13); handlers: click
+takeRecLabel           PASS  state-dependent/hidden in both (same as 0.13)
+fileTakeCapture        PASS  state-dependent/hidden in both (same as 0.13); handlers: change
+fileTake               PASS  state-dependent/hidden in both (same as 0.13); handlers: change
+takeRecBox             PASS  state-dependent/hidden in both (same as 0.13)
+takeRecTime            PASS  state-dependent/hidden in both (same as 0.13)
+takeRecMeter           PASS  state-dependent/hidden in both (same as 0.13)
+takeSel                PASS  state-dependent/hidden in both (same as 0.13); handlers: change
+takeCanvas             PASS  state-dependent/hidden in both (same as 0.13); handlers: pointercancel,pointerdown,pointermove,pointerup
+srcStart               PASS  state-dependent/hidden in both (same as 0.13); handlers: change
+srcEnd                 PASS  state-dependent/hidden in both (same as 0.13); handlers: change
+matchRange             PASS  state-dependent/hidden in both (same as 0.13); handlers: click
+hearTake               PASS  state-dependent/hidden in both (same as 0.13); handlers: click
+compApply              PASS  state-dependent/hidden in both (same as 0.13); handlers: click
+compRemove             PASS  state-dependent/hidden in both (same as 0.13); handlers: click
+editList               PASS  
+editUndo               PASS  handlers: click
+editRedo               PASS  handlers: click
+editStatus             PASS  
+dockRef                PASS  
+referenceRack          PASS  
+referencePick          PASS  handlers: click
+fileReference          PASS  handlers: change
+referenceName          PASS  
+referenceStartA        PASS  handlers: input
+referenceStartB        PASS  handlers: input
+referenceLength        PASS  handlers: input
+referencePrepare       PASS  handlers: click
+referenceA             PASS  handlers: click
+referenceB             PASS  handlers: click
+referenceStop          PASS  handlers: click
+referenceStatus        PASS  
+referenceMetrics       PASS  
+page-record            PASS  
+phraseTitle            PASS  handlers: change
+phraseBaseInfo         PASS  
+phraseBacking          PASS  handlers: click
+phraseListenSong       PASS  handlers: click
+phraseStop             PASS  handlers: click
+phraseBackingInfo      PASS  
+phraseTimeline         PASS  handlers: pointerdown
+phraseCursorText       PASS  
+phraseCursor           PASS  handlers: input
+phraseList             PASS  
+phraseLabel            PASS  
+phraseStart            PASS  
+phraseEnd              PASS  
+phraseNew              PASS  handlers: click
+phraseBounds           PASS  handlers: click
+phraseRecord           PASS  handlers: click
+phraseRecordLabel      PASS  
+phraseRecBox           PASS  state-dependent/hidden in both (same as 0.13)
+phraseRecTime          PASS  state-dependent/hidden in both (same as 0.13)
+phraseRecMeter         PASS  state-dependent/hidden in both (same as 0.13)
+phraseRecNote          PASS  state-dependent/hidden in both (same as 0.13)
+phraseImport           PASS  handlers: click
+phraseUnchoose         PASS  handlers: click
+phraseRemove           PASS  handlers: click
+phraseUndo             PASS  state-dependent/hidden in both (same as 0.13); handlers: click
+phraseFile             PASS  handlers: change
+phraseRecover          PASS  state-dependent/hidden in both (same as 0.13); handlers: click
+phraseStatus           PASS  
+phraseKey              PASS  handlers: change
+phraseScale            PASS  handlers: change
+phraseReference        PASS  handlers: change
+phraseCompareBeat      PASS  
+phraseRecommendation   PASS  
+phraseTakes            PASS  
+phraseAssemblyInfo     PASS  
+phraseSave             PASS  handlers: click
+phraseSaveStatus       PASS  
+page-clean             PASS  
+noiseBig               PASS  
+noiseVerdict           PASS  
+humInfo                PASS  
+musicWarn              PASS  state-dependent/hidden in both (same as 0.13)
+modeSeg                PASS  
+modeHelp               PASS  
+cleanKnobs             PASS  
+humSel                 PASS  handlers: change
+cleanOn                PASS  handlers: change
+cleanAuto              PASS  handlers: click
+cleanCanvas            PASS  handlers: pointerdown
+cleanListen            PASS  
+page-tune              PASS  
+keySel                 PASS  handlers: change
+scaleSel               PASS  handlers: change
+keyInfo                PASS  
+useKey                 PASS  state-dependent/hidden in both (same as 0.13); handlers: click
+styleSeg               PASS  
+styleHelp              PASS  
+tuneKnobs              PASS  
+preserve               PASS  handlers: change
+snapKey                PASS  handlers: change
+protect                PASS  handlers: change
+protectExpression      PASS  handlers: change
+keepInTune             PASS  handlers: change
+followSinging          PASS  handlers: change
+matchVol               PASS  handlers: change
+rangeSeg               PASS  
+learnRange             PASS  handlers: click
+rangeInfo              PASS  
+page-chain             PASS  
+presetSeg              PASS  
+presetHelp             PASS  
+resetPreset            PASS  handlers: click
+resetFinishing         PASS  
+chainOn                PASS  handlers: change
+eqCanvas               PASS  handlers: pointercancel,pointerdown,pointermove,pointerup
+bandInfo               PASS  
+bandKnobs              PASS  
+tameKnobs              PASS  
+dynKnobs               PASS  
+eq2On                  PASS  handlers: change
+eq2Knobs               PASS  
+eq2Adv                 PASS  
+eq2FreqKnobs           PASS  state-dependent/hidden in both (same as 0.13)
+spaceKnobs             PASS  
+bpm                    PASS  handlers: change
+levelKnobs             PASS  
+limitOn                PASS  handlers: change
+limitAuto              PASS  handlers: change
+limitKnobs             PASS  
+limitWarn              PASS  state-dependent/hidden in both (same as 0.13)
+chainReadout           PASS  
+detailPanel            PASS  
+detailSheet            PASS  handlers: keydown
+detailClose            PASS  handlers: click
+detailChain            PASS  handlers: change
+detailReset            PASS  handlers: click
+detailControls         PASS  
+detailEffect           PASS  handlers: change
+detailPrepare          PASS  handlers: click
+detailA                PASS  handlers: click
+detailB                PASS  handlers: click
+detailRemoved          PASS  handlers: click
+detailStop             PASS  handlers: click
+detailMono             PASS  handlers: change
+detailStatus           PASS  
+mixPanel               PASS  
+mixBeatFader           PASS  handlers: input
+mixBeatVal             PASS  
+mixVocFader            PASS  handlers: change,input
+mixVocVal              PASS  
+mixFit                 PASS  handlers: change
+mixKnobs               PASS  
+mixInfo                PASS  
+sessionStatus          PASS  
+sessionOpen            PASS  handlers: click
+playbackStatus         PASS  
+outputSignal           PASS  
+tab-open               REPLACED  old step tab kept in DOM (hidden, still wired); navigation now via File › Session & tracks / “My tracks”
+tab-record             REPLACED  old step tab kept in DOM (hidden, still wired); navigation now via PHRASE inspector tab (key 1)
+tab-edit               REPLACED  old step tab kept in DOM (hidden, still wired); navigation now via WAVE EDIT dock tab
+tab-clean              REPLACED  old step tab kept in DOM (hidden, still wired); navigation now via CLEAN tab (key 2)
+tab-tune               REPLACED  old step tab kept in DOM (hidden, still wired); navigation now via TUNE tab (key 3) + NOTE EDITOR dock
+tab-chain              REPLACED  old step tab kept in DOM (hidden, still wired); navigation now via CHAIN tab (key 4)
+tab-save               REPLACED  old step tab kept in DOM (hidden, still wired); navigation now via SAVE / EXPORT button / File › Save-Export
+sessionModal           PASS  handlers: pointerdown
+page-open              PASS  
+sessionRack            PASS  
+openRecord             PASS  handlers: click
+newSession             PASS  handlers: click
+undoClear              PASS  state-dependent/hidden in both (same as 0.13); handlers: click
+clearStatus            PASS  
+beatName               PASS  
+beatInfo               PASS  
+beatPick               PASS  handlers: click
+beatPlay               PASS  handlers: click
+fileBeat               PASS  handlers: change
+beatOn                 PASS  handlers: change
+beatLevelText          PASS  
+beatLevel              PASS  handlers: input
+beatRemove             PASS  handlers: click
+songName               PASS  
+vocalStatus            PASS  
+songInfo               PASS  
+vocalPlay              PASS  handlers: click
+finalPlay              PASS  handlers: click
+clearVocal             PASS  handlers: click
+recBtn                 PASS  handlers: click
+recLabel               PASS  
+recBox                 PASS  state-dependent/hidden in both (same as 0.13)
+recTime                PASS  state-dependent/hidden in both (same as 0.13)
+recMeter               PASS  state-dependent/hidden in both (same as 0.13)
+recNote                PASS  state-dependent/hidden in both (same as 0.13)
+recBlocked             PASS  state-dependent/hidden in both (same as 0.13)
+captureBtn             PASS  handlers: click
+fileCapture            PASS  handlers: change
+captureNote            PASS  
+importKind             PASS  
+pickBtn                PASS  handlers: click
+fileVocal              PASS  handlers: change
+projBtn                PASS  handlers: click
+fileProject            PASS  handlers: change
+projStatus             PASS  
+saveModal              PASS  handlers: pointerdown
+page-save              PASS  
+saveProject            PASS  handlers: click
+saveStatus             PASS  
+customRack             PASS  
+stageQuick             PASS  
+stagesBefore           PASS  
+stagesChainHead        PASS  
+stagesChain            PASS  
+hearCustom             PASS  handlers: click
+hearFull               PASS  handlers: click
+hearStop               PASS  handlers: click
+saveCustom             PASS  handlers: click
+customStatus           PASS  
+sheetText              PASS  state-dependent/hidden in both (same as 0.13)
+resetRack              PASS  
+resetSettings          PASS  handlers: click
+resetConfirm           PASS  state-dependent/hidden in both (same as 0.13)
+resetYes               PASS  state-dependent/hidden in both (same as 0.13); handlers: click
+resetNo                PASS  state-dependent/hidden in both (same as 0.13); handlers: click
+settingsText           PASS  
+copySettings           PASS  handlers: click
+copyStatus             PASS  
+helpModal              PASS  handlers: pointerdown
+helpTitle              PASS  
+helpKeys               PASS  
+helpHow                PASS  
+helpAbout              PASS  
+engineInfo             PASS  
+toast                  PASS  state-dependent/hidden in both (same as 0.13)
+toastTitle             PASS  state-dependent/hidden in both (same as 0.13)
+toastText              PASS  state-dependent/hidden in both (same as 0.13)
+toastClose             PASS  state-dependent/hidden in both (same as 0.13); handlers: click
+stepper                PASS  state-dependent/hidden in both (same as 0.13)
+stepLabel              PASS  state-dependent/hidden in both (same as 0.13)
+stepMinus              PASS  state-dependent/hidden in both (same as 0.13); handlers: keydown,pointercancel,pointerdown,pointerleave,pointerup
+stepValue              PASS  state-dependent/hidden in both (same as 0.13)
+stepPlus               PASS  state-dependent/hidden in both (same as 0.13); handlers: keydown,pointercancel,pointerdown,pointerleave,pointerup
+stepAuto               PASS  state-dependent/hidden in both (same as 0.13); handlers: click
+stepDone               PASS  state-dependent/hidden in both (same as 0.13); handlers: click
+guideSheet             PASS  handlers: pointerdown
+guideOn                PASS  handlers: change
+guideClose             PASS  handlers: click
+guideConcern           PASS  handlers: change
+guideGoal              PASS  handlers: change
+guideBpm               PASS  handlers: change
+guideSync              PASS  handlers: change
+tipBadge               PASS  
+tipTitle               PASS  
+tipReason              PASS  
+tipListen              PASS  
+tipChange              PASS  
+tipGainCost            PASS  
+gPreview               PASS  handlers: click
+gCurrent               PASS  handlers: click
+gSuggested             PASS  handlers: click
+gStop                  PASS  handlers: click
+gApply                 PASS  handlers: click
+gLater                 PASS  handlers: click
+gKeep                  PASS  handlers: click
+gOpen                  PASS  handlers: click
+gMsg                   PASS  
+gMeasured              PASS  
+gUndo                  PASS  handlers: click
+gReset                 PASS  handlers: click
+
+== Smoke suite (0.14 regression) ==
+PASS engine ready Load a vocal or backing track to begin.
+PASS sample.mp3 loaded as backing 11.459977324263038
+PASS transport Play starts playback 1.4792970521541953
+PASS output meter moves while playing 35.4363%
+PASS Stop stops playback 1.5199319727891158
+PASS second Stop returns to start 
+PASS Space plays 
+PASS Space pauses 
+PASS Home back to start 
+PASS timeline click seeks playhead + resume line [5.000000351180416, 5.000000351180416]
+PASS L loops (4 bars from playhead) [3.2, 11.459977324263038, True]
+PASS L again ends loop 
+PASS ruler drag sets loop region [2.000000035118042, 5.999999578583502]
+PASS L loops the ruler region [2.000000035118042, 5.999999578583502]
+PASS key 1 -> PHRASE inspector tab 
+PASS key 2 -> CLEAN inspector tab 
+PASS key 3 -> TUNE inspector tab 
+PASS key 4 -> CHAIN inspector tab 
+PASS key 5 -> DETAIL inspector tab 
+PASS key 6 -> MIX inspector tab 
+PASS key 7 -> REC inspector tab 
+PASS dock tab notes 
+PASS dock tab wave 
+PASS dock tab ref 
+PASS File menu opens 
+PASS File › Session opens classic OPEN panel 
+PASS SAVE / EXPORT opens export window 
+PASS ? opens shortcut help 
+PASS Esc closes help 
+PASS Smart Guide opens 
+PASS legacy showPage("record") maps 
+PASS legacy showPage("edit") maps 
+PASS legacy showPage("clean") maps 
+PASS legacy showPage("tune") maps 
+PASS legacy showPage("chain") maps 
+PASS legacy showPage("save") maps 
+PASS R creates a phrase at the resume line and starts recording (fake mic) [[2.000000035118042, 10.000000035118042]]
+PASS mic meter live while recording (max over 3 s) 100
+PASS take 1 created after auto punch-out Recording kept. Some input peaks were loud; check the clipping analysis before choosing.
+PASS record button records take 2 (redo) 
+PASS Stop during recording keeps attempt (take 2) Recording kept, but it ended before the phrase was complete. Adjust End or redo this part.
+PASS take analysis finished ['ok', 'This take does not reach the phrase.']
+PASS take lanes = 2 
+PASS click take region = Listen Playing attempt at a matched level with backing.
+PASS double-click take = Choose Take 1 chosen. Continue from 0:10.0 or record another attempt.
+PASS Ctrl+Z undoes the take choice (takes context) phrase
+PASS Ctrl+Shift+Z redoes it 
+PASS lane Choose button (take 2; incomplete takes are refused as in 0.13) False
+PASS Apply chosen takes builds the vocal Assembled vocal applied. Use Clean, Tune and Chain, then Save.
+PASS play assembled vocal + backing (FINAL) 
+PASS vocal mute (monitor) 
+PASS vocal solo mutes backing 
+PASS backing mute = Include backing switch 
+PASS Ctrl+S saves project with every take (download) My phrase recording - song project.zip
+PASS no console errors (desktop) []
+PASS phone: no horizontal page overflow (390 px) [390, 390]
+PASS phone: timeline scrolls horizontally 
+PASS phone: tap Play 
+PASS phone: transport sticky at top after scrolling 
+PASS phone: transport stays visible when scrolled 46
+PASS no console errors (phone) []
+TOTAL 61 FAIL 0
+
+== New 0.15 feature tests ==
+PASS 0.15.0 version text Playbook Vocal Studio 0.15.0 · DAW
+PASS input monitoring is off by default 
+PASS mic check opens before the first take (R) 
+PASS mic check: live level from the fake mic [0, 0.8852928099999999]
+PASS Looks good -> recording starts 
+PASS take 1 recorded and named "Take 1" ['Take 1']
+PASS R (stopped) = redo this phrase -> Take 2 ['Take 1', 'Take 2']
+PASS after removing Take 1, next take is "Take 3" (never repeats) ['Take 2', 'Take 3']
+PASS lane header shows take names, lanes numbered separately ['Take 2', 'Take 3']
+PASS two removals -> 0 takes 
+PASS Ctrl+Z twice restores BOTH removed takes (multi-step) ['Take 2', 'Take 3']
+PASS Ctrl+Shift+Z redoes one step ['Take 3']
+PASS undo history depth shown (takes u/r) [6, 2, 'takes 6/2']
+PASS PHRASE panel Undo/Redo buttons show counts ['Undo (6)', 'Redo (2)', False]
+PASS star rating on take card (4★) 
+PASS rename take inline on its card ['Soft one', 'Take 3']
+PASS double-click phrase region opens inline rename 
+PASS phrase renamed inline 
+PASS right-click take -> context menu (listen/choose/rate/rename/remove) 
+PASS rate 5★ from the take menu 
+PASS Delete unchosen takes (confirm) keeps only the chosen take [['Take 3'], ['Delete 1 unchosen take in “Verse 1 line 1”?\n\nUndo (Ctrl+Z) can bring them back.']]
+PASS Undo restores deleted unchosen takes ['Soft one', 'Take 3']
+PASS Shift+R = next phrase: new phrase after this one is recorded [['Verse 1 line 1', 1, 2.5, 2], ['Phrase 2', 2.5, 10.5, 1]]
+PASS next phrase starts at the previous phrase end, its first take is Take 1 
+PASS Remove phrase asks for confirmation (Cancel keeps it) ['Remove phrase “Phrase 2” and its 1 take?\n\nUndo (Ctrl+Z) can bring it back.']
+PASS Remove phrase after OK 
+PASS Undo brings the removed phrase back 
+PASS drag the red IN flag on the ruler moves punch-in 0.6
+PASS drag the OUT flag moves punch-out [2.2, ['end', False, False, False, 2.5, False, False, [222.41666666666666, 213.72666666666666], [2.2, 'dawCanvas', '']], [[0.6, 2.2, 'p1', 'p1', True], 2.2, '2.2'], 'Phrase boundaries updated. Check each take before choosing.']
+PASS flag drags are undoable 
+PASS Space while recording stops and keeps the take Recording kept, but it ended before the phrase was complete. Adjust End or redo this part.
+PASS Esc while recording cancels the take (nothing added) Take cancelled (Esc) — nothing was added.
+PASS count-in: lead-in becomes 1 bar from BPM [-2.75, 0.6, 3.2]
+PASS count-in clicks play during the lead-in (headphones only) 3
+PASS C toggles the metronome; clicks follow BPM during playback 4
+PASS metronome off -> no clicks 0
+PASS click is routed to the speakers/headphones only (not into the mic capture or export graph) by design: OscillatorNode -> ctx.destination; takes come from the mic stream; exports render offline in the engine
+PASS hear-old-vocal ON: backing + old vocal around the phrase [3, True]
+PASS hear-old-vocal OFF: backing only [1, True]
+PASS VOCAL M respected while recording [1, True]
+PASS VOCAL S respected while recording (backing muted) [2, False]
+PASS R during playback punches in at the playhead without stopping the beat 7.269773242630386
+PASS R again punches out; playback keeps running ['Punch 0:07', 7.27, 9.577, 1, 'Take 1', True, True, 36.50274376417234]
+PASS punch creates a phrase at the punched range with a complete take ['Punch 0:07', 7.27, 9.577, 1, 'Take 1', True, True, 36.50274376417234]
+PASS second punch over the same part adds a take to that phrase (extends if longer); Space punches out and stops ['Punch 0:07', 7.27, 9.577, 2, False, ['Take 1', 'Take 2'], 'Take 2 punched in on Punch 0:07 (0:07.3–0:09.6).', [['Verse 1 line 1', 0.6, 2.2, 2], ['Phrase 2', 2.5, 7.5, 2], ['Punch 0:07', 7.27, 9.577, 2]]]
+PASS Esc cancels a punch take Take cancelled (Esc) — nothing was added.
+PASS loop recording: one new take per completed pass on the loop phrase ['Loop 0:03', 2, ['Take 1', 'Take 2'], True]
+PASS loop keeps playing after loop-record stops 
+PASS warning when a phrase runs past the backing end ⚠ This phrase runs past the end of the backing track (0:11.5): the last 1.5 s has no backing.
+PASS M adds song markers 
+PASS . / , jump to next / previous marker [2, 6, 2]
+PASS double-click marker renames it inline [{'id': 'mmvdy6f7m7292', 't': 2, 'name': 'Chorus'}, {'id': 'mmvdy6f7w4647', 't': 6, 'name': 'Marker 2'}]
+PASS right-click marker -> Delete 
+PASS MIC CHECK opens the input and shows the level in the transport [0.7602310586545651, '0%']
+PASS clip warning lights (fake mic beep + 12 dB gain) CLIPPING — move back from the mic or lower the gain, then click CLIP to reset.
+PASS mic gain −12 dB applied (GainNode) and clipping clears [0.25118863582611084, 0.24365297675132752]
+PASS input monitoring on/off routes mic -> headphones (with latency warning) [0.800000011920929, 0, 'Off by default. Wired headphones only: through speakers it w']
+PASS MIC CHECK off closes the mic 
+PASS mic gain also applies to phrase recording (MediaRecorder records the gained stream) 
+PASS loopback onset detector finds a 47 ms round trip in a synthetic capture {'ok': True, 'n': 8, 'ms': 47.000000000000156, 'spreadMs': 4.440892098500626e-13, 'thr': 0.03, 'noise': 0.0005761040005562485}
+PASS loopback test runs with the fake mic and reports a result or a clear retry message Measured round-trip latency: 20.0 ms (8/8 clicks, spread 0.0 ms).
+PASS tap-along test estimates latency from taps Estimated latency: 82 ms from 8 taps (approximate — includes your own timing).
+PASS calibration stored per device (localStorage, keyed by mic + platform) ['Fake Default Audio Input · Linux', '__last']
+PASS calibrated latency is applied to new takes [-0.05000000000000002, -0.13170000000000004, 0.08170000000000001]
+PASS autosave indicator shows the last browser save ✓ saved 09:55 AM · back up (10 new)
+PASS backup reminder after N new takes (toast + amber indicator) ✓ saved 09:55 AM · back up (10 new)
+PASS project download resets the reminder 
+PASS project ZIP stores markers, ratings, take names and take counters (optional fields) [2, [4, 5, None, None, None, None, None, None, None], 'Playbook Vocal Studio 0.15.0 (phone DAW)']
+PASS help lists the new shortcuts une · Chain · Detail · Mix · Rec setup
+PASS no console errors (desktop feature run) []
+PASS 0.15 project reopens with names, ratings and markers [[['Verse 1 line 1', [['Soft one', 4], ['Take 3', 5], ['Take 4', 0]]], ['Phrase 2', [['Take 1', 0], ['Take 2', 0]]], ['Punch 0:07', [['Take 1', 0], ['Take 2', 0]]], ['Loop 0:03', [['Take 1', 0], ['Take 2', 0]]], ['Phrase 5', []]]]
+PASS input monitoring stays off after reload 
+PASS 0.15 project opens in the 0.14 app (extra fields ignored) [5, []]
+PASS a project saved by 0.14.0 opens in 0.15.0 ['Playbook Vocal Studio 0.14.0 (phone DAW)', []]
+PASS take numbering continues after the highest existing name ['Take 5', ['Soft one', 'Take 3', 'Take 4']]
+PASS phone: no horizontal overflow with the new controls 390
+PASS phone: REC MODE button visible 
+PASS phone: big-button record mode opens full screen 
+PASS phone: big RECORD asks for the mic check first 
+PASS phone: big RECORD records the phrase 
+PASS phone: take appears in record mode after auto punch-out 0:01.0–0:03.5 · 1 take
+PASS phone: big button again = redo; tap during recording = stop & keep 0:01.0–0:03.5 · 2 takes
+PASS phone: Choose last take from record mode 
+PASS phone: long-press a take opens the take menu 
+PASS no console errors (phone) []
+TOTAL 85 FAIL 0

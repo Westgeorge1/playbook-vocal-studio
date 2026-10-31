@@ -1,0 +1,2185 @@
+{
+  "version": "0.31.3",
+  "date": "2026-10-29",
+  "environment": "Linux, Chromium 153.0.8010.0 via Playwright; synthetic microphone; Node 24 offline DSP",
+  "browserPassed": 293,
+  "browserFailed": 1,
+  "browserGroups": [
+    {
+      "area": "Noise removal and export",
+      "checks": [
+        {
+          "test": "Fresh vocal uses Studio Spectral before Note Editor",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "Quiet pause automatically profiled",
+          "pass": true,
+          "detail": [
+            3.52,
+            3.92
+          ]
+        },
+        {
+          "test": "Original recording remains sample exact",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "Effects worker does not clean or tune a second time",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "Preset applies measured reduction",
+          "pass": true,
+          "detail": {
+            "bypassed": false,
+            "reason": "Noise profile applied.",
+            "profileKind": "auto",
+            "noiseDb": -41.94545089791739,
+            "reductionDb": 7.7467784815899075,
+            "peakDb": -11.613770259592135,
+            "samples": 192000,
+            "channels": 1
+          }
+        },
+        {
+          "test": "Manual selected noise sample learned and applied",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "Noise Undo restores automatic profile",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "Noise Redo restores exact cleaned waveform",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "Bypass is exact pre-cleaning input",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "Re-enable restores deterministic cleaned audio",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "Removed noise plus cleaned reconstruct input",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "Noise sample audition excludes backing",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "Original cleaner restores exact native cleaned PCM",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "Original tuner and cleaner restore exact native final",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "Returning to Studio preserves profile and cleaned audio",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "All custom exports are finite",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "Custom cleaned stage includes new reduction",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "Invalid saved profile rejected without changing state",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "Browser reload retains cleaner settings and profile",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "Project ZIP reopen retains cleaner and tuner",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "Full path exports finite finished WAV",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "Noise panel fits 1366px viewport",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "Noise panel fits 390px viewport",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "Original audio unchanged after round trip",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "No browser exceptions",
+          "pass": true,
+          "detail": []
+        }
+      ],
+      "passed": 25,
+      "failed": 0
+    },
+    {
+      "area": "Embedded tuner UI",
+      "checks": [
+        {
+          "test": "1366 editor visible and viewport fits",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "1366 selected correction can be reached and applied",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "1366 review selects flagged note",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "1366 approval clears persisted review",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "1366 visible selector restores original controls",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "1366 no runtime errors",
+          "pass": true,
+          "detail": []
+        },
+        {
+          "test": "390 editor visible and viewport fits",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "390 selected correction can be reached and applied",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "390 review selects flagged note",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "390 approval clears persisted review",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "390 visible selector restores original controls",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "390 no runtime errors",
+          "pass": true,
+          "detail": []
+        }
+      ],
+      "passed": 12,
+      "failed": 0
+    },
+    {
+      "area": "Concurrent note edits",
+      "checks": [
+        {
+          "test": "A newer edit remains pending while an older render is running",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "Latest edit reaches saved lane state",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "Export input matches the latest editor render",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "Latest concurrent edit survives reload with identical tuned PCM",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "Concurrent edits have no runtime errors",
+          "pass": true,
+          "detail": []
+        }
+      ],
+      "passed": 5,
+      "failed": 0
+    },
+    {
+      "area": "Import capacity protections",
+      "checks": [
+        {
+          "test": "Unsafe stereo size asks before processing with an explicit mono option",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "Declining keeps current editor and source channels",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "Direct oversized import is also refused before replacing the editor",
+          "pass": true,
+          "detail": null
+        }
+      ],
+      "passed": 3,
+      "failed": 0
+    },
+    {
+      "area": "Editor state and approved presets",
+      "checks": [
+        {
+          "test": "Fresh import retains approved original Classic Smooth 25",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "Approved Snap All preset targets every note and keeps Smooth 25 on",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "Undo/Redo restores all Snap All note edits",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "Correct selected notes changes exactly the selected note",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "Detection sensitivity included in saved editor state",
+          "pass": true,
+          "detail": 1.05
+        },
+        {
+          "test": "A fresh vocal resets detection sensitivity",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "Saved detection sensitivity restored to UI and engine",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "Invalid frames is rejected without changing current edits/audio",
+          "pass": true,
+          "detail": {
+            "rejected": true,
+            "unchanged": true
+          }
+        },
+        {
+          "test": "Invalid scale is rejected without changing current edits/audio",
+          "pass": true,
+          "detail": {
+            "rejected": true,
+            "unchanged": true
+          }
+        },
+        {
+          "test": "Invalid notes is rejected without changing current edits/audio",
+          "pass": true,
+          "detail": {
+            "rejected": true,
+            "unchanged": true
+          }
+        },
+        {
+          "test": "Invalid keyOption is rejected without changing current edits/audio",
+          "pass": true,
+          "detail": {
+            "rejected": true,
+            "unchanged": true
+          }
+        },
+        {
+          "test": "Invalid scaleOption is rejected without changing current edits/audio",
+          "pass": true,
+          "detail": {
+            "rejected": true,
+            "unchanged": true
+          }
+        },
+        {
+          "test": "Invalid tempoOption is rejected without changing current edits/audio",
+          "pass": true,
+          "detail": {
+            "rejected": true,
+            "unchanged": true
+          }
+        },
+        {
+          "test": "No editor JavaScript exceptions",
+          "pass": true,
+          "detail": []
+        }
+      ],
+      "passed": 14,
+      "failed": 0
+    },
+    {
+      "area": "Responsive layout and stereo",
+      "checks": [
+        {
+          "test": "Empty song fits 1366px",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "Empty song fits 768px",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "Empty song fits 390px",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "Empty song fits 320px",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "Loaded song fits 1366px",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "edit workspace fits 1366px",
+          "pass": true,
+          "detail": []
+        },
+        {
+          "test": "clean workspace fits 1366px",
+          "pass": true,
+          "detail": []
+        },
+        {
+          "test": "tune workspace fits 1366px",
+          "pass": true,
+          "detail": []
+        },
+        {
+          "test": "Embedded editor fits 1366px",
+          "pass": true,
+          "detail": {
+            "width": 929,
+            "scroll": 929,
+            "bad": []
+          }
+        },
+        {
+          "test": "chain workspace fits 1366px",
+          "pass": true,
+          "detail": []
+        },
+        {
+          "test": "save workspace fits 1366px",
+          "pass": true,
+          "detail": []
+        },
+        {
+          "test": "Loaded song fits 768px",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "edit workspace fits 768px",
+          "pass": true,
+          "detail": []
+        },
+        {
+          "test": "clean workspace fits 768px",
+          "pass": true,
+          "detail": []
+        },
+        {
+          "test": "tune workspace fits 768px",
+          "pass": true,
+          "detail": []
+        },
+        {
+          "test": "Embedded editor fits 768px",
+          "pass": true,
+          "detail": {
+            "width": 752,
+            "scroll": 752,
+            "bad": []
+          }
+        },
+        {
+          "test": "chain workspace fits 768px",
+          "pass": true,
+          "detail": []
+        },
+        {
+          "test": "save workspace fits 768px",
+          "pass": true,
+          "detail": []
+        },
+        {
+          "test": "Loaded song fits 390px",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "edit workspace fits 390px",
+          "pass": true,
+          "detail": []
+        },
+        {
+          "test": "clean workspace fits 390px",
+          "pass": true,
+          "detail": []
+        },
+        {
+          "test": "tune workspace fits 390px",
+          "pass": true,
+          "detail": []
+        },
+        {
+          "test": "Embedded editor fits 390px",
+          "pass": true,
+          "detail": {
+            "width": 374,
+            "scroll": 374,
+            "bad": []
+          }
+        },
+        {
+          "test": "chain workspace fits 390px",
+          "pass": true,
+          "detail": []
+        },
+        {
+          "test": "save workspace fits 390px",
+          "pass": true,
+          "detail": []
+        },
+        {
+          "test": "Loaded song fits 320px",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "edit workspace fits 320px",
+          "pass": true,
+          "detail": []
+        },
+        {
+          "test": "clean workspace fits 320px",
+          "pass": true,
+          "detail": []
+        },
+        {
+          "test": "tune workspace fits 320px",
+          "pass": true,
+          "detail": []
+        },
+        {
+          "test": "Embedded editor fits 320px",
+          "pass": true,
+          "detail": {
+            "width": 304,
+            "scroll": 304,
+            "bad": []
+          }
+        },
+        {
+          "test": "chain workspace fits 320px",
+          "pass": true,
+          "detail": []
+        },
+        {
+          "test": "save workspace fits 320px",
+          "pass": true,
+          "detail": []
+        },
+        {
+          "test": "All audio stays stereo through the main processing path",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "No layout workflow JavaScript errors",
+          "pass": true,
+          "detail": []
+        }
+      ],
+      "passed": 34,
+      "failed": 0
+    },
+    {
+      "area": "Standalone tuner audit",
+      "checks": [
+        {
+          "test": "Boot and synthetic demo",
+          "pass": true,
+          "detail": {
+            "notes": 13,
+            "duration": 8.59
+          }
+        },
+        {
+          "test": "WAV import",
+          "pass": true,
+          "detail": {
+            "notes": 3,
+            "sr": 48000,
+            "label": "three-notes.wav"
+          }
+        },
+        {
+          "test": "Correct pitch respects a single selected note",
+          "pass": true,
+          "detail": {
+            "changed_note_indices": [
+              1
+            ]
+          }
+        },
+        {
+          "test": "Undo restores pitch edits",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "Redo reapplies pitch edits",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "Undo restores musical key",
+          "pass": true,
+          "detail": {
+            "before": 9,
+            "after": 9,
+            "undoDepth": 0
+          }
+        },
+        {
+          "test": "Undo restores scale",
+          "pass": true,
+          "detail": "chromatic"
+        },
+        {
+          "test": "Quantize respects a single selected note",
+          "pass": true,
+          "detail": {
+            "changed_note_indices": [
+              1
+            ]
+          }
+        },
+        {
+          "test": "Neutral settings preserve PCM exactly",
+          "pass": true,
+          "detail": {
+            "input_samples": 691200,
+            "output_samples": 691200,
+            "waveform_SDR_dB": 349.16455078125,
+            "max_sample_error": 0.0
+          }
+        },
+        {
+          "test": "Steady harmonic pitch tracking C2\u2013A5 within 10 cents",
+          "pass": false,
+          "detail": [
+            {
+              "midi": 36,
+              "target_hz": 66.74215572450511,
+              "detected_cents_error": 0.03303527832031472,
+              "voiced_frames": 60
+            },
+            {
+              "midi": 40,
+              "target_hz": 84.0898469126656,
+              "detected_cents_error": 0.05401611328125222,
+              "voiced_frames": 61
+            },
+            {
+              "midi": 45,
+              "target_hz": 112.24647899008306,
+              "detected_cents_error": 0.10017395019531472,
+              "voiced_frames": 60
+            },
+            {
+              "midi": 48,
+              "target_hz": 133.48431144901022,
+              "detected_cents_error": 0.03456115722656472,
+              "voiced_frames": 60
+            },
+            {
+              "midi": 52,
+              "target_hz": 168.1796938253312,
+              "detected_cents_error": 0.04180908203125222,
+              "voiced_frames": 60
+            },
+            {
+              "midi": 57,
+              "target_hz": 224.49295798016612,
+              "detected_cents_error": 0.4530334472656272,
+              "voiced_frames": 60
+            },
+            {
+              "midi": 60,
+              "target_hz": 266.96862289802044,
+              "detected_cents_error": 0.7070922851562522,
+              "voiced_frames": 60
+            },
+            {
+              "midi": 64,
+              "target_hz": 336.35938765066226,
+              "detected_cents_error": 0.10208129882812722,
+              "voiced_frames": 60
+            },
+            {
+              "midi": 69,
+              "target_hz": 448.9859159603321,
+              "detected_cents_error": -1199.2961502075195,
+              "voiced_frames": 60
+            },
+            {
+              "midi": 72,
+              "target_hz": 533.9372457960407,
+              "detected_cents_error": -1198.5543823242188,
+              "voiced_frames": 60
+            },
+            {
+              "midi": 76,
+              "target_hz": 672.7187753013245,
+              "detected_cents_error": -1200.9721374511719,
+              "voiced_frames": 60
+            },
+            {
+              "midi": 81,
+              "target_hz": 897.9718319206642,
+              "detected_cents_error": -1902.9565429687502,
+              "voiced_frames": 60
+            }
+          ]
+        },
+        {
+          "test": "Actual snapped WAV pitch C2\u2013A5 within 10 cents",
+          "pass": true,
+          "detail": [
+            {
+              "midi": 36,
+              "frequency_hz": 65.40484576519299,
+              "error_cents": -0.040909727352102195
+            },
+            {
+              "midi": 40,
+              "frequency_hz": 82.40482946943337,
+              "error_cents": -0.043272706192354654
+            },
+            {
+              "midi": 45,
+              "frequency_hz": 109.99562309019959,
+              "error_cents": -0.06888732758171145
+            },
+            {
+              "midi": 48,
+              "frequency_hz": 130.81334390829923,
+              "error_cents": 0.007427919929375628
+            },
+            {
+              "midi": 52,
+              "frequency_hz": 164.8043625701428,
+              "error_cents": -0.09890901577668959
+            },
+            {
+              "midi": 57,
+              "frequency_hz": 219.94556498224676,
+              "error_cents": -0.42841553218371237
+            },
+            {
+              "midi": 60,
+              "frequency_hz": 261.52282121959894,
+              "error_cents": -0.6800137713768982
+            },
+            {
+              "midi": 64,
+              "frequency_hz": 329.623057539508,
+              "error_cents": -0.023631281315277267
+            },
+            {
+              "midi": 69,
+              "frequency_hz": 439.829339621298,
+              "error_cents": -0.6716144798446594
+            },
+            {
+              "midi": 72,
+              "frequency_hz": 522.8261126525825,
+              "error_cents": -1.4067901569216144
+            },
+            {
+              "midi": 76,
+              "frequency_hz": 659.6477584320133,
+              "error_cents": 1.0307957408288277
+            },
+            {
+              "midi": 81,
+              "frequency_hz": 881.4593935790717,
+              "error_cents": 2.8687035788542685
+            }
+          ]
+        },
+        {
+          "test": "Rendered samples finite",
+          "pass": true,
+          "detail": {
+            "peak": 0.5499997735023499
+          }
+        },
+        {
+          "test": "Session ZIP valid",
+          "pass": true,
+          "detail": [
+            "session.json",
+            "vocal.wav"
+          ]
+        },
+        {
+          "test": "Session ZIP restores all saved edit fields",
+          "pass": true,
+          "detail": {
+            "changed_fields": []
+          }
+        },
+        {
+          "test": "IndexedDB reload restores edits",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "Stereo input preserves a usable vocal",
+          "pass": true,
+          "detail": {
+            "channels_after": 1,
+            "peak": 0.550000011920929,
+            "notes": 1,
+            "message": ""
+          }
+        },
+        {
+          "test": "Very short silence renders finite",
+          "pass": true,
+          "detail": {
+            "analysis_frames": 0,
+            "samples": 240,
+            "nonfinite": 0
+          }
+        },
+        {
+          "test": "Session preserves floating-point source headroom",
+          "pass": true,
+          "detail": {
+            "before_peak": 1.600000023841858,
+            "restored_peak": 1.600000023841858
+          }
+        },
+        {
+          "test": "Overload export avoids silent clipping",
+          "pass": true,
+          "detail": {
+            "render_peak": 2.189582586288452,
+            "clipped_samples": 0,
+            "export_message": "Saved 3 files. Unzip and drag them into FL Studio at the start of the song. Export level reduced by 7.81 dB to prevent clipping; source unchanged."
+          }
+        },
+        {
+          "test": "Browser runtime errors",
+          "pass": true,
+          "detail": []
+        },
+        {
+          "test": "Phone viewport fits device width",
+          "pass": true,
+          "detail": {
+            "inner": 390,
+            "screen": 390,
+            "client": 390,
+            "scroll": 390,
+            "viewport": "width=device-width,initial-scale=1",
+            "compat": "CSS1Compat"
+          }
+        }
+      ],
+      "passed": 20,
+      "failed": 1
+    },
+    {
+      "area": "Advanced editor tools",
+      "checks": [
+        {
+          "test": "Opening a different vocal resets unrelated processing",
+          "pass": true,
+          "detail": {
+            "ref": 440,
+            "formant": 0,
+            "breath": 0,
+            "smooth": 0.25,
+            "harmony": false
+          }
+        },
+        {
+          "test": "Split then Undo restores notes",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "Join and Undo",
+          "pass": true,
+          "detail": {
+            "ok": true,
+            "finite": true,
+            "notes": 2
+          }
+        },
+        {
+          "test": "Manual fine-tuning retained exactly with Smooth",
+          "pass": true,
+          "detail": {
+            "displayed_center": 60.2,
+            "average_final": 60.199133791242325
+          }
+        },
+        {
+          "test": "Lead, two harmonies and double loop exports align",
+          "pass": true,
+          "detail": [
+            {
+              "name": "three-notes-tuned-0004.wav",
+              "samples": 86400,
+              "sr": 48000
+            },
+            {
+              "name": "three-notes-harmony-above-0004.wav",
+              "samples": 86400,
+              "sr": 48000
+            },
+            {
+              "name": "three-notes-harmony-below-0004.wav",
+              "samples": 86400,
+              "sr": 48000
+            },
+            {
+              "name": "three-notes-double-0004.wav",
+              "samples": 86400,
+              "sr": 48000
+            }
+          ]
+        },
+        {
+          "test": "Incremental edit matches full-render PCM",
+          "pass": true,
+          "detail": {
+            "waveform_SDR_dB": 349.1626281738281,
+            "max_sample_error": 0.0,
+            "relative_RMS": 1.0
+          }
+        },
+        {
+          "test": "Invalid session rejected without damaging open state",
+          "pass": true,
+          "detail": {
+            "before_scale": "chromatic",
+            "after_scale": "chromatic",
+            "new_errors": []
+          }
+        },
+        {
+          "test": "Fresh import recovers after invalid session",
+          "pass": true,
+          "detail": {
+            "errors": []
+          }
+        }
+      ],
+      "passed": 8,
+      "failed": 0
+    },
+    {
+      "area": "Routing and error recovery",
+      "checks": [
+        {
+          "test": "Reference preview starts from actual tuned chain and applies only proposed effects",
+          "pass": true,
+          "detail": {
+            "same": true,
+            "different": true,
+            "finite": true
+          }
+        },
+        {
+          "test": "Single-note edit leaves later unselected audio sample-exact with global Smooth off",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "Editor audition gain prevents boosted preview from exceeding sample headroom",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "Host playback stops the embedded audition",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "Embedded audition owns playback",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "Embedded file import cannot bypass the cleaning path",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "Failed new render blocks stale export while leaving selector available",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "Original recovery clears export block",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "No runtime errors after final refinements",
+          "pass": true,
+          "detail": []
+        }
+      ],
+      "passed": 9,
+      "failed": 0
+    },
+    {
+      "area": "EQ and automatic mode controls",
+      "checks": [
+        {
+          "test": "Already-finished import bypasses both cleanup and tuning",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "Enabling new tuner on finished vocal starts with automatic tuning off and exact PCM",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "Natural mode can be selected with its own 85 percent amount",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "Natural mode renders finite audio of the original duration",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "Undo restores prior Classic mode and Smooth amount",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "1366 LOW GAIN keyboard step changes only its intended EQ setting",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "1366 LOW GAIN has a value announcement and stays visible",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "1366 MID GAIN keyboard step changes only its intended EQ setting",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "1366 MID GAIN has a value announcement and stays visible",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "1366 HIGH GAIN keyboard step changes only its intended EQ setting",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "1366 HIGH GAIN has a value announcement and stays visible",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "1366 first EQ retains Low/Mid/High labels and Gain help",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "390 LOW GAIN keyboard step changes only its intended EQ setting",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "390 LOW GAIN has a value announcement and stays visible",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "390 MID GAIN keyboard step changes only its intended EQ setting",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "390 MID GAIN has a value announcement and stays visible",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "390 HIGH GAIN keyboard step changes only its intended EQ setting",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "390 HIGH GAIN has a value announcement and stays visible",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "390 first EQ retains Low/Mid/High labels and Gain help",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "EQ edits leave tuned PCM unchanged",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "test": "No control workflow JavaScript exceptions",
+          "pass": true,
+          "detail": []
+        }
+      ],
+      "passed": 21,
+      "failed": 0
+    },
+    {
+      "area": "Scrolled recording controls",
+      "checks": [
+        {
+          "test": "390 page is scrolled into compact mode ",
+          "pass": true
+        },
+        {
+          "test": "390 scrolled: Fix phrase, |\u25c0, Show vocal, Play/Stop/Record visible with helpers folded []",
+          "pass": true
+        },
+        {
+          "test": "390 scrolled: Recording helpers toggle visible []",
+          "pass": true
+        },
+        {
+          "test": "390 scrolled: all transport and recording helper controls visible and uncovered []",
+          "pass": true
+        },
+        {
+          "test": "390 scrolled bar leaves most of the screen for lanes (<60%) 0.41",
+          "pass": true
+        },
+        {
+          "test": "390 |\u25c0 clickable while scrolled (cursor to 0) ",
+          "pass": true
+        },
+        {
+          "test": "390 Click toggles while scrolled ",
+          "pass": true
+        },
+        {
+          "test": "390 Count-in selectable while scrolled ",
+          "pass": true
+        },
+        {
+          "test": "1366 page is scrolled into compact mode ",
+          "pass": true
+        },
+        {
+          "test": "1366 scrolled: all transport and recording helper controls visible and uncovered []",
+          "pass": true
+        },
+        {
+          "test": "1366 scrolled bar leaves most of the screen for lanes (<60%) 0.21",
+          "pass": true
+        },
+        {
+          "test": "1366 |\u25c0 clickable while scrolled (cursor to 0) ",
+          "pass": true
+        },
+        {
+          "test": "1366 Click toggles while scrolled ",
+          "pass": true
+        },
+        {
+          "test": "1366 Count-in selectable while scrolled ",
+          "pass": true
+        },
+        {
+          "test": "zero browser errors []",
+          "pass": true
+        }
+      ],
+      "passed": 15,
+      "failed": 0
+    },
+    {
+      "area": "Finishing and listening comparisons",
+      "checks": [
+        {
+          "test": "1366: UI saves phrase volume without changing recording ",
+          "pass": true
+        },
+        {
+          "test": "1366: phrase inputs and buttons reachable ",
+          "pass": true
+        },
+        {
+          "test": "1366: Undo removes move ",
+          "pass": true
+        },
+        {
+          "test": "1366: Redo restores move ",
+          "pass": true
+        },
+        {
+          "test": "1366: overlapping move refused visibly ",
+          "pass": true
+        },
+        {
+          "test": "1366: reload retains phrase volume ",
+          "pass": true
+        },
+        {
+          "test": "1366: song playback uses same automated PCM as mix rendering ",
+          "pass": true
+        },
+        {
+          "test": "1366: finished mix measured and ready ",
+          "pass": true
+        },
+        {
+          "test": "1366: finishing styles load and controls have touch targets ",
+          "pass": true
+        },
+        {
+          "test": "1366: finishing dialog fits viewport ",
+          "pass": true
+        },
+        {
+          "test": "1366: dialog blocks recording shortcut ",
+          "pass": true
+        },
+        {
+          "test": "1366: export is stereo 24-bit PCM at 48 kHz ",
+          "pass": true
+        },
+        {
+          "test": "1366: measurement download records output settings and finite results ",
+          "pass": true
+        },
+        {
+          "test": "1366: settings invalidate previous export ",
+          "pass": true
+        },
+        {
+          "test": "1366: limiter path finishes ",
+          "pass": true
+        },
+        {
+          "test": "1366: close releases processing lock ",
+          "pass": true
+        },
+        {
+          "test": "1366: backup declares version needed for phrase-volume playback ",
+          "pass": true
+        },
+        {
+          "test": "1366: diagnostic comparison leaves all engine settings intact ",
+          "pass": true
+        },
+        {
+          "test": "1366: stages give actionable diagnosis ",
+          "pass": true
+        },
+        {
+          "test": "1366: comparison controls remain enabled when the effects chain is bypassed ",
+          "pass": true
+        },
+        {
+          "test": "1366: cancelling worker keeps audio and unlocks controls ",
+          "pass": true
+        },
+        {
+          "test": "1366: cancelled mix cannot populate a reopened comparison ",
+          "pass": true
+        },
+        {
+          "test": "1366: project reopens with phrase moves and finish preferences ",
+          "pass": true
+        },
+        {
+          "test": "390: UI saves phrase volume without changing recording ",
+          "pass": true
+        },
+        {
+          "test": "390: phrase inputs and buttons reachable ",
+          "pass": true
+        },
+        {
+          "test": "390: Undo removes move ",
+          "pass": true
+        },
+        {
+          "test": "390: Redo restores move ",
+          "pass": true
+        },
+        {
+          "test": "390: overlapping move refused visibly ",
+          "pass": true
+        },
+        {
+          "test": "390: reload retains phrase volume ",
+          "pass": true
+        },
+        {
+          "test": "390: song playback uses same automated PCM as mix rendering ",
+          "pass": true
+        },
+        {
+          "test": "390: finished mix measured and ready ",
+          "pass": true
+        },
+        {
+          "test": "390: finishing styles load and controls have touch targets ",
+          "pass": true
+        },
+        {
+          "test": "390: finishing dialog fits viewport ",
+          "pass": true
+        },
+        {
+          "test": "390: dialog blocks recording shortcut ",
+          "pass": true
+        },
+        {
+          "test": "390: export is stereo 24-bit PCM at 48 kHz ",
+          "pass": true
+        },
+        {
+          "test": "390: measurement download records output settings and finite results ",
+          "pass": true
+        },
+        {
+          "test": "390: settings invalidate previous export ",
+          "pass": true
+        },
+        {
+          "test": "390: limiter path finishes ",
+          "pass": true
+        },
+        {
+          "test": "390: close releases processing lock ",
+          "pass": true
+        },
+        {
+          "test": "390: backup declares version needed for phrase-volume playback ",
+          "pass": true
+        },
+        {
+          "test": "390: diagnostic comparison leaves all engine settings intact ",
+          "pass": true
+        },
+        {
+          "test": "390: stages give actionable diagnosis ",
+          "pass": true
+        },
+        {
+          "test": "390: comparison controls remain enabled when the effects chain is bypassed ",
+          "pass": true
+        },
+        {
+          "test": "390: cancelling worker keeps audio and unlocks controls ",
+          "pass": true
+        },
+        {
+          "test": "390: cancelled mix cannot populate a reopened comparison ",
+          "pass": true
+        },
+        {
+          "test": "390: project reopens with phrase moves and finish preferences ",
+          "pass": true
+        },
+        {
+          "test": "No JavaScript errors in desktop/mobile workflows []",
+          "pass": true
+        }
+      ],
+      "passed": 47,
+      "failed": 0
+    },
+    {
+      "area": "Recording start/stop",
+      "checks": [
+        {
+          "test": "1366 stalled audio clock: not reported as recording {'recording': False, 'starting': True, 'opening': False, 'playing': True, 'busy': False, 'start': 0, 'span': 30, 'position': 1.7803854875283447, 'activeTrack': 'v1'}",
+          "pass": true
+        },
+        {
+          "test": "1366 stalled: record button says the mic is starting ",
+          "pass": true
+        },
+        {
+          "test": "1366 Stop before the mic started says nothing was recorded The microphone had not started yet when you pressed Stop, so nothing was recorded. Your existing recordings are unchanged. Press Record or Fix phrase again.",
+          "pass": true
+        },
+        {
+          "test": "1366 1 s early-stopped Fix phrase is kept as an attempt (not chosen) {'kind': 'fix', 'takes': 1, 'sel': None}",
+          "pass": true
+        },
+        {
+          "test": "390 stalled audio clock: not reported as recording {'recording': False, 'starting': True, 'opening': False, 'playing': True, 'busy': False, 'start': 0, 'span': 30, 'position': 1.6817006802721088, 'activeTrack': 'v1'}",
+          "pass": true
+        },
+        {
+          "test": "390 stalled: record button says the mic is starting ",
+          "pass": true
+        },
+        {
+          "test": "390 Stop before the mic started says nothing was recorded The microphone had not started yet when you pressed Stop, so nothing was recorded. Your existing recordings are unchanged. Press Record or Fix phrase again.",
+          "pass": true
+        },
+        {
+          "test": "390 1 s early-stopped Fix phrase is kept as an attempt (not chosen) {'kind': 'fix', 'takes': 1, 'sel': None}",
+          "pass": true
+        },
+        {
+          "test": "no page errors []",
+          "pass": true
+        }
+      ],
+      "passed": 9,
+      "failed": 0
+    },
+    {
+      "area": "Crash recovery and track keys",
+      "checks": [
+        {
+          "test": "both lanes polished in the song key D ([True, '', 'This vocal\u2019s processing is saved in your song.'], [True, '', 'This vocal\u2019s processing is saved in your song.'], [2, 1, [[False, None, 2, False], [False, None, 2, False]], 2])",
+          "pass": true
+        },
+        {
+          "test": "R4 own key switched on through track settings (keeps its polished key D) [2, 1, [[False, None, 2, False], [True, 2, 2, False]], 2]",
+          "pass": true
+        },
+        {
+          "test": "R4 song key E: the lead needs an update, the own-key harmony does not [4, 1, [[False, None, 2, False], [True, 2, 2, False]], 2]",
+          "pass": true
+        },
+        {
+          "test": "R4 opening the harmony keeps its own key (editor D, song E) [4, 1, [[False, None, 2, False], [True, 2, 2, False]], 2]",
+          "pass": true
+        },
+        {
+          "test": "R4 editing the harmony key to F changes only the harmony (song stays E, lead untouched) [4, 1, [[False, None, 2, False], [True, 5, 5, False]], 5]",
+          "pass": true
+        },
+        {
+          "test": "R4 switching to the lead shows the song key E in the editor [4, 1, [[False, None, 4, False], [True, 5, 5, False]], 4]",
+          "pass": true
+        },
+        {
+          "test": "R4 switching back shows the harmony own key F [4, 1, [[False, None, 4, False], [True, 5, 5, False]], 5]",
+          "pass": true
+        },
+        {
+          "test": "R4 reload keeps ownKey and F on the harmony, song E [4, 1, [[False, None, 4, False], [True, 5, 5, False]], 5]",
+          "pass": true
+        },
+        {
+          "test": "R4 override off: the harmony adopts the song key E (needs a safe update, song unchanged) [4, 1, [[False, None, 4, False], [False, None, 5, False]], 5]",
+          "pass": true
+        },
+        {
+          "test": "R4 reopening it adopts E in the editor and no longer needs a key update [4, 1, [[False, None, 4, False], [False, None, 4, False]], 4]",
+          "pass": true
+        },
+        {
+          "test": "R5 POLISH key (song key) F kept after a crash straight after the change (True, [5, 1, [[False, None, 4, False], [False, None, 4, False]], 4])",
+          "pass": true
+        },
+        {
+          "test": "R5 POLISH scale kept after a crash straight after the change (True, [5, 2, [[False, None, 4, False], [False, None, 5, False]], 5])",
+          "pass": true
+        },
+        {
+          "test": "R5 Use dry vocal (track settings) kept after an immediate crash [5, 2, [[False, None, 4, True], [False, None, 5, False]], 5]",
+          "pass": true
+        },
+        {
+          "test": "R5 recovery did not revive stale audio: the lead POLISH audio is still its own valid render ",
+          "pass": true
+        },
+        {
+          "test": "R5 Use dry vocal (POLISH bar) kept after an immediate crash [5, 2, [[False, None, 4, True], [False, None, 5, True]], 5]",
+          "pass": true
+        },
+        {
+          "test": "R5 own-key flag kept after an immediate crash [5, 2, [[False, None, 4, True], [True, 5, 5, False]], 5]",
+          "pass": true
+        },
+        {
+          "test": "R5 own key A kept after an immediate crash; song key unchanged [5, 2, [[False, None, 4, True], [True, 9, 5, False]], 5]",
+          "pass": true
+        },
+        {
+          "test": "R5 a journal from another project is not applied ",
+          "pass": true
+        },
+        {
+          "test": "zero console errors []",
+          "pass": true
+        }
+      ],
+      "passed": 19,
+      "failed": 0
+    },
+    {
+      "area": "Reference edge cases",
+      "checks": [
+        {
+          "test": "Profile-only song survives reload ",
+          "pass": true
+        },
+        {
+          "test": "Profile-only save does not create audio sources ",
+          "pass": true
+        },
+        {
+          "test": "Cancelled file decode cannot populate reopened guide ",
+          "pass": true
+        },
+        {
+          "test": "Cancelled decode preserves saved profile ",
+          "pass": true
+        },
+        {
+          "test": "No edge-case browser JavaScript errors []",
+          "pass": true
+        }
+      ],
+      "passed": 5,
+      "failed": 0
+    },
+    {
+      "area": "Reference guide",
+      "checks": [
+        {
+          "test": "1366: release boot ",
+          "pass": true
+        },
+        {
+          "test": "1366: supplied stereo reference loads ",
+          "pass": true
+        },
+        {
+          "test": "1366: level-based start avoids silent intro ",
+          "pass": true
+        },
+        {
+          "test": "1366: near-silent reference rejected without saving ",
+          "pass": true
+        },
+        {
+          "test": "1366: profile has measured singing and stereo information ",
+          "pass": true
+        },
+        {
+          "test": "1366: profile survives reload without reloading reference audio ",
+          "pass": true
+        },
+        {
+          "test": "1366: saved profile generates conservative body trial ",
+          "pass": true
+        },
+        {
+          "test": "1366: guide fits viewport with 44px controls ",
+          "pass": true
+        },
+        {
+          "test": "1366: isolated matched preview ready Compare both versions. Apply keeps the proposed settings; Close discards the preview.",
+          "pass": true
+        },
+        {
+          "test": "1366: preview does not alter editor PCM, settings, notes, undo or source ",
+          "pass": true
+        },
+        {
+          "test": "1366: proposed engine rendering changes audio ",
+          "pass": true
+        },
+        {
+          "test": "1366: body trial moves measured body balance toward reference ",
+          "pass": true
+        },
+        {
+          "test": "1366: actual audition buffers are loudness matched and peak protected ",
+          "pass": true
+        },
+        {
+          "test": "1366: mono check changes audition only ",
+          "pass": true
+        },
+        {
+          "test": "1366: modal blocks recording shortcut ",
+          "pass": true
+        },
+        {
+          "test": "1366: Apply uses proposed EQ while retaining source and tuning {'body': 1, 'bypass': 0, 'amount': 0, 'source': 'c35eb109df29565f', 'notes': '[[0,12.003999999999998,69.02098783614855,69,1,0,-1,-1,-1,0,0,120,0,0]]'}",
+          "pass": true
+        },
+        {
+          "test": "1366: existing POLISH Undo restores exact prior settings and final PCM ",
+          "pass": true
+        },
+        {
+          "test": "1366: changed passage invalidates Apply and old preview ",
+          "pass": true
+        },
+        {
+          "test": "1366: cancel/reopen drops old preview and releases locks ",
+          "pass": true
+        },
+        {
+          "test": "1366: Remove profile is non-destructive ",
+          "pass": true
+        },
+        {
+          "test": "1366: Song Undo restores profile ",
+          "pass": true
+        },
+        {
+          "test": "1366: project carries profile measurements only ",
+          "pass": true
+        },
+        {
+          "test": "1366: exported project reopens with the same profile ",
+          "pass": true
+        },
+        {
+          "test": "390: release boot ",
+          "pass": true
+        },
+        {
+          "test": "390: supplied stereo reference loads ",
+          "pass": true
+        },
+        {
+          "test": "390: level-based start avoids silent intro ",
+          "pass": true
+        },
+        {
+          "test": "390: near-silent reference rejected without saving ",
+          "pass": true
+        },
+        {
+          "test": "390: profile has measured singing and stereo information ",
+          "pass": true
+        },
+        {
+          "test": "390: profile survives reload without reloading reference audio ",
+          "pass": true
+        },
+        {
+          "test": "390: saved profile generates conservative body trial ",
+          "pass": true
+        },
+        {
+          "test": "390: guide fits viewport with 44px controls ",
+          "pass": true
+        },
+        {
+          "test": "390: isolated matched preview ready Compare both versions. Apply keeps the proposed settings; Close discards the preview.",
+          "pass": true
+        },
+        {
+          "test": "390: preview does not alter editor PCM, settings, notes, undo or source ",
+          "pass": true
+        },
+        {
+          "test": "390: proposed engine rendering changes audio ",
+          "pass": true
+        },
+        {
+          "test": "390: body trial moves measured body balance toward reference ",
+          "pass": true
+        },
+        {
+          "test": "390: actual audition buffers are loudness matched and peak protected ",
+          "pass": true
+        },
+        {
+          "test": "390: mono check changes audition only ",
+          "pass": true
+        },
+        {
+          "test": "390: modal blocks recording shortcut ",
+          "pass": true
+        },
+        {
+          "test": "390: Apply uses proposed EQ while retaining source and tuning {'body': 1, 'bypass': 0, 'amount': 0, 'source': 'c35eb109df29565f', 'notes': '[[0,12.003999999999998,69.02098783614855,69,1,0,-1,-1,-1,0,0,120,0,0]]'}",
+          "pass": true
+        },
+        {
+          "test": "390: existing POLISH Undo restores exact prior settings and final PCM ",
+          "pass": true
+        },
+        {
+          "test": "390: changed passage invalidates Apply and old preview ",
+          "pass": true
+        },
+        {
+          "test": "390: cancel/reopen drops old preview and releases locks ",
+          "pass": true
+        },
+        {
+          "test": "390: Remove profile is non-destructive ",
+          "pass": true
+        },
+        {
+          "test": "390: Song Undo restores profile ",
+          "pass": true
+        },
+        {
+          "test": "390: project carries profile measurements only ",
+          "pass": true
+        },
+        {
+          "test": "390: exported project reopens with the same profile ",
+          "pass": true
+        },
+        {
+          "test": "No browser JavaScript errors []",
+          "pass": true
+        }
+      ],
+      "passed": 47,
+      "failed": 0
+    }
+  ],
+  "coreAndIntegrityScopes": [
+    {
+      "scope": "tests-0.20/core.test.cjs",
+      "pass": true,
+      "exit_code": 0
+    },
+    {
+      "scope": "tests-0.21/core21.test.cjs",
+      "pass": true,
+      "exit_code": 0
+    },
+    {
+      "scope": "tests-0.22/core22.test.cjs",
+      "pass": true,
+      "exit_code": 0
+    },
+    {
+      "scope": "tests-0.23/core23.test.cjs",
+      "pass": true,
+      "exit_code": 0
+    },
+    {
+      "scope": "tests-0.23/rangesafe23.test.cjs",
+      "pass": true,
+      "exit_code": 0
+    },
+    {
+      "scope": "tests-0.24/core24.test.cjs",
+      "pass": true,
+      "exit_code": 0
+    },
+    {
+      "scope": "tests-0.24/refalign24.test.cjs",
+      "pass": true,
+      "exit_code": 0
+    },
+    {
+      "scope": "tests-0.25/core25.test.cjs",
+      "pass": true,
+      "exit_code": 0
+    },
+    {
+      "scope": "tests-0.26/quality.test.cjs",
+      "pass": true,
+      "exit_code": 0
+    },
+    {
+      "scope": "tests-0.27/reference.test.cjs",
+      "pass": true,
+      "exit_code": 0
+    },
+    {
+      "scope": "tests-0.28/policy.test.cjs",
+      "pass": true,
+      "exit_code": 0
+    },
+    {
+      "scope": "tests-0.30/core.test.cjs",
+      "pass": true,
+      "exit_code": 0
+    },
+    {
+      "scope": "tests-0.31/natural.test.cjs",
+      "pass": true,
+      "exit_code": 0
+    },
+    {
+      "scope": "tests-0.31.1/approved.test.cjs",
+      "pass": true,
+      "exit_code": 0
+    },
+    {
+      "scope": "tests-0.25/check25.cjs",
+      "pass": true,
+      "exit_code": 0
+    },
+    {
+      "scope": "tests-0.30/extended.cjs",
+      "pass": true,
+      "exit_code": 0
+    },
+    {
+      "scope": "syntax quality-core.js",
+      "pass": true
+    },
+    {
+      "scope": "syntax reference-core.js",
+      "pass": true
+    },
+    {
+      "scope": "syntax rc.js",
+      "pass": true
+    },
+    {
+      "scope": "syntax reference-worker.js",
+      "pass": true
+    },
+    {
+      "scope": "syntax song-polish.js",
+      "pass": true
+    },
+    {
+      "scope": "syntax recovery.js",
+      "pass": true
+    },
+    {
+      "scope": "syntax phrase-core.js",
+      "pass": true
+    },
+    {
+      "scope": "syntax ref-align.js",
+      "pass": true
+    },
+    {
+      "scope": "syntax noise-worker.js",
+      "pass": true
+    },
+    {
+      "scope": "syntax edit-core.js",
+      "pass": true
+    },
+    {
+      "scope": "syntax song-studio.js",
+      "pass": true
+    },
+    {
+      "scope": "syntax phrase-worker.js",
+      "pass": true
+    },
+    {
+      "scope": "syntax rec-worklet.js",
+      "pass": true
+    },
+    {
+      "scope": "syntax song-capture-worklet.js",
+      "pass": true
+    },
+    {
+      "scope": "syntax daw.js",
+      "pass": true
+    },
+    {
+      "scope": "syntax quality-studio.js",
+      "pass": true
+    },
+    {
+      "scope": "syntax studio.js",
+      "pass": true
+    },
+    {
+      "scope": "syntax noise-cleaner.js",
+      "pass": true
+    },
+    {
+      "scope": "syntax reference-guide.js",
+      "pass": true
+    },
+    {
+      "scope": "syntax quality-worker.js",
+      "pass": true
+    },
+    {
+      "scope": "syntax note-editor-safety.js",
+      "pass": true
+    },
+    {
+      "scope": "syntax song-core.js",
+      "pass": true
+    },
+    {
+      "scope": "syntax reference-preview.js",
+      "pass": true
+    },
+    {
+      "scope": "syntax tuner-routing.js",
+      "pass": true
+    },
+    {
+      "scope": "syntax rec.js",
+      "pass": true
+    },
+    {
+      "scope": "syntax worker.js",
+      "pass": true
+    },
+    {
+      "scope": "syntax noise-core.js",
+      "pass": true
+    },
+    {
+      "scope": "syntax engine-wasm.js",
+      "pass": true
+    },
+    {
+      "scope": "syntax finish-policy.js",
+      "pass": true
+    },
+    {
+      "scope": "syntax natural-tuning.js",
+      "pass": true
+    },
+    {
+      "scope": "syntax index.html inline 8",
+      "pass": true
+    },
+    {
+      "scope": "syntax note-editor.html inline 2",
+      "pass": true
+    },
+    {
+      "scope": "locked engine phrase-core.js",
+      "pass": true
+    },
+    {
+      "scope": "locked engine worker.js",
+      "pass": true
+    },
+    {
+      "scope": "locked engine phrase-worker.js",
+      "pass": true
+    },
+    {
+      "scope": "locked engine engine-wasm.js",
+      "pass": true
+    },
+    {
+      "scope": "locked engine engine-wasm.wasm",
+      "pass": true
+    },
+    {
+      "scope": "locked engine daw.css",
+      "pass": true
+    },
+    {
+      "scope": "locked engine rec-worklet.js",
+      "pass": true
+    }
+  ],
+  "approvedFullVocal": {
+    "passed": 20,
+    "failed": 0,
+    "method": "Actual shipped DSP, import bridge, preset/correct/Undo handlers in Node; DOM and device playback stubbed; built-in downsample fallback used. Not a browser/UI/device test.",
+    "sourceFrames": 6194176,
+    "sourceSHA256": "9956ae9c71823cf7a15c32da782edfd5c6379963ee9bfd4c3cee6ddeb5378da7",
+    "detected": {
+      "key": 7,
+      "scale": "major",
+      "r": 0.9330377864456613,
+      "other": {
+        "key": 4,
+        "scale": "minor",
+        "r": 0.5206466062956757
+      },
+      "sure": true
+    },
+    "notes": 281,
+    "outputs": [
+      {
+        "preset": "centre",
+        "frames": 6194176,
+        "hash": "6900615f0d68a350e03aac12747635d1fe5e645f867714cc53079d606202f98b",
+        "sampleExact": true,
+        "key": {
+          "key": 7,
+          "scale": "major"
+        }
+      },
+      {
+        "preset": "snap",
+        "frames": 6194176,
+        "hash": "3c6ea1a519186c720659b74717014b3d346fc7fe85a5028f76d5d3f40e3a4e56",
+        "sampleExact": true,
+        "key": {
+          "key": 7,
+          "scale": "major"
+        }
+      }
+    ]
+  },
+  "changesAndAssets": {
+    "changedRuntimeFiles": [
+      "index.html",
+      "note-editor.html",
+      "note-editor-safety.js",
+      "tuner-routing.js"
+    ],
+    "localAssets": [
+      {
+        "page": "index.html",
+        "asset": "daw.css",
+        "exists": true
+      },
+      {
+        "page": "index.html",
+        "asset": "rec.css",
+        "exists": true
+      },
+      {
+        "page": "index.html",
+        "asset": "rc.css",
+        "exists": true
+      },
+      {
+        "page": "index.html",
+        "asset": "studio.css",
+        "exists": true
+      },
+      {
+        "page": "index.html",
+        "asset": "song-studio.css",
+        "exists": true
+      },
+      {
+        "page": "index.html",
+        "asset": "quality-studio.css",
+        "exists": true
+      },
+      {
+        "page": "index.html",
+        "asset": "reference-guide.css",
+        "exists": true
+      },
+      {
+        "page": "index.html",
+        "asset": "tuner-routing.css",
+        "exists": true
+      },
+      {
+        "page": "index.html",
+        "asset": "note-editor-safety.js",
+        "exists": true
+      },
+      {
+        "page": "index.html",
+        "asset": "finish-policy.js",
+        "exists": true
+      },
+      {
+        "page": "index.html",
+        "asset": "quality-core.js",
+        "exists": true
+      },
+      {
+        "page": "index.html",
+        "asset": "reference-core.js",
+        "exists": true
+      },
+      {
+        "page": "index.html",
+        "asset": "song-core.js",
+        "exists": true
+      },
+      {
+        "page": "index.html",
+        "asset": "noise-cleaner.css",
+        "exists": true
+      },
+      {
+        "page": "index.html",
+        "asset": "noise-core.js",
+        "exists": true
+      },
+      {
+        "page": "index.html",
+        "asset": "noise-cleaner.js",
+        "exists": true
+      },
+      {
+        "page": "index.html",
+        "asset": "tuner-routing.js",
+        "exists": true
+      },
+      {
+        "page": "index.html",
+        "asset": "daw.js",
+        "exists": true
+      },
+      {
+        "page": "index.html",
+        "asset": "recovery.js",
+        "exists": true
+      },
+      {
+        "page": "index.html",
+        "asset": "rec.js",
+        "exists": true
+      },
+      {
+        "page": "index.html",
+        "asset": "rc.js",
+        "exists": true
+      },
+      {
+        "page": "index.html",
+        "asset": "edit-core.js",
+        "exists": true
+      },
+      {
+        "page": "index.html",
+        "asset": "studio.js",
+        "exists": true
+      },
+      {
+        "page": "index.html",
+        "asset": "ref-align.js",
+        "exists": true
+      },
+      {
+        "page": "index.html",
+        "asset": "song-studio.js",
+        "exists": true
+      },
+      {
+        "page": "index.html",
+        "asset": "song-polish.js",
+        "exists": true
+      },
+      {
+        "page": "index.html",
+        "asset": "quality-studio.js",
+        "exists": true
+      },
+      {
+        "page": "index.html",
+        "asset": "reference-preview.js",
+        "exists": true
+      },
+      {
+        "page": "index.html",
+        "asset": "reference-guide.js",
+        "exists": true
+      },
+      {
+        "page": "note-editor.html",
+        "asset": "note-editor-safety.js",
+        "exists": true
+      },
+      {
+        "page": "note-editor.html",
+        "asset": "natural-tuning.js",
+        "exists": true
+      }
+    ],
+    "missingAssets": []
+  },
+  "knownFailureDisposition": "Original approved detector mislabels some synthetic high notes by octave/subharmonic. Retained intentionally to preserve the owner-approved sound; snapped output frequencies in this same fixture passed. Agent must not treat note labels/MIDI or auto key estimates as ground truth.",
+  "excludedFromCertification": [
+    "Physical iOS/Android devices",
+    "Safari and Firefox",
+    "Actual microphone/interface/speaker latency and listening",
+    "Maximum capacity stress on phones",
+    "Formal WCAG audit",
+    "GitHub/v0 deployed build"
+  ]
+}

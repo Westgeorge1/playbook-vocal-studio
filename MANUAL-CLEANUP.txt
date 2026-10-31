@@ -1,0 +1,15 @@
+Playbook Vocal Studio 0.32.2 · Manual cleanup · Separate sound
+Run from the extracted folder with python -m http.server 8000. Open http://localhost:8000.
+In Song & Vocals, record or import a take. Open Edit and choose Manual cleanup · Separate sound.
+Drag across a breath, or try Find next possible breath and verify by ear.
+Start at 6 dB reduction and 10 ms edge fade. Listen with the words before and after.
+For a gust underneath a word try Rumble under voice, 0–100 Hz, 4 dB reduction.
+Inspect selected sound shows a spectrogram. Drag a rectangle to set time and frequency.
+Use Original selection, My edit and Hear removed to check the result at the same monitor gain.
+Loop cleanup preview repeats the region. Stop before selecting another region.
+Keep as new take creates an editable copy and stores the settings with the take.
+Export edited selection saves an individual note/phrase. Export removed sound saves the difference.
+Local spectral edits handle selections up to 30 seconds. They cannot isolate two sources sharing the same time and frequency perfectly.
+For whole-track cleanup use POLISH > CLEAN, learn a quiet room sample and audition removed noise.
+Pitch correction and approved Snap presets live in the existing note editor. Use the existing EQ, dynamics and Finish & check for final polish.
+Autosave keeps the original recording once and saves only the edited stretch of each cleanup take.

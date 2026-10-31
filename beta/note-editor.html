@@ -83,6 +83,8 @@ h3{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;
 .seg button{font:600 13px/1 var(--f-body);height:38px;padding:0 12px;border:0;background:transparent;color:var(--muted);cursor:pointer}
 .seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
 .time{font-family:var(--f-mono);font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums;margin-left:auto}
+label.sel[for="refMode"]{max-width:100%;min-width:0}
+#refMode{min-width:0;max-width:100%;flex:0 1 auto}
 label.sel{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
 select{font:600 14px var(--f-body);color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:9px;height:40px;padding:0 8px}
 .chk{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--muted)}
@@ -515,6 +517,7 @@ kbd{font:600 12px var(--f-mono);border:1px solid var(--line);border-bottom-width
   <p class="foot">Everything runs on your device; your audio is never uploaded.</p>
 </div>
 
+<script src="project-storage.js?v=0.32.3"></script>
 <script src="note-editor-safety.js?v=0.31.7"></script>
 <script src="natural-tuning.js?v=0.31.1"></script>
 <script>
@@ -1319,7 +1322,13 @@ function idb(){
     try {
       const r = indexedDB.open("playbook-note-editor", 1);
       r.onupgradeneeded = () => r.result.createObjectStore("kv");
-      r.onsuccess = () => { store.db = r.result; res(r.result); };
+      r.onsuccess = async () => {
+        const db = r.result;
+        try {
+          await ProjectStorage.migrate(db, "kv", ["audio", "edits", "riddim"]);
+          store.db = db; res(db);
+        } catch (e) { db.close(); rej(e); }
+      };
       r.onerror = () => rej(r.error); r.onblocked = () => rej(new Error("blocked"));
     } catch (e){ rej(e); }
   });
@@ -1330,9 +1339,9 @@ function idbOp(mode, fn){
     tx.oncomplete = () => res(rq && rq.result); tx.onerror = () => rej(tx.error); tx.onabort = () => rej(tx.error);
   }));
 }
-const idbGet = k => idbOp("readonly", s => s.get(k)).catch(() => null);
-const idbSet = (k, v) => idbOp("readwrite", s => s.put(v, k)).then(() => true, () => false);
-const idbDel = k => idbOp("readwrite", s => s.delete(k)).then(() => true, () => false);
+const idbGet = k => idbOp("readonly", s => s.get(ProjectStorage.key(k))).catch(() => null);
+const idbSet = (k, v) => idbOp("readwrite", s => s.put(v, ProjectStorage.key(k))).then(() => true, () => false);
+const idbDel = k => idbOp("readwrite", s => s.delete(ProjectStorage.key(k))).then(() => true, () => false);
 function setSave(t){ $("saveState").textContent = t ? "· " + t : ""; }
 const editsRecord = () => ({ id:S.sessionId, v:2, notes:S.notes.map(n => [n.i0, n.i1, n.center, n.shift, n.drift, n.dt, n.st, n.fm, n.vib, n.gain, n.tr, n.man ? 1 : 0,n.review ? 1 : 0, n.tl || 0]), key:S.key, scale:S.scale,
   smooth:S.smooth, smoothOn:S.smoothOn, autoMode:S.autoMode,soundProfile:S.soundProfile,autoSpeed:S.autoSpeed,autoKeepInTune:S.autoKeepInTune,autoExpression:S.autoExpression,autoKeepBlue:S.autoKeepBlue, centreMode:S.centreMode, autoFlex:S.autoFlex, autoDrift:S.autoDrift, autoVib:S.autoVib, autoHumanize:S.autoHumanize, formant:S.formant, ref:S.ref, refMode:S.refMode, refDrift:S.refDrift, loop:{ a:S.loop.a, b:S.loop.b, on:S.loop.on }, rVol:S.rVol, rMute:S.rMute,
@@ -2442,11 +2451,12 @@ function cmpStart(){
   applyEdits(clone(base));
   Object.assign(cmp,{on:true,base,items,cur:-1});
   $("cmpMsg").textContent="Listen to each version (with the riddim if loaded), then choose Keep. Names are shown after you choose.";
-  if(S.playMode!=="tuned")$("abTuned").click();
+  if(S.mode!=="tuned")setMode("tuned");
   changed();cmpUI();
 }
 function cmpPlay(k){
   if(!cmp.on)return;cmp.cur=k;applyEdits(clone(cmp.items[k].snap));changed();cmpUI();
+  if(S.mode!=="tuned")setMode("tuned");
   if(!S.playing)$("play").click();
 }
 function cmpReveal(){const L=["X","Y","Z"];return cmp.items.map((it,k)=>L[k]+" = "+CMP_NAMES[it.kind]).join(" · ");}

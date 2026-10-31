@@ -2,7 +2,7 @@
 (function(){
 'use strict';
 const query=new URLSearchParams(location.search),requested=query.get('workspace')||'record';let token=query.get('handoff');
-const studioURL=()=>new URL('./?v=0.32.1',location.href).href;
+const studioURL=()=>new URL('./?v=0.32.3',location.href).href;
 const standby=location.pathname.endsWith('/workspace-standby.html');
 if(standby){
  let child=null,returning=false,lastSeen=0;
@@ -91,7 +91,7 @@ async function ready(ok){
  try{
   const accepted=window.opener?.AppWindow?.accept(window,token)||window.opener?.WorkspaceStandby?.claim(window,token);
   if(!accepted){cover('The handoff was cancelled. Close this window and continue in the original studio.',null);return;}
- }catch(_){cover('The original studio closed before the handoff finished. Close this window and reopen the beta to restore your saved project.',null);return;}
+ }catch(_){cover('The original studio closed before the handoff finished. Close this window and reopen the studio to restore your saved project.',null);return;}
  // The old tab must know this WindowProxy before editing is enabled. Otherwise
  // a quick browser-X close could beat the first heartbeat and leave it waiting.
  cover('Connecting the main tab to this workspace…',null);

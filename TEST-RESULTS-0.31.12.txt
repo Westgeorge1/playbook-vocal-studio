@@ -1,0 +1,21 @@
+PLAYBOOK VOCAL STUDIO 0.31.12 — TEST RESULTS
+2026-10-30; beta only
+
+275 browser assertions passed, no page errors:
+- 47 workspace / separate-window checks (tests-0.31.12/windows.cjs).
+- 73 tuning, waveform, reference and take-editor checks (tests-0.31.12/editors.cjs).
+- 38 recording / microphone feedback checks (tests-0.31.12/recording.cjs).
+- 56 saved-project restoration and stalled-processor checks (tests-0.31.10/restore.cjs).
+- 61 deletion, Undo, redo and durable cleanup checks (tests-0.31.11/delete.cjs).
+
+Verified: recording continues when expanded, resized and docked; Escape docks without cancelling the take; in-window Undo/Redo; full-screen API/fallback; phone and desktop geometry; unchanged live note iframe; note edits and waveform selection retained; real POLISH DSP output; reference workspace; modern and legacy take editors. The regression suite caught a narrow-header overlap with Undo; the workspace row now has its own grid row.
+
+Separate-window tests cover all four modes, save-and-reopen handoff, original writer blocked while restoring, original engine released on standby, new recording stopped and kept on return, saved tuning edits retained, browser-X close, popup and standby reload, blocked popup fallback, cancelled handoff, failed initial save, failed return save, failed restore, expired links, and continuing in the popup after its original tab closes. The standby receives the child window reference before editing is enabled, preventing a quick close from outrunning the initial connection.
+
+173 core assertions passed across the 0.20, 0.21, 0.22, 0.23, range-safety, 0.24, reference-alignment and 0.25 suites. 78 static invariants passed. The seven locked engine files plus song-capture-worklet.js match the prior release byte for byte. git diff --check passed.
+
+Test environment: Chromium with Playwright; 320, 390, 768, 844, 980 and 1440 pixel viewport widths, portrait and landscape, plus touch/mobile emulation in recording/restore/delete suites. Microphone input is a synthetic oscillator captured through the real recording worklet. Tests do not replace a physical Android/Samsung-browser microphone and audio-device check.
+
+Known browser behavior: Pop out may open a tab instead of a desktop window. Separate-window transfer saves and reopens the project; Undo history starts fresh. Expand preserves the live session and Undo. One separate editing window owns the project at a time. Stop recording before popping out; Return to main tab stops and keeps an active take. Use project backups as usual.
+
+Raw browser assertions: tests-0.31.12/results.json.

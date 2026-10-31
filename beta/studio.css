@@ -148,3 +148,5 @@ body.rc-started:not(.rc-helpopen) .rcfoot h3{margin:0}
 /* 0.18.3: a reason next to a control that is not available right now */
 .rcwhy{font:500 12px var(--body);color:var(--rcm);margin:2px 0 0}
 .rch.comp .rcs{white-space:normal;line-height:1.15;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.song-cleanup #veTake,.song-cleanup #veChoose,.song-cleanup .stgrid>.stbox:not(:first-child),.song-cleanup .stdet,.song-cleanup .sthint{display:none}
+.song-cleanup .stgrid{grid-template-columns:1fr}

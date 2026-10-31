@@ -1,0 +1,455 @@
+Playbook Vocal Studio 0.17.1 — test results
+=============================================
+Run 2026-10-18 19:07 (box clock, America/Havana), headless Google Chrome + Playwright, fake microphone (tests-0.17/voice48k.wav),
+app at http://localhost:8720, 0.17.0 (backup copy) at :8721 for the root-cause check, 0.16.1 at :8716.
+Run again: tests-0.17/run_all.sh
+
+TOTAL: 357 checks passed, 0 failed.
+Control audit vs 0.16.1: ids 509 rows 541 {'PASS': 406, 'REPLACED': 106, 'DROPPED': 29} fails 0 errors [] []
+
+How the suites are set up in 0.17.1
+  - t171.py runs with the new default ("Stop at part end: OFF": you record until you press Stop).
+  - The older suites (t17, sessA/B/C/D/P, phone17, polish17, old17) were written around takes that stop by
+    themselves at the part end. They now run with "Stop at part end: ON" (set in h.py), which is exactly the
+    0.17.0 behaviour, so they keep checking everything else unchanged.
+
+Bugs found by the new tests and fixed before this run
+  - Stopping a punch-in or loop recording hung ("lat is not defined") because of a misplaced comment in the
+    new code. Fixed.
+  - When a part grew, its new end could be rounded 0.5 ms past the end of the take, so the take did not
+    "cover" the part and could not be chosen. The end is now rounded down.
+  - The safety limit used a stereo size estimate and came out at about 5.7 minutes. It is now 10 minutes.
+  - Desktop 1366: the longer hint text pushed "Delete unchosen takes" below the screen; phone 360: the new
+    switch made the button grid wider than the screen. Shorter hint, Redo + Stop-at-end share a row, labels wrap.
+  - Test fixes: Undo replaces the whole workspace object, so the test now reads the new one; the status line
+    is read after it has mirrored the take message.
+
+Not tested here: a real phone, real microphone, real headphones, listening by ear.
+
+== t171.py — 0.17.1 record-until-Stop tests, default settings, desktop 1366x768 + phone 390x844 / 360x800: 41 pass, 0 fail ==
+   PASS  F1366 ROOT CAUSE (0.17.0): a take stops by itself at the part's OUT flag (+0.3 s) without Stop being pressed
+   PASS  F1366 version 0.17.1
+   PASS  F1366 part panel shows “⏹ Stop at part end: OFF” (default OFF)
+   PASS  F1366 “How it works” says you record until you press Stop and the part grows past OUT
+   PASS  F1366 default: still recording 2.5 s after OUT (big button says Stop), with a “still recording past the OUT flag” note
+   PASS  F1366 the backing is scheduled to play to its own end (not cut at OUT)
+   PASS  F1366 after the backing ends it keeps recording and says so (“The backing track has ended … Still recording”)
+   PASS  F1366 R stops it; the take is kept and covers the part
+   PASS  F1366 the part's OUT grew to the end of the take (3.20 -> 12.27, stop at 12.28)
+   PASS  F1366 one Undo removes the take and puts OUT back
+   PASS  F1366 running into the next part asks first (names both parts, offers trim or make room)
+   PASS  F1366 OK = trim at the next part: Intro ends where Verse 1 starts, take trimmed there, Verse 1 unchanged
+   PASS  F1366 Cancel = make room: Intro grows into Verse 1 and Verse 1 starts later (its end stays)
+   PASS  F1366 one Undo puts both parts back
+   PASS  F1366 toggle shows “Stop at part end: ON” and is saved in the settings
+   PASS  F1366 toggle ON: the take stops by itself at OUT (+0.3 s), OUT unchanged, and a message says why
+   PASS  F1366 the ON setting is still on after a reload
+   PASS  F1366 toggle back OFF
+   PASS  F1366 safety cap: the take stops by itself at the limit and a message says why (“safety limit”)
+   PASS  F1366 the real limit is 10 minutes for one take (smaller only when the project is nearly full)
+   PASS  F1366 loop recording unchanged: a take every pass, keeps looping until you stop, part length unchanged
+   PASS  F1366 punch past OUT: the part grows to the punch-out (10.01 -> 11.42), the punched take covers it and is chosen
+   PASS  F1366 one Undo after that punch restores the old OUT and the old choice
+   PASS  F1366 toggle ON: a punch-in punches out by itself at OUT (song keeps playing), OUT unchanged, message says why
+   PASS  F1366 a punch keeps recording after the song ends (10.0 s); punching out then stops the song and grows the part
+   PASS  F1366 silence after your last note does not grow the part (Tail: OUT 23 -> about 26, the 8 s silent tail is not stored)
+   PASS  F1366 a take longer than the 60-s part limit: the part stops at 60 s and the rest goes into “Long (cont.)” (nothing lost)
+   PASS  F1366 one Undo removes the long take and the continuation part together
+   note  F1366 session parts after pressing Stop each time: [['Intro', 0, 3.2, True], ['Verse 1', 3.2, 10.009, True], ['Chorus', 10.009, 13.938, True]]
+   PASS  F1366 default-mode session: every part has a chosen take; parts do not overlap
+   PASS  F1366 export = the comp sample for sample (max error 6.0e-08) and the comp = each chosen take at its part (max 0.0e+00)
+   PASS  F1366 project with grown parts reopens identical in 0.17.1
+   PASS  F1366 the same project opens in 0.16.1
+   PASS  F1366 no console errors
+   PASS  F1366 phone 390: “Stop at part end” toggle on the part panel, big enough to tap
+   PASS  F1366 phone 390: tapping it turns it ON and OFF
+   PASS  F1366 phone 390: tap Record, keep singing past OUT (still recording), tap Stop: take kept, part grew
+   PASS  F1366 phone 390: no console errors
+   PASS  F1366 phone 360: “Stop at part end” toggle on the part panel, big enough to tap
+   PASS  F1366 phone 360: tapping it turns it ON and OFF
+   PASS  F1366 phone 360: tap Record, keep singing past OUT (still recording), tap Stop: take kept, part grew
+   PASS  F1366 phone 360: no console errors
+
+== t171.py — same, desktop 1920x1080 + phones: 41 pass, 0 fail ==
+   PASS  F1920 ROOT CAUSE (0.17.0): a take stops by itself at the part's OUT flag (+0.3 s) without Stop being pressed
+   PASS  F1920 version 0.17.1
+   PASS  F1920 part panel shows “⏹ Stop at part end: OFF” (default OFF)
+   PASS  F1920 “How it works” says you record until you press Stop and the part grows past OUT
+   PASS  F1920 default: still recording 2.5 s after OUT (big button says Stop), with a “still recording past the OUT flag” note
+   PASS  F1920 the backing is scheduled to play to its own end (not cut at OUT)
+   PASS  F1920 after the backing ends it keeps recording and says so (“The backing track has ended … Still recording”)
+   PASS  F1920 R stops it; the take is kept and covers the part
+   PASS  F1920 the part's OUT grew to the end of the take (3.20 -> 12.27, stop at 12.28)
+   PASS  F1920 one Undo removes the take and puts OUT back
+   PASS  F1920 running into the next part asks first (names both parts, offers trim or make room)
+   PASS  F1920 OK = trim at the next part: Intro ends where Verse 1 starts, take trimmed there, Verse 1 unchanged
+   PASS  F1920 Cancel = make room: Intro grows into Verse 1 and Verse 1 starts later (its end stays)
+   PASS  F1920 one Undo puts both parts back
+   PASS  F1920 toggle shows “Stop at part end: ON” and is saved in the settings
+   PASS  F1920 toggle ON: the take stops by itself at OUT (+0.3 s), OUT unchanged, and a message says why
+   PASS  F1920 the ON setting is still on after a reload
+   PASS  F1920 toggle back OFF
+   PASS  F1920 safety cap: the take stops by itself at the limit and a message says why (“safety limit”)
+   PASS  F1920 the real limit is 10 minutes for one take (smaller only when the project is nearly full)
+   PASS  F1920 loop recording unchanged: a take every pass, keeps looping until you stop, part length unchanged
+   PASS  F1920 punch past OUT: the part grows to the punch-out (10.01 -> 11.42), the punched take covers it and is chosen
+   PASS  F1920 one Undo after that punch restores the old OUT and the old choice
+   PASS  F1920 toggle ON: a punch-in punches out by itself at OUT (song keeps playing), OUT unchanged, message says why
+   PASS  F1920 a punch keeps recording after the song ends (10.0 s); punching out then stops the song and grows the part
+   PASS  F1920 silence after your last note does not grow the part (Tail: OUT 23 -> about 26, the 8 s silent tail is not stored)
+   PASS  F1920 a take longer than the 60-s part limit: the part stops at 60 s and the rest goes into “Long (cont.)” (nothing lost)
+   PASS  F1920 one Undo removes the long take and the continuation part together
+   note  F1920 session parts after pressing Stop each time: [['Intro', 0, 3.2, True], ['Verse 1', 3.2, 10.009, True], ['Chorus', 10.009, 13.938, True]]
+   PASS  F1920 default-mode session: every part has a chosen take; parts do not overlap
+   PASS  F1920 export = the comp sample for sample (max error 6.0e-08) and the comp = each chosen take at its part (max 0.0e+00)
+   PASS  F1920 project with grown parts reopens identical in 0.17.1
+   PASS  F1920 the same project opens in 0.16.1
+   PASS  F1920 no console errors
+   PASS  F1920 phone 390: “Stop at part end” toggle on the part panel, big enough to tap
+   PASS  F1920 phone 390: tapping it turns it ON and OFF
+   PASS  F1920 phone 390: tap Record, keep singing past OUT (still recording), tap Stop: take kept, part grew
+   PASS  F1920 phone 390: no console errors
+   PASS  F1920 phone 360: “Stop at part end” toggle on the part panel, big enough to tap
+   PASS  F1920 phone 360: tapping it turns it ON and OFF
+   PASS  F1920 phone 360: tap Record, keep singing past OUT (still recording), tap Stop: take kept, part grew
+   PASS  F1920 phone 360: no console errors
+
+== t17.py — 0.17 fused recording tests, 1366x768: 37 pass, 0 fail ==
+   PASS  T1366 boots on RECORD & COMP, version 0.17.1, no console errors
+   PASS  T1366 fused controls visible on RECORD & COMP without scrolling (REC, big button, count-in, CLICK, meter, CLIP, GAIN, HEAR ME, Loop, Import…)
+   PASS  T1366 Settings ▾ holds only settings and files (no recording tools)
+   note  T1366 parts: [['Intro', 0, 3.2], ['Verse 1', 3.2, 9.6]]
+   PASS  T1366 CLICK button turns the metronome on: clicks play with the song (none when off)
+   PASS  T1366 key C toggles the click off again
+   PASS  T1366 GAIN slider next to the meter sets mic gain (+6 dB shown)
+   PASS  T1366 HEAR ME turns input monitoring on and warns to use headphones
+   PASS  T1366 while recording with HEAR ME on, your mic is routed to the headphones (monitor level > 0), and goes quiet after
+   PASS  T1366 HEAR ME off again
+   PASS  T1366 record Verse 1 take
+   PASS  T1366 R while the song plays starts a punch-in at the playhead (button says Punch in here)
+   PASS  T1366 punch lands in the part under the playhead (Verse 1), as a new take named Take 2 that covers the part and is chosen
+   PASS  T1366 punch starts and ends at the right song time (within the mic start-up / latency window)
+   PASS  T1366 punch-out keeps the song playing (comp player restarted with the new take)
+   PASS  T1366 punched take = old take outside the punch (exact), new audio inside
+   PASS  T1366 one Undo removes the punch take and puts back the old choice
+   PASS  T1366 REC while playing over empty song makes a new part there (Punch m:ss) with the take
+   PASS  T1366 Loop toggle on the part panel (Loop: ON, button says Loop-record)
+   PASS  T1366 loop recording: one take per full pass (3 passes -> 3 new takes), unique names, each covers the part, song stops after
+   PASS  T1366 key L toggles Loop off
+   PASS  T1366 loop on a part past the end of the backing is refused with a plain warning
+   PASS  T1366 Import take (lined up with the part): new take in Verse 1 at the part start, resampled to the project rate, covers the part
+   PASS  T1366 Import take (whole-song file from 0:00): only this part's piece is kept, at its song time
+   PASS  T1366 a too-short imported file is kept but flagged (cannot be chosen until it covers the part)
+   PASS  T1366 latency 0 ms set from Settings
+   PASS  T1366 latency setting is applied to recorded takes (250 ms -> take placed 0.25 s earlier)
+   PASS  T1366 clicking “✓ Chosen” un-chooses the take
+   PASS  T1366 no star ratings or markers in the UI
+   PASS  T1366 POLISH gets the comp (engine vocal = comp), tabs are CLEAN TUNE CHAIN DETAIL MIX only, no record controls
+   PASS  T1366 R in POLISH does not record; it points you to RECORD & COMP
+   PASS  T1366 keys 1-5 pick POLISH tabs (3 = CHAIN)
+   PASS  T1366 after changing a choice on RECORD & COMP, POLISH offers “Load my new comp” and loads it
+   PASS  T1366 0.17 project ZIP reopens identical (parts, takes, choices, punch and import notes)
+   PASS  T1366 reopened session: no console errors
+   PASS  T1366 0.17 project opens in 0.16.1 (same format): same parts, takes and choices
+   PASS  T1366 microphone released after punch, loop and normal takes
+   PASS  T1366 no console errors in the whole session
+
+== t17.py — same, 1920x1080: 37 pass, 0 fail ==
+   PASS  T1920 boots on RECORD & COMP, version 0.17.1, no console errors
+   PASS  T1920 fused controls visible on RECORD & COMP without scrolling (REC, big button, count-in, CLICK, meter, CLIP, GAIN, HEAR ME, Loop, Import…)
+   PASS  T1920 Settings ▾ holds only settings and files (no recording tools)
+   note  T1920 parts: [['Intro', 0, 3.2], ['Verse 1', 3.2, 9.6]]
+   PASS  T1920 CLICK button turns the metronome on: clicks play with the song (none when off)
+   PASS  T1920 key C toggles the click off again
+   PASS  T1920 GAIN slider next to the meter sets mic gain (+6 dB shown)
+   PASS  T1920 HEAR ME turns input monitoring on and warns to use headphones
+   PASS  T1920 while recording with HEAR ME on, your mic is routed to the headphones (monitor level > 0), and goes quiet after
+   PASS  T1920 HEAR ME off again
+   PASS  T1920 record Verse 1 take
+   PASS  T1920 R while the song plays starts a punch-in at the playhead (button says Punch in here)
+   PASS  T1920 punch lands in the part under the playhead (Verse 1), as a new take named Take 2 that covers the part and is chosen
+   PASS  T1920 punch starts and ends at the right song time (within the mic start-up / latency window)
+   PASS  T1920 punch-out keeps the song playing (comp player restarted with the new take)
+   PASS  T1920 punched take = old take outside the punch (exact), new audio inside
+   PASS  T1920 one Undo removes the punch take and puts back the old choice
+   PASS  T1920 REC while playing over empty song makes a new part there (Punch m:ss) with the take
+   PASS  T1920 Loop toggle on the part panel (Loop: ON, button says Loop-record)
+   PASS  T1920 loop recording: one take per full pass (3 passes -> 3 new takes), unique names, each covers the part, song stops after
+   PASS  T1920 key L toggles Loop off
+   PASS  T1920 loop on a part past the end of the backing is refused with a plain warning
+   PASS  T1920 Import take (lined up with the part): new take in Verse 1 at the part start, resampled to the project rate, covers the part
+   PASS  T1920 Import take (whole-song file from 0:00): only this part's piece is kept, at its song time
+   PASS  T1920 a too-short imported file is kept but flagged (cannot be chosen until it covers the part)
+   PASS  T1920 latency 0 ms set from Settings
+   PASS  T1920 latency setting is applied to recorded takes (250 ms -> take placed 0.25 s earlier)
+   PASS  T1920 clicking “✓ Chosen” un-chooses the take
+   PASS  T1920 no star ratings or markers in the UI
+   PASS  T1920 POLISH gets the comp (engine vocal = comp), tabs are CLEAN TUNE CHAIN DETAIL MIX only, no record controls
+   PASS  T1920 R in POLISH does not record; it points you to RECORD & COMP
+   PASS  T1920 keys 1-5 pick POLISH tabs (3 = CHAIN)
+   PASS  T1920 after changing a choice on RECORD & COMP, POLISH offers “Load my new comp” and loads it
+   PASS  T1920 0.17 project ZIP reopens identical (parts, takes, choices, punch and import notes)
+   PASS  T1920 reopened session: no console errors
+   PASS  T1920 0.17 project opens in 0.16.1 (same format): same parts, takes and choices
+   PASS  T1920 microphone released after punch, loop and normal takes
+   PASS  T1920 no console errors in the whole session
+
+== sessA.py — full 7-part session, 24 takes, export alignment, 1366x768: 35 pass, 0 fail ==
+   PASS  A1366 opens on RECORD & COMP with no console errors
+   note  A1366 controls outside the first screen (need scroll): []
+   note  A1366 backing seconds: 11.459977324263038
+   PASS  A1366 7 parts added back to back with sensible names
+   PASS  A1366 recorded 24 takes across 7 parts (big button, R key, transport REC)
+   note  A1366 seconds for 24 takes: 109.4
+   PASS  A1366 take names Take 1..N per part
+   PASS  A1366 every take covers its whole part
+   PASS  A1366 microphone released after every take (no open mic left behind)
+   PASS  A1366 Redo last take replaces Take 3 with Take 4 (3 takes remain)
+   PASS  A1366 one Undo after Redo brings back the replaced take
+   PASS  A1366 Redo (Ctrl+Shift+Z) re-applies it
+   PASS  A1366 Del removes Take 2 of Chorus
+   PASS  A1366 3x Undo then 3x Redo returns to the same state
+   PASS  A1366 a take chosen for every part (canvas double-click and Choose)
+   PASS  A1366 progress says 7 of 7
+   PASS  A1366 typing "R" in the part-name box renames, does not record
+   PASS  A1366 take renamed from the right-click menu (typing R does not record)
+   PASS  A1366 typing R in the Add-part name box does not record
+   PASS  A1366 drag Outro OUT edge 1 beat later; if the chosen take is now too short the app says so
+   note  A1366 after extending past the take: chosen kept? / status shown: [19.2, 23.2, False, 'Take 3 does not reach the new OUT point of Outro, so it is no longer chosen. Undo puts it back, or record a new take for the longer part.']
+   PASS  A1366 Undo restores the Outro length and its choice
+   PASS  A1366 Delete part asks first and removes Bridge with its takes
+   note  A1366 part selected after deleting Bridge: Outro
+   PASS  A1366 Undo brings Bridge back with its 3 takes and choice
+   PASS  A1366 Play plays the comp with the backing
+   PASS  A1366 Stop stops
+   note  A1366 choices before export: [['Rasta Riddim Intro', 2], ['Verse 1', 2], ['Pre-chorus', 4], ['Chorus', 1], ['Verse 2', 3], ['Bridge', 2], ['Outro', 2]]
+   PASS  A1366 exported WAV: rate, length, channels match the comp
+   PASS  A1366 exported WAV = each chosen take placed exactly at its part (max error 7.30e-08, 24-bit step 1.2e-7)
+   PASS  A1366 no clicks at the joins (sample steps at joins never larger than in the singing itself)
+   note  A1366 level at each join (5 ms window) relative to 25-50 ms before (1 = no dip): [0.037, 0.037, 0.037, 0.037, 0.037, 0.037]
+   note  A1366 join envelope (fade-out then fade-in, 20 ms each side): [{'t': 3.2, 'maxStep': 0.0852, 'musicStep': 0.0688, 'minEnvNearJoin': 0.0212}, {'t': 6.4, 'maxStep': 0.0852, 'musicStep': 0.0688, 'minEnvNearJoin': 0.0212}, {'t': 9.6, 'maxStep': 0.0852, 'musicStep': 
+   PASS  A1366 Comp done → POLISH: engine vocal = the comp, CLEAN tab open
+   PASS  A1366 POLISH processed the comp (cleaned / tuned / final buffers exist, not silent)
+   PASS  A1366 POLISH Play works on the comp
+   PASS  A1366 Ctrl+S saves the project ZIP
+   note  A1366 saved light before reload: ✓ saved 06:59 PM
+   note  A1366 seconds until the autosaved session was back after reload: [True, 7.1]
+   PASS  A1366 reload page: autosave brings back every part, take and choice
+   PASS  A1366 after reload the RECORD & COMP screen shows the parts (7 of 7)
+   PASS  A1366 after reload backing is back
+   PASS  A1366 project ZIP reopens in a fresh browser identical
+   PASS  A1366 no console errors in the reopened session
+   PASS  A1366 no console errors in the whole session
+
+== sessA.py — same, 1920x1080: 35 pass, 0 fail ==
+   PASS  A1920 opens on RECORD & COMP with no console errors
+   note  A1920 controls outside the first screen (need scroll): []
+   note  A1920 backing seconds: 11.459977324263038
+   PASS  A1920 7 parts added back to back with sensible names
+   PASS  A1920 recorded 24 takes across 7 parts (big button, R key, transport REC)
+   note  A1920 seconds for 24 takes: 109.2
+   PASS  A1920 take names Take 1..N per part
+   PASS  A1920 every take covers its whole part
+   PASS  A1920 microphone released after every take (no open mic left behind)
+   PASS  A1920 Redo last take replaces Take 3 with Take 4 (3 takes remain)
+   PASS  A1920 one Undo after Redo brings back the replaced take
+   PASS  A1920 Redo (Ctrl+Shift+Z) re-applies it
+   PASS  A1920 Del removes Take 2 of Chorus
+   PASS  A1920 3x Undo then 3x Redo returns to the same state
+   PASS  A1920 a take chosen for every part (canvas double-click and Choose)
+   PASS  A1920 progress says 7 of 7
+   PASS  A1920 typing "R" in the part-name box renames, does not record
+   PASS  A1920 take renamed from the right-click menu (typing R does not record)
+   PASS  A1920 typing R in the Add-part name box does not record
+   PASS  A1920 drag Outro OUT edge 1 beat later; if the chosen take is now too short the app says so
+   note  A1920 after extending past the take: chosen kept? / status shown: [19.2, 23.2, False, 'Take 3 does not reach the new OUT point of Outro, so it is no longer chosen. Undo puts it back, or record a new take for the longer part.']
+   PASS  A1920 Undo restores the Outro length and its choice
+   PASS  A1920 Delete part asks first and removes Bridge with its takes
+   note  A1920 part selected after deleting Bridge: Outro
+   PASS  A1920 Undo brings Bridge back with its 3 takes and choice
+   PASS  A1920 Play plays the comp with the backing
+   PASS  A1920 Stop stops
+   note  A1920 choices before export: [['Rasta Riddim Intro', 2], ['Verse 1', 2], ['Pre-chorus', 4], ['Chorus', 1], ['Verse 2', 3], ['Bridge', 2], ['Outro', 2]]
+   PASS  A1920 exported WAV: rate, length, channels match the comp
+   PASS  A1920 exported WAV = each chosen take placed exactly at its part (max error 7.30e-08, 24-bit step 1.2e-7)
+   PASS  A1920 no clicks at the joins (sample steps at joins never larger than in the singing itself)
+   note  A1920 level at each join (5 ms window) relative to 25-50 ms before (1 = no dip): [0.037, 0.037, 0.037, 0.037, 0.037, 0.037]
+   note  A1920 join envelope (fade-out then fade-in, 20 ms each side): [{'t': 3.2, 'maxStep': 0.0852, 'musicStep': 0.0688, 'minEnvNearJoin': 0.0212}, {'t': 6.4, 'maxStep': 0.0852, 'musicStep': 0.0688, 'minEnvNearJoin': 0.0212}, {'t': 9.6, 'maxStep': 0.0852, 'musicStep': 
+   PASS  A1920 Comp done → POLISH: engine vocal = the comp, CLEAN tab open
+   PASS  A1920 POLISH processed the comp (cleaned / tuned / final buffers exist, not silent)
+   PASS  A1920 POLISH Play works on the comp
+   PASS  A1920 Ctrl+S saves the project ZIP
+   note  A1920 saved light before reload: ✓ saved 07:02 PM
+   note  A1920 seconds until the autosaved session was back after reload: [True, 7.1]
+   PASS  A1920 reload page: autosave brings back every part, take and choice
+   PASS  A1920 after reload the RECORD & COMP screen shows the parts (7 of 7)
+   PASS  A1920 after reload backing is back
+   PASS  A1920 project ZIP reopens in a fresh browser identical
+   PASS  A1920 no console errors in the reopened session
+   PASS  A1920 no console errors in the whole session
+
+== sessB.py — races, error paths, timing edge cases: 27 pass, 0 fail ==
+   PASS  B first take (mic check pops up once, then records)
+   PASS  B R pressed 4 times fast: at most one take, app not stuck, mic closed
+   PASS  B clicking another part / N / P while recording is ignored; take lands on Verse 1
+   PASS  B Ctrl+Z while recording is ignored (nothing undone mid-take)
+   PASS  B key 2 while recording: POLISH opens, recording finishes and the take is kept
+   note  B stop during the pre-roll: what is kept: [1, ['Recording kept, but it ended before the phrase was complete. Adjust End or redo this part.', 'Recording kept, but it ended before the phrase was complete. Adjust End or redo this part.', [['Take
+   PASS  B Esc while recording throws the take away
+   PASS  B mic unplugged mid-take: clear message, nothing half-added, app ready again
+   PASS  B after the unplug, the next take records normally
+   PASS  B AudioContext suspended: Record resumes audio and records
+   PASS  B AudioContext suspended: Play resumes audio
+   PASS  B double-click on Del deletes only one take
+   note  B double-click on the big Record button: still recording after 2.5 s? / takes added: [True, 1, 'Stopped at the end of Verse 1 because “Stop at part end” is ON. Turn it OFF on the part panel to keep recording until you press Stop.']
+   PASS  B with count-in 1 bar the take still covers the part
+   PASS  B count-in plays 4 clicks before the part
+   PASS  B 50 BPM + 2-bar count-in + 300 ms latency on a part at 0:00: the take is kept
+   note  B part added "at the playhead" inside Verse 1 (overlap?): ['From 0:03 to 0:06 (bar 2 to 2) · you can drag its edges later.', [['Intro', 0, 3.2], ['Verse 1', 3.2, 6.4], ['Chorus', 6.4, 9.6], ['Ad-lib', 3.2, 6.4]]]
+   PASS  B record on the overlapping Ad-lib part
+   PASS  B comp still builds with overlapping parts (later part wins)
+   note  B 32 takes on Chorus: seconds: 146.7
+   PASS  B 32 takes on one part
+   PASS  B the 33rd take on a part is refused with a clear message (no crash)
+   note  B total takes in project: 44
+   note  B with 44 takes: frames/s idle, frames/s playing, JS heap MB: [60.5, 60.5, 91]
+   note  B lanes box visible height vs content (COMP lane at the bottom): [415, 1594]
+   note  B saved light with a big project: ✓ saved 07:01 PM · back up (44 new)
+   PASS  B Delete unchosen takes in ALL parts (asks first)
+   PASS  B Undo brings all of them back
+   PASS  B no console errors
+   PASS  NB no backing: record a take
+   PASS  NB no backing: second part
+   PASS  NB no backing: Play plays the comp alone
+   PASS  NB no backing: export WAV
+   PASS  NB no backing: Go to POLISH
+   PASS  NB no console errors
+
+== sessD.py — 0.16.1 fix checks: 11 pass, 0 fail ==
+   PASS  D version 0.17.1 shown
+   PASS  D after changing COUNT-IN with the mouse, R records straight away
+   PASS  D   (R pressed right after the count-in change started a take)
+   PASS  D Shift+R moves to the next part and records it (no stray 8-second part)
+   PASS  D adding a part on top of another warns that the newer part replaces the older one in the comp
+   PASS  D 50 BPM + 2-bar count-in + 300 ms latency, part at 0:00: take kept and covers the part
+   note  D   count-in clicks heard in that case (8 = full 2 bars): 7
+   PASS  D 33rd take: plain message about the 32-take limit
+   PASS  D 1366x768 with 5 takes on a part: COMP lane is on screen without scrolling the lanes
+   PASS  D after Export, "Comp done → Go to POLISH" can be clicked (download box moved aside)
+   note  D right after reload the part panel says: ['Opening your saved session… one moment.', 'Opening My phrase recording…']
+   PASS  D after reload parts are back and the progress text is updated
+   PASS  D no console errors
+
+== polish17.py — POLISH on the comp: 23 pass, 0 fail ==
+   PASS  POL open the 7-part 0.17 project
+   PASS  POL Comp done → POLISH with the comp loaded
+   PASS  POL CLEAN: cleaner mode button changes the setting and the engine re-runs
+   PASS  POL CLEAN: Clean on/off switch works
+   PASS  POL CLEAN: knobs present
+   PASS  POL TUNE: key select changes the tuning key
+   PASS  POL TUNE: style buttons work
+   PASS  POL NOTE EDITOR: notes found in the comp
+   PASS  POL NOTE EDITOR: move a note up a semitone
+   PASS  POL CHAIN: preset buttons work
+   PASS  POL CHAIN: chain on/off works
+   PASS  POL DETAIL tab opens
+   PASS  POL MIX: backing fader works
+   PASS  POL Play / pause in POLISH plays the comp
+   PASS  POL LISTEN before / cleaned / tuned / final switch
+   PASS  POL LOOP (listening only) loops the part under the playhead
+   PASS  POL WAVE EDIT dock opens with the comp waveform
+   note  POL WAVE EDIT tabs: ['BREATHS', 'TIMING', 'TAKES / COMP']
+   PASS  POL WAVE EDIT: Add a whole-song take (audio file) still works
+   PASS  POL COMPARE REFERENCE: load a reference track
+   note  POL POLISH Undo changed settings: False
+   PASS  POL SAVE / EXPORT opens the export window
+   PASS  POL export the finished vocal (WAV download)
+   PASS  POL File › Back to 1 RECORD & COMP
+   PASS  POL no console errors
+
+== old17.py — 0.15.0 and 0.16.1 projects: 14 pass, 0 fail ==
+   PASS  0.15.0 project opens in 0.17 on RECORD & COMP: every part, take and choice
+   PASS  0.15.0 markers (2) and star ratings (4, 5) are kept in the data but not shown
+   PASS  0.15.0 project: Comp done → POLISH works
+   PASS  0.15.0 project re-saved by 0.17 reopens identical (markers and ratings still in the file)
+   PASS  0.15.0 project: no console errors
+   PASS  0.16.1 project opens in 0.17 on RECORD & COMP: every part, take and choice
+   PASS  0.16.1 markers (2) and star ratings (4, 5) are kept in the data but not shown
+   PASS  0.16.1 project: Comp done → POLISH works
+   PASS  0.16.1 project re-saved by 0.17 reopens identical (markers and ratings still in the file)
+   PASS  0.16.1 project: no console errors
+   PASS  0.16.1 7-part session project opens in 0.17 on RECORD & COMP: every part, take and choice
+   PASS  0.16.1 7-part session project: Comp done → POLISH works
+   PASS  0.16.1 7-part session project re-saved by 0.17 reopens identical (markers and ratings still in the file)
+   PASS  0.16.1 7-part session project: no console errors
+
+== phone17.py — phone fused controls, 390x844 and 360x800: 24 pass, 0 fail ==
+   PASS  PH390 phone screen has the big record button and the fused controls (count-in, CLICK, HEAR ME, GAIN, Loop, Import)
+   note  PH390 desktop-only copies visible on phone (should be none): []
+   PASS  PH390 big record button is big (>=120 px)
+   PASS  PH390 no sideways scrolling
+   PASS  PH390 phone count-in select sets the count-in
+   PASS  PH390 phone CLICK toggles the metronome
+   PASS  PH390 phone HEAR ME toggles monitoring with the headphones warning
+   PASS  PH390 phone GAIN slider
+   PASS  PH390 tap Record take on the phone
+   PASS  PH390 phone: tap the big button while playing = punch in (label “Punch in here”), tap again = punch out, song keeps playing
+   PASS  PH390 phone Loop: two passes -> two takes
+   PASS  PH390 phone Import take (window fits the screen)
+   PASS  PH390 no console errors
+   PASS  PH360 phone screen has the big record button and the fused controls (count-in, CLICK, HEAR ME, GAIN, Loop, Import)
+   note  PH360 desktop-only copies visible on phone (should be none): []
+   PASS  PH360 big record button is big (>=120 px)
+   PASS  PH360 no sideways scrolling
+   PASS  PH360 phone count-in select sets the count-in
+   PASS  PH360 phone CLICK toggles the metronome
+   PASS  PH360 phone HEAR ME toggles monitoring with the headphones warning
+   PASS  PH360 phone GAIN slider
+   PASS  PH360 tap Record take on the phone
+   PASS  PH360 phone: tap the big button while playing = punch in (label “Punch in here”), tap again = punch out, song keeps playing
+   PASS  PH360 phone Loop: two passes -> two takes
+   PASS  PH360 phone Import take (window fits the screen)
+   PASS  PH360 no console errors
+
+== sessP.py — phone whole flow by taps: 22 pass, 0 fail ==
+   PASS  P390 no sideways scrolling
+   PASS  P390 3 parts added from the chips
+   PASS  P390 tap Record (first take; mic check once)
+   PASS  P390 5 takes recorded by tapping
+   PASS  P390 screen does not jump while you work in the take list (scroll kept after a take)
+   PASS  P390 Choose by tap on all 3 parts
+   PASS  P390 main phone buttons are big enough to tap (≥ 44 px high)
+   PASS  P390 no button sticks out of the screen
+   PASS  P390 tap Play plays the comp
+   note  P390 download fallback box vs Go to POLISH button: {'box': [27, 8, 378, 150], 'done': [200, 716.375, 376, 764.375]}
+   PASS  P390 tap Go to POLISH opens POLISH with the comp
+   PASS  P390 no console errors
+   PASS  P360 no sideways scrolling
+   PASS  P360 3 parts added from the chips
+   PASS  P360 tap Record (first take; mic check once)
+   PASS  P360 5 takes recorded by tapping
+   PASS  P360 screen does not jump while you work in the take list (scroll kept after a take)
+   PASS  P360 Choose by tap on all 3 parts
+   PASS  P360 main phone buttons are big enough to tap (≥ 44 px high)
+   PASS  P360 no button sticks out of the screen
+   PASS  P360 tap Play plays the comp
+   note  P360 download fallback box vs Go to POLISH button: {'box': [24, 8, 348, 150], 'done': [185, 657.375, 346, 705.375]}
+   PASS  P360 tap Go to POLISH opens POLISH with the comp
+   PASS  P360 no console errors
+
+== sessC.py — mic denied, no mic, 44.1 kHz device, live test link (as published before this release): 10 pass, 0 fail ==
+   note  C denied: mic check window text: No signal yet. Check the mic is allowed and selected.
+   PASS  C mic denied: app is not stuck and says what to do
+   PASS  C mic denied: no page errors
+   note  C no-mic browser: audio inputs: 0
+   note  C no mic: mic check window text: No signal yet. Check the mic is allowed and selected.
+   PASS  C no microphone: app is not stuck and gives a plain message
+   note  C 44.1k: context / workspace / session rate: [44100, 48000, 48000]
+   PASS  C 44.1k: record part 1
+   PASS  C 44.1k: record part 2
+   PASS  C 44.1k: takes stored at the project rate and cover their parts
+   PASS  C 44.1k: exported WAV rate = project rate and length = comp
+   PASS  C 44.1k: POLISH gets the comp
+   PASS  C 44.1k: no console errors
+   PASS  LIVE beta loads on HTTPS (secure page = mic allowed), engine ready, no 4xx/5xx, no console errors
+   note  LIVE beta title: Playbook Vocal Studio 0.17.0 · DAW

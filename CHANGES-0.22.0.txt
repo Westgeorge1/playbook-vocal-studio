@@ -1,0 +1,73 @@
+PLAYBOOK VOCAL STUDIO 0.22.0 — CHANGES (stage 2 of the 0.18.3 merge)
+Built on 0.21.0. SongCore / SongStudio remain the only microphone owner. Engine files
+(ENGINE-SHA256.txt) are byte-identical. Published to the beta link only.
+
+PART FLOW FROM SECTIONS
+- Part bar under Song sections: ◀ Previous part, the current part (time, take count,
+  chosen), Next part ▶, ● Record part, Redo last take, Delete unchosen takes…,
+  "Stop at part end" (OFF by default).
+- Stop at part end OFF: recording runs until Stop; the part grows to fit the take, up to
+  the start of the next part (the take itself is never cut). ON: recording stops by
+  itself at the part end.
+- The takes of a part are every recording on the armed track that starts at the
+  section start. Choosing one take un-chooses the others in that part. The first good
+  take of a part is chosen automatically; later takes wait for you to Choose.
+- Redo last take removes the newest take of the part (Undo restores it) and records the
+  part again. Delete unchosen keeps only the chosen take (asks first; Undo restores).
+- Undo / Redo keep the current part selected.
+
+TAKE STARS AND "WHY SUGGESTED?"
+- 1–5 stars per take (click the same star again to clear), saved in the project.
+- Every attempt is checked in the background with the 0.18.3 phrase-core analysis
+  (phrase-worker.js, unchanged). The take list shows "check NN" per take and a
+  Suggested badge when one take leads by 3 points or more. "Why suggested?" shows the
+  score, pitch, timing, clipping and note for every take.
+- A check belongs to the exact range, position, trim, fades and level of the take, so an
+  edit, Undo or Redo runs it again (port of 0.18.3 review 06).
+
+TAKE EDITOR
+- Edit on a take: trim start, trim end, take level (dB), fade in, fade out, timing (ms),
+  Reset. Non-destructive (the recording is never cut); Undo / Redo work. If an edit makes
+  a chosen take too short for its range it is un-chosen and the app says so.
+- ⋯ on a take keeps Rename, Timing and Remove.
+
+START CARD, HELP, WITH / WITHOUT
+- Empty session: start card with ● Record a vocal / Import a vocal / Open a project /
+  + Add backing (hidden once a backing is loaded). It disappears once there is a vocal.
+- The long how-to text is behind a Help link (top bar and start card).
+- With / Without switch in the transport: hear the backing or not while you play and
+  record. Without a loaded backing, With explains how to load one.
+
+COMPATIBILITY WITH 0.18.3
+- Project ZIPs also write 0.18.3 parts data (phoneRecording): the Lead vocal comp as the
+  whole vocal and one part per section (plus fixes/recordings outside sections) with its
+  takes, stars and chosen take. Parts longer than 60 s are split "(cont.)". Take edits
+  are written as finished audio for 0.18.3. Verified by opening a 0.22 ZIP in the real
+  0.18.3 app (tests-0.22/t22.py).
+- 0.18.3 and earlier see only the Lead vocal and its parts. Backing up a project with
+  more than one vocal track shows this warning; the Song project text on the export page,
+  README, START-HERE and RECORD-AND-TAKES say the same.
+- Opening an old project keeps its star ratings, check results, reference take, key and
+  scale, and writes them back for 0.18.3.
+
+POLISH TIDY
+- One Undo / Redo pair (the note-editor duplicates are hidden; the transport pair is
+  context-aware).
+- One export entry per screen: Song & vocals → Export audio; POLISH → Export song, whose
+  window also offers "Only <this vocal> (final, tuned, cleaned…)". The extra header
+  export and the separate EXPORT THIS VOCAL buttons are hidden.
+- 1024 px: the POLISH bar is one row (its help sentence is hidden below 1280 px), the
+  app title no longer crowds the menu bar.
+- 390 px: the POLISH bar sits under the step switch, the saved notice no longer floats
+  over the lanes/notes.
+- Phone Song screen: compact file bar, transport and section bar; zoom tools move below
+  the timeline; Hear backing is on the first screen and the lane controls follow it.
+
+DIALOGS
+- Tab / Shift+Tab stay inside Song Studio dialogs (port of 0.18.3 review 08); Esc is the
+  safe choice and focus returns to the opener.
+
+TESTS
+- tests-0.22/core22.test.cjs, t22.py (stage-2 features with real clicks, incl. opening
+  the ZIP in 0.18.3), ports22.py (0.18.3 review 01–08 and 0.17.2 F1–F7 equivalents on
+  the new screen at 900/1024/1280/1366/390/360 + a 62 s punch), run_all22.sh.

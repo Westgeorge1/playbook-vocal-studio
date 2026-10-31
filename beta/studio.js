@@ -24,6 +24,13 @@ modal.innerHTML=`<div class="stdialog">
 <div class="strow stpan"><input id="vePan" type="range" min="0" max="1" step="0.001" aria-label="Scroll the take"><output id="veView"></output></div>
 <div class="strow"><label>Start <input id="veA" type="number" step="0.001" aria-label="Selection start in song seconds"> s</label><label>End <input id="veB" type="number" step="0.001" aria-label="Selection end in song seconds"> s</label><button id="veSelectPart">Select whole part</button></div>
 <div class="stgrid">
+ <div class="stbox"><h3>MANUAL CLEANUP · Separate sound</h3><p>Drag across one breath or note above. Choose a sound, adjust the controls and listen before keeping it.</p>
+ <button id="sepFind">Find next possible breath</button><label><input id="sepLoop" type="checkbox"> Loop cleanup preview</label><button id="sepInspect">Inspect selected sound</button><canvas id="sepMap" width="360" height="128" hidden style="width:100%;height:128px;touch-action:none" aria-label="Spectrogram. Drag a rectangle to select time and frequencies."></canvas><small>Drag across the spectrum to select a time and frequency range. Brighter areas carry more energy. Bass is at the bottom.</small>
+ <label>Sound <select id="sepMode"><option>Breath between words</option><option>Rumble under voice</option><option>Frequency band</option></select></label>
+ <div class="strow"><label>Low Hz <input id="sepLow" type="number" value="0" min="0"></label><label>High Hz <input id="sepHigh" type="number" value="100" min="1"></label></div>
+ <label>Reduction <input id="sepDb" type="range" min="0" max="36" step=".5" value="6"><output id="sepValue">6 dB</output></label>
+ <label>Edge fade (ms) <input id="sepFade" type="number" min="0" max="100" value="10"></label>
+ <div class="strow"><button id="sepOriginal">Original selection</button><button id="sepEdited">My edit</button><button id="sepRemoved">Hear removed</button><button id="sepKeep">Keep as new take</button><button id="sepClip">Export edited selection</button><button id="sepStem">Export removed sound</button></div></div>
  <div class="stbox"><h3>SELECTED AUDIO → new take</h3><div class="strow"><label>Level <input id="veGain" type="number" value="-3" min="-24" max="24" step="0.5" aria-label="Level change in dB"> dB</label><button id="veApplyGain">Apply level</button></div><div class="strow"><button id="veSilence">Silence</button><button id="veFadeIn">Fade in</button><button id="veFadeOut">Fade out</button></div></div>
  <div class="stbox"><h3>PART</h3><div class="strow"><button id="veTrim" title="Make the part start and end at the selection. Nothing is deleted from the takes.">Trim part to selection</button><button id="veSplit" title="Split the part at the selection start into two parts">Split at start</button></div><div class="strow"><label>Move part to <input id="veMoveTo" type="number" min="0" max="899.5" step="0.01" aria-label="New part start in seconds"> s</label><button id="veMove">Move</button></div></div>
  <div class="stbox"><h3>TIMING · HISTORY</h3><div class="strow"><button id="veEarlier" title="Move this take 10 ms earlier">◀ 10 ms</button><output id="veOffset">0 ms</output><button id="veLater" title="Move this take 10 ms later">10 ms ▶</button></div><div class="strow"><button id="veUndo">↶ Undo</button><button id="veRedo">↷ Redo</button><button id="veDownload" title="Download the whole take as a WAV file">Download WAV</button></div></div>
@@ -36,13 +43,21 @@ const recovery=document.createElement('section');recovery.id='recoveryModal';rec
 recovery.innerHTML='<div class="stdialog stsmall"><header><h2 id="recoveryTitle">Recovered audio</h2><button id="recoveryClose">Close ✕</button></header><p class="sthint">Microphone audio that could not be placed as a take (for example the mic stopped, or a loop pass was not finished). It is kept in autosave and in Back up project. Download each file and check it before you remove it.</p><div id="recoveryList"></div></div>';
 document.body.append(recovery);
 
-function find(){const w=phraseWorkspace(),p=w.phrases.find(p=>p.id===E.pid),t=p?.takes.find(t=>t.id===E.tid);return {w,p,t};}
+let songCleanup=null;
+function openSongCleanup(t,p,save){
+  stop();songCleanup={t,p,save};modal.classList.add('song-cleanup');
+  E.lastFocus=document.activeElement;E.pid=p.id;E.tid=t.id;
+  el('veTitle').textContent='Manual cleanup · '+t.name;el('sepMap').hidden=true;
+  modal.hidden=false;document.body.classList.add('st-open');selection(p.start,p.end);setView(p.start-.2,p.end-p.start+.4);
+  message('Select a breath or note. Keep as new take returns to the song.');el('veClose').focus();
+}
+function find(){if(songCleanup)return songCleanup;const w=phraseWorkspace(),p=w.phrases.find(p=>p.id===E.pid),t=p?.takes.find(t=>t.id===E.tid);return {w,p,t};}
 function message(s){el('veStatus').textContent=s;}
 function stop(){if(loop)endLoop();stopPlayback();RC.auditioning=false;RC.savedPos=null;}
 function bounds(){const {p,t}=find();if(!t)return [0,1];const o=PhraseCore.origin(t);return [Math.max(0,Math.min(p.start,o)),Math.max(p.end,o+t.channels[0].length/t.rate,.5)];}
 function setView(start,seconds){const [a,b]=bounds();E.seconds=clamp(seconds,.05,Math.max(.05,b-a));E.start=clamp(start,a,b-E.seconds);draw();}
 function selection(a,b){E.a=Math.min(a,b);E.b=Math.max(a,b);el('veA').value=E.a.toFixed(3);el('veB').value=E.b.toFixed(3);draw();}
-function refresh(keepSelection){let {p,t}=find();if(!p){p=selectedPhrase();E.pid=p?.id;}if(!p){closeEditor();return;}
+function refresh(keepSelection){el("sepMap").hidden=true;let {p,t}=find();if(!p){p=selectedPhrase();E.pid=p?.id;}if(!p){closeEditor();return;}
   if(!t){t=p.takes.find(x=>x.id===p.selected)||p.takes.at(-1);E.tid=t?.id;}if(!t){closeEditor();return;}
   el('veTitle').textContent='Edit · '+p.name;
   el('veTake').innerHTML=p.takes.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.name)+(p.selected===x.id?' ✓':'')+'</option>').join('');el('veTake').value=t.id;
@@ -59,7 +74,7 @@ function openEditor(id){if(busy()){toast('Not right now','Stop recording first, 
   if(!t){toast('No take yet','Record or import a take first, then press Edit on it.');return;}
   stop();el('rcLaneMenu').hidden=true;E.lastFocus=document.activeElement;E.pid=p.id;E.tid=t.id;RC.aud=t.id;if(w.selected!==p.id)phraseSelect(p.id);
   modal.hidden=false;document.body.classList.add('st-open');message('The original recordings are always kept.');refresh(false);el('veClose').focus();}
-function closeEditor(){stop();modal.hidden=true;E.drag=null;document.body.classList.remove('st-open');RC.sig='';RC.dirty=true;const fid=E.lastFocus?.closest?.('.rctake')?.dataset.id,back=late=>{if(!modal.hidden)return;const ae=document.activeElement;if(late&&ae&&ae!==document.body&&ae.isConnected)return;const q=id=>id&&[...document.querySelectorAll('#rcTakes .rctake')].find(r=>r.dataset.id===id)?.querySelector('[data-act=edit]');const t=(E.lastFocus?.isConnected&&E.lastFocus)||q(fid)||q(E.tid)||el('rcBig');if(t&&document.activeElement!==t)t.focus();};back();setTimeout(()=>back(1),80);setTimeout(()=>back(1),300);}
+function closeEditor(){stop();songCleanup=null;modal.classList.remove("song-cleanup");modal.hidden=true;E.drag=null;document.body.classList.remove('st-open');RC.sig='';RC.dirty=true;const fid=E.lastFocus?.closest?.('.rctake')?.dataset.id,back=late=>{if(!modal.hidden)return;const ae=document.activeElement;if(late&&ae&&ae!==document.body&&ae.isConnected)return;const q=id=>id&&[...document.querySelectorAll('#rcTakes .rctake')].find(r=>r.dataset.id===id)?.querySelector('[data-act=edit]');const t=(E.lastFocus?.isConnected&&E.lastFocus)||q(fid)||q(E.tid)||el('rcBig');if(t&&document.activeElement!==t)t.focus();};back();setTimeout(()=>back(1),80);setTimeout(()=>back(1),300);}
 function commit(next,label){if(busy())return false;stop();phraseBackup();S.phrases=next;phraseChanged(label+' Undo puts it back.');RC.aud=E.tid;RC.sig='';RC.dirty=true;if(window.DAW)DAW.dirty=true;phraseAnalyzeMissing();persist();refresh(true);message(label+' Undo puts it back.');return true;}
 const KIND={gain:'level','silence':'silence','fade-in':'fade in','fade-out':'fade out'};
 function applyEdit(kind){if(busy())return;try{const {w,p,t}=find();if(!t)return;
@@ -93,6 +108,107 @@ function draw(){if(modal.hidden)return;const {p,t}=find();if(!t)return;const c=e
 function D_play(){try{return window.DAW?.playheadTime?DAW.playheadTime():0;}catch(e){return 0;}}
 el('veClose').onclick=closeEditor;el('veTake').onchange=()=>{stop();E.tid=el('veTake').value;RC.aud=E.tid;refresh(true);};el('vePlay').onclick=preview;el('veStop').onclick=stop;
 el('veDownload').onclick=async()=>{const {t}=find();if(!t)return;try{const r=await saveDownload(safeName(t.name)+'.wav',new Blob([wavFloat(t.channels,t.rate)],{type:'audio/wav'}));message((r||'Downloaded')+' — the whole take, every sample.');}catch(e){message('Download failed: '+e.message);}};
+function updateBand(){
+  const mode=el('sepMode').selectedIndex;
+  for(const id of ['sepLow','sepHigh'])el(id).disabled=mode===0;
+  el('sepLow').value=mode===2?2000:0;
+  el('sepHigh').value=mode===2?6500:100;
+  el('sepDb').value=mode===1?4:6;
+  el('sepDb').oninput();
+}
+el('sepDb').oninput=()=>el('sepValue').textContent=num('sepDb')+' dB';
+el('sepMode').onchange=updateBand;updateBand();
+const map=el('sepMap');
+let mapRange=null,press=null;
+function hzAt(y,rate){return 30*(Math.pow(1+rate/60,1-y)-1);}
+el('sepInspect').onclick=()=>{
+  try{
+    const {t}=find(),[a,b]=VocalEdit.range(t,E.a,E.b),ctx=map.getContext('2d');
+    mapRange={t,a,b};map.hidden=false;
+    const image=ctx.createImageData(map.width,map.height),n=1024;
+    for(let x=0;x<map.width;x++){
+      const center=Math.floor(a+(b-a)*x/map.width),re=new Float64Array(n),im=new Float64Array(n);
+      for(let j=0;j<n;j++)re[j]=(t.channels[0][center+j-n/2]||0)*(.5-.5*Math.cos(2*Math.PI*j/n));
+      NoiseCore.fft(re,im);
+      for(let y=0;y<map.height;y++){
+        const k=Math.round(hzAt(y/map.height,t.rate)*n/t.rate);
+        const v=clamp((20*Math.log10(Math.hypot(re[k],im[k])/n+1e-9)+95)/75,0,1),pos=4*(y*map.width+x);
+        image.data.set([18+200*v*v,24+205*v,38+130*v,255],pos);
+      }
+    }
+    ctx.putImageData(image,0,0);
+  }catch(e){message(e.message);}
+};
+function mapPoint(e){
+  const r=map.getBoundingClientRect();return [clamp((e.clientX-r.left)/r.width,0,1),clamp((e.clientY-r.top)/r.height,0,1)];
+}
+map.onpointerdown=e=>{press=mapPoint(e);map.setPointerCapture(e.pointerId);};
+map.onpointercancel=()=>press=null;
+map.onpointerup=e=>{
+  if(!press||!mapRange)return;
+  const end=mapPoint(e),start=press;press=null;
+  const {t,a,b}=mapRange;if(t!==find().t){map.hidden=true;return;}
+  if(Math.abs(end[0]-start[0])<.005||Math.abs(end[1]-start[1])<.005)return;
+  const time=x=>PhraseCore.origin(t)+(a+x*(b-a))/t.rate;
+  selection(time(start[0]),time(end[0]));
+  el('sepMode').selectedIndex=2;updateBand();
+  el('sepLow').value=Math.floor(hzAt(Math.max(start[1],end[1]),t.rate));
+  el('sepHigh').value=Math.ceil(hzAt(Math.min(start[1],end[1]),t.rate));
+  message('Frequency selection ready. Listen to My edit or Hear removed.');
+};
+el('sepFind').onclick=()=>{
+  try{
+    const {t}=find(),src=t.channels[0],hop=Math.round(t.rate*.02),origin=PhraseCore.origin(t);
+    let run=0;
+    const from=Math.max(0,Math.round(((E.b-E.a>2?E.a:E.b)-origin)*t.rate));
+    for(let pos=from;pos+hop<=src.length;pos+=hop){
+      let power=0,cross=0;
+      for(let i=pos+1;i<pos+hop;i++){power+=src[i]**2;if(src[i]*src[i-1]<0)cross++;}
+      const rms=Math.sqrt(power/hop),noisy=rms>.0008&&rms<.13&&cross/hop>.022;
+      if(noisy){run++;continue;}
+      if(run>=4&&run<=65){
+        const a=origin+(pos-hop*run)/t.rate,b=origin+pos/t.rate;
+        selection(a,b);setView(a-.35,Math.max(1.2,b-a+.7));
+        message('Possible breath. Play Original selection to check for consonants before editing.');return;
+      }
+      run=0;
+    }
+    message('No further candidate found. Drag across a breath to select it manually.');
+  }catch(e){message(e.message);}
+};
+el('sepOriginal').onclick=()=>separate('original');
+async function separate(action){
+  if(busy())return;
+  try{
+    stop();
+    const {w,p,t}=find(),[a,b]=VocalEdit.range(t,E.a,E.b);
+    const full=el('sepMode').selectedIndex===0;
+    const settings={low:full?0:num('sepLow'),high:full?t.rate/2:num('sepHigh'),db:num('sepDb'),fade:num('sepFade')};
+    const delta=action==='original'?null:t.channels.map(src=>VocalSeparation.removed(src,a,b,t.rate,settings));
+    const residual=action==='removed'||action==='stem';
+    const channels=!delta?t.channels.map(src=>src.slice(a,b)):residual?delta:delta.map((d,c)=>d.map((v,i)=>t.channels[c][a+i]-v));
+    if(action==='keep'){
+      if(songCleanup){
+        const name=el('sepMode').value+' −'+settings.db+'dB';
+        const fullChannels=t.channels.map((src,c)=>{const copy=src.slice();copy.set(channels[c],a);return copy;});
+        if(songCleanup.save(fullChannels,name,{...settings,start:E.a,end:E.b})){closeEditor();}else message('Could not add take. Check available song storage.');
+        return;
+      }
+      if(p.takes.length>=32)throw Error('This part already has 32 takes.');
+      const next=PhraseCore.clone(w),part=next.phrases.find(q=>q.id===p.id);
+      const note=el('sepMode').value+' '+E.a.toFixed(3)+'–'+E.b.toFixed(3)+'s −'+settings.db+'dB '+settings.low+'–'+Math.round(settings.high)+'Hz '+settings.fade+'ms';
+      const take={...t,id:'t'+next.nextId++,name:note,channels:t.channels.map((src,c)=>{const copy=src.slice();copy.set(channels[c],a);return copy;}),profile:null,analysisError:null,analysisToken:undefined,sourceTake:t.sourceTake||t.id};
+      part.takes.push(take);if(part.selected===t.id)part.selected=take.id;
+      PhraseCore.validate(next);E.tid=take.id;commit(next,'Saved '+note);return;
+    }
+    if(action==='clip'||action==='stem'){
+      await saveDownload(safeName(t.name)+'-'+action+'.wav',new Blob([wavFloat(channels,t.rate)],{type:'audio/wav'}));return;
+    }
+    loop={phrase:true,chs:channels,rate:t.rate,gain:10**((t.gainDb||0)/20),start:0,end:(b-a)/t.rate,noBeat:true,beatOffset:PhraseCore.origin(t)+a/t.rate,oneShot:!el('sepLoop').checked};
+    message(await startPlayback(0)?'Playing '+(residual?'removed sound':action==='original'?'original vocal':'edited vocal'):'Audio could not start.');
+  }catch(e){message(e.message);}
+}
+for(const [id,action] of Object.entries({sepEdited:'edited',sepRemoved:'removed',sepKeep:'keep',sepClip:'clip',sepStem:'stem'}))el(id).onclick=()=>separate(action);
 el('veChoose').onclick=()=>{const {p,t}=find();if(!t||busy())return;if(p.selected===t.id){message(t.name+' is already chosen.');return;}phraseSelect(p.id);phraseChoose(t.id);RC.sig='';refresh(true);message(t.name+' chosen for '+p.name+'.');};
 for(const id of ['veA','veB'])el(id).onchange=()=>{const a=num('veA'),b=num('veB');if(!Number.isFinite(a)||!Number.isFinite(b)||b<=a){message('End must be later than Start.');el('veA').value=E.a.toFixed(3);el('veB').value=E.b.toFixed(3);return;}selection(a,b);};
 el('veSelectPart').onclick=()=>{const {p}=find();if(p)selection(p.start,p.end);};
@@ -192,7 +308,7 @@ window.addEventListener('keydown',e=>{const m=!modal.hidden?modal:!recovery.hidd
   if(m===modal&&e.target===canvas){if(e.key===' '){e.preventDefault();playing?stop():preview();}if(e.key==='+'||e.key==='=')zoom(2);if(e.key==='-')zoom(.5);if(e.key==='ArrowLeft')setView(E.start-E.seconds*.25,E.seconds);if(e.key==='ArrowRight')setView(E.start+E.seconds*.25,E.seconds);}
   e.stopImmediatePropagation();},true);
 modal.addEventListener('pointerdown',e=>{if(e.target===modal)closeEditor();});recovery.addEventListener('pointerdown',e=>{if(e.target===recovery)closeRecovery();});
-window.Studio={edit:openEditor,close:closeEditor,sync,removeBacking,undoRemoveBacking,laneMenu,importVocal,playVocal,clearVocal,undoClear,openRecovery,closeRecovery,
+window.Studio={openSongCleanup,edit:openEditor,close:closeEditor,sync,removeBacking,undoRemoveBacking,laneMenu,importVocal,playVocal,clearVocal,undoClear,openRecovery,closeRecovery,
   state:()=>({open:!modal.hidden,pid:E.pid,tid:E.tid,a:E.a,b:E.b,start:E.start,seconds:E.seconds,hand:E.hand,removed:!!removedBeat,recoveryOpen:!recovery.hidden}),select:(a,b)=>selection(a,b),view:(a,s)=>setView(a,s)};
 setInterval(sync,250);sync();
 // ---------------------------------------------------------------- 0.18.3 start card + Help folded away once you have started

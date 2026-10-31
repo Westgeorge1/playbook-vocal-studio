@@ -1,0 +1,117 @@
+PLAYBOOK VOCAL STUDIO phone 0.15.0 — recording upgrade (2026-10-18)
+Built from 0.14.0 (DAW layout). Every item of AUDIT-0.14.0.md (Must fix,
+Should add, Nice to have) is implemented. Every 0.14 and 0.13 control is still
+present and working (automated audit below). Not yet pushed or hosted.
+
+FILES
+  new   rec.js          all 0.15 recording logic (window.PVSRec)
+  new   rec.css         styles for the new controls, REC tab, modals, REC MODE
+  new   rec-worklet.js  AudioWorklet capture (sample-accurate punch / loop)
+  edit  index.html      version text, PHRASE panel buttons, REC tab, modals,
+                        help/shortcuts, take history, take naming, hooks
+  edit  daw.js          ruler strip (IN/OUT flags, markers), keys, menus, lanes
+  same  phrase-core.js, worker.js, phrase-worker.js, engine-wasm.*  (UNCHANGED:
+        no audio-math change. The assembly, alignment, analysis and effects
+        code is byte-identical to 0.14.0.)
+  new   tests-0.15/     build patches + audit, smoke and feature tests
+  new   screens/        0.15 desktop and phone screenshots (+ screens/regression)
+
+FEATURE -> WHERE IT IS (control ids in brackets)
+MUST FIX
+ 1 Punch-in on the fly ........ R while playing (transport ● / #dawRec, REC tab
+                                #recRedo). Beat keeps playing; R = punch out and
+                                keep playing, Space = punch out and stop, Esc =
+                                discard. Take extends the phrase at that range or
+                                creates a "Punch m:ss" phrase. Old vocal is muted
+                                while punched in. Up to 1 s pre-roll when the mic
+                                check is open.
+ 2 Draggable IN/OUT flags ..... red IN / OUT flags on the ruler strip (canvas);
+                                drag = new phrase start/end (undoable). Pre-roll
+                                shading shows the lead-in.
+ 3 Redo / Next buttons ........ PHRASE: #phraseRedoBtn "Redo this phrase (R)",
+                                #phraseNextBtn "Next phrase (Shift+R)"; same in
+                                REC tab (#recRedo/#recNext), Edit menu, transport
+                                (#dawNext), REC MODE (brRec / brNext).
+ 4 Multi-step undo/redo ....... 40-step stacks for takes/phrases (Ctrl+Z,
+                                Ctrl+Shift+Z / Ctrl+Y, #phraseUndo "Undo (n)",
+                                #phraseRedo "Redo (n)", transport Undo/Redo with
+                                "takes u/r" label). Remove phrase now asks first.
+ 5 Unique take names .......... names never repeat in a phrase (Take N counter
+                                stored as optional p.takeSeq; also continues
+                                after the highest existing "Take N").
+SHOULD ADD
+ 6 Count-in + metronome ....... transport CLICK (#dawClick, key C) and count-in
+                                (#dawCount on/off, key K; 1 or 2 bars in REC); REC tab
+                                #optCountIn #optCountBars #optClickVol #optMetro.
+                                Tempo from BPM. Click goes only to the output
+                                (headphones) — never into the recording, the
+                                mix, or any export.
+ 7 Hear old vocal switch ...... REC tab #optHearOld (ON = 0.14 behaviour). VOCAL
+                                M and S are respected while recording.
+ 8 Mic check + clip warning ... transport MIC CHECK (#dawMicChk, key I) + CLIP
+                                light (#dawClip); pre-record modal #micModal
+                                (level, peak hold, clip, advice, "don't ask
+                                again"); REC tab level rack. Clip toast after a
+                                take that clipped.
+ 9 Delete unchosen + stars .... ★1–5 on take cards, take context menu and REC
+                                MODE; #phraseDelUnchosen (this phrase) and Edit ›
+                                Delete unchosen takes in all phrases; confirm +
+                                undo.
+10 Loop recording ............. LOOP on + Play + R: every full pass becomes a new
+                                take on the loop phrase; R/Space stops, Esc drops
+                                the pass in progress.
+11 Latency calibration ........ REC tab › Latency: #latCal opens #calModal
+                                (loopback test with headphones next to the mic,
+                                or tap-along); stored per device (mic label +
+                                platform) in this browser; #latMs manual value;
+                                applied to every new take (phrase, punch, loop).
+12 Past-backing warning ....... #phraseWarn in PHRASE, toast before recording,
+                                red bar + "BACKING END" hatch on the timeline.
+NICE TO HAVE
+13 Phone REC MODE ............. #dawBigRec / View › Big record mode: full screen
+                                big Record/Redo, Listen, Choose, Prev/Next,
+                                Play/punch, Click, Undo, meter + clip.
+14 Input monitoring ........... REC tab #optMonitor (OFF by default, forced off
+                                at every load) + #optMonVol, with latency warning
+                                (#monWarn / #monLat).
+15 Inline rename .............. double-click a take card name, phrase region or
+                                marker (long-press menu on touch) -> Rename.
+16 Song markers ............... M / "+ Marker" (#tlMarker, #mkAdd), list in REC
+                                tab (#mkList), drag on ruler, , and . jump,
+                                right-click to rename/delete. Saved in project.
+17 Space stops / Esc cancels .. while recording (normal phrase recording too).
+18 Autosave + backups ......... menu bar light #dawSaved ("saved hh:mm"); reminder
+                                to Save project after N new takes
+                                (#optBackupEvery: never/3/6/10, default 6), reset on download.
+19 Mic gain ................... REC tab #optMicGain (−12…+24 dB) and in mic check.
+New keys: R, Shift+R, Space/Esc while recording, M, , ., C, K, I, 1–7 (tabs).
+Help (?) and "How recording works" are updated. New inspector tab: REC (7).
+
+PROJECT FILES
+ Project ZIP version stays 9. New fields are optional: workspace.markers,
+ workspace.markerSeq, phrase.takeSeq, take.rating. 0.13 and 0.14 projects open
+ in 0.15; a 0.15 project opens in 0.14 (new fields ignored). All tested.
+
+LIMITS (browser)
+ - Latency: browsers report output latency inaccurately (Bluetooth worst).
+   Calibration fixes this per device, but it lives in this browser's storage
+   (re-do after clearing site data or on another browser). Tap-along includes
+   human timing (repeat 8+ taps); loopback is more accurate.
+ - Stopped-transport phrase recording still uses MediaRecorder (as in 0.14);
+   its start offset can vary by a few ms on some phones. Punch and loop takes
+   use AudioWorklet capture with sample timestamps.
+ - Input monitoring adds the device's round-trip delay (often 20–60 ms wired,
+   150–300 ms Bluetooth). Off by default.
+ - Mic gain is a digital gain stage; web pages cannot change the phone's
+   hardware mic level, and gain cannot fix clipping that already happened in
+   the hardware. Echo cancel / noise suppression / AGC stay off as before.
+ - The fake test microphone cannot loop the output back to the input, so the
+   loopback test was verified with a synthetic capture plus a "clear retry
+   message" check; real-device loopback is still to be tried.
+ - Not yet tested on a physical phone, real mic or Bluetooth headphones.
+
+TESTS (Chrome + fake microphone; see TEST-RESULTS-0.15.0.txt)
+ - Control audit 0.13 -> 0.15: 311/311 controls, 0 fails.
+ - Control audit 0.14 -> 0.15: 352/352 controls, 0 fails.
+ - Smoke suite (0.14 regression): 61/61 PASS.
+ - New 0.15 feature tests: 85/85 PASS (desktop + phone, every item above).

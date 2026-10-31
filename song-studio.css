@@ -1,0 +1,297 @@
+/* 0.21.0: shared song timeline and independent vocal lanes. */
+body.song-studio #rcView{display:none!important}
+body.song-studio .rcbrand span{cursor:default}
+body.song-studio .rctopright #rcMoreP{display:none!important}
+body.song-studio .rctopright #rcEngine{display:none}
+#songStudio{--song-line:#344456;--song-muted:#b6c3d0;--song-green:#8aebba;--song-gold:#f5c875;color:#edf4f9;background:#101720;height:calc(100dvh - var(--steps-h));overflow:auto;padding:14px 18px 30px;font:14px/1.45 var(--body,system-ui);box-sizing:border-box}
+#songStudio[hidden]{display:none}
+#songStudio *,#songDialog *{box-sizing:border-box}
+#songStudio button,#songDialog button{font:600 14px var(--body,system-ui);background:#233244;color:#edf4f9;border:1px solid #4c6075;border-radius:7px;padding:9px 12px;min-height:42px;cursor:pointer;white-space:normal}
+#songStudio button:hover:not(:disabled),#songDialog button:hover:not(:disabled){border-color:#92c9ff;background:#2c435b}
+#songStudio button:disabled,#songDialog button:disabled{opacity:.5;cursor:default}
+#songStudio button[aria-pressed=true]{border-color:var(--song-green);background:#194433;color:#c6ffdf}
+#songStudio button:focus-visible,#songStudio input:focus-visible,#songStudio select:focus-visible,#songStudio canvas:focus-visible,#songDialog :focus-visible{outline:3px solid #f5c875;outline-offset:2px}
+#songStudio input,#songStudio select,#songDialog input,#songDialog select{background:#0b1119;color:#edf4f9;border:1px solid #60758b;border-radius:5px;min-height:38px;padding:6px 8px;font:inherit;max-width:100%}
+#songStudio input[type=number],#songDialog input[type=number]{width:84px}
+#songStudio input[type=range]{padding:0;min-height:28px;width:112px;accent-color:#8aebba}
+#songStudio label,#songDialog label{display:inline-flex;align-items:center;gap:6px;color:var(--song-muted,#c2cfda);font-size:13px;flex-wrap:wrap}
+#songStudio h2,#songStudio h3{font:700 16px var(--body,system-ui);margin:0}
+#songStudio p{margin:6px 0}
+#songStudio p{max-width:none}
+#songStudio .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.sg-row{display:flex;flex-wrap:wrap;gap:9px;align-items:center}
+.sg-spacer{flex:1}
+.sg-top{justify-content:space-between;margin-bottom:12px}
+#songTitle{font-size:19px!important;font-weight:700;width:min(310px,100%);border-color:transparent!important;background:transparent!important}
+.sg-filebar{display:flex;gap:6px;flex-wrap:wrap}
+.sg-transport{background:#192331;border:1px solid var(--song-line);padding:12px;border-radius:10px;display:flex;flex-wrap:wrap;gap:9px;align-items:center;position:sticky;top:0;z-index:3}
+#sgRecord{background:#a72e41!important;border-color:#f18a9b!important;color:white!important;min-width:126px}
+#sgRecord.recording{background:#d33f50!important}
+#sgFix{background:#244c3b!important;border-color:#79caa0!important}
+.sg-clock{font:600 21px var(--mono,monospace);font-variant-numeric:tabular-nums;padding:3px 8px;color:#f5c875;min-width:110px}
+#sgArmed{font-weight:700;color:#a9ddff;overflow-wrap:anywhere}
+.sg-status{border-left:3px solid #8aebba;background:#14221e;padding:10px 12px;min-height:42px;margin:10px 0!important;overflow-wrap:anywhere}
+.sg-status.error{background:#351d25;border-color:#ff9ba7}
+.sg-sectionbar{border:1px solid var(--song-line);background:#151f2b;border-radius:8px;padding:9px;margin:12px 0}
+#sgSections{display:flex;gap:6px;flex-wrap:wrap;min-height:30px}
+#sgSections button{border-top:3px solid #c6a4f3;text-align:left;min-height:42px;font-weight:500}
+#sgSections button small{display:block;color:#c2cfda;font-size:11px}
+.sg-tools{margin:10px 0;justify-content:space-between}
+.sg-help{color:var(--song-muted);font-size:13px}
+.sg-timeline{border:1px solid var(--song-line);border-radius:8px;overflow:hidden;background:#0b121b}
+.sg-lane{display:grid;grid-template-columns:205px minmax(0,1fr);border-bottom:1px solid var(--song-line);height:212px;min-height:0}
+.sg-lane:last-child{border-bottom:0}
+.sg-lane.active{background:#132a38}
+.sg-lane-head{padding:10px;border-right:1px solid var(--song-line);background:#192331;display:grid;align-content:center;gap:7px;min-width:0}
+.sg-lane.active .sg-lane-head{background:#20384b;border-left:3px solid #88cfff;padding-left:7px}
+.sg-lane-head .sg-track-name{font-size:14px;text-align:left;overflow-wrap:anywhere;border:0!important;background:transparent!important;padding:3px!important;min-height:28px!important;color:#d4ecff!important}
+.sg-lane-head .sg-mini{min-height:33px!important;font-size:12px!important;padding:5px 8px!important}
+.sg-lane-head input[type=range]{width:80px!important}
+.sg-lane-head label{font-size:11px!important}
+.sg-wave{display:block;width:100%;height:211px;min-height:0;touch-action:none;cursor:crosshair}
+.sg-ruler{min-height:32px;height:32px}
+.sg-ruler .sg-wave{height:31px;min-height:0}
+.sg-ruler .sg-lane-head{font-size:11px;color:#b6c3d0;padding:3px 10px}
+.sg-scroll{display:flex;align-items:center;gap:9px;margin:8px 0}
+#sgPan{width:100%!important}
+.sg-selection{border:1px solid #556f88;border-radius:8px;padding:10px;background:#192b3a;margin-top:12px}
+.sg-selection strong{color:#bddfff}
+.sg-takes{margin-top:12px;background:#17212e;border:1px solid var(--song-line);border-radius:9px;padding:12px}
+.sg-take-list{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.sg-take{background:#0c1620;border:1px solid #42596b;border-radius:8px;padding:10px;min-width:185px;max-width:100%;flex:0 1 230px}
+.sg-take.chosen{border:2px solid #8aebba;padding:9px}
+.sg-take small{color:#b6c3d0;display:block;margin:4px 0}
+.sg-take .sg-row{gap:6px}
+.sg-take button{font-size:12px!important;min-height:36px!important;padding:6px 9px!important}
+.sg-footer{margin-top:14px;justify-content:space-between}
+#sgPolish{background:#8aebba!important;color:#10261c!important;font-weight:800!important}
+.sg-settings{margin:12px 0;border:1px solid var(--song-line);border-radius:8px;padding:10px}
+.sg-settings summary{cursor:pointer;font-weight:600;min-height:26px}
+.sg-settings .sg-row{margin-top:10px;gap:16px}
+#sgMeter{width:95px;height:12px;accent-color:#8aebba}
+#songDialog{color:#edf4f9;background:#162230;border:1px solid #64839c;border-radius:12px;width:min(600px,calc(100vw - 24px));max-height:85dvh;overflow:auto;padding:20px;font:14px/1.5 var(--body,system-ui)}
+#songDialog::backdrop{background:#000b}
+#songDialog h2{margin:0 0 12px;font-size:20px}
+#songDialog .sg-dialog-content{display:grid;gap:14px}
+#songDialog .sg-dialog-content label{display:flex;justify-content:space-between}
+#songDialog .sg-dialog-content input[type=text]{width:65%}
+#songDialog .sg-dialog-buttons{margin-top:18px;justify-content:flex-end}
+#songDialog .sg-dialog-error{color:#ffafbc;min-height:20px}
+#sgPolishNotice{display:none;color:#f5c875;padding:8px 15px;background:#252118}
+body:not(.rc-on) #sgPolishNotice:not([hidden]){display:block}
+@media(max-width:899px){
+ #songStudio{padding:10px 10px 30px}
+ body.song-studio .rcsteps{position:relative;flex-wrap:wrap}
+ body.song-studio .rctopright{display:flex!important;margin-left:0;gap:5px}
+ body.song-studio .rcbrand{display:none}
+ body.song-studio .rcswitch{flex:1;justify-content:center}
+ body.song-studio .rcswitch button{padding:7px 9px;font-size:12px}
+ body.song-studio #rcUndo span,body.song-studio #rcRedo span{display:none}
+ body.song-studio #rcExport{display:none}
+ body.song-studio #rcSaved{max-width:125px;font-size:10px;padding:0}
+ .sg-lane{grid-template-columns:145px minmax(0,1fr)}
+ .sg-lane-head{padding:8px}
+ .sg-lane-head input[type=range]{width:60px!important}
+ .sg-lane-head .sg-row{gap:4px}
+ .sg-transport{gap:7px;padding:9px}
+ .sg-top{gap:5px}
+ .sg-clock{font-size:18px;min-width:96px}
+ .sg-filebar button{font-size:12px!important;padding:8px!important}
+ #sgFix{flex:1}
+ .sg-take{flex:1 1 180px}
+ .sg-tools{gap:6px}
+ #sgRegion{max-width:100%;width:100%}
+}
+@media(prefers-reduced-motion:reduce){#songStudio *{animation:none!important;scroll-behavior:auto!important}}
+
+.sg-scroll label{flex:0 0 auto;white-space:nowrap}.sg-scroll #sgPan{flex:1;min-width:0}.sg-scroll output{flex:0 0 auto;white-space:nowrap;font-size:12px}
+
+body.song-studio:not(.rc-on) #rcUndo,body.song-studio:not(.rc-on) #rcRedo,body.song-studio:not(.rc-on) #rcExport{display:none}#sgQuickFix{border-color:#79caa0!important}#sgStatus{scroll-margin-top:160px}
+
+#songStudio input[type=checkbox]{min-height:18px;height:18px;width:18px;padding:0;flex:0 0 auto}.sg-lane-head .sg-help{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+
+.sg-polish-state{font-size:11px;color:#c2dfcf}
+#trackPolishBar{flex:1 0 100%;width:100%;display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 12px;background:#14251f;border-top:1px solid #405848;color:#e7f5ee;box-sizing:border-box;font:13px/1.4 system-ui}
+#trackPolishBar[hidden]{display:none!important}
+#trackPolishBar label{display:flex;gap:6px;align-items:center;max-width:100%}
+#trackPolishBar select,#trackPolishBar button{font:inherit;min-height:36px;background:#22382e;color:#effff5;border:1px solid #8ab69d;border-radius:5px;padding:6px 9px;max-width:100%}
+#trackPolishBar select{max-width:min(240px,65vw)}
+#trackPolishBar button:disabled{opacity:.5}
+#trackPolishBar :focus-visible{outline:3px solid #f5c875;outline-offset:2px}
+#trackPolishBar p{margin:0;flex:1 0 100%;font-size:11px;color:#bed6c9}
+#polishTrackStatus{flex:1 1 180px;min-width:0;overflow-wrap:anywhere}
+body.song-studio .rcsteps{flex-wrap:wrap;height:auto}
+@media(max-width:600px){#trackPolishBar{padding:6px;gap:5px}#trackPolishBar p{font-size:10px}#polishTrackStatus{font-size:11px}}
+
+body.song-studio .daw{grid-template-columns:minmax(0,1fr);min-width:0}
+@media(min-width:900px) and (max-width:1100px){body.song-studio .menubar{flex-wrap:wrap;min-width:0}body.song-studio .menubar .apptitle{min-width:0;flex-basis:120px}body.song-studio .menubar .menus{flex-wrap:wrap}body.song-studio .statusbar{flex-wrap:wrap}}
+
+/* 0.23.0 — recording helpers, grid readout, tidy transport */
+.sg-transport{position:static}
+.sg-lane:not(.sg-ruler){height:176px}.sg-lane:not(.sg-ruler) .sg-wave{height:175px}
+.sg-barbeat{font:600 15px var(--mono,monospace);font-variant-numeric:tabular-nums;color:#a9ddff;min-width:64px;padding:3px 6px;border:1px solid #2c4154;border-radius:6px}
+.sg-tempo{font-size:12px!important;padding:6px 9px!important;min-height:34px!important;color:#c9d8e4!important}
+.sg-rtools{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.sg-rtools .sg-count{display:flex;gap:5px;align-items:center;font-size:13px;white-space:nowrap}
+.sg-rtools select{min-height:34px}
+#songStudio [aria-pressed="true"]#sgClick,#songStudio [aria-pressed="true"]#sgLoop{background:#2d4f6b!important;border-color:#88cfff!important;color:#fff!important}
+#songStudio [aria-pressed="true"]#sgMonitor{background:#5a3d16!important;border-color:#f5c875!important;color:#fff!important}
+.sg-keys{border-collapse:collapse;font-size:12px;color:var(--song-muted);margin-top:6px}.sg-keys td{padding:3px 8px 3px 0;vertical-align:top}.sg-keys kbd{font:11px var(--mono,monospace);border:1px solid #3a4d5f;border-radius:4px;padding:1px 5px;color:#e2ecf3;white-space:nowrap}
+@media(max-width:600px){.sg-lane:not(.sg-ruler){height:212px}.sg-lane:not(.sg-ruler) .sg-wave{height:211px}.sg-barbeat{font-size:13px;min-width:54px}.sg-rtools{flex:1 1 100%}.sg-tempo{font-size:12px;padding:3px 6px;max-width:100%;white-space:nowrap}}
+
+/* 0.23.0 part flow, takes, start card, With/Without */
+.sg-part{margin-top:10px;padding:10px;border:1px solid #2f4a52;border-radius:8px;background:#0f1a1f;display:grid;gap:8px}
+.sg-part small{color:#9daaaa}
+.sg-rec{background:#a8323d;color:#fff;border-color:#c24450}
+.sg-stars{display:inline-flex;gap:2px}.sg-star{min-width:28px;padding:2px 4px;color:#55636a;background:transparent;border:1px solid transparent}.sg-star.on{color:#f5c64a}
+.sg-suggest{font-size:11px;padding:1px 6px;border-radius:9px;background:#2d5a45;color:#bff0d5;margin-left:4px}
+.sg-why-table{overflow-x:auto}.sg-why-table table{border-collapse:collapse;font-size:12px}.sg-why-table th,.sg-why-table td{padding:3px 6px;border-bottom:1px solid #2a3a40;text-align:left}
+.sg-editor{display:grid;grid-template-columns:1fr;gap:4px}.sg-editor input{width:7em}
+.sg-start{margin:10px 0;padding:14px;border:1px dashed #4a6a72;border-radius:10px;background:#101c21}.sg-start h2{margin:0 0 8px;font-size:16px}
+.sg-link{background:none;border:none;color:#8fd3ff;text-decoration:underline;padding:2px 4px;cursor:pointer}
+.sg-seg{display:inline-flex}.sg-seg button{border-radius:0}.sg-seg button:first-child{border-radius:6px 0 0 6px}.sg-seg button:last-child{border-radius:0 6px 6px 0}.sg-seg button[aria-pressed="true"]{background:#2d5a45;color:#fff}
+.sg-helplist li{margin:4px 0}
+/* 0.23.0 POLISH tidy and phone reach */
+body.song-studio #undoBtn,body.song-studio #redoBtn{display:none}
+body.song-studio .savebtn{display:none!important}
+body.song-studio.sg-onsong #rcExport{display:none}
+#trackPolishBar{order:99}
+@media(max-width:1279px){#trackPolishBar p{display:none}#trackPolishBar{padding:6px 10px;gap:6px}#trackPolishBar select,#trackPolishBar button{min-height:32px;padding:4px 8px}
+ body.song-studio .apptitle{display:none}body.song-studio .tlisten>span{display:none}body.song-studio .tundo .ctx{display:none}}
+@media(max-width:600px){
+ body.song-studio #dawSaved{position:static;display:inline-block;margin:0 4px;max-width:120px}
+ #songStudio .sg-filebar button,#songStudio .sg-tools button{min-height:30px;padding:3px 8px;font-size:12px}
+ #songStudio .sg-tools label{font-size:12px}#songStudio .sg-tools{gap:4px}
+ #songStudio .sg-sectionbar .sg-help{display:none}#songStudio .sg-sectionbar{padding:8px}
+ #songStudio .sg-status{font-size:12px;padding:6px 8px;margin:6px 0}
+ #songStudio .sg-part .sg-row{gap:4px}#songStudio .sg-part button{min-height:32px;padding:3px 7px;font-size:12px}
+ #songStudio .sg-lane-head label{font-size:11px}
+}
+@media (max-width:899px){body.song-studio #trackPolishBar{grid-column:1/-1;grid-row:3}}
+@media(max-width:600px){
+ #songStudio{display:flex;flex-direction:column}#songStudio>*{flex-shrink:0}
+ #songStudio>.sg-tools{order:5}#songStudio>.sg-scroll{order:6}#songStudio>.sg-selection,#songStudio>.sg-takes,#songStudio>.sg-settings,#songStudio>*:not(.sg-top):not(.sg-transport):not(#sgStatus):not(#sgStart):not(.sg-sectionbar):not(#sgTimeline):not(.sg-tools):not(.sg-scroll){order:7}
+ #songStudio .sg-transport button,#songStudio .sg-transport select{min-height:34px;padding:3px 8px;font-size:13px}
+ #songStudio .sg-top{gap:4px}#songStudio .sg-filebar{gap:4px}
+ #songStudio .sg-lane:not(.sg-ruler):nth-child(2){height:150px}#songStudio .sg-lane:not(.sg-ruler):nth-child(2) .sg-wave{height:149px}
+ #songStudio .sg-lane:nth-child(2) .sg-lane-head .sg-help{display:none}
+}
+
+/* 0.23.0 */
+.sg-ref{font-size:11px;padding:1px 6px;border-radius:9px;background:#3b3f6e;color:#d8dcff;margin-left:4px}
+.sg-split{border:1px solid #2f4a52;border-radius:6px;margin:8px 0 0;padding:6px 8px}.sg-split legend{font-size:12px;color:#9daaaa}
+/* 0.23: on phones POLISH shows the basic Clean / Tune / Chain controls before the detailed note editor */
+@media(max-width:899px){body:not(.sg-onsong) main.work{display:flex;flex-direction:column}body:not(.sg-onsong) main.work>.insp{order:-1}body:not(.sg-onsong) main.work>*{min-width:0;max-width:100%}}
+/* 0.23.1: prepared-downloads box = small non-blocking toast; folds to a chip after a few seconds; on phones it sits at the bottom, never over the transport */
+#browserDownloads{font-size:13px;line-height:1.3}
+#browserDownloads button{min-height:30px}
+#browserDownloads.dl-folded{padding:6px 10px!important;max-height:none!important;cursor:pointer;overflow:hidden}
+#browserDownloads.dl-folded>*{display:none!important}
+#browserDownloads.dl-folded::before{content:"⬇ Downloads";font-weight:600;color:#cfffe6}
+@media(max-width:899px){body #browserDownloads,body.rc-on #browserDownloads{top:auto!important;bottom:8px!important;left:8px!important;right:8px!important;max-width:none!important;max-height:28vh!important}
+ body #browserDownloads.dl-folded,body.rc-on #browserDownloads.dl-folded{left:auto!important;right:8px!important}}
+
+/* 0.24: recording room left */
+.sg-room{font-size:12px;opacity:.75;margin:0 6px;white-space:nowrap}.sg-room.low{color:#ffb454;opacity:1;font-weight:600}
+/* 0.24 phone/UX: sticky dialog footer, secondary actions, touch targets, clearer emphasis */
+#songDialog .sg-dialog-buttons{position:sticky;bottom:-20px;margin:12px -20px -20px;padding:10px 20px 14px;background:#162230;border-top:1px solid #2f4357;z-index:2;flex-wrap:wrap;gap:8px}
+#songDialog .sg-dialog-buttons .sg-primary,#songDialog button[data-action="ok"]{background:#2f6aa3;border-color:#92c9ff}
+#songDialog .sg-dialog-secondary{border-top:1px dashed #3a5068;padding-top:10px;gap:8px;flex-wrap:wrap}
+#songDialog .sg-dialog-secondary button{background:transparent;font-weight:500}
+#songStudio button,#songDialog button{min-height:44px}
+#songStudio .sg-star{min-width:44px;min-height:44px}
+@media (max-width:720px),(pointer:coarse){#songStudio input,#songStudio select,#songDialog input,#songDialog select{min-height:44px}#songStudio input[type=checkbox],#songDialog input[type=checkbox]{width:24px;height:24px;min-height:24px}#songStudio label:has(input[type=checkbox]),#songDialog label:has(input[type=checkbox]){min-height:44px}}
+#sgPlay,#sgRecord,#sgStop{font-size:16px;min-width:88px}
+#sgRecord{background:#6d1f2c;border-color:#e0707e}
+.sg-sectionbar button,.sg-tools button{background:#1a2634;font-weight:500}
+.sg-tools [aria-label="Timeline zoom"] button{background:transparent;border-color:#33465a}
+.sg-chosen-note{display:block;color:#f5c875;font-size:12px}
+.sg-preview-chip{display:inline-block;padding:2px 10px;border-radius:999px;background:#24384d;border:1px solid #4c6b8a;font-size:12px;font-weight:600;margin:0 6px}
+/* 0.24: on phones and touch screens every tap target is at least 44 x 44 px (overrides the compact desktop rows) */
+@media (max-width:720px),(pointer:coarse){
+ #songStudio button,#songStudio select,#songDialog button,#songDialog select,#trackPolishBar button,#trackPolishBar select{min-height:44px!important;min-width:44px!important}
+ #songStudio input:not([type=checkbox]):not([type=range]),#songDialog input:not([type=checkbox]):not([type=range]){min-height:44px!important}
+ #songStudio input[type=range]{min-height:44px!important}
+ #songStudio .sg-take button,#songStudio .sg-lane-head .sg-mini,#songStudio .sg-tempo{min-height:44px!important}
+ #songStudio .sg-lane-head .sg-track-name{min-height:44px!important}
+}
+
+/* 0.25.1: direct editing access, compact optional helpers, actionable save recovery. */
+.sg-record-helpers{flex:1 0 100%;border-top:1px solid #344456;padding-top:4px}
+.sg-record-helpers summary{cursor:pointer;min-height:44px;display:list-item;align-content:center;color:#c5d8e8}
+.sg-record-helpers .sg-rtools{display:flex;flex-wrap:wrap;gap:8px;padding:4px 0}
+#songStudio .sg-empty-backing,#songStudio .sg-empty-backing .sg-wave{height:100px}
+#songStudio .sg-empty-backing .sg-help,#songStudio .sg-empty-backing label{display:none}
+#songStudio .sg-empty-backing .sg-lane-head{gap:4px;padding:6px 10px}
+#songStudio .sg-wave{scroll-margin-top:230px}
+#editCanvas{scroll-margin-top:12px}
+#storageRecovery{padding:10px 14px;background:#412d18;color:#fff1d7;border:1px solid #e5ae64;display:flex;flex-wrap:wrap;align-items:center;gap:10px;font:14px/1.5 system-ui}
+#storageRecovery[hidden]{display:none!important}
+#storageRecovery span{flex:1 1 280px}
+#storageRecovery button[hidden]{display:none}
+#storageRecovery.paused{padding:8px 12px;gap:8px}
+#storageRecovery.paused span{flex:1 1 100%}
+#storageRecovery.paused button{padding:6px 10px}
+#storageRecovery button:disabled{opacity:.6;cursor:wait}
+#storageRecovery button{min-height:44px;border:1px solid #e5ae64;background:#241b11;color:#fff1d7;border-radius:6px;padding:8px 12px;cursor:pointer}
+#storageRecovery :focus-visible{outline:3px solid #fff;outline-offset:2px}
+@media(max-width:720px){
+ #songStudio .sg-transport{padding:8px;gap:6px}
+ #songStudio .sg-transport #sgRecord{min-width:100px}
+ #songStudio .sg-record-helpers{order:20}
+ #songStudio .sg-transport .sg-room{white-space:normal;margin:0}
+ #songStudio .sg-wave{scroll-margin-top:270px}
+ #trackPolishBar #polishTrackStatus{flex:1 0 100%}
+ #trackPolishBar #polishWave,#trackPolishBar #polishControls{background:#1e4850;border-color:#85c5d0}
+}
+
+#songStudio .sg-transport{position:sticky;top:0}
+#songStudio.sg-scrolled .sg-transport{gap:6px;padding:6px}
+/* 0.25.1 adoption: the scrolled bar never hides transport controls (Fix phrase, |◀, Show vocal, helpers stay reachable). */
+/* Scrolled: only read-outs fold away to keep the sticky bar short; every button/select stays. */
+#songStudio.sg-scrolled .sg-transport>#sgRoom,#songStudio.sg-scrolled .sg-transport>#sgReady,#songStudio.sg-scrolled .sg-transport>#sgBarBeat,#songStudio.sg-scrolled .sg-transport>.sg-spacer{display:none}
+#songStudio #sgShowControls[hidden]{display:none!important}
+#songStudio #sgShowControls{min-width:44px;font-size:12px;padding:6px}
+#polishBackToControls{min-height:44px;margin:8px 0;padding:8px 12px;border:1px solid #85c5d0;background:#1e4850;color:#edffff;border-radius:6px;cursor:pointer}
+#songStudio .sg-empty-backing{height:100px!important}
+#songStudio .sg-empty-backing .sg-wave{height:99px!important}
+
+#songStudio.sg-scrolled #sgArmed{font-size:12px;max-width:100%}
+
+#songStudio{overflow-anchor:none}
+
+/* Let labels and touch-sized mixer controls determine each populated lane's
+   height. Size containment keeps the canvas backing pixels from growing the
+   grid row again on every waveform redraw. */
+#songStudio .sg-lane:not(.sg-ruler):not(.sg-empty-backing){height:auto;min-height:176px}
+#songStudio .sg-lane:not(.sg-ruler):not(.sg-empty-backing) .sg-wave{height:100%;min-height:0;contain:size}
+/* 0.26: keep all 44px phone controls while removing excess gaps between mixer rows. */
+@media(max-width:600px){#songStudio .sg-lane-head{gap:5px}}
+/* 0.31.4: on phones, give the save status and engine status their own short row instead of cutting them off. */
+@media (max-width:520px){
+  .menubar{flex-wrap:wrap;row-gap:0}
+  .menubar .menus{flex:1 1 auto;min-width:0}
+  .menubar::after{content:"";order:9;flex-basis:100%;height:0}
+  .menubar .headright{display:contents}
+  .menubar .guidebtn{order:2;margin-left:auto}
+  body #dawSaved,body.song-studio #dawSaved{position:static;order:10;flex:0 0 auto;max-width:none;align-self:center;margin:0;padding:0 6px 4px;background:none;overflow:visible;text-overflow:clip;white-space:normal}
+  .menubar .chip{order:11;flex:1 1 0;min-width:0;max-width:none;margin:0 0 4px 6px;white-space:normal;line-height:1.2;text-align:right;padding:4px 8px}
+}
+
+/* 0.31.5: Record stays tappable while the app is busy, so a tap can explain why it is waiting */
+#sgRecord.sg-wait,#sgStartRecord.sg-wait{opacity:.5;cursor:wait}
+
+/* 0.31.9: recording failures remain readable in phone and desktop mode. */
+#songDialog textarea[readonly]{box-sizing:border-box;width:100%;max-width:100%;font:12px/1.4 monospace;background:#0b1119;color:#edf4f9;border:1px solid #60758b;padding:8px}
+#songDialog details summary{cursor:pointer;min-height:44px;display:flex;align-items:center}
+
+/* Visible removal actions; the existing lane grid grows with touch controls. */
+#songStudio button.sg-danger{color:#ffc0c0;border-color:#865a62;background:#302029}
+#songStudio button.sg-danger:not(:disabled):hover{background:#492b35}
+#songStudio .sg-delete-controls{gap:4px;padding-top:2px;border-top:1px solid var(--song-line)}
+#songStudio .sg-lane-head>.sg-row:first-child{display:grid;grid-template-columns:minmax(0,1fr) auto}
+#songStudio .sg-lane-head .sg-track-name{min-width:0}
+#songStudio .sg-lane-head>.sg-row:has([data-polish]){flex-wrap:nowrap}
+#songStudio .sg-polish-state{min-width:0;overflow-wrap:anywhere}
+#songStudio .sg-lane-head label:has([data-level]),#songStudio .sg-lane-head label:has([data-pan]){flex-wrap:nowrap;gap:3px}
+@media(max-width:600px){#songStudio .sg-lane-head input[data-level],#songStudio .sg-lane-head input[data-pan]{width:52px!important}}

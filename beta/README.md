@@ -1,4 +1,18 @@
-# Playbook Vocal Studio 0.32.1
+# Playbook Vocal Studio 0.32.3
+
+A browser-based vocal studio for recording, manual cleanup, pitch correction, mixing and WAV export. Serve the source directory over HTTPS or run `python3 -m http.server 8000` in the extracted folder and open `http://localhost:8000/`.
+
+[Open the main studio](https://westgeorge1.github.io/playbook-vocal-studio/) · [Original beta URL](https://westgeorge1.github.io/playbook-vocal-studio/beta/) · [Cleanup preview URL](https://westgeorge1.github.io/playbook-vocal-studio/beta-cleanup/)
+
+The three locations have independent autosaves. Your existing pre-upgrade session is copied once per location. Use **Back up project** and **Open project** to transfer a song. See [release notes](CHANGES-0.32.3.md) and [test results](TEST-RESULTS-0.32.3.txt).
+
+## Earlier releases
+
+# Previous release: Playbook Vocal Studio 0.32.2
+
+**Manual cleanup · Separate sound** (Song & vocals → a take's Edit) reduces a breath, a rumble under a word, or a chosen frequency band in a selection you drag or find. You can inspect it on a spectrogram, compare Original, My edit and Removed by ear, then keep the result as a new take. Autosave stores only the edited stretch, and the take is rebuilt exactly when the song reopens. Every script carries the version, so updates load together. See CHANGES-0.32.2.md and TEST-RESULTS-0.32.2.txt. Beta only; the main site stays at 0.14.0.
+
+# Previous release: 0.32.1
 
 **Tune to** (in the note editor, next to A =) now defaults to **Backing, else A = 440**, so your vocal is tuned to the beat. **My singing** has a better estimate and a clear readout, and **My singing, following drift** tracks slow drift through the song for a cappella singing. Changing the reference keeps notes you've already snapped on the new keys. Older projects keep their exact reference. Also fixed from the review: Level notes, harmony layers in drift mode, and the settings report. See CHANGES-0.32.1.md and TEST-RESULTS-0.32.1.txt. Beta only; the main site stays at 0.14.0.
 

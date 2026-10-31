@@ -1,3 +1,23 @@
+PLAYBOOK VOCAL STUDIO 0.32.3
+
+Main studio: https://westgeorge1.github.io/playbook-vocal-studio/
+
+Open Song & vocals to record or import a take. For a breath or rumble, use the take's Edit > Manual cleanup > Separate sound. Listen to My edit and Hear removed before choosing Keep as new take. Use POLISH > Tune for the note editor and Blind compare. Use Finish & check for a final 24-bit WAV.
+
+Use Back up project to download a portable copy of your song. Each studio URL saves independently after upgrading. Use Open project to move a song from the beta to the main studio later.
+
+For local use, extract this entire folder, run python3 -m http.server 8000 from inside it, then open http://localhost:8000/ in your browser.
+
+Earlier release notes follow.
+
+PLAYBOOK VOCAL STUDIO 0.32.2 — MANUAL CLEANUP · SEPARATE SOUND
+
+In Song & vocals, open a take's Edit and choose Manual cleanup · Separate sound.
+Drag across a breath (or Find next possible breath), pick Breath between words, Rumble under voice or
+Frequency band, listen with Original selection / My edit / Hear removed, then Keep as new take.
+Autosave now stores only the edited stretch of a cleanup take. See MANUAL-CLEANUP.txt, CHANGES-0.32.2.md
+and TEST-RESULTS-0.32.2.txt. Deploy studio-main.js and separation.js with index.html. Beta only.
+
 PLAYBOOK VOCAL STUDIO 0.32.1 — TUNE TO THE BEAT BY DEFAULT
 
 In the note editor, "Tune to" (next to A =) now starts on "Backing, else A = 440 (auto)": your notes are tuned

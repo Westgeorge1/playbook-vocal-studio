@@ -1,0 +1,62 @@
+PLAYBOOK VOCAL STUDIO 0.26.0 — TEST RESULTS
+25 October 2026
+
+Release result: new finishing/diagnosis/phrase-volume tests pass. Existing
+current-app regression coverage passes with the qualifications below. This is
+functional and numerical validation using synthetic audio, not a listening
+certification for real vocals or physical phone hardware.
+
+NEW FEATURE CHECKS
+- 13/13 pure DSP and song-model checks.
+- 47/47 browser checks on the versioned 0.26.0 release, at 1366x900 and 390x844.
+  Includes phrase moves, overlap refusal, Undo/Redo, reload, unchanged sources,
+  matching playback/render PCM, 44px phrase controls, viewport fit, keyboard
+  shortcut blocking, matched previews, gain/limiter renders, 24-bit stereo WAV,
+  measurements JSON, backup minimum version, project round-trip, unchanged
+  tuning parameters, bypassed-chain comparisons, and cancellation/reopening.
+  Zero JavaScript errors in these desktop/mobile workflows.
+- 12/12 independent FFmpeg ebur128 comparisons, at 22.05/44.1/48/96 kHz.
+  Maximum loudness difference about 0.057 LU; peak estimate difference about
+  0.329 dB. Acceptance limits: 0.15 LU and 0.65 dB. These synthetic comparisons
+  do not establish certified BS.1770 true-peak compliance for all signals.
+- Four-minute stereo 48 kHz offline limiter benchmark: 12.64 seconds on this
+  host, unchanged duration. Not a promise of phone performance.
+- 37/37 engine/integration invariants. All seven locked engine files are
+  byte-identical to the supplied 0.25.1 archive.
+
+EXISTING APP CHECKS
+The 0.25.1 runner completed all eight suites: invariants, core, regression,
+interface, recovery, scrolled transport, durable edits and large-song capacity.
+The capacity suite passed 22 checks: 15 minutes of source recordings across
+three four-minute vocal lanes plus phrase fixes, per-lane processing and edits,
+playback, finite processed stems/mix, reload, modern and compatibility backups,
+reopening both backups, and immediate capacity refusal preserving the editor.
+
+The inherited 0.20–0.25 run was executed through stereo/scrolled checks, then its
+remaining UX checks were completed separately. Its duplicate temporary-profile
+capacity run was replaced by the completed 0.25.1 persistent-profile capacity
+suite: an AST comparison confirms all 19 assertion call sites are identical
+(22 runtime checks). No product assertion was weakened for this substitution.
+Raw runner logs and the coverage comparison are included in tests-0.26/results.
+
+QUALIFICATIONS / INITIAL FAILURES
+- The original phone mixer spacing produced 385px lanes with fallback fonts,
+  exceeding the existing 380px test limit. The unmodified uploaded build
+  reproduced this. Reduced the spacing; the recording suite then passed 43/43.
+- Six t22/t24 viewport runs initially stopped at a connection refusal because a
+  separately served real 0.18.3 app was not supplied. Each was rerun with the
+  explicit PVS_SKIP_LEGACY_APP=1 option. Current-app checks passed: t22 38/38 at
+  each of three widths, t24 24/24 at each of three widths. Twelve external old-app
+  opening assertions remain unverified. The default tests still require that
+  old app; this option is documented and does not report those assertions passed.
+- Some crash-recovery harness logs print TargetClosedError after deliberately
+  crashing a tab; their assertions passed and the suites exited successfully.
+- The broad inherited run used the 0.25.1 version label to satisfy its old boot
+  checks. The final 0.26.0 release received the complete new browser suite and
+  invariant checks after version labels, backup metadata and final UI changes.
+
+NOT VERIFIED
+Real-singer sound quality, intended melody, subjective naturalness, physical mic
+latency, real Android/iOS devices, Safari, low-memory phones or OS background
+termination. No second tuner was added and no live deployment was performed.
+Use matched comparisons on an actual vocal before choosing the final processing.

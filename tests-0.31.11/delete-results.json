@@ -1,0 +1,249 @@
+{
+  "rows": [
+    {
+      "name": "390px track controls fit a compact touch lane",
+      "pass": true
+    },
+    {
+      "name": "390px delete buttons are visible without a menu",
+      "pass": true
+    },
+    {
+      "name": "390px Cancel keeps all recordings",
+      "pass": true
+    },
+    {
+      "name": "390px deletes only the selected unchosen attempt",
+      "pass": true
+    },
+    {
+      "name": "390px Undo restores the attempt and source samples",
+      "pass": true
+    },
+    {
+      "name": "390px Redo removes the attempt again",
+      "pass": true
+    },
+    {
+      "name": "390px chosen/reference deletion is explained",
+      "pass": true
+    },
+    {
+      "name": "390px chosen/reference pointers clear without selecting another take",
+      "pass": true
+    },
+    {
+      "name": "390px shared source remains on the other track",
+      "pass": true
+    },
+    {
+      "name": "390px cancelled clear keeps the track recordings",
+      "pass": true
+    },
+    {
+      "name": "390px Clear recordings retains empty track, backing, sections and other track",
+      "pass": true
+    },
+    {
+      "name": "390px Undo clear restores every attempt",
+      "pass": true
+    },
+    {
+      "name": "390px Redo clear leaves the track empty",
+      "pass": true
+    },
+    {
+      "name": "390px deletes a whole track and preserves the other track",
+      "pass": true
+    },
+    {
+      "name": "390px Undo track deletion restores its recording",
+      "pass": true
+    },
+    {
+      "name": "390px last-track deletion explains the empty replacement",
+      "pass": true
+    },
+    {
+      "name": "390px deleting last track leaves a new ready-to-record lane",
+      "pass": true
+    },
+    {
+      "name": "390px Undo restores deleted last track with both takes",
+      "pass": true
+    },
+    {
+      "name": "390px deleted tracks stay deleted after reload",
+      "pass": true
+    },
+    {
+      "name": "390px new recording works after deleting the last track",
+      "pass": true
+    },
+    {
+      "name": "390px deletion disabled while processing",
+      "pass": true
+    },
+    {
+      "name": "980px track controls fit a compact touch lane",
+      "pass": true
+    },
+    {
+      "name": "980px delete buttons are visible without a menu",
+      "pass": true
+    },
+    {
+      "name": "980px Cancel keeps all recordings",
+      "pass": true
+    },
+    {
+      "name": "980px deletes only the selected unchosen attempt",
+      "pass": true
+    },
+    {
+      "name": "980px Undo restores the attempt and source samples",
+      "pass": true
+    },
+    {
+      "name": "980px Redo removes the attempt again",
+      "pass": true
+    },
+    {
+      "name": "980px chosen/reference deletion is explained",
+      "pass": true
+    },
+    {
+      "name": "980px chosen/reference pointers clear without selecting another take",
+      "pass": true
+    },
+    {
+      "name": "980px shared source remains on the other track",
+      "pass": true
+    },
+    {
+      "name": "980px cancelled clear keeps the track recordings",
+      "pass": true
+    },
+    {
+      "name": "980px Clear recordings retains empty track, backing, sections and other track",
+      "pass": true
+    },
+    {
+      "name": "980px Undo clear restores every attempt",
+      "pass": true
+    },
+    {
+      "name": "980px Redo clear leaves the track empty",
+      "pass": true
+    },
+    {
+      "name": "980px deletes a whole track and preserves the other track",
+      "pass": true
+    },
+    {
+      "name": "980px Undo track deletion restores its recording",
+      "pass": true
+    },
+    {
+      "name": "980px last-track deletion explains the empty replacement",
+      "pass": true
+    },
+    {
+      "name": "980px deleting last track leaves a new ready-to-record lane",
+      "pass": true
+    },
+    {
+      "name": "980px Undo restores deleted last track with both takes",
+      "pass": true
+    },
+    {
+      "name": "980px deleted tracks stay deleted after reload",
+      "pass": true
+    },
+    {
+      "name": "980px new recording works after deleting the last track",
+      "pass": true
+    },
+    {
+      "name": "980px deletion disabled while processing",
+      "pass": true
+    },
+    {
+      "name": "take fixture has a real POLISH editor",
+      "pass": true
+    },
+    {
+      "name": "take deletion releases cached editor without waiting for DSP",
+      "pass": true
+    },
+    {
+      "name": "take snapshot excludes deleted editor audio",
+      "pass": true
+    },
+    {
+      "name": "take Undo restores exact POLISH output and recordings",
+      "pass": true
+    },
+    {
+      "name": "take Redo does not resurrect POLISH on an empty lane",
+      "pass": true
+    },
+    {
+      "name": "take reload does not recover the deleted recording",
+      "pass": true
+    },
+    {
+      "name": "clear fixture has a real POLISH editor",
+      "pass": true
+    },
+    {
+      "name": "clear deletion releases cached editor without waiting for DSP",
+      "pass": true
+    },
+    {
+      "name": "clear snapshot excludes deleted editor audio",
+      "pass": true
+    },
+    {
+      "name": "clear Undo restores exact POLISH output and recordings",
+      "pass": true
+    },
+    {
+      "name": "clear Redo does not resurrect POLISH on an empty lane",
+      "pass": true
+    },
+    {
+      "name": "clear journal recovery does not recover the deleted recording",
+      "pass": true
+    },
+    {
+      "name": "track fixture has a real POLISH editor",
+      "pass": true
+    },
+    {
+      "name": "track deletion releases cached editor without waiting for DSP",
+      "pass": true
+    },
+    {
+      "name": "track snapshot excludes deleted editor audio",
+      "pass": true
+    },
+    {
+      "name": "track Undo restores exact POLISH output and recordings",
+      "pass": true
+    },
+    {
+      "name": "track Redo does not resurrect POLISH on an empty lane",
+      "pass": true
+    },
+    {
+      "name": "track reload does not recover the deleted recording",
+      "pass": true
+    },
+    {
+      "name": "No page errors",
+      "pass": true
+    }
+  ],
+  "errors": []
+}

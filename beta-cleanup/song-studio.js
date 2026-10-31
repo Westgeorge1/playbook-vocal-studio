@@ -443,7 +443,10 @@ async function takeEditor(regionId,takeId){if(busy())return;const r=T().regions.
      const added=C.addTake(w,{trackId,regionId,start:region.start,end:region.end,channels,origin:a.origin,name});
      for(const key of ['gainDb','offsetMs','trimIn','trimOut','fadeIn','fadeOut'])if(a[key]!==undefined)added.take[key]=a[key];
      added.take.cleanup=settings;
-     if(region.selected===a.id)region.selected=added.take.id;
+     if(region.selected===a.id)region.selected=added.take.id
+
+     // 0.32.2: autosave stores only the edited stretch of this take on top of the original recording.
+     if(typeof srcDerive==='function')srcDerive(w.sources[added.take.source],w.sources[a.source]);
    },'Cleanup saved as a new take. Undo restores the previous choice.'));
    return;
  }
@@ -544,10 +547,10 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)writeJourna
 // 0.23.1: the journal is now also written on every change, on beforeunload and when the tab is hidden,
 // and kept until the next full save is safely written.
 for(const ev of ['beforeunload','freeze'])window.addEventListener(ev,()=>writeJournal());document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')writeJournal();});
-function writeJournal(){if(window.AppWindow?.writeBlocked())return;try{const w=S.song;if(!w||S.isSample)return;const meta={...w,sources:Object.keys(w.sources),tracks:w.tracks.map(t=>({...t,polish:undefined,polishPrefs:t.polish?C.polishPrefs(t.polish):undefined,regions:t.regions.map(r=>({...r,takes:r.takes.map(a=>({...a}))}))}))};localStorage.setItem('pvs.songJournal',JSON.stringify({v:2,at:Date.now(),uid:w.uid,rev:w.revision,recBacking:!!document.getElementById('beatOn')?.checked,meta}));}catch(e){}}
-function applyJournal(){let j;try{j=JSON.parse(localStorage.getItem('pvs.songJournal')||'null');}catch(e){}const w=S.song;if(!j||!w)return false;
+function writeJournal(){if(window.AppWindow?.writeBlocked())return;try{const w=S.song;if(!w||S.isSample)return;const meta={...w,sources:Object.keys(w.sources),tracks:w.tracks.map(t=>({...t,polish:undefined,polishPrefs:t.polish?C.polishPrefs(t.polish):undefined,regions:t.regions.map(r=>({...r,takes:r.takes.map(a=>({...a}))}))}))};localStorage.setItem(ProjectStorage.key('pvs.songJournal'),JSON.stringify({v:2,at:Date.now(),uid:w.uid,rev:w.revision,recBacking:!!document.getElementById('beatOn')?.checked,meta}));}catch(e){}}
+function applyJournal(){let j;try{j=JSON.parse(localStorage.getItem(ProjectStorage.key('pvs.songJournal'))||'null');}catch(e){}const w=S.song;if(!j||!w)return false;
  // 0.24 (F5): only the same song (uid) and only a newer revision than the full save; an older or equal journal is retired.
- if(j.v!==2||Date.now()-j.at>7*864e5){localStorage.removeItem('pvs.songJournal');return false;}if(j.uid!==w.uid)return false;UI.journalChecked=true;if(!(j.rev>w.revision)){localStorage.removeItem('pvs.songJournal');return false;}const m=j.meta;if(!Array.isArray(m.sources)||!m.sources.every(k=>Object.hasOwn(w.sources,k)))return false;
+ if(j.v!==2||Date.now()-j.at>7*864e5){localStorage.removeItem(ProjectStorage.key('pvs.songJournal'));return false;}if(j.uid!==w.uid)return false;UI.journalChecked=true;if(!(j.rev>w.revision)){localStorage.removeItem(ProjectStorage.key('pvs.songJournal'));return false;}const m=j.meta;if(!Array.isArray(m.sources)||!m.sources.every(k=>Object.hasOwn(w.sources,k)))return false;
  try{const next={...m,sources:Object.fromEntries(m.sources.map(k=>[k,w.sources[k]])),tracks:m.tracks.map(t=>{const old=w.tracks.find(x=>x.id===t.id);const n={...t},pp=t.polishPrefs;delete n.polishPrefs;if(old?.polish&&n.regions?.length)n.polish=C.validPrefs(pp)?{...old.polish,...pp}:old.polish;else delete n.polish;if(n.polish&&pp&&pp.ownKey===false){delete n.polish.key;delete n.polish.scale;}return n;})};C.validate(next);if(next.revision===w.revision&&JSON.stringify(C.clone({...next,sources:{}}).tracks.map(t=>[t,C.polishPrefs(t.polish)]))===JSON.stringify(C.clone({...w,sources:{}}).tracks.map(t=>[t,C.polishPrefs(t.polish)])))return false;S.song=next;try{if(typeof j.recBacking==='boolean'&&document.getElementById('beatOn')&&document.getElementById('beatOn').checked!==j.recBacking)PVSRec.setRecordBacking(j.recBacking);}catch(e){}persist();return true;}catch(e){return false;}}
 window.addEventListener('beforeunload',e=>{if(UI.capture||UI.opening){e.preventDefault();e.returnValue='';}});
 window.addEventListener('resize',()=>{draw();});

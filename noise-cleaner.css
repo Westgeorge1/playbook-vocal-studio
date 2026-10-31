@@ -1,0 +1,12 @@
+.noise-studio {border-color:rgba(94,234,212,.25)}
+.noise-studio .row {flex-wrap:wrap;gap:8px;margin-top:10px}
+.noise-studio h3 {margin:18px 0 8px;font-size:14px}
+.noise-studio input[type=number] {width:100%;min-width:0;box-sizing:border-box}
+.noise-range {display:block;margin:14px 0;font-size:13px}
+.noise-range input[type=range] {display:block;width:100%;margin-top:8px;accent-color:var(--mint)}
+.noise-range output {font-family:var(--mono);color:var(--mint)}
+.noise-studio summary {cursor:pointer;padding:12px 0}
+.noise-studio .grid2 {min-width:0}
+.noise-studio select {max-width:100%;min-width:0}
+#noiseStatus {font-size:13px;line-height:1.5}
+@media(max-width:600px){.noise-presets .btn {flex:1 1 90px}.noise-studio .btn{white-space:normal}.noise-studio .grid2 {grid-template-columns:1fr 1fr}}

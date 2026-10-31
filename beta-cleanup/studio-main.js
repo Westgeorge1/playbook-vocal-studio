@@ -146,8 +146,8 @@ const songSeconds = () => S.original ? S.original.length / S.rate : 0;
 
 // ---------------------------------------------------------------- engine (worker)
 // 0.17.2: the app and the audio engine have separate version numbers
-var APP_VERSION="0.32.1",ENGINE_VERSION="0.12.1";
-const worker = new Worker("worker.js?v=0.32.1");
+var APP_VERSION="0.32.3",ENGINE_VERSION="0.12.1";
+const worker = new Worker("worker.js?v=0.32.3");
 let reqId = 0, engineFailure = null; const pending = {};
 var ENGINE_WAIT_MS = 120000;
 worker.onmessage = ({ data: m }) => {
@@ -1760,7 +1760,7 @@ async function saveProject(opts) {
   const base = safeName(S.song?.title||(phraseOnly?phraseWorkspace().title:S.name)), srcName = base + " - phone source.wav", src = wavFloat(phraseWorkspaceAudio||S.audio[5]||S.main, phraseOnly?(S.song?.rate||phraseWorkspace().rate):S.rate), files = [{ name: srcName, data: src }];
   const takes = S.takes.slice(1).map((t, i) => { const name = base + " - take " + (i + 1) + ".wav", data = wavFloat(S.takeChannels[i+1]||t, S.rate); files.push({ name, data }); return { file: name, bytes: data.length, trim: 0, pad: 0 }; });
   const g = S.guide || {}, P = { ...S.P, chMixFit: S.mix.fit ? 1 : 0, chMixOver: S.mix.over, chMixRoom: S.mix.room };
-  const root = { format: "Playbook Vocal Studio", version: 9, savedBy: "Playbook Vocal Studio 0.32.1 (phone DAW)",
+  const root = { format: "Playbook Vocal Studio", version: 9, savedBy: "Playbook Vocal Studio 0.32.3 (phone DAW)",
     smartGuide: { enabled: !!S.guidePrefs.enabled, concern: S.guidePrefs.concern || 0, goal: S.guidePrefs.goal, bpm: S.guidePrefs.bpm, tempoSync: !!S.guidePrefs.sync, locked: g.locked || [], dismissed: g.dismissed || {} },
     performance: S.st?.edits||{breaths:[],timing:[],comp:[]}, notePerformance: S.st?.edits||{breaths:[],timing:[],comp:[]}, alternateTakes: takes,
     source: srcName, sourceBytes: src.length, trim: 0, pad: 0, take: false };
@@ -1775,7 +1775,7 @@ async function saveProject(opts) {
   if(!compat&&S.main&&S.song){const lt=S.song.tracks.find(t=>t.id===S.song.polishTrack),pc=lt?.polish?.session?.pcm,cur=S.audio[5]||[S.main];if(lt&&Array.isArray(pc)&&SongCore.polishValid(S.song,lt)&&SongCore.samePcm(pc,cur)){const f=files.find(f=>f.name===srcName);if(f)files.splice(files.indexOf(f),1);root.source=null;root.sourceLane=lt.id;delete root.sourceBytes;}}
   root.backupKind=compat?"compatibility":"modern";
   files.unshift({ name: base + ".pbv", data: new TextEncoder().encode(JSON.stringify(root, null, 1)) });
-  files.push({ name: "READ-ME.txt", data: new TextEncoder().encode((compat?"Playbook Vocal Studio song project, COMPATIBILITY backup (saved on the phone, 0.32.1). It also contains copies for older versions (0.18.3 parts).":"Playbook Vocal Studio song project (saved on the phone, 0.32.1). Modern backup: open it in Playbook Vocal Studio 0.31.4 or newer. Older versions need a Compatibility backup (Export song > Compatibility backup).")+"\r\n\r\nOn the laptop: extract this ZIP into its own folder, keep the files together, then use Open project in the Windows app or FL Studio plugin (0.9.8 or newer) and choose " + base + ".pbv.\r\nOpen multitrack projects in Playbook Vocal Studio 0.31.4 or newer to retain separate tracks, sections, attempts, per-track POLISH and phrase-volume moves (0.24 and earlier may not restore 0.25 POLISH preferences). Older apps open only the last POLISH vocal and will lose the multitrack data if you save over this project. Keep this original ZIP.\r\nOn the phone: SONG PROJECT > Open a song project, then pick this ZIP.\r\n") });
+  files.push({ name: "READ-ME.txt", data: new TextEncoder().encode((compat?"Playbook Vocal Studio song project, COMPATIBILITY backup (saved on the phone, 0.32.3). It also contains copies for older versions (0.18.3 parts).":"Playbook Vocal Studio song project (saved on the phone, 0.32.3). Modern backup: open it in Playbook Vocal Studio 0.31.4 or newer. Older versions need a Compatibility backup (Export song > Compatibility backup).")+"\r\n\r\nOn the laptop: extract this ZIP into its own folder, keep the files together, then use Open project in the Windows app or FL Studio plugin (0.9.8 or newer) and choose " + base + ".pbv.\r\nOpen multitrack projects in Playbook Vocal Studio 0.31.4 or newer to retain separate tracks, sections, attempts, per-track POLISH and phrase-volume moves (0.24 and earlier may not restore 0.25 POLISH preferences). Older apps open only the last POLISH vocal and will lose the multitrack data if you save over this project. Keep this original ZIP.\r\nOn the phone: SONG PROJECT > Open a song project, then pick this ZIP.\r\n") });
   let data;try{data=zip(files);}catch(err){return done(false,"failed","Couldn't save: the project could not be prepared ("+(err&&err.message||"unknown problem")+").");}
   try { const result = await saveDownload(base + (compat?" - song project (compatibility).zip":" - song project.zip"), data); const r=done(true,result==="Saved"?"saved":"requested",result + ": " + base + " - song project.zip. " + whereSaved()); toast(result, base + " - song project.zip. " + whereSaved()); return r; }
   catch (err) { return err && err.code === "declined" ? done(false,"cancelled","Not saved.") : done(false,"failed","Couldn't save: " + (err && err.message || "unknown problem") + "."); }
@@ -1841,6 +1841,21 @@ $("fileProject").addEventListener("change", async e => {
 });
 
 // ---------------------------------------------------------------- remember the last session on this phone (IndexedDB)
+// Old snapshots may refer to several audio blocks. Follow only the references
+// belonging to this song, including the base of a compact cleanup take.
+function legacyAudioRefs(name, value) {
+  if (name !== 'last') return value?.derived?.base ? [value.derived.base] : [];
+  const refs = new Set();
+  const pcm = block => { if (typeof block?.pcmRef === 'string') refs.add(block.pcmRef); };
+  const session = s => { if (s) { pcm(s.pcm); for (const take of s.takes || []) pcm(take); } };
+  const polish = p => { if (p) { pcm(p.channels); session(p.session); } };
+  session(value);
+  pcm(value?.backing?.channels);
+  for (const src of Object.values(value?.song?.sources || {})) if (src?.ref) refs.add(src.ref);
+  for (const track of value?.song?.tracks || []) polish(track.polish);
+  polish(value?.song?.previousMix);
+  return refs;
+}
 function idb() { return new Promise((res, rej) => { try { const r = indexedDB.open("playbook-vocal-studio", 1); r.onupgradeneeded = () => r.result.createObjectStore("s"); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); } catch (e) { rej(e); } }); }
 let persistTimer = 0, persistGeneration = 0;
 function cancelPersist() { clearTimeout(persistTimer);persistGeneration++; }
@@ -1856,6 +1871,16 @@ function sessionSnapshot() {
 // (16-bit when the samples sit exactly on the 16-bit grid, which every new recording does) and the
 // autosave only refers to it. Entries no longer used are removed in the same transaction.
 const PVS_SRC={written:new Set(),key:new WeakMap(),q16:new WeakMap(),n:0};
+// 0.32.3: a manual-cleanup take differs from its original recording only in the edited stretch.
+// Remember that (in memory only), so autosave stores the original once plus the edited samples.
+const PVS_DERIVED=new WeakMap();
+function srcDerive(src,base){
+ if(!src||!base||src===base||src.rate!==base.rate||src.channels.length!==base.channels.length||src.channels[0].length!==base.channels[0].length)return false;
+ let a=Infinity,b=-1;for(let c=0;c<src.channels.length;c++){const x=src.channels[c],y=base.channels[c];for(let i=0;i<x.length;i++)if(x[i]!==y[i]){if(i<a)a=i;break;}for(let i=x.length-1;i>=0;i--)if(x[i]!==y[i]){if(i>b)b=i;break;}}
+ if(b<0)return false;const root=PVS_DERIVED.get(base);
+ // Chain edits on the same recording back to one stored original.
+ PVS_DERIVED.set(src,root?{base:root.base,at:Math.min(a,root.at),len:Math.max(b,root.at+root.len-1)-Math.min(a,root.at)+1}:{base,at:a,len:b-a+1});return true;
+}
 // Audio needed by the live song or its in-session Undo/Redo snapshots is retained.
 const PVS_PCM={written:new Set(),key:new WeakMap(),n:0};
 let rememberQueue=Promise.resolve();
@@ -1915,6 +1940,8 @@ async function storeRemembered(value,generation){
   if(value.backing)stored.backing={...value.backing,channels:ref(value.backing.channels)};
   if(value.song){const sources={};for(const [id,src] of Object.entries(value.song.sources||{})){
    const k=srcKey(src);refs.add(k);sources[id]={ref:k,rate:src.rate,frames:src.channels[0].length,nch:src.channels.length};if(!PVS_SRC.written.has(k))fresh.set(k,src);
+   // A cleanup take keeps its original recording stored (even if that take was removed) and saves only the edit.
+   const d=PVS_DERIVED.get(src);if(d){const bk=srcKey(d.base);refs.add(bk);if(!PVS_SRC.written.has(bk))fresh.set(bk,d.base);}
   }
   stored.song={...value.song,sources,tracks:value.song.tracks.map(t=>({...t,polish:one(t.polish)})),previousMix:one(value.song.previousMix)};
   }
@@ -1926,11 +1953,17 @@ async function storeRemembered(value,generation){
    tx.oncomplete=()=>{for(const k of deleted){PVS_SRC.written.delete(k);PVS_PCM.written.delete(k);}for(const k of fresh.keys())PVS_SRC.written.add(k);for(const k of freshPcm.keys())PVS_PCM.written.add(k);resolve();};
    tx.onerror=()=>reject(tx.error||new Error('Browser save failed.'));tx.onabort=()=>reject(tx.error||new Error('Session storage was interrupted.'));
    // Retirement and replacement share a transaction: any failure keeps the last good save.
-   const kr=st.getAllKeys();kr.onsuccess=()=>{try{
-    for(const k of kr.result||[])if(typeof k==='string'&&(k.startsWith('src:')||k.startsWith('pcm:'))&&!refs.has(k)){st.delete(k);deleted.push(k);}
-    for(const [k,src] of fresh)st.put(srcPack(src),k);
-    for(const [k,ch] of freshPcm)st.put({v:1,channels:ch},k);
-    st.put(stored,'last');
+   const kr=st.getAllKeys(IDBKeyRange.bound(ProjectStorage.prefix, ProjectStorage.prefix+'\uffff'));kr.onsuccess=()=>{try{
+    for(const physical of kr.result){
+     const k=physical.slice(ProjectStorage.prefix.length);
+     if((k.startsWith('src:')||k.startsWith('pcm:'))&&!refs.has(k)){st.delete(physical);deleted.push(k);}
+    }
+    for(const [k,src] of fresh){const d=PVS_DERIVED.get(src);
+     if(d)st.put({v:1,derived:{base:srcKey(d.base),at:d.at,len:d.len,frames:src.channels[0].length},rate:src.rate,patch:srcPack({rate:src.rate,channels:src.channels.map(c=>c.slice(d.at,d.at+d.len))})},ProjectStorage.key(k));
+     else st.put(srcPack(src),ProjectStorage.key(k));}
+    for(const [k,ch] of freshPcm)st.put({v:1,channels:ch},ProjectStorage.key(k));
+    st.put(stored,ProjectStorage.key('last'));
+    st.put(true,ProjectStorage.key('initialized'));
    }catch(e){tx.abort();reject(e);}};
   });
   S.storageError='';showStorageRecovery();return true;
@@ -1989,16 +2022,25 @@ $("undoClear").onclick=async()=>{
 var restoreStage="opening this phone's storage";
 // 0.31.12 (R15): remember on this phone that a project has been kept here, so a browser whose storage cannot even be opened
 // (private mode, storage turned off) and that never kept a project does not start a first-time singer with autosave paused.
-const HAD_KEY="pvs.hadProject";
-function hadProject(){try{return localStorage.getItem(HAD_KEY)==="1";}catch(_){return false;}}
+const HAD_KEY=ProjectStorage.key("pvs.hadProject");
+function hadProject(){try{return localStorage.getItem(HAD_KEY)==="1"||localStorage.getItem("pvs.hadProject")==="1";}catch(_){return false;}}
 function markHadProject(){try{localStorage.setItem(HAD_KEY,"1");}catch(_){}}
 const STORAGE_OFF_NOTE="This browser is not keeping projects on this phone (private mode or site storage turned off). You can record and edit as normal; use Back up project to keep your work.";
 async function restore() {
  let db,got=0;
  try{
   restoreStage="opening this phone's storage";
-  db=await idb();const st=db.transaction('s').objectStore('s'),cache=new Map();
-  const get=k=>{if(!cache.has(k))cache.set(k,new Promise((resolve,reject)=>{const r=st.get(k);r.onsuccess=()=>{if(k!=='last')restoreStage="reading saved audio ("+(++got)+" parts read)";resolve(r.result);};r.onerror=()=>reject(r.error);}));return cache.get(k);};
+  db=await idb();
+  restoreStage="upgrading this site's autosave";
+  const migrating = await ProjectStorage.migrate(db, 's', ['last'], legacyAudioRefs);
+  if (migrating) {
+   try {
+    const journal = localStorage.getItem('pvs.songJournal'), dest = ProjectStorage.key('pvs.songJournal');
+    if (journal && !localStorage.getItem(dest)) localStorage.setItem(dest, journal);
+   } catch (_) {}
+  }
+  const st=db.transaction('s').objectStore('s'),cache=new Map();
+  const get=k=>{if(!cache.has(k))cache.set(k,new Promise((resolve,reject)=>{const r=st.get(ProjectStorage.key(k));r.onsuccess=()=>{if(k!=='last')restoreStage="reading saved audio ("+(++got)+" parts read)";resolve(r.result);};r.onerror=()=>reject(r.error);}));return cache.get(k);};
   restoreStage="reading the saved project";
   let last=await get('last');if(!last)return null;markHadProject();restoreStage="reading saved audio";const warnings=[];
   const pcm=async x=>{if(!x?.pcmRef)return x;const e=await get(x.pcmRef);if(!e?.channels?.[0])return null;PVS_PCM.key.set(e.channels[0],x.pcmRef);PVS_PCM.written.add(x.pcmRef);return e.channels;};
@@ -2010,10 +2052,19 @@ async function restore() {
     return {...p,channels,session:p.session?{...p.session,pcm:input,takes:takes.filter(Boolean),edits:takes.some(x=>!x)?{...p.session.edits,comp:[]}:p.session.edits}:p.session,...(missing?{recoveryMissing:true}:{})};
    };
    const tracks=[];for(const t of last.song.tracks)tracks.push({...t,polish:await one(t.polish,t.name)});
-   const previousMix=await one(last.song.previousMix,'Earlier mix'),sources={};let missingSource=false;
+   const previousMix=await one(last.song.previousMix,'Earlier mix'),sources={},baseCache=new Map();let missingSource=false;
    for(const [id,src] of Object.entries(last.song.sources||{})){
     if(!src.ref){sources[id]=src;continue;}const e=await get(src.ref);if(!e){missingSource=true;continue;}
-    const audio=srcUnpack(e);sources[id]=audio;PVS_SRC.key.set(audio,src.ref);PVS_SRC.written.add(src.ref);if(e.q16)PVS_SRC.q16.set(audio,true);
+    let audio;
+    if(e.derived){
+     // Rebuild a cleanup take: its original recording with the saved edited stretch on top.
+     let base=baseCache.get(e.derived.base);
+     if(!base){const be=await get(e.derived.base);if(!be||be.derived){missingSource=true;continue;}base=srcUnpack(be);baseCache.set(e.derived.base,base);PVS_SRC.key.set(base,e.derived.base);PVS_SRC.written.add(e.derived.base);if(be.q16)PVS_SRC.q16.set(base,true);}
+     const patch=srcUnpack(e.patch);if(base.channels[0].length!==e.derived.frames||patch.channels.length!==base.channels.length){missingSource=true;continue;}
+     audio={rate:e.rate,channels:base.channels.map((c,i)=>{const o=c.slice();o.set(patch.channels[i],e.derived.at);return o;})};
+     PVS_DERIVED.set(audio,{base,at:e.derived.at,len:e.derived.len});
+    }else{audio=baseCache.get(src.ref)||srcUnpack(e);baseCache.set(src.ref,audio);if(e.q16)PVS_SRC.q16.set(audio,true);}
+    sources[id]=audio;PVS_SRC.key.set(audio,src.ref);PVS_SRC.written.add(src.ref);
    }
    if(missingSource){warnings.push('Some saved original recordings are missing. Open your latest project backup to restore all tracks.');last.song=null;}
    else last.song={...last.song,tracks,sources,previousMix};
@@ -2252,7 +2303,7 @@ function phraseAdjust(id,field,value){if(phraseBusy())return;const p=selectedPhr
 function phraseSafeGain(channels){let peak=0;for(const c of channels)for(const x of c)peak=Math.max(peak,Math.abs(x));return peak>.891251?.891251/peak:1;}
 async function phraseListen(id){if(phraseBusy())return;try{const w=phraseWorkspace(),p=selectedPhrase();let channels,start=0,end,rate=w.rate,gain=1;if(id){const t=p?.takes.find(t=>t.id===id);if(!t)return;const excerpt=PhraseCore.audition(t,p);channels=excerpt;start=p.start;end=channels[0].length/rate;gain=PhraseCore.matchGains(p)[id]||phraseSafeGain(channels);}else{channels=PhraseCore.compose(w);end=channels[0].length/rate;gain=phraseSafeGain(channels);start=0;}if(!end)throw new Error('No audio in this phrase.');endLoop();loop={phrase:true,chs:channels,rate,gain,start:0,end,noBeat:!$('phraseCompareBeat').checked,beatOffset:start,oneShot:true};const ok=await startPlayback(0);phraseMessage(ok?(id?'Playing attempt at a matched level':'Playing assembled vocal')+($('phraseCompareBeat').checked&&S.beat?' with backing.':'.'):'Audio could not start. '+$('playbackStatus').textContent);}catch(e){phraseMessage(e.message);}}
 function phraseFailWorker(error){if(phraseWorker)phraseWorker.terminate();phraseWorker=null;for(const j of phraseJobs.values()){clearTimeout(j.timer);j.reject(new Error(error));}phraseJobs.clear();}
-function phraseWorkerRequest(t,p){return new Promise((resolve,reject)=>{if(!phraseWorker){phraseWorker=new Worker('phrase-worker.js?v=0.32.1');phraseWorker.onmessage=({data:m})=>{const j=phraseJobs.get(m.id);if(!j)return;clearTimeout(j.timer);phraseJobs.delete(m.id);m.error?j.reject(new Error(m.error)):j.resolve(m.profile);};phraseWorker.onerror=e=>phraseFailWorker(e.message||'Take analysis stopped. Retry analysis.');phraseWorker.onmessageerror=()=>phraseFailWorker('Take analysis returned unreadable data.');}const id=++phraseSerial,channels=t.channels.map(c=>c.slice());phraseJobs.set(id,{resolve,reject,timer:setTimeout(()=>phraseFailWorker('Take analysis timed out. Your recording is kept; retry analysis.'),120000)});try{phraseWorker.postMessage({id,take:{...t,channels,profile:null},phrase:{start:p.start,end:p.end}},channels.map(c=>c.buffer));}catch(e){const j=phraseJobs.get(id);clearTimeout(j.timer);phraseJobs.delete(id);reject(e);}});}
+function phraseWorkerRequest(t,p){return new Promise((resolve,reject)=>{if(!phraseWorker){phraseWorker=new Worker('phrase-worker.js?v=0.32.3');phraseWorker.onmessage=({data:m})=>{const j=phraseJobs.get(m.id);if(!j)return;clearTimeout(j.timer);phraseJobs.delete(m.id);m.error?j.reject(new Error(m.error)):j.resolve(m.profile);};phraseWorker.onerror=e=>phraseFailWorker(e.message||'Take analysis stopped. Retry analysis.');phraseWorker.onmessageerror=()=>phraseFailWorker('Take analysis returned unreadable data.');}const id=++phraseSerial,channels=t.channels.map(c=>c.slice());phraseJobs.set(id,{resolve,reject,timer:setTimeout(()=>phraseFailWorker('Take analysis timed out. Your recording is kept; retry analysis.'),120000)});try{phraseWorker.postMessage({id,take:{...t,channels,profile:null},phrase:{start:p.start,end:p.end}},channels.map(c=>c.buffer));}catch(e){const j=phraseJobs.get(id);clearTimeout(j.timer);phraseJobs.delete(id);reject(e);}});}
 function phraseAnalyze(t,p){const token={};t.analysisToken=token;t.profile=null;t.analysisError=null;phraseJobQueue=phraseJobQueue.then(async()=>{if(t.analysisToken!==token||!S.phrases?.phrases.includes(p)||!p.takes.includes(t))return;try{const profile=await phraseWorkerRequest(t,p);if(t.analysisToken===token){t.profile=profile;t.profileKey=phraseProfileKey(t,p);}}catch(e){if(t.analysisToken===token)t.analysisError=e.message;}finally{if(t.analysisToken===token){delete t.analysisToken;syncPhraseUI();persist();}}});return phraseJobQueue;}
 // 0.18.3 (review 06): a check result belongs to one part span and take position; Undo / Redo / trim / split that change them run it again
 function phraseProfileKey(t,p){return [p.start,p.end,t.origin,t.offsetMs||0,t.channels[0]?.length||0].join(',');}
@@ -2277,4 +2328,3 @@ function syncPhraseUI(){if(!phraseReady)return;const w=phraseWorkspace(),p=selec
   for(const id of ['phraseBounds','phraseImport','phraseRemove','phraseUnchoose'])$(id).disabled=locked||!p;$('phraseUndo').hidden=!phraseUndo;$('phraseUndo').disabled=locked||!phraseUndo;$('phraseRecord').disabled=!!S.micBlocked||(!rec&&(locked||!p))||!!(rec&&rec.target!=='phrase');$('phraseStop').textContent=rec?.target==='phrase'?'Stop and keep attempt':'Stop playback';$('phraseRecover').hidden=!S.phraseRecovery;$('phraseRecordLabel').textContent=rec?.target==='phrase'?'Stop and keep attempt':p?.takes.length?'Redo this section':'Record this phrase';$('phraseApply').disabled=locked||(!w.base&&w.applied<0&&!w.phrases.some(p=>p.selected));$('phraseSave').disabled=canSaveProject()!==true;$('phraseSave').title=canSaveProject(true)===true?'Back up project (.zip with every take)':canSaveProject(true);$('phraseListenSong').disabled=locked||!w.base&&!w.phrases.some(p=>p.selected);$('phraseAssemblyInfo').textContent=w.phrases.filter(p=>p.selected).length+' of '+w.phrases.length+' phrases chosen. '+(w.applied===w.revision?'Sent to POLISH.':'Press Comp done (or Load my new comp in POLISH) to send this comp to POLISH.');phraseDraw();}
 function phraseBind(){phraseReady=true;$('phraseTimeline').addEventListener('pointerdown',e=>{if(phraseBusy())return;const r=$('phraseTimeline').getBoundingClientRect(),w=phraseWorkspace(),duration=Math.max(PhraseCore.duration(w),S.beat?.duration||0,8);w.cursor=Math.max(0,Math.min(899.5,(e.clientX-r.left)/r.width*duration));syncPhraseUI();persist();});for(const [id,values] of [['phraseKey',KEYS],['phraseScale',SCALES]])$(id).innerHTML=values.map((s,i)=>'<option value="'+i+'">'+s+'</option>').join('');/* 0.17.0: the Session window's Record button is now 'Go to 1 RECORD & COMP' (data-act=toRC) */$('phraseBacking').onclick=()=>$('fileBeat').click();$('phraseNew').onclick=()=>phraseNew();$('phraseContinue').onclick=()=>{if(!phraseBusy()){$('phraseLabel').value='';phraseNew(phraseWorkspace().cursor);}};$('phraseAtPlayhead').onclick=()=>{if(!phraseBusy()){$('phraseLabel').value='';phraseNew(Math.min(899.5,Math.max(0,currentPos()+(loop?.phrase?loop.beatOffset||0:0))));}};$('phraseBounds').onclick=()=>{if(phraseBusy())return;const p=selectedPhrase();if(!p)return;try{const start=+$('phraseStart').value,end=+$('phraseEnd').value;PhraseCore.span(start,end);phraseBackup();Object.assign(p,{start,end,name:$('phraseLabel').value.trim()||p.name});for(const t of p.takes)phraseAnalyze(t,p);if(p.selected&&!PhraseCore.covers(p.takes.find(t=>t.id===p.selected),p))p.selected=null;phraseChanged('Phrase boundaries updated. Check each take before choosing.');}catch(e){phraseMessage(e.message);}};$('phraseUnchoose').onclick=phraseUnchoose;$('phraseRemove').onclick=()=>{if(phraseBusy())return;const rp=selectedPhrase();if(!rp)return;if(!confirm('Remove phrase “'+rp.name+'” and its '+rp.takes.length+' take'+(rp.takes.length===1?'':'s')+'?\n\nUndo (Ctrl+Z) can bring it back.'))return;phraseBackup();const w=phraseWorkspace();w.phrases=w.phrases.filter(p=>p.id!==w.selected);w.selected=w.phrases.at(-1)?.id||null;phraseChanged('Phrase removed. Undo restores its attempts.');};$('phraseUndo').onclick=()=>phraseHistory(-1);$('phraseRedo').onclick=()=>phraseHistory(1);$('phraseRecord').onclick=()=>{if(rec?.target==='phrase'){if(rec.mr.state!=='inactive')rec.mr.stop();return;}try{const options=phraseRecordOptions();startRecording('phrase',options);}catch(e){phraseMessage(e.message);}};$('phraseImport').onclick=()=>$('phraseFile').click();$('phraseFile').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f||phraseBusy())return;const p=selectedPhrase();if(!p)return;S.phraseWorking=true;syncPhraseUI();try{const b=await decodeFile(f);if(b.duration>70)throw new Error('Import one phrase attempt under 70 seconds. Use Open for a whole song.');await phraseAddAudio(p,toChannels(b),b.sampleRate,p.start,f.name);}catch(e){phraseMessage('Attempt not added: '+e.message);}finally{S.phraseWorking=false;syncPhraseUI();}};$('phraseListenSong').onclick=()=>phraseListen();$('phraseRecover').onclick=async()=>{const b=S.phraseRecovery;if(!b)return;try{const ext=/mp4|m4a/.test(b.type)?'m4a':/wav/.test(b.type)?'wav':/ogg/.test(b.type)?'ogg':'webm';await saveDownload('Recovered microphone attempt.'+ext,b);phraseMessage('Microphone file saved. You can import it again for this phrase.');}catch(e){phraseMessage('Recovery download failed: '+e.message);}};$('phraseStop').onclick=()=>{if(rec?.target==='phrase'){if(rec.mr.state!=='inactive')rec.mr.stop();}else{endLoop();stopPlayback();phraseMessage('Stopped.');}};$('phraseApply').onclick=phraseApply;$('phraseSave').onclick=async()=>{await saveProject();$('phraseSaveStatus').textContent=$('saveStatus').textContent;};$('phraseTitle').onchange=()=>{phraseWorkspace().title=$('phraseTitle').value.trim().slice(0,120)||'My phrase recording';phraseChanged();};for(const [id,field,min,max] of [['phraseLead','lead',0,5],['phraseFade','fadeMs',0,100]])$(id).onchange=()=>{const v=+$(id).value;if(!Number.isFinite(v))return;phraseBackup();phraseWorkspace()[field]=Math.max(min,Math.min(max,v));phraseChanged();};$('phraseCursor').oninput=()=>{phraseWorkspace().cursor=+$('phraseCursor').value;$('phraseCursorText').textContent=fmt(phraseWorkspace().cursor);phraseDraw();persist();};for(const [id,field] of [['phraseKey','key'],['phraseScale','scale']])$(id).onchange=()=>{phraseWorkspace()[field]=+$(id).value;syncPhraseUI();persist();};$('phraseReference').onchange=()=>{const p=selectedPhrase();if(p){p.reference=$('phraseReference').value||null;syncPhraseUI();persist();}};window.addEventListener('resize',()=>{if(!$('page-record').hidden)phraseDraw();});document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'){if(rec?.target==='phrase'&&rec.mr.state!=='inactive')rec.mr.stop();cancelPersist();const snapshot=sessionSnapshot();if(snapshot)writeRemembered(snapshot).catch(e=>{$('phraseSaveStatus').textContent='Browser save failed. Download a song project: '+e.message;});}});syncPhraseUI();}
 phraseBind();
-

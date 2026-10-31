@@ -1,0 +1,131 @@
+{
+ "rows": [
+  {
+   "name": "Rumble band removed accurately (error below -40 dB)",
+   "pass": true,
+   "detail": -47.6
+  },
+  {
+   "name": "Sound above the band is kept (error below -40 dB)",
+   "pass": true,
+   "detail": -47.6
+  },
+  {
+   "name": "Full-band reduction matches the dB setting",
+   "pass": true
+  },
+  {
+   "name": "Band edge is soft: removal falls smoothly from inside to outside the band",
+   "pass": true,
+   "detail": [
+    0.98,
+    0.65,
+    0.06,
+    0
+   ]
+  },
+  {
+   "name": "Selections over 30 seconds are refused",
+   "pass": true
+  },
+  {
+   "name": "A 30-second selection processes in under 2 s",
+   "pass": true,
+   "detail": 243
+  },
+  {
+   "name": "Take dialog offers Manual cleanup · Separate sound",
+   "pass": true
+  },
+  {
+   "name": "Cleanup editor opens for the take",
+   "pass": true
+  },
+  {
+   "name": "Find next possible breath reports a candidate",
+   "pass": true,
+   "detail": "Possible breath. Play Original selection to check for consonants before editing."
+  },
+  {
+   "name": "Rumble preset is 0-100 Hz at 4 dB",
+   "pass": true
+  },
+  {
+   "name": "Spectrogram opens",
+   "pass": true
+  },
+  {
+   "name": "Keep adds and selects a new take with its cleanup settings",
+   "pass": true,
+   "detail": {
+    "takes": 2,
+    "selectedNew": true,
+    "cleanup": {
+     "low": 0,
+     "high": 100,
+     "db": 4,
+     "fade": 10,
+     "start": 1.5,
+     "end": 1.9
+    },
+    "sources": 2
+   }
+  },
+  {
+   "name": "Only the selected breath (about 1.5-1.9 s) changed",
+   "pass": true,
+   "detail": {
+    "first": 1.5000208333333334,
+    "last": 1.8999583333333334
+   }
+  },
+  {
+   "name": "Autosave stores the original once and the cleanup take as an edit",
+   "pass": true,
+   "detail": [
+    {
+     "kind": "full",
+     "samples": 960000
+    },
+    {
+     "kind": "edit",
+     "samples": 19198,
+     "frames": 960000
+    }
+   ]
+  },
+  {
+   "name": "The stored edit is under 5% of the take",
+   "pass": true,
+   "detail": {
+    "kind": "edit",
+    "samples": 19198,
+    "frames": 960000
+   }
+  },
+  {
+   "name": "After reopening, the cleanup take is rebuilt exactly",
+   "pass": true,
+   "detail": {
+    "takes": 2,
+    "hash": "f3d068393c4fb1c1",
+    "selectedNew": true
+   }
+  },
+  {
+   "name": "Undo after reopening removes the cleanup take (or history starts fresh)",
+   "pass": true,
+   "detail": 2
+  },
+  {
+   "name": "A cleanup of a cleanup take still stores one original plus edits",
+   "pass": true,
+   "detail": [
+    "full",
+    "edit",
+    "edit"
+   ]
+  }
+ ],
+ "errors": []
+}

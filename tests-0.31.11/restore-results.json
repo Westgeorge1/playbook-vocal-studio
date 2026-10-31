@@ -1,0 +1,229 @@
+{
+  "rows": [
+    {
+      "name": "390px real saved lane can reopen without render",
+      "pass": true
+    },
+    {
+      "name": "390px stale lane still keeps duplicate editor safely",
+      "pass": true
+    },
+    {
+      "name": "390px unique root P never skipped",
+      "pass": true
+    },
+    {
+      "name": "390px unique root notes never skipped",
+      "pass": true
+    },
+    {
+      "name": "390px unique root edits never skipped",
+      "pass": true
+    },
+    {
+      "name": "390px unique root noteTuner never skipped",
+      "pass": true
+    },
+    {
+      "name": "390px unique root pcm never skipped",
+      "pass": true
+    },
+    {
+      "name": "390px unique root takes never skipped",
+      "pass": true
+    },
+    {
+      "name": "390px unique root guide never skipped",
+      "pass": true
+    },
+    {
+      "name": "390px saved song opens despite stalled DSP",
+      "pass": true
+    },
+    {
+      "name": "390px no vocal reprocessing on startup",
+      "pass": true
+    },
+    {
+      "name": "390px saved audio, settings, edits, backing preserved",
+      "pass": true
+    },
+    {
+      "name": "390px autosave/reload retains all saved lane data",
+      "pass": true
+    },
+    {
+      "name": "390px project backup preserves originals/settings and standard WAV output",
+      "pass": true
+    },
+    {
+      "name": "390px saved song plays without reprocessing",
+      "pass": true
+    },
+    {
+      "name": "390px Record starts and saves new take after reopen",
+      "pass": true
+    },
+    {
+      "name": "390px new and previous recordings survive reload",
+      "pass": true
+    },
+    {
+      "name": "390px POLISH opens on demand with real processor",
+      "pass": true
+    },
+    {
+      "name": "390px POLISH renders after deferred startup",
+      "pass": true
+    },
+    {
+      "name": "980px real saved lane can reopen without render",
+      "pass": true
+    },
+    {
+      "name": "980px stale lane still keeps duplicate editor safely",
+      "pass": true
+    },
+    {
+      "name": "980px unique root P never skipped",
+      "pass": true
+    },
+    {
+      "name": "980px unique root notes never skipped",
+      "pass": true
+    },
+    {
+      "name": "980px unique root edits never skipped",
+      "pass": true
+    },
+    {
+      "name": "980px unique root noteTuner never skipped",
+      "pass": true
+    },
+    {
+      "name": "980px unique root pcm never skipped",
+      "pass": true
+    },
+    {
+      "name": "980px unique root takes never skipped",
+      "pass": true
+    },
+    {
+      "name": "980px unique root guide never skipped",
+      "pass": true
+    },
+    {
+      "name": "980px saved song opens despite stalled DSP",
+      "pass": true
+    },
+    {
+      "name": "980px no vocal reprocessing on startup",
+      "pass": true
+    },
+    {
+      "name": "980px saved audio, settings, edits, backing preserved",
+      "pass": true
+    },
+    {
+      "name": "980px autosave/reload retains all saved lane data",
+      "pass": true
+    },
+    {
+      "name": "980px project backup preserves originals/settings and standard WAV output",
+      "pass": true
+    },
+    {
+      "name": "980px saved song plays without reprocessing",
+      "pass": true
+    },
+    {
+      "name": "980px Record starts and saves new take after reopen",
+      "pass": true
+    },
+    {
+      "name": "980px new and previous recordings survive reload",
+      "pass": true
+    },
+    {
+      "name": "980px POLISH opens on demand with real processor",
+      "pass": true
+    },
+    {
+      "name": "980px POLISH renders after deferred startup",
+      "pass": true
+    },
+    {
+      "name": "original stalled restore blocks Record until worker is stopped",
+      "pass": true
+    },
+    {
+      "name": "reproduces vocalLoaded + outstanding update diagnostics",
+      "pass": true
+    },
+    {
+      "name": "timeout terminates worker and drains requests",
+      "pass": true
+    },
+    {
+      "name": "timeout clears only incomplete live editor",
+      "pass": true
+    },
+    {
+      "name": "timeout warns that saved project is protected",
+      "pass": true
+    },
+    {
+      "name": "failed restore never overwrites saved project",
+      "pass": true
+    },
+    {
+      "name": "late worker result is ignored",
+      "pass": true
+    },
+    {
+      "name": "new recording works after timeout",
+      "pass": true
+    },
+    {
+      "name": "new recording cannot replace protected old project",
+      "pass": true
+    },
+    {
+      "name": "note stalled restore blocks Record until worker is stopped",
+      "pass": true
+    },
+    {
+      "name": "timeout terminates worker and drains requests",
+      "pass": true
+    },
+    {
+      "name": "timeout clears only incomplete live editor",
+      "pass": true
+    },
+    {
+      "name": "timeout warns that saved project is protected",
+      "pass": true
+    },
+    {
+      "name": "failed restore never overwrites saved project",
+      "pass": true
+    },
+    {
+      "name": "late worker result is ignored",
+      "pass": true
+    },
+    {
+      "name": "new recording works after timeout",
+      "pass": true
+    },
+    {
+      "name": "new recording cannot replace protected old project",
+      "pass": true
+    },
+    {
+      "name": "No page errors",
+      "pass": true
+    }
+  ],
+  "errors": []
+}

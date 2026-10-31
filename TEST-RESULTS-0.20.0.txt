@@ -1,0 +1,47 @@
+PLAYBOOK VOCAL STUDIO 0.20.0 — CURRENT INTEGRATION CHECKS
+Date: 2026-10-19
+
+140 automated checks passed; no failed checks in the final evidence.
+
+21 pure model/PCM checks: recording ranges, phrase replacement boundaries,
+crossfades, independent summing/mixer behavior, quotas and older-project migration.
+45 checks — tests-0.20/results/browser-results.json
+17 checks — tests-0.20/results/edge-results.json
+ 8 checks — tests-0.20/results/final-ui-results.json
+ 9 checks — tests-0.20/results/long-results.json
+11 checks — tests-0.20/results/polish-edge-results.json
+29 checks — tests-0.20/results/polish-results.json
+
+Runtime: Node 24.19.0, Python 3.12, Playwright 1.64.0, Chromium 153.0.8010.0.
+The worker/WASM engine files are unchanged; ENGINE-SHA256.txt verified all 7 files.
+Inline and new JavaScript modules passed Node syntax checking.
+
+The processing suites use actual engine renders and verify independent lead and
+harmony settings, manual notes/breath/timing edits, mixed rendered PCM and real
+Web Audio scheduling. They check both editable sessions and processed outputs
+after autosave/project restoration, polished/dry stem data, full-song export with
+backing and effects tails, stale recording handling, bypass, undo, missing-render
+rejection, worker-open rollback and prior combined-session preservation.
+
+Recording suites use a synthetic microphone in Chromium, including a continuous
+performance over 63 seconds, repeated phrases, early stop and device-ended paths.
+Permission/capacity/placement/worker failures are explicitly injected simulations.
+Responsive layouts were checked from 360 through 1366 pixels; final POLISH toolbar
+and all-lane export routing passed after the last UI change.
+
+Two migration checks used a synthetic real 0.18.3 project from the prior review.
+The optional PVS_LEGACY_PROJECT variable supplies that fixture when rerunning;
+without it the general browser suite has 43 checks. The standalone model tests
+also cover legacy conversion. The POLISH edge suite consumes the project generated
+by polish_tracks_test.py. Commands are in tests-0.20/README.md.
+
+Earlier failures were investigated before this final run: fixed medium-width
+layout overflow; adapted old combined-mix expectations to per-track processing;
+corrected test comparisons for float precision, pan laws and retained effect tails;
+waited for asynchronous POLISH opening and stable canvas layout in UI tests.
+
+Limits of this evidence: no physical mic/headphone/phone or target Safari test,
+no listening judgment with real sung performances, and no production deployment.
+The integrating agent should run the suites on the merged source and perform
+real-device/audio acceptance before release. Older reports in this folder are
+historical and are not additional checks of this revision.

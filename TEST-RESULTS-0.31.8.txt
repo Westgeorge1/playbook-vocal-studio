@@ -1,0 +1,24 @@
+Playbook Vocal Studio 0.31.8 — beta repository integration, 2026-10-30
+
+Base: main 3d0b037599c3b16ebd570c84b79beff967e55e1b.
+Before edits, all 42 deployed beta runtime files matched the uploaded 0.31.7
+source byte for byte. The five updated runtime files match the already-tested
+0.31.8 source package exactly.
+
+Source-package verification: 72 browser workflow assertions, four keyboard
+checks, and all 16 Node core suites passed (including 78 static invariants and
+20 approved-tuning assertions). The seven locked engine files are unchanged.
+Detailed evidence and test scripts are included in the full 0.31.8 source ZIP
+supplied in the conversation, rather than added to this deployment repository.
+
+Additional repository subpath check: 10 passed, 0 failed.
+Ran a local HTTP server at the repository root and opened /beta/ in headless
+Chromium 153: version 0.31.8 loaded, tuning window opened, the note iframe
+resolved below /beta/, Focus notes and Maximize worked, wave editing opened,
+the 390x844 phone layout fitted, no local resources were missing, no JavaScript
+page errors occurred, and the root page remained 0.14.0.
+
+Synthetic audio and a Linux browser were used. This does not certify physical
+phone microphones, Safari, audio-driver latency, or subjective sound quality.
+Public beta was separately confirmed to serve 0.31.7 before this local update.
+No remote branch, pull request, or live deployment was created in this session.

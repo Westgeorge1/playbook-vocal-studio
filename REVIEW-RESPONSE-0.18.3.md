@@ -1,0 +1,38 @@
+# Response to the independent review of 0.18.2 — Playbook Vocal Studio 0.18.3
+
+App 0.18.3 · audio engine 0.12.1 (engine files byte-identical: `sha256sum -c ENGINE-SHA256.txt`).
+All 0.18.2 features, the tidy screen and the project format are kept. The checks are in `tests-0.18/t183.py`
+(section letter in brackets). They use the real buttons and menus, and were also run against 0.18.2
+(`ON182` log): the finding checks fail there and pass in 0.18.3.
+
+| # | Finding | Fix | Test (t183.py) |
+|---|---|---|---|
+| 01 HIGH | VOCAL ▾ › Import vocal › “Back up first” opened the file picker even when the backup failed | `saveProject()` now returns `{ok, status: saved / cancelled / failed / blocked, msg}`; `importVocal` opens the picker only when `ok`. Otherwise nothing is imported and a window says “Backup not made” / “Backup cancelled” with **Try the backup again** or **Keep my takes**. The rec.js status wrapper uses the same result. (`index.html` saveProject, `studio.js` importVocal, `rec.js`) | [A] project preparation fails, the download fails, the save is cancelled: the picker stays closed, the takes stay, the reason is shown. Try again → the backup downloads, then the picker opens and the vocal is imported. |
+| 02 MED | Settings › Back up project disabled in backing-only and Recovered-audio-only sessions | One rule, `canSaveProject()`, used by Settings ▾, Ctrl+S, the hidden phrase Save button and `saveProject()` itself: backing, Recovered audio, a whole vocal, parts/takes; still blocked while busy. When not available the menu item shows the reason. (`index.html`, `rc.js`, `daw.js`) | [C] the real Settings ▾ item in a backing-only and a Recovered-audio-only session → zip downloaded → opened in a fresh browser profile → same backing audio / same recovered file. Empty session: the item is unavailable and says why. |
+| 03 MED | Tempo not restored after reload in a phrase-only session | The parts-only autosave now includes the song settings (tempo, tempo sync, guide settings, mix). `restoreSession` restores them before the parts-only return and pushes them to the page, RECORD & COMP and the engine. Count-in and key were already kept (prefs / workspace). (`index.html` phraseSnapshot, restoreSession) | [D] 100 BPM with parts only, 90 BPM with takes before POLISH, 120 BPM with only a backing → reload → same tempo in #bpm, the guide and the RECORD & COMP readout. |
+| 04 MED | Song length ignored an imported whole vocal | `songDur()` includes the imported vocal at its own sample rate (`mainDur()`), so Song fit, scrolling, the waveform and the clock use it. (`rc.js`) | [B] 36 s vocal at 48 kHz with no backing and no parts → 36 s song, fit, clock 0:36, play from 34.5 s keeps going, reload keeps 36 s; 150 s vocal at 44.1 kHz → 2:30. |
+| 05 MED | Lane-menu backing level did not persist | The `#beatLevel` input handler is the one setter: every level control (lane fader, BACKING ▾ level, mixer faders) goes through it; it mirrors all sliders and labels and saves at once. (`index.html`) | [E] menu level 30 % → all controls 30 % → reload 30 % → playback gain 0.30; lane fader 55 % → reload 55 % → project zip reopens at 55 %. |
+| 06 MED | Trim and split kept stale take checks | Trim and split clear the check of every affected take (both sides of a split) so it runs again; each result now records the part span and take position it belongs to, so Undo / Redo re-run it when they differ. Old in-flight checks are dropped (token check). (`edit-core.js`, `index.html`) | [F] 4 s part → check 3.3 s; trim to 1 s → 0.84 s; Undo → 3.3 s; Redo → 0.84 s; split → each side checked for its own span. |
+| 07 HIGH | Controls clipped at 900 and 1024 px | The screen is never wider than the window (`.rcview` single `minmax(0,1fr)` column). From 1366 px the transport stays one row (as in 0.18.2, COMP lane in view at 1366 × 768). Below that it gets compact and wraps; Settings ▾ stays at the right; the part panel is `minmax(260px, 31vw)`; the footer is slimmer. (`studio.css` only; daw.css untouched) | [G] 900 × 700, 1024 × 768, 1280 × 800, 1366 × 768 and 1366 × 768 at 125 % / 150 %: REC, Stop, Play, Settings ▾, big Record, Comp done, Export, Undo all fully on screen and not cut off by a scroll box, no sideways scroll; Settings, REC, Stop, big Record and Comp done clicked at each size. Phones 360 / 390: no sideways scroll. At 150 % the big Record button scrolls inside the part panel; REC in the transport stays visible. |
+| 08 MED | Tab escaped the PVSRec choice dialogs | `chooseModal` is now a real modal: a capture-phase key handler traps Tab / Shift+Tab; the rest of the page is `inert`; `aria-labelledby` (title) and `aria-describedby`; Esc = the first, safe choice; Enter = the focused one; focus goes back to the opener (lane menu actions refocus their ▾ button first); page shortcuts do nothing while it is open; a second question waits for the first. (`rec.js`, `studio.js`) | [H] Tab ×8 and Shift+Tab ×8 stay inside and reach every choice; R and Ctrl+Z do nothing; a click behind the dialog does not let Tab out; Esc closes, nothing changes, focus is back on VOCAL ▾, the page is usable; Enter picks the focused choice; a question over the take editor traps Tab, Esc closes only the question, focus returns to Trim, and the editor still traps Tab. |
+
+## Usability (kept tidy)
+
+- **Start card** on an empty session (desktop: one row under the lanes, so the part panel keeps all its controls; phone: in the part panel): Record a vocal / Import a vocal / Open a project, plus + Add backing (hidden once a backing is loaded). [U]
+- **Help folded away**: “What each area does / The flow” is a `<details>` that closes when the first part exists; the footer “How it works” text sits behind a small **Help** link. Opening or closing it yourself is respected. [U]
+- **COMP lane**: “your chosen takes joined into one vocal”. [U]
+- **Listening levels**: the backing level on the lane and in BACKING ▾ is labelled “listen” / “Listening level … not the export mix”; Hear-me and Click are “listening level”. [U]
+- **Reasons for unavailable controls**: tooltips get “— Not available now: …” (Record, REC, Redo last take, Delete unchosen, Previous part), the big Record button shows the reason under it, and Settings ▾ › Back up shows its reason as the hint. [U, C]
+- **Docs**: RECORD-AND-TAKES.txt now describes the lane menus, the start card, Recovered audio, the backup-first rule, the take editor and “Load my new comp”; the old “Apply assembled vocal” and “More ▾” texts in the app are replaced.
+
+## Test suite
+
+- `t183.py` sections A–H (findings), U (usability), K (0.18.2 ↔ 0.18.3 projects, both ways), G (widths, zoom, phones).
+- `run_all.sh` runs t183 and t182 at 1024 × 768 every time (failure / cancel states and 900 / 1024 widths are now routine). `polish17.py` runs right after `sessA.py`, whose project it opens (before, it could read an old copy).
+- Fixtures: every test input ships in the zip (`imp-song.wav` and the 0.15 / 0.16 project zips were missing in 0.18.2); `vocal36.wav` and `vocal150-44k.wav` are made from `voice48k.wav` by `mkfix183.py` and come out the same every time (sha256 checked twice).
+
+## Risks / not covered
+
+- Physical phones, real microphones and real browser zoom (the zoom checks use the equivalent CSS viewport) are not tested on hardware.
+- `inert` needs a current browser (Chrome 102+, Safari 15.5+, Firefox 112+). Older ones still get the Tab trap and the paused shortcuts, but the page behind could still be clicked.
+- At 150 % zoom on a 1366 × 768 screen the big Record button may need a scroll inside the part panel (REC in the transport is always visible).

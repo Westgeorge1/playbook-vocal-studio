@@ -1,0 +1,23 @@
+PLAYBOOK VOCAL STUDIO 0.23.0 — TEST RESULTS (19 Oct 2026, UTC-5)
+Runner: tests-0.23/run_all23.sh (Chrome headless, fake microphone). Every suite exit 0, zero console errors.
+
+NEW IN 0.23
+  a23-rangesafe (bug fix A, core) ............ 8/8   (0.22.0 core: 2/8 — fails as expected)
+  b23-old-projects (bug fix B, real UI) ...... 6/6   (0.22.0 app: 4/6 — 0.20 and 0.21 ZIPs falsely "Update needed")
+  d23-e2e at 1366 and 390 (real UI) .......... 17/17 each
+  t23-core 15/15; t23 at 1366/1024/390 ....... 26/26 each
+  t20 polish_tracks ........................... 30/30 (now checks edits outside a change are kept)
+
+EARLIER SUITES (on 0.23.0)
+  t20: core 21, browser 43, long recording 9, edge cases 17, polish_edges x3 11/11, final_ui 8
+  t21: core 19, 1366/1024/390 41/41 each
+  t22: core 24, 1366/1024/390 40/40 each
+  ports22 (0.18 coverage): 900/1024/1280/1366/390/360 19/19 each; 62 s long run 20/20
+  F7: runner detects a failing suite.
+
+Notes: t21 at 390 failed once inside the full run (a click timed out while the screen re-rendered)
+and passed 41/41 on two separate reruns. After the final phone CSS change (tempo/key button shown
+on phones) the phone suites were rerun: ports22 390/360, t21-390, t23 390/1024, e2e 390 all pass.
+Test adjustments for intended 0.23 behaviour: core22 (shorter take now sits on top instead of
+deselecting the longer one), t22 ("Section:" text), polish_edges (waits for the autosave write
+before reloading), t23 (finds the reference region rather than regions[0]).
