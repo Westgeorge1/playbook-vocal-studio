@@ -10,23 +10,33 @@ function target(p,pcs,reference,keepBlue){
  for(let k=Math.floor(q)-6;k<=Math.ceil(q)+6;k++)if(pcs.has(((k%12)+12)%12)&&Math.abs(k-q)<d){d=Math.abs(k-q);best=k;}
  return best+reference;
 }
-function manual(n){return !!n.man||Math.abs(n.shift||0)>1e-7||(n.drift||0)>0||Math.abs((n.vib??1)-1)>1e-7||Math.abs(n.tr||0)>1e-7;}
+function manual(n){return !!n.man||Math.abs(n.shift||0)>1e-7||(n.drift||0)>0||Math.abs((n.vib??1)-1)>1e-7||Math.abs(n.tr||0)>1e-7||Math.abs(n.tl||0)>1e-7;}
 function apply(o){
  const {edited,notes,hop}=o,final=Float32Array.from(edited),amount=clamp(o.amount??.85,0,1);
  const pcs=new Set(o.pcs??[0,1,2,3,4,5,6,7,8,9,10,11]),reference=12*Math.log2((o.ref||440)/440);
  const speed=clamp(o.speedMs??70,20,200)/1000,edge=Math.max(1,Math.ceil(speed/hop));
+ // 0.32: optional controls from the research (Melodyne drift/modulation, Auto-Tune Humanize and Flex-Tune).
+ // At their defaults (no centreOf, flex unset, drift 0, vibrato 1, humanize 0) the result is unchanged.
+ const centreOf=typeof o.centreOf==='function'?o.centreOf:(n=>n.center);
+ const drift=clamp(o.drift??0,0,1),vib=clamp(o.vibrato??1,0,2),human=clamp(o.humanize??0,0,1);
+ const shaping=drift>0||Math.abs(vib-1)>1e-6,half=Math.max(1,Math.round(.09/hop));
+ const flex=Number.isFinite(o.flex)?clamp(o.flex,0,100):null;
  const review=[],corrected=[],untouched=[];
  if(!amount)return {final,review,corrected,untouched:notes.map((_,i)=>i)};
  for(let ni=0;ni<notes.length;ni++){
   const nt=notes[ni],a=Math.max(0,nt.i0),b=Math.min(edited.length-1,nt.i1),duration=(b-a+1)*hop;
   // Explicit note edits own their target. Never add a second correction to them.
   if(manual(nt)){untouched.push(ni);continue;}
-  const centre=nt.center,goal=target(centre,pcs,reference,o.keepBlue!==false),delta=goal-centre,d=Math.abs(delta);
+  // 0.32: a per-note reference (follow-my-drift) when the editor supplies one; otherwise the single reference.
+  const nref=typeof o.refOf==='function'?o.refOf(nt):reference;
+  const centre=centreOf(nt),goal=target(centre,pcs,nref,o.keepBlue!==false),delta=goal-centre,d=Math.abs(delta);
   if(nt.review||!Number.isFinite(centre)||duration<.12||d>.6){review.push(ni);continue;}
-  if(o.keepInTune!==false&&d<=.1){untouched.push(ni);continue;}
+  // Flex: notes this close to the target are left as sung (25 = 10 cents, the original in-tune protection).
+  const protect=flex===null?o.keepInTune!==false:flex>0,inner=flex===null?.1:flex*.004;
+  if(protect&&d<=inner&&!shaping){untouched.push(ni);continue;}
   // A soft knee prevents a 10-cent threshold from becoming an abrupt on/off jump.
-  const knee=o.keepInTune===false?1:ease((d-.1)/.15);
-  if(knee===0){untouched.push(ni);continue;}
+  const knee=!protect?1:d<=inner?0:ease((d-inner)/.15);
+  if(knee===0&&!shaping){untouched.push(ni);continue;}
   let used=false;
   for(let i=a;i<=b;i++){
    if(!Number.isFinite(edited[i]))continue;
@@ -41,7 +51,17 @@ function apply(o){
     const movement=count?Math.abs(sum/count-centre):0;
     expression=1-ease((movement-.65)/.6);
    }
-   const correction=amount*delta*knee*boundary*confidence*consonant*expression;
+   let correction=amount*delta*knee*boundary*confidence*consonant*expression;
+   if(shaping){
+    // Steady slow wandering (drift) and scale vibrato on the sustained part only: transitions,
+    // consonants and uncertain frames keep their weights at 0, exactly like the centre correction.
+    let sum=0,count=0;
+    for(let k=Math.max(a,i-half);k<=Math.min(b,i+half);k++)if(Number.isFinite(edited[k])){sum+=edited[k];count++;}
+    const slow=count?sum/count:edited[i],t=(i-a)*hop;
+    // Humanize: on long held notes, relax the drift and vibrato changes after the first 0.3 s.
+    const relax=human>0&&duration>.45?1-human*ease((t-.3)/.3):1;
+    correction+=boundary*confidence*consonant*expression*relax*(-drift*(slow-centre)+(vib-1)*(edited[i]-slow));
+   }
    final[i]=edited[i]+correction;if(Math.abs(correction)>1e-7)used=true;
   }
   (used?corrected:untouched).push(ni);

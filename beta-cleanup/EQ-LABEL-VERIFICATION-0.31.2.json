@@ -1,0 +1,16 @@
+{
+  "only_recorded_display_and_version_changes": true,
+  "static_control_ids_ranges_defaults_unchanged": true,
+  "local_assets_present_and_unique_ids": true,
+  "javascript_syntax_valid": true,
+  "changed_existing_files": [
+    "AGENT-HANDOVER.md",
+    "README.md",
+    "START-HERE.txt",
+    "index.html",
+    "reference-guide.js"
+  ],
+  "all_other_source_files_byte_unchanged": true,
+  "scope": "Source, syntax and asset verification. Browser layout and device playback were not executed. Audio code is unchanged.",
+  "static_invariants": "60 passed, 0 failed"
+}

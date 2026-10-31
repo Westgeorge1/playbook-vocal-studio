@@ -1,0 +1,103 @@
+Playbook Vocal Studio 0.17.0 — changes from 0.16.1
+====================================================
+
+What you asked for: "Remove them completely but keep what's necessary, but fuse the part you keep with the new
+recording functions." All recording now lives on 1 RECORD & COMP. 2 POLISH only polishes the comp.
+
+REMOVED (gone from the screen)
+------------------------------
+POLISH
+  - PHRASE tab (inspector tab 1) and REC tab (inspector tab 7). POLISH tabs are now CLEAN · TUNE · CHAIN · DETAIL · MIX
+    (keys 1–5). An old saved tab "phrase" or "rec" opens CLEAN.
+  - Take lanes and phrase lanes on the POLISH timeline, the "Choose" buttons in the lane heads, the record-arm (●) button,
+    the IN/OUT punch strip and red flags, the resume line, phrase selection / dragging / right-click menus on the
+    POLISH timeline. The POLISH ruler strip now shows your parts as read-only names.
+  - Transport: ● REC, Next phrase, CLICK, COUNT, MIC meter, mic-check button, CLIP light, recording status, REC MODE
+    button. Only the OUT meter stays. LOOP stays as a listening loop (your dragged ruler region, else the part under
+    the playhead, else 4 bars).
+  - Menus: Edit › Redo this phrase / Next phrase / Rename phrase / Delete unchosen takes in all phrases / Add marker;
+    View › Phrase inspector / Recording setup / big REC MODE / Mic check / Calibrate latency;
+    File › Download last microphone file (moved to RECORD & COMP Settings ▾).
+  - Keys in POLISH: R (record), Shift+R, M (marker), , and . (marker jumps), C (click), K (count-in), I (mic check).
+    R in POLISH now shows a hint "Recording is on step 1".
+  - WAVE EDIT: "Record a whole-song take" (mic) button and its timer/meter, and the "record a take with my phone's
+    recorder" file input. "Add a whole-song take (audio file)" stays.
+  - Session window (File › Session & tracks): "Record" / whole-vocal record button and its notes. It now has a
+    button "Record your vocal on 1 RECORD & COMP".
+Old recording panels
+  - "Redo this phrase", "Next phrase" and "Delete unchosen" panels/buttons of the old PHRASE and REC tabs.
+  - Phone REC MODE (the separate big-button screen) and its buttons.
+  - Duplicated record buttons: POLISH ● REC, REC MODE ● button, PHRASE-tab Record, REC-tab Redo/Next, WAVE EDIT record,
+    Session-window record. The recording buttons left are the big red button and REC on RECORD & COMP.
+  - Star ratings (list, timeline, menu) and song markers (ruler, list, + Marker, M key). Old 0.15/0.16 projects keep
+    their markers and ratings in the file (they are not shown, and a 0.17 save keeps them).
+RECORD & COMP
+  - The "More ▾" menu's recording tools (Loop, Punch in now, Metronome, Hear myself, Mic check, Mic gain, Phone REC
+    MODE, Star ratings, Add marker, Import take, Clear chosen, Rename/Delete part, Delete unchosen in all parts,
+    "All recording settings (POLISH › REC tab)"). The menu is now "Settings ▾" and holds only settings and files.
+
+FUSED INTO 1 RECORD & COMP (where each one lives now)
+------------------------------------------------------
+  Punch-in on the fly ........ R, REC or the big button while the song plays (Play / Space). Recording starts at the
+                               playhead in the part under it (a new "Punch m:ss" part is made if there is none).
+                               R / REC / big button again = punch out; the song keeps playing and the comp player
+                               restarts at once so you hear the new take. Space = punch out and stop, Esc = cancel.
+                               The big button says "Punch in here" / "Punch out", REC says PUNCH / OUT.
+                               The punched take = your chosen take outside the punch + the new singing inside it,
+                               15 ms fades, auto-chosen when the part had a chosen take; one Undo goes back.
+  Loop recording ............. "⟲ Loop: ON/OFF" button on the part panel (key L). With Loop ON, Record plays the
+                               selected part round and round after the pre-roll / count-in; every full pass is a
+                               take. Refused with a plain warning if the part runs past the end of the backing.
+  Latency test + calibration . Settings ▾ › Latency … ms, Latency test (timing)…, Use the automatic latency.
+                               The value is used for every take: normal, punch-in, loop.
+  Metronome .................. CLICK button next to COUNT-IN in the transport (phone: next to the count-in select);
+                               key C. Settings ▾ › Click level.
+  Count-in ................... COUNT-IN select (transport; phone: "Count-in" select). Also Settings ▾ › Count-in.
+  Monitoring ................. HEAR ME button in the transport (phone: HEAR ME). Turning it on shows a headphones
+                               warning. Settings ▾ › Hear-me level.
+  Mic gain ................... GAIN slider next to the mic meter, with the dB value (phone: GAIN row).
+  Mic meter + CLIP ........... MIC LEVEL meter (click it, or key I, for a mic check) + CLIP light (click = reset).
+  Mic check messages ......... mic check window before the first take (Settings ▾ › Mic check before the first take)
+                               and plain-English microphone errors (blocked / not found / busy).
+  Import a take .............. "⤓ Import take…" on the part panel: lines up with the part start, or with the song
+                               start (whole-song file; only this part's piece is kept). Too-short files are flagged.
+  Backing on/off ............. BACKING ON/OFF.   Hear my comp ....... HEAR MY COMP ON/OFF.
+  Undo / Redo ................ ↶ ↷ in the top bar, Ctrl+Z / Ctrl+Shift+Z.
+  Autosave + backup reminder . saved light in the top bar; Settings ▾ › Backup reminder.
+  Rename / resize parts ...... Rename part, drag the part edges (phone: red IN / OUT flags), double-click a part.
+  Delete unchosen ............ "Delete unchosen takes (n)" + new "…in all parts (n)" link under the take list.
+  Un-choose a take ........... click "✓ Chosen" again (or right-click › Un-choose this take).
+  Melody / timing reference .. right-click a take › Use as melody / timing reference.
+  Song key for suggestions ... Settings ▾ › Song key (for take suggestions).
+  Pre-roll, join fade, tempo . Settings ▾.
+  Export comp ................ Export comp (WAV) (top bar; phone: Export comp).
+  Comp done → POLISH ......... bottom right (phone: Go to POLISH ▶). In POLISH a "Load my new comp" button appears
+                               when the comp changed on RECORD & COMP, and "◀ Record & comp" goes back.
+  Backing-end warning ........ status line + toast when a part runs past the end of the backing.
+  Unique take names .......... Take 1, Take 2 … per part, never reused (also for punch, loop and import takes).
+  Phone ...................... the big record button stays; all the fused controls are on the phone screen.
+
+KEPT IN POLISH (all working on the comp)
+----------------------------------------
+  CLEAN, TUNE, CHAIN, DETAIL, MIX, the NOTE EDITOR, WAVE EDIT (breaths, timing, whole-song takes from files),
+  COMPARE REFERENCE, SAVE / EXPORT, listen BEFORE / CLEANED / TUNED / FINAL, LOOP for listening, mute/solo/faders,
+  zoom, Undo/Redo of sound settings, Smart guide, Help.
+
+FIXES
+-----
+  - Hear-me monitoring stayed on after a normal take ended (your mic kept playing in the headphones). It now switches
+    off and the microphone is released when the take ends.
+  - Status bar wording "attempts in RECORD" → "takes on RECORD & COMP".
+
+UNDER THE HOOD (honest notes)
+-----------------------------
+  - The 0.13 core still reads some fields of the old PHRASE and REC panels (part name/start/end boxes, record button,
+    status line, count-in/latency/monitor settings). Those elements are kept inside one hidden, inert container
+    (#engineRoom) so nothing can see or click them; the screen controls drive them. Deleting them would mean
+    rewriting the core's recording code, which also does the audio work, so they stay hidden instead.
+  - Audio engine files are byte-identical to 0.16.1 (sha256 in ENGINE-SHA256.txt): phrase-core.js, worker.js,
+    phrase-worker.js, engine-wasm.js, engine-wasm.wasm, rec-worklet.js; daw.css and rec.css are unchanged too.
+  - Project format unchanged (format 9, workspace v1). New optional take fields: punch {from,to,over} and source
+    (imported file name). 0.16.1 opens 0.17 projects (tested); 0.13–0.16 projects open in 0.17 (0.15 and 0.16 tested).
+  - Files changed: index.html, rc.js, rc.css, rec.js, daw.js, START-HERE.txt, RECORD-AND-TAKES.txt.
+    Patch scripts that made the changes are in tests-0.17/patch_*.py.

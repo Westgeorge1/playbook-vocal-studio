@@ -1,0 +1,89 @@
+/* Keep the live editors in their original DOM; only their presentation changes. */
+#workWindowOpen{justify-self:end;margin:4px 8px;min-height:40px}
+.arrange{grid-template-rows:minmax(150px,1fr) auto auto auto}
+#workWindowShade{position:fixed;inset:0;background:#02070dd6;z-index:8500}
+body.ww-open{overflow:hidden}
+#dock.ww-window{position:fixed;z-index:8501;display:grid;grid-template-rows:auto auto minmax(0,1fr) auto;min-width:0;min-height:0;max-width:none;border:1px solid #6d879d;border-radius:12px;background:var(--panel);box-shadow:0 22px 85px #000b;overflow:hidden}
+#dock.ww-window.ww-maximized{inset:0!important;width:100vw!important;height:100dvh!important;border-radius:0}
+.ww-titlebar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:#1c2c3a;color:#edf4f9;padding:8px 12px;cursor:move;touch-action:none}
+.ww-titlebar strong{flex:1;min-width:120px;font:700 17px var(--body,system-ui)}
+.ww-titlebar button,.ww-footer button{font:600 13px var(--body,system-ui);min-height:40px;border-radius:7px;border:1px solid #617b90;background:#263f52;color:#fff;padding:6px 12px;cursor:pointer}
+.ww-titlebar #workWindowClose{border-color:#e1b959;color:#ffe3a0}
+.ww-titlebar :focus-visible,.ww-footer :focus-visible{outline:3px solid #f5c875;outline-offset:2px}
+#dock.ww-window .dtabs{display:flex;overflow-x:auto;padding:5px 10px;flex-wrap:wrap;gap:5px}
+#dock.ww-window .dtabs button{min-height:38px;white-space:normal;letter-spacing:.02em}
+#dock.ww-window #dockToggle,#dock.ww-window .ww-inline-open{display:none}
+#dock.ww-window .dbody{overflow:auto;max-height:none;min-height:0;padding:10px;overscroll-behavior:contain}
+#dock.ww-window[data-workspace="notes"]:has(#newNotePanel:not([hidden])) .dbody{padding:0;overflow:hidden}
+#dock.ww-window[data-workspace="notes"] #dockNotes:has(#newNotePanel:not([hidden])),#dock.ww-window #newNotePanel{height:100%;min-height:0}
+#dock.ww-window #noteEditorFrame{height:100%;min-height:0;border-radius:0}
+#dock.ww-window #editCanvas,#dock.ww-window #notesCanvas{height:clamp(260px,48dvh,760px)}
+#dock.ww-window #takeCanvas{height:clamp(180px,30dvh,480px)}
+.ww-footer{display:flex;align-items:center;justify-content:space-between;background:#16212b;color:#afc4d4;font:12px var(--body,system-ui);padding:0 0 0 12px}
+.ww-footer button{cursor:nwse-resize;touch-action:none;min-width:42px;padding:0;border-radius:6px 0 0 0}
+.ww-dragging iframe{pointer-events:none}
+#vocalEditor .stdialog:not(.stsmall){resize:both;min-width:min(580px,100%);max-width:100%;min-height:min(360px,calc(100dvh - 32px))}
+#vocalEditor .stdialog header{position:sticky;top:-14px;background:var(--rcp);z-index:2;flex-wrap:wrap;padding:6px 0}
+#vocalEditor .stdialog.ww-take-max{width:100%;height:calc(100dvh - 32px);max-width:none;resize:none}
+#vocalEditor .ww-take-max .stcanvas{height:clamp(220px,45dvh,700px)}
+#songDialog:has(.sg-editor){resize:both;min-width:min(560px,calc(100vw - 24px));max-width:calc(100vw - 16px)}
+#sgEditMaximize{margin-bottom:12px}
+#songDialog.ww-take-max{width:calc(100vw - 16px);height:calc(100dvh - 16px);max-height:none;resize:none}
+#songDialog.ww-take-max .sg-editor{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 30px}
+@media(max-width:719px),(max-height:459px){
+ #workWindowOpen{min-height:44px;max-width:calc(100% - 16px)}
+ .ww-titlebar{padding:6px 8px;gap:5px;cursor:default}
+ .ww-titlebar strong{flex-basis:100%;font-size:15px}
+ .ww-titlebar button{min-height:44px;flex:1;padding:6px;font-size:13px}
+ #dock.ww-window .dtabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));padding:4px;gap:4px}
+ #dock.ww-window .dtabs button{font-size:11px;padding:5px 3px;min-height:44px}
+ #dock.ww-window .dtabs small{display:none}
+ #dock.ww-window .dbody{padding:6px}
+ #dock.ww-window .selrow{flex-wrap:wrap}
+ #songDialog.ww-take-max .sg-editor{grid-template-columns:1fr}
+ #songDialog:has(.sg-editor),#vocalEditor .stdialog:not(.stsmall){resize:none;min-width:0}
+ #vocalEditor .stdialog.ww-take-max{height:calc(100dvh - 8px)}
+ .ww-titlebar{padding-top:max(6px,env(safe-area-inset-top))}
+ #dock.ww-window .dbody{padding-bottom:env(safe-area-inset-bottom,0px)}
+}
+/* 0.31.12: a visible launcher and the live recording workspace. */
+#workspaceTools{display:flex;align-items:center;gap:7px;flex-wrap:wrap;flex-basis:100%;padding:5px 0;font:13px system-ui;color:#dce9f3}
+#workspaceTools button,#workspaceTools select{min-height:40px;padding:6px 10px;border:1px solid #617b90;border-radius:6px;background:#263f52;color:#fff;font:600 13px system-ui}
+#workspaceTools label{font-weight:600}#workspaceTools details{position:relative}#workspaceTools summary{cursor:pointer;border:1px solid #617b90;border-radius:50%;width:24px;text-align:center}
+#workspaceTools details p{position:absolute;z-index:8600;right:0;top:24px;width:min(310px,80vw);padding:14px;border:1px solid #617b90;background:#182938;border-radius:8px;box-shadow:0 8px 30px #000a}
+#workspaceStatus:empty{display:none}#workspaceStatus{flex-basis:100%;color:#ffe3a0}
+.ww-window-actions{display:flex;align-items:center;flex-wrap:wrap;gap:6px;max-width:100%}
+#songStudio.ww-window{position:fixed;z-index:8501;border:1px solid #6d879d;border-radius:12px;box-shadow:0 22px 85px #000b;max-width:none;display:block;padding:0 14px 20px;overscroll-behavior:contain}
+#songStudio.ww-window.ww-maximized{inset:0!important;width:100vw!important;height:100dvh!important;border-radius:0}
+#songStudio.ww-window>.ww-titlebar{position:sticky;top:0;z-index:5;margin:0 -14px 12px;order:-1}
+#songStudio.ww-window>.sg-transport{top:var(--record-window-bar,0px);z-index:4}
+#songStudio.ww-window>.ww-footer{position:sticky;bottom:-20px;margin:14px -14px -20px;z-index:5}
+#songStudio.ww-window.ww-focus-timeline>.sg-top,#songStudio.ww-window.ww-focus-timeline>.sg-sectionbar,#songStudio.ww-window.ww-focus-timeline>#sgStart,#songStudio.ww-window.ww-focus-timeline>.sg-settings,#songStudio.ww-window.ww-focus-timeline>.sg-footer{display:none}
+#songStudio.ww-window .ww-titlebar button{min-height:40px;font-size:13px;padding:6px 10px}
+#workspaceHandoff{position:fixed;inset:0;z-index:100000;display:grid;place-items:center;background:#101720ee;color:#edf4f9;padding:24px;font:16px/1.5 system-ui}
+#workspaceHandoff>div{max-width:500px;background:#1c2c3a;padding:24px;border:1px solid #617b90;border-radius:12px}#workspaceHandoff button{padding:12px;font:600 16px system-ui;background:#263f52;color:#fff;border:1px solid #617b90;border-radius:7px}
+@media(max-width:719px),(max-height:459px){
+ #workspaceTools{gap:5px}#workspaceTools label{display:none}#workspaceTools select{min-width:0;width:135px}#workspaceTools button,#workspaceTools select{min-height:44px;padding:6px 8px}
+ .ww-window-actions{width:100%;gap:4px}.ww-window-actions button{min-width:0;flex:1;font-size:12px;padding:5px}
+ .ww-titlebar{gap:4px}.ww-titlebar strong{min-width:0}
+ #songStudio.ww-window{padding:0 8px 12px}#songStudio.ww-window>.ww-titlebar{margin:0 -8px 8px}#songStudio.ww-window>.ww-footer{margin:12px -8px -12px;bottom:-12px}
+ #songStudio.ww-window .ww-titlebar button{font-size:12px;padding:5px;min-height:44px}
+}
+#songStudio.ww-focus-timeline .sg-transport{padding:8px;gap:6px}
+#songStudio.ww-focus-timeline .sg-transport>#sgRoom,#songStudio.ww-focus-timeline .sg-transport>#sgReady,#songStudio.ww-focus-timeline .sg-transport>#sgBarBeat{display:none}
+@media(max-height:459px){
+ #songStudio.ww-window .sg-transport>#sgTempo,#songStudio.ww-window .sg-transport>#sgArmed,#songStudio.ww-window .sg-transport>.sg-spacer{display:none}
+ #songStudio.ww-window>.ww-titlebar strong{flex-basis:auto}
+ #songStudio.ww-window>.ww-titlebar .ww-window-actions{width:auto;flex:1}
+}
+.ww-status:empty{display:none}.ww-status{flex-basis:100%;font:13px/1.4 system-ui;color:#ffe3a0;cursor:default}
+@media(max-width:899px){
+ #rcSteps>#workspaceTools{grid-column:1/-1;grid-row:3}
+ #rcSteps>#trackPolishBar{grid-row:4}
+}
+/* 0.31.13: the workspace help reads as a small round "?" button, not a disclosure arrow. */
+#workspaceTools details>summary{list-style:none;display:inline-grid;place-items:center;width:32px;height:32px;border-radius:50%;border:1px solid #617b90;background:#263f52;color:#fff;font:700 15px var(--body,system-ui);cursor:pointer}
+#workspaceTools details>summary::-webkit-details-marker{display:none}
+#workspaceTools details>summary::marker{content:""}
+#workspaceTools details[open]>summary{background:#f5c875;color:#13202b;border-color:#f5c875}
+#workspaceTools details>summary:focus-visible{outline:3px solid #f5c875;outline-offset:2px}

@@ -1,4 +1,24 @@
-# Playbook Vocal Studio 0.31.12
+# Playbook Vocal Studio 0.32.1
+
+**Tune to** (in the note editor, next to A =) now defaults to **Backing, else A = 440**, so your vocal is tuned to the beat. **My singing** has a better estimate and a clear readout, and **My singing, following drift** tracks slow drift through the song for a cappella singing. Changing the reference keeps notes you've already snapped on the new keys. Older projects keep their exact reference. Also fixed from the review: Level notes, harmony layers in drift mode, and the settings report. See CHANGES-0.32.1.md and TEST-RESULTS-0.32.1.txt. Beta only; the main site stays at 0.14.0.
+
+# Previous release: 0.32.0
+
+Research-based tuning in the note editor. **Research presets** (Natural Roots, Gentle Polish, Tight Modern, Hard Effect) sit beside your two **Original approved** presets, which are unchanged. **Blind compare** plays two or three presets as X, Y and Z and reveals the names only after you keep one. Natural mode adds **Flex**, **Steady drift**, **Vibrato**, **Humanize** and **Smart note centres**. Each note gets **Tilt**, and the Voice panel gets **Level notes**. The optional **AI octave check** (SwiftF0, run on your device) fixes notes read an octave wrong.
+
+Measured on synthetic test vocals at A = 440: Original approved A 2.6¢ average error, Natural Roots 2.7¢ with drift steadied and 92% of the vibrato kept, Gentle Polish 6.3¢ with all vibrato kept. Use Blind compare on your own vocals to choose. See CHANGES-0.32.0.md and TEST-RESULTS-0.32.0.txt. Beta only; the main site stays at 0.14.0.
+
+# Previous release: 0.31.13
+
+**Vocal tuning** now gives the piano roll the room. In a wide window the roll fills the height on the left, with **Selected note** and the settings beside it on the right. Short laptop screens open tuning maximized, and phones open in **Focus notes**. The **Workspace** selector follows the screen you are on, so **Expand** in POLISH opens tuning instead of jumping back to recording.
+
+**Escape** first deselects notes; press it again to return to the studio. Use **Fit** (F), **↕− / ↕+** or **Alt + wheel** for row height, and **?** for shortcuts. Settings panels fold from their headings. Window size, Focus and folded panels are remembered on this device.
+
+When the tuning reference that follows your singing is 15¢ or more from A = 440, a short note offers **Use A = 440**, **Match backing** or **Keep mine**. The approved default sound is unchanged.
+
+See CHANGES-0.31.13.md and TEST-RESULTS-0.31.13.txt. Beta only; the main site stays at 0.14.0.
+
+## 0.31.12
 
 Choose **Recording**, **Vocal tuning**, **Audio editing**, or **Reference comparison** in the **Workspace** row at the top. **Expand** gives the selected tool its own movable, resizable workspace. Phones fill the browser automatically. Recording opens with **Focus timeline**; choose **All controls** to restore the file and section tools. **Maximize**, **Full screen**, and **Return to studio** are in each window header.
 

@@ -1,0 +1,217 @@
+{
+ "rows": [
+  {
+   "name": "Workspace selector follows POLISH (shows Vocal tuning, not Recording)",
+   "pass": true
+  },
+  {
+   "name": "Expand from POLISH opens tuning and stays in POLISH",
+   "pass": true
+  },
+  {
+   "name": "Short laptop screen opens tuning maximized the first time",
+   "pass": true
+  },
+  {
+   "name": "Piano roll fully visible and at least 300 px tall at 1280x720",
+   "pass": true,
+   "detail": {
+    "top": 137,
+    "h": 391.5,
+    "bottom": 528.5,
+    "right": 869.609375,
+    "inner": 613,
+    "nl": 882.609375,
+    "nt": 10
+   }
+  },
+  {
+   "name": "Selected-note inspector sits beside the piano roll",
+   "pass": true,
+   "detail": {
+    "top": 137,
+    "h": 391.5,
+    "bottom": 528.5,
+    "right": 869.609375,
+    "inner": 613,
+    "nl": 882.609375,
+    "nt": 10
+   }
+  },
+  {
+   "name": "Title-bar Play starts tuning playback",
+   "pass": true
+  },
+  {
+   "name": "Title-bar Play pauses again",
+   "pass": true
+  },
+  {
+   "name": "Notes selected before Escape",
+   "pass": true
+  },
+  {
+   "name": "Escape with a note selected keeps the tuning window open",
+   "pass": true
+  },
+  {
+   "name": "Escape deselected the notes",
+   "pass": true
+  },
+  {
+   "name": "Escape after clicking the title bar also deselects first",
+   "pass": true
+  },
+  {
+   "name": "? opens the keyboard shortcuts",
+   "pass": true
+  },
+  {
+   "name": "Escape closes the shortcuts, not the window",
+   "pass": true
+  },
+  {
+   "name": "Taller rows button changes the view",
+   "pass": true
+  },
+  {
+   "name": "Alt + wheel zooms rows vertically",
+   "pass": true
+  },
+  {
+   "name": "F fits the notes in view",
+   "pass": true
+  },
+  {
+   "name": "Fit button is idempotent after F",
+   "pass": true
+  },
+  {
+   "name": "No reference warning at A = 440",
+   "pass": true
+  },
+  {
+   "name": "Reference far from 440 shows a warning with the cents",
+   "pass": true,
+   "detail": {
+    "shown": true,
+    "text": "A = 430.1 Hz · 39¢ flat of 440. Notes snap to your own pitch and may sound flat on a 440 beat.",
+    "match": false
+   }
+  },
+  {
+   "name": "Match backing hidden when the song has no backing",
+   "pass": true
+  },
+  {
+   "name": "Use A = 440 sets the reference and hides the warning",
+   "pass": true
+  },
+  {
+   "name": "Undo brings the previous reference back",
+   "pass": true
+  },
+  {
+   "name": "Keep mine hides the warning",
+   "pass": true
+  },
+  {
+   "name": "Backing row and Match tuning appear when the song has a backing",
+   "pass": true
+  },
+  {
+   "name": "Match tuning reads a 30¢-flat backing (about A = 432.4)",
+   "pass": true,
+   "detail": {
+    "hz": 432.6,
+    "msg": "Riddim is 29¢ flat of standard. Set A = 432.6 Hz."
+   }
+  },
+  {
+   "name": "Settings panel collapses from its heading",
+   "pass": true
+  },
+  {
+   "name": "Smooth knob tick starts outside the % readout",
+   "pass": true,
+   "detail": 23.995443317430084
+  },
+  {
+   "name": "Formant labels say this note / whole vocal",
+   "pass": true
+  },
+  {
+   "name": "Escape with nothing selected still returns to studio",
+   "pass": true
+  },
+  {
+   "name": "Window layout saved on this device",
+   "pass": true
+  },
+  {
+   "name": "Reopened window keeps its size after reload",
+   "pass": true,
+   "detail": {
+    "size1": {
+     "x": 8,
+     "y": 8,
+     "width": 1093,
+     "height": 624
+    },
+    "size2": {
+     "x": 8,
+     "y": 8,
+     "width": 1093,
+     "height": 624
+    }
+   }
+  },
+  {
+   "name": "Reopened window keeps Focus notes after reload",
+   "pass": true
+  },
+  {
+   "name": "Collapsed panel remembered after reload",
+   "pass": true
+  },
+  {
+   "name": "Desktop opens as a movable window (not maximized)",
+   "pass": true
+  },
+  {
+   "name": "Desktop piano roll fully visible and at least 340 px tall",
+   "pass": true,
+   "detail": {
+    "h": 441.5,
+    "bottom": 578.5,
+    "inner": 663
+   }
+  },
+  {
+   "name": "Help is a round ? button without a disclosure arrow",
+   "pass": true
+  },
+  {
+   "name": "Selector shows Recording on Song & vocals",
+   "pass": true
+  },
+  {
+   "name": "Phone opens tuning in Focus notes",
+   "pass": true
+  },
+  {
+   "name": "Phone piano roll is at least 280 px tall and starts in the top half",
+   "pass": true,
+   "detail": {
+    "top": 229,
+    "h": 360,
+    "inner": 697
+   }
+  },
+  {
+   "name": "Phone tuning fills the screen",
+   "pass": true
+  }
+ ],
+ "errors": []
+}

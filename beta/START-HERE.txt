@@ -1,3 +1,36 @@
+PLAYBOOK VOCAL STUDIO 0.32.1 — TUNE TO THE BEAT BY DEFAULT
+
+In the note editor, "Tune to" (next to A =) now starts on "Backing, else A = 440 (auto)": your notes are tuned
+to the beat's measured tuning, or A = 440 until a beat is added. "My singing" and "My singing, following drift"
+are there when you sing a cappella or with a band tuned to you; the line under the tools explains the reference.
+Changing the reference keeps notes you have already snapped or edited on the new keys.
+Older projects keep their exact reference (shown as Custom). See CHANGES-0.32.1.md and TEST-RESULTS-0.32.1.txt.
+
+PLAYBOOK VOCAL STUDIO 0.32.0 — RESEARCH-BASED TUNING
+
+Your two approved presets are unchanged (byte-identical audio to 0.31.13).
+New in the note editor (POLISH > TUNE > Open tuning window):
+- Research presets: Natural Roots, Gentle Polish, Tight Modern, Hard Effect.
+  Set the key and tuning reference first (Use A = 440 or Match backing), apply a preset, then fix single notes.
+- Blind compare: hear 2-3 presets as X / Y / Z without names, then Keep the one you like.
+- Natural mode controls: Flex, Steady drift, Vibrato, Humanize, Smart note centres.
+- Tilt for one note; Level notes in the Voice panel.
+- AI octave check (Note detection, off by default): fixes notes read an octave wrong. First use loads about 11 MB.
+Measured results and details: CHANGES-0.32.0.md and TEST-RESULTS-0.32.0.txt. Beta only; the main site remains 0.14.0.
+
+PLAYBOOK VOCAL STUDIO 0.31.13 — BIGGER TUNING WORKSPACE
+
+Open Vocal tuning with Expand (the Workspace selector now follows the screen you are on).
+- Wide screens: piano roll on the left at full height; Selected note and settings on the right.
+- Short laptop screens open tuning maximized; phones open in Focus notes.
+- Escape first deselects notes (or closes the shortcuts list); press it again to return to the studio.
+- Fit (F), ↕−/↕+ or Alt + wheel for taller rows, ? for keyboard shortcuts.
+- Tap a settings heading to fold it. Window size, Focus and folded panels are remembered on this device.
+- If the tuning reference is far from A = 440, a short note offers Use A = 440, Match backing or Keep mine.
+  After changing the reference, apply your preset again.
+
+See CHANGES-0.31.13.md and TEST-RESULTS-0.31.13.txt. Beta only; the main site remains 0.14.0.
+
 PLAYBOOK VOCAL STUDIO 0.31.12 — COMPLETE WORKSPACE WINDOWS
 
 At the top, use Workspace to choose Recording, Vocal tuning, Audio editing or Reference comparison.

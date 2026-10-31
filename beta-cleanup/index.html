@@ -1,0 +1,1043 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Playbook Vocal Studio 0.32.1 · DAW</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,500..800&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: one column of studio "racks" under sticky step tabs, with a transport bar fixed to the bottom like a recorder. */
+:root {
+  --bg: #0e1115; --rack: #171c22; --raised: #20272f; --line: #313b45;
+  --fg: #f4f1ea; --muted: #a3afb9; --gold: #f2c14e; --mint: #5eead4; --edit: #ff7a45; --slide: #6aa9ff; --bend: #b48cff; --scoop: #ffa94d; --red: #ff5a5f; --green: #4ade80; --amber: #fbbf24;
+  --display: "Archivo", "Arial Narrow", system-ui, sans-serif;
+  --body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --transport-h: 132px;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { background: var(--bg); color: var(--fg); }
+body { font: 16px/1.5 var(--body); margin: 0; -webkit-tap-highlight-color: transparent; }
+.wrap { max-width: 980px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 14px calc(var(--transport-h) + 28px + env(safe-area-inset-bottom, 0px)); }
+header.brand { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.brand .kicker { font: 700 12px/1 var(--display); letter-spacing: .18em; color: var(--gold); }
+.brand h1 { font: 800 30px/1.05 var(--display); font-stretch: 112%; margin: 6px 0 0; letter-spacing: -.01em; text-wrap: balance; }
+.chip { font: 600 13px/1 var(--mono); padding: 8px 12px; border-radius: 999px; background: var(--raised); color: var(--muted); border: 1px solid var(--line); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chip.busy { color: var(--gold); border-color: color-mix(in srgb, var(--gold) 50%, var(--line)); }
+.chip.ready { color: var(--green); }
+.chip.warn { color: var(--amber); }
+.busybar { height: 3px; margin-top: 12px; border-radius: 2px; background: var(--rack); overflow: hidden; }
+.busybar i { display: block; height: 100%; width: 35%; background: var(--gold); transform: translateX(-100%); }
+.busybar.on i { animation: slide 1.1s ease-in-out infinite; }
+@keyframes slide { to { transform: translateX(300%); } }
+nav.steps { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; padding: 10px 0; background: var(--bg); }
+nav.steps button { font: 700 15px/1 var(--display); font-stretch: 105%; letter-spacing: .04em; padding: 13px 4px; border-radius: 12px; border: 1px solid var(--line); background: var(--rack); color: var(--fg); cursor: pointer; }
+nav.steps button b { color: var(--muted); font-weight: 600; margin-right: 6px; font-family: var(--mono); }
+nav.steps button[aria-selected="true"] { background: var(--gold); color: var(--bg); border-color: var(--gold); }
+nav.steps button[aria-selected="true"] b { color: var(--bg); }
+section.page { display: grid; gap: 14px; }
+.rack { background: var(--rack); border: 1px solid var(--line); border-radius: 16px; padding: 16px; display: grid; gap: 14px; min-width: 0; }
+.rack h2 { font: 700 13px/1 var(--display); letter-spacing: .16em; color: var(--gold); margin: 0; text-transform: uppercase; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+p { margin: 0; color: var(--muted); max-width: 65ch; }
+p strong { color: var(--fg); font-weight: 600; }
+button.btn, label.btn { font: 600 16px/1.2 var(--body); padding: 13px 18px; border-radius: 12px; border: 1px solid var(--line); background: var(--raised); color: var(--fg); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; text-align: center; }
+button.btn.primary, label.btn.primary { background: var(--gold); color: var(--bg); border-color: var(--gold); }
+button.btn.wide, label.btn.wide { width: 100%; }
+button.btn:disabled { opacity: .45; cursor: default; }
+button.btn[aria-pressed="true"] { background: color-mix(in srgb, var(--gold) 22%, var(--raised)); border-color: var(--gold); color: var(--fg); }
+:focus-visible { outline: 3px solid var(--mint); outline-offset: 2px; }
+input[type=file] { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.big { font: 800 34px/1 var(--display); font-stretch: 108%; }
+.big small { font: 500 16px var(--body); color: var(--muted); margin-left: 6px; }
+.verdict { font: 600 16px/1.3 var(--body); }
+.note { font-size: 14px; color: var(--muted); }
+.warnbox { border: 1px solid color-mix(in srgb, var(--amber) 45%, var(--line)); background: color-mix(in srgb, var(--amber) 9%, var(--rack)); color: var(--fg); border-radius: 12px; padding: 12px 14px; font-size: 15px; }
+.knobs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.knob { display: grid; justify-items: center; gap: 4px; touch-action: none; user-select: none; -webkit-user-select: none; }
+.knob .lbl { font: 700 11px/1.2 var(--display); letter-spacing: .1em; color: var(--muted); text-align: center; min-height: 2.4em; display: flex; align-items: flex-end; }
+.knob svg { width: 100%; max-width: 112px; aspect-ratio: 1; cursor: ns-resize; }
+.knob .val { font: 600 15px var(--mono); color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 3px 10px; font-variant-numeric: tabular-nums; }
+.knob.off svg { opacity: .45; }
+select { font: 600 16px var(--body); color: var(--fg); background: var(--raised); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; min-height: 48px; max-width: 100%; }
+.field { display: grid; gap: 6px; min-width: 0; }
+.field > span { font: 700 11px/1 var(--display); letter-spacing: .12em; color: var(--muted); }
+.seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.seg button { font: 700 14px/1.1 var(--display); letter-spacing: .06em; padding: 12px 4px; border-radius: 10px; border: 1px solid var(--line); background: var(--raised); color: var(--fg); cursor: pointer; min-height: 46px; }
+.seg button[aria-pressed="true"] { background: var(--gold); color: var(--bg); border-color: var(--gold); }
+.seg button:disabled { opacity: .4; }
+.switch { display: flex; align-items: center; gap: 12px; cursor: pointer; font-size: 16px; }
+.switch input { appearance: none; -webkit-appearance: none; width: 50px; height: 28px; border-radius: 999px; background: var(--line); position: relative; flex: none; cursor: pointer; margin: 0; }
+.switch input::after { content: ""; position: absolute; top: 4px; left: 4px; width: 20px; height: 20px; border-radius: 50%; background: var(--fg); transition: transform .15s; }
+.switch input:checked { background: var(--gold); }
+.switch input:checked::after { transform: translateX(22px); background: var(--bg); }
+canvas { display: block; width: 100%; border-radius: 12px; background: var(--bg); touch-action: none; }
+#cleanCanvas { height: 170px; }
+#notesCanvas { height: min(46vh, 420px); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: var(--muted); }
+.legend i { display: inline-block; width: 14px; height: 6px; border-radius: 3px; margin-right: 6px; vertical-align: middle; }
+.tools { display: flex; gap: 6px; flex-wrap: wrap; }
+.tools button { font: 600 15px var(--body); min-height: 44px; padding: 8px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--raised); color: var(--fg); cursor: pointer; }
+.tools button:disabled { opacity: .4; }
+.noteinfo { font: 600 15px var(--mono); color: var(--fg); min-height: 1.5em; }
+.shape { border: 1px solid var(--line); border-radius: 14px; padding: 12px; display: grid; gap: 12px; background: color-mix(in srgb, var(--bg) 55%, var(--rack)); }
+.shape .tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.shape .tabs button { font: 700 13px/1.1 var(--display); letter-spacing: .08em; padding: 11px 4px; border-radius: 10px; border: 1px solid var(--line); background: var(--raised); color: var(--fg); cursor: pointer; min-height: 44px; }
+.shape .tabs button[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.readout { display: grid; gap: 2px; }
+.readout .hz { font: 700 22px/1.15 var(--mono); font-variant-numeric: tabular-nums; color: var(--gold); }
+.readout .sub { font: 500 13px var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+.knobs.four { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+@media (max-width: 340px) { .knobs.four { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.knob .val.auto { color: var(--muted); }
+.knob .val { cursor: pointer; min-height: 30px; }
+.knob { position: relative; }
+.knob.fine svg .arc { stroke: var(--mint); }
+.knob.fine::after { content: attr(data-fine); position: absolute; top: 2.4em; left: 50%; transform: translateX(-50%); font: 700 11px var(--mono); color: var(--bg); background: var(--mint); border-radius: 6px; padding: 2px 6px; pointer-events: none; white-space: nowrap; }
+.knob svg:focus { outline: none; } .knob svg:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; border-radius: 50%; }
+.stepper { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(var(--transport-h) + 16px + env(safe-area-inset-bottom, 0px)); z-index: 60; width: min(360px, calc(100vw - 32px)); background: var(--raised); border: 1px solid var(--gold); border-radius: 16px; padding: 14px; box-shadow: 0 12px 40px rgba(0,0,0,.5); }
+.steplabel { font: 700 12px/1.2 var(--display); letter-spacing: .1em; color: var(--muted); text-align: center; margin-bottom: 8px; }
+.steprow { display: grid; grid-template-columns: 64px 1fr 64px; gap: 10px; align-items: center; }
+.stepbtn { font-size: 28px; min-height: 56px; padding: 0; touch-action: none; user-select: none; -webkit-user-select: none; }
+.stepvalue { text-align: center; font: 700 22px var(--mono); color: var(--fg); font-variant-numeric: tabular-nums; }
+.steprow2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+.stepper .note { margin: 8px 0 0; text-align: center; font-size: 13px; }
+#sheetText { font-size: 12px; line-height: 1.5; }
+.resetrow { margin-top: 10px; gap: 14px; flex-wrap: wrap; }
+.confirmbox { margin-top: 12px; padding: 12px; border: 1px solid var(--amber); border-radius: 12px; background: var(--bg); }
+.confirmbox p { margin: 0 0 10px; }
+.toast { position: fixed; left: 50%; transform: translateX(-50%); top: calc(12px + env(safe-area-inset-top, 0px)); z-index: 70; width: min(560px, calc(100vw - 32px)); display: grid; grid-template-columns: 34px 1fr 36px; gap: 10px; align-items: start; background: var(--green); color: var(--bg); border-radius: 14px; padding: 12px; box-shadow: 0 10px 34px rgba(0,0,0,.5); pointer-events: none; }
+.toast .closebtn { pointer-events: auto; }
+.toast b { font: 700 16px/1.25 var(--display); display: block; }
+.toast p { margin: 4px 0 0; font-size: 14px; line-height: 1.35; color: var(--bg); word-break: break-word; }
+.toast .tick { width: 30px; height: 30px; border-radius: 50%; background: var(--bg); position: relative; }
+.toast .tick::after { content: ""; position: absolute; left: 10px; top: 5px; width: 8px; height: 15px; border: solid var(--green); border-width: 0 3.5px 3.5px 0; transform: rotate(45deg); }
+.toast .closebtn { background: transparent; border: 0; color: var(--bg); font-size: 24px; min-height: 36px; cursor: pointer; }
+.stagehead { font: 700 14px/1.2 var(--display); letter-spacing: .08em; color: var(--gold); margin: 16px 0 6px; text-transform: uppercase; }
+.stagelist { display: grid; gap: 4px; }
+.stagelist .switch { min-height: 44px; font-size: 15px; }
+.stagelist .switch small { display: block; color: var(--muted); font-size: 13px; line-height: 1.3; }
+.stagelist .switch.off { opacity: .45; }
+#customRack .abrow { margin: 14px 0 4px; display: grid; grid-template-columns: 1fr 1fr 88px; gap: 8px; }
+#customRack .abrow .btn { min-width: 0; padding-left: 8px; padding-right: 8px; }
+.sheetbox { margin-top: 10px; } .sheetbox summary { cursor: pointer; font-weight: 600; min-height: 44px; display: flex; align-items: center; }
+.savelist { display: grid; gap: 10px; }
+.saveitem { display: grid; grid-template-columns: 1fr auto; gap: 10px 14px; align-items: center; padding: 12px 0; border-top: 1px solid var(--line); }
+.saveitem:first-child { border-top: 0; }
+.saveitem p { font-size: 14px; }
+.saveitem b { display: block; font: 700 17px/1.2 var(--display); color: var(--fg); margin-bottom: 4px; }
+pre.settings { margin: 0; background: var(--bg); border: 1px solid var(--line); border-radius: 12px; padding: 12px; font: 500 14px/1.6 var(--mono); color: var(--fg); white-space: pre-wrap; overflow-x: auto; }
+.transport { position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; background: color-mix(in srgb, var(--rack) 94%, transparent); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-top: 1px solid var(--line); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-top: 10px; padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px)); }
+.transport .inner { max-width: 980px; margin: 0 auto; display: grid; gap: 8px; }
+.tline { display: flex; align-items: center; gap: 10px; }
+.tline .time { font: 600 20px var(--mono); font-variant-numeric: tabular-nums; flex: 1; text-align: right; white-space: nowrap; }
+.tbtn { width: 52px; height: 52px; border-radius: 14px; border: 1px solid var(--line); background: var(--raised); color: var(--fg); display: grid; place-items: center; cursor: pointer; flex: none; }
+.tbtn.play { width: 108px; background: var(--green); border-color: var(--green); color: #0b1a10; font: 700 17px var(--display); gap: 6px; grid-auto-flow: column; }
+.tbtn svg { width: 22px; height: 22px; }
+.progress { height: 6px; background: var(--line); border-radius: 3px; position: relative; cursor: pointer; touch-action: none; }
+.progress i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--gold); border-radius: 3px; }
+.btn.rec { background: color-mix(in srgb, var(--red) 16%, var(--raised)); border-color: color-mix(in srgb, var(--red) 55%, var(--line)); font-size: 18px; min-height: 60px; }
+.btn.rec .dot { width: 18px; height: 18px; border-radius: 50%; background: var(--red); flex: none; }
+.btn.rec.on { background: var(--red); color: #fff; border-color: var(--red); }
+.btn.rec.on .dot { background: #fff; border-radius: 3px; }
+.getin { display: grid; gap: 12px; }
+.recbox { display: grid; gap: 8px; }
+.rectime { font: 700 34px/1 var(--mono); font-variant-numeric: tabular-nums; color: var(--red); }
+.meter { height: 10px; background: var(--bg); border: 1px solid var(--line); border-radius: 5px; overflow: hidden; }
+.meter i { display: block; height: 100%; width: 0; background: var(--green); transition: width .06s linear; }
+.how summary { cursor: pointer; font-weight: 600; color: var(--fg); min-height: 44px; display: flex; align-items: center; }
+.how p { margin-top: 8px; font-size: 15px; }
+.seg.four { grid-template-columns: repeat(4, 1fr); }
+@media (max-width: 520px) { #presetSeg { grid-template-columns: repeat(2, 1fr); } }
+#presetSeg { grid-template-columns: repeat(5, 1fr); }
+@media (max-width: 760px) { #presetSeg { grid-template-columns: repeat(2, 1fr); } #presetSeg button[data-preset="4"] { grid-column: 1 / -1; } }
+#abSeg { grid-template-columns: repeat(4, 1fr); }
+#eqCanvas { height: min(40vh, 300px); }
+.bandinfo { font: 600 15px var(--mono); color: var(--fg); min-height: 1.4em; }
+.readout2 { display: flex; flex-wrap: wrap; gap: 6px 18px; font: 500 15px var(--mono); color: var(--muted); }
+.readout2 b { color: var(--fg); font-weight: 700; }
+.tempo input { width: 76px; font: 600 16px var(--mono); color: var(--fg); background: var(--raised); border: 1px solid var(--line); border-radius: 10px; padding: 10px; min-height: 44px; }
+.btn.small { min-height: 44px; padding: 8px 12px; font-size: 15px; }
+.empty { text-align: center; padding: 26px 8px; color: var(--muted); }
+@media (min-width: 760px) { .brand h1 { font-size: 38px; } #notesCanvas { height: 440px; } }
+@media (max-width: 460px) { nav.steps button { font-size: 13px; padding: 13px 2px; } nav.steps button b { display: none; } }
+@media (max-width: 380px) { nav.steps button { font-size: 12px; letter-spacing: 0; } .tbtn.play { width: 84px; } }
+@media (prefers-reduced-motion: reduce) { .busybar.on i { animation: none; transform: none; width: 100%; opacity: .6; } .switch input::after { transition: none; } }
+/* 0.9.1+ additions: performance editor, Smart Guide sheet, new tune / clean / chain controls */
+@media (max-width: 520px) { nav.steps button { font-size: 12px; padding: 13px 1px; letter-spacing: .02em; } nav.steps button b { display: none; } }
+@media (max-width: 360px) { nav.steps button { font-size: 11px; } }
+.headright { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: flex-end; min-width: 0; }
+.guidebtn { font: 700 14px/1 var(--display); letter-spacing: .1em; padding: 10px 14px; min-height: 44px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--mint) 55%, var(--line)); background: color-mix(in srgb, var(--mint) 10%, var(--raised)); color: var(--mint); cursor: pointer; display: inline-flex; gap: 8px; align-items: center; }
+.guidebtn .count { background: var(--mint); color: var(--bg); border-radius: 999px; min-width: 22px; height: 22px; display: inline-grid; place-items: center; font: 700 13px var(--mono); padding: 0 6px; }
+.guidebtn .count:empty { display: none; }
+.sheet { position: fixed; left: 0; right: 0; bottom: calc(var(--transport-h) + env(safe-area-inset-bottom, 0px)); z-index: 12; max-height: calc(100vh - var(--transport-h) - 70px); overflow-y: auto; overscroll-behavior: contain; background: var(--rack); border-top: 2px solid var(--mint); box-shadow: 0 -18px 40px rgba(0,0,0,.45); padding: 14px max(16px, env(safe-area-inset-left, 0px)) 16px max(16px, env(safe-area-inset-right, 0px)); }
+.sheet .inner { max-width: 980px; margin: 0 auto; display: grid; gap: 12px; }
+.sheet .top { display: flex; align-items: center; gap: 10px; justify-content: space-between; flex-wrap: wrap; }
+.sheet h2 { font: 800 20px/1 var(--display); letter-spacing: .08em; color: var(--mint); margin: 0; }
+.closebtn { width: 44px; height: 44px; border-radius: 12px; border: 1px solid var(--line); background: var(--raised); color: var(--fg); font-size: 22px; cursor: pointer; }
+.tipbadge { font: 700 12px/1.2 var(--display); letter-spacing: .12em; color: var(--gold); text-transform: uppercase; }
+.tiptitle { font: 700 21px/1.25 var(--display); color: var(--fg); text-wrap: balance; }
+.tipreason { color: var(--fg); font-size: 16px; line-height: 1.5; max-width: 70ch; margin: 0; }
+.tipchange { font: 600 15px/1.5 var(--mono); color: var(--mint); }
+.gaincost { display: grid; gap: 4px; font-size: 15px; }
+.gaincost b { color: var(--fg); }
+.measured { font: 500 13px/1.5 var(--mono); color: var(--muted); }
+.gmsg { font-size: 14px; color: var(--muted); min-height: 1.4em; }
+.gmsg.amber { color: var(--amber); }
+.btnrow { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; }
+.btnrow .btn { min-height: 46px; padding: 10px 12px; font-size: 15px; }
+#editCanvas { height: 150px; }
+#takeCanvas { height: 110px; }
+.selrow { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; align-items: end; }
+.selrow input { width: 100%; font: 600 16px var(--mono); color: var(--fg); background: var(--raised); border: 1px solid var(--line); border-radius: 10px; padding: 10px; min-height: 44px; }
+.editlist { display: grid; gap: 6px; }
+.editlist button { text-align: left; font: 500 15px var(--mono); padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--raised); color: var(--fg); cursor: pointer; min-height: 44px; }
+.editlist button[aria-pressed="true"] { border-color: var(--gold); background: color-mix(in srgb, var(--gold) 16%, var(--raised)); }
+.scroller { width: 100%; accent-color: var(--gold); }
+.seg.two { grid-template-columns: repeat(2, 1fr); }
+.seg.five { grid-template-columns: repeat(5, 1fr); }
+@media (max-width: 520px) { .seg.five { grid-template-columns: repeat(3, 1fr); } }
+.knobs.four .knob .lbl { font-size: 10px; }
+.toolsep { flex-basis: 100%; height: 0; }
+
+.session-strip { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 0 2px; font-size:14px; color:var(--mint); }
+.session-strip span { overflow-wrap:anywhere; min-width:0; }
+.session-strip .btn { flex-shrink:0; padding:10px; font-size:13px; }
+.tracks { display:grid; gap:14px; grid-template-columns:repeat(2,minmax(0,1fr)); align-items:start; }
+.track { border-top:3px solid var(--mint); }
+.beat-track { border-top-color:var(--gold); }
+.track-name { font:700 22px/1.3 var(--display); overflow-wrap:anywhere; }
+.track-status { color:var(--mint); font-size:15px; overflow-wrap:anywhere; }
+#beatLevel { width:100%; min-height:44px; accent-color:var(--gold); }
+.playback-info { display:flex; justify-content:space-between; gap:8px; font-size:12px; color:var(--mint); min-height:18px; }
+#playbackStatus { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+#outputSignal { white-space:nowrap; color:var(--muted); }
+:root { --transport-h:156px; }
+@media (max-width:700px) { .tracks { grid-template-columns:minmax(0,1fr); } }
+
+nav.steps { display:flex; overflow-x:auto; scrollbar-width:thin; }
+nav.steps button { flex:1 0 64px; min-height:48px; }
+#page-record input[type=text],#page-record input[type=number] { width:100%; min-height:46px; border:1px solid var(--line); border-radius:10px; padding:10px; background:var(--raised); color:var(--fg); font:inherit; }
+#page-record input[type=range] { width:100%; min-height:44px; accent-color:var(--mint); }
+#phraseTimeline { width:100%; height:130px; touch-action:none; background:var(--bg); border-radius:10px; }
+.phrase-list,.phrase-takes { display:grid; gap:10px; }
+.phrase-list { grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); }
+.phrase-list button { overflow-wrap:anywhere; text-align:left; }
+.phrase-take { border:1px solid var(--line); border-radius:12px; padding:14px; display:grid; gap:10px; }
+.phrase-take.chosen { border-color:var(--mint); background:color-mix(in srgb,var(--mint) 5%,var(--rack)); }
+.phrase-take strong { margin:0; font-size:17px; overflow-wrap:anywhere; }
+.phrase-take .metrics { font:13px/1.65 var(--mono); color:var(--muted); }
+.phrase-take.suggested { color:var(--gold); }
+</style>
+<link rel="stylesheet" href="daw.css?v=0.32.1">
+<link rel="stylesheet" href="rec.css?v=0.32.1">
+<link rel="stylesheet" href="rc.css?v=0.32.1">
+<link rel="stylesheet" href="studio.css?v=cleanup1">
+<link rel="stylesheet" href="work-windows.css?v=0.32.1">
+<link rel="icon" href="data:,">
+
+<!-- 0.16.0 RECORD & COMP: two-step switch (always visible) -->
+<div class="rcsteps" id="rcSteps">
+  <div class="rcbrand"><b>Playbook Vocal Studio</b><span id="rcSong" title="Double-click to rename the song">New session · lead vocal</span></div>
+  <div class="rcswitch" role="tablist" aria-label="Steps">
+    <button id="rcStep1" role="tab" data-step="rc" aria-selected="true"><b>1</b> RECORD &amp; COMP</button><span class="rcsep" aria-hidden="true">›</span>
+    <button id="rcStep2" role="tab" data-step="polish" aria-selected="false"><b>2</b> POLISH <small>(Clean · Tune · Chain · Mix)</small></button>
+  </div>
+  <div class="rctopright">
+    <button class="rcbtn rcrecov" id="rcRecovery" hidden title="Microphone audio that could not be placed as a take. Open to download it.">⚠ Recovered audio <b id="rcRecoveryN">0</b></button>
+    <div class="rcsaved" id="rcSaved" role="status" aria-live="polite" title="Autosave on this browser"></div>
+    <button class="rcbtn" id="rcUndo" title="Undo the last recording, choice or delete (Ctrl+Z)">↶ <span>Undo</span></button>
+    <button class="rcbtn" id="rcRedo" title="Redo (Ctrl+Shift+Z)">↷ <span>Redo</span></button>
+    <button class="rcbtn rcgreen rcexport" id="rcExport" title="Export the vocal mix, the song with backing, or stems">Export comp (WAV)</button>
+    <button class="rcbtn rcmorebtn rcphone" id="rcMoreP" aria-haspopup="true" title="Settings: latency test, pre-roll, tempo, files…">Settings ▾</button>
+    <span class="rcengine" id="rcEngine">Engine starting…</span>
+  </div>
+</div>
+<section class="rcview" id="rcView" aria-label="Record and comp">
+  <div class="rctbar rcdesk" role="region" aria-label="Recording transport">
+    <button class="rct" id="rcStart" title="Back to the start (Home)" aria-label="Back to the start">|◀</button>
+    <button class="rct" id="rcPlay" title="Play / pause (Space). Plays the backing with your comp." aria-label="Play">▶</button>
+    <button class="rct" id="rcStop" title="Stop (press again: back to the start)" aria-label="Stop">■</button>
+    <button class="rct rcrec" id="rcRec" title="Record (R). Stopped: record the selected section. Playing: punch in right here; R again punches out and the song keeps playing."><span class="dot"></span> REC</button>
+    <div class="rcfield rcbackfield"><span>BACKING</span><div class="rcseg" role="group" aria-label="Record with or without the backing track" title="With backing: you hear the backing track while you play and record. Without: you hear only the click, your comp and yourself (works with no backing loaded)."><button id="rcWith" aria-pressed="true">With</button><button id="rcWithout" aria-pressed="false">Without</button></div></div>
+    <div class="rcclock"><div id="rcBars">bar 1 · beat 1</div><small id="rcTime">00:00.0 / 00:00.0</small></div>
+    <button class="rcclock rcinfo" id="rcTempo" title="Tempo and key. Click to change the tempo (Settings ▾)"><span id="rcBpm">75 BPM</span>&nbsp;&nbsp;4/4<br><span id="rcKey">Key —</span></button>
+    <div class="rcfield"><span>COUNT-IN · CLICK</span><div class="rcmicrow"><select id="rcCount" aria-label="Count-in before recording"><option value="0">Off</option><option value="1">1 bar</option><option value="2">2 bars</option></select><button class="rctog rcsm" id="rcClick" aria-pressed="false" title="Metronome click while you play and record (C). Headphones only, never recorded.">CLICK</button></div></div>
+    <div class="rcfield rcmicfield"><span>MIC LEVEL · GAIN <output id="rcGainV">0 dB</output></span><div class="rcmicrow"><button class="rcmeter" id="rcMeterBtn" title="Click to start or stop a mic level check (I)"><i id="rcMeter"></i></button><button class="cliplight" id="rcClip" title="Lights up if your voice was too loud (clipping). Click to reset.">CLIP</button><input type="range" class="rcgain" id="rcGain" min="-12" max="24" step="1" value="0" aria-label="Mic gain in dB" title="Mic gain (digital, before recording)"></div></div>
+    <div class="rcfield"><span>HEAR ME</span><button class="rctog rcsm" id="rcMonitor" aria-pressed="false" title="Input monitoring: hear your own mic in your headphones. Wired headphones only.">OFF</button></div>
+    <div class="rcfield"><span>HEAR MY COMP</span><button class="rctog rcsm" id="rcHearComp" aria-pressed="true" title="Hear your chosen takes while you play and record (OFF = backing only)">ON</button></div>
+    <button class="rcbtn rcmorebtn" id="rcMoreBtn" aria-haspopup="true" title="Settings: latency test, pre-roll, tempo, files…">Settings ▾</button>
+  </div>
+  <div class="rcbody">
+    <div class="rcleft rcdesk">
+      <div class="rclanes" id="rcLanes">
+        <div class="rcheads" id="rcHeads"></div>
+        <div class="rctl" id="rcTl"><canvas id="rcCanvas" aria-label="Song timeline: click a section to select it, drag its edges to resize, click a take to hear it, double-click a take to choose it"></canvas><button class="rcaddbtn" id="rcAddBtn" title="Add a new section to the song">+ Add section</button></div>
+      </div>
+      <div class="rcpanrow" id="rcPanRow" hidden><input type="range" id="rcPan" min="0" max="1000" step="1" value="0" aria-label="Scroll the zoomed timeline"></div>
+      <div class="rcjoinnote" id="rcJoinNote">× marks = smooth joins (no clicks)</div>
+      <div class="rcbelow">
+        <div class="rcstatus" id="rcStatus" role="status" aria-live="polite">Pick a section, then press Record.</div>
+        <details class="rchelpbox" id="rcHelpBox" open><summary>Help: what each area does and the flow</summary>
+        <div class="rcflowwrap">
+          <div class="rchelp"><h3>WHAT EACH AREA DOES</h3><ol>
+            <li>Two-step switch: record &amp; comp first, then POLISH. Autosave, Undo/Redo, Export comp.</li>
+            <li>Transport: play, stop, RECORD, position, count-in + CLICK, mic level + CLIP light + gain, HEAR ME (monitoring), backing / comp on-off. While the song plays, REC (or R) punches in right where you are.</li>
+            <li>Sections strip: the song in sections. Click one; red IN / OUT flags = where the section starts and ends. Recording keeps going until you press Stop; if you sing past OUT, the section grows to fit (turn “Stop at section end” ON to stop at OUT). Drag a section's edge to make it longer or shorter. Double-click to rename.</li>
+            <li>Take lanes: every try stacked under its section. Green ✓ = the take you chose; grey = spares. Click a take to hear it, double-click to choose it.</li>
+            <li>Comp lane: your chosen takes joined into one continuous vocal, with a short smooth fade at each join (no clicks).</li>
+            <li>Section panel: big record button, Redo, Loop (a new take every pass), Import a take, next / previous section, play-choose-delete each take, progress.</li></ol></div>
+          <div class="rcflow" id="rcFlow"><h3>THE FLOW</h3>
+            <div class="rcfs" data-fs="1"><b>1</b><span>Pick a section</span><small>Verse 1, Chorus…</small></div>
+            <div class="rcfs" data-fs="2"><b>2</b><span>Record takes</span><small>R · punch-in · loop</small></div>
+            <div class="rcfs" data-fs="3"><b>3</b><span>Choose best</span><small>green ✓ per section</small></div>
+            <div class="rcfs go" data-fs="4"><b>4</b><span>POLISH</span><small>clean · tune · mix</small></div>
+          </div>
+        </div>
+        </details>
+      </div>
+    </div>
+    <aside class="rcpanel" id="rcPanel" aria-label="Selected section">
+      <div class="rcptop"></div>
+      <div class="rcphead"><h2 id="rcPartName">NO PART YET</h2><span id="rcPartTakes"></span></div>
+      <div class="rcpinfo" id="rcPartInfo">Add a section to start.</div>
+      <div class="rcstart" id="rcStartCard" role="group" aria-labelledby="rcStartT" hidden><h3 id="rcStartT">START A SONG</h3>
+        <button class="rcbtn rcstartb" id="rcsRecord"><b>● Record a vocal</b><small>Name the first section (Verse 1, Chorus…), then sing.</small></button>
+        <button class="rcbtn rcstartb" id="rcsImport"><b>Import a vocal</b><small>One finished vocal file for the whole song.</small></button>
+        <button class="rcbtn rcstartb" id="rcsOpen"><b>Open a project</b><small>A song project (.zip) you backed up before.</small></button>
+        <button class="rcbtn rcstartb rcstartalt" id="rcsBacking"><b>+ Add backing</b><small>The music you sing to. Optional; it is never recorded.</small></button></div>
+      <div class="rcpedit"><button class="rclink" id="rcRename">Rename section</button><button class="rclink" id="rcDelPart">Delete section</button><button class="rclink" id="rcAddPart2">+ Add section</button></div>
+      <div class="rcchips rcphone" id="rcChips" role="list" aria-label="Sections"></div>
+      <div class="rcswipe rcphone">swipe for more sections →</div>
+      <canvas class="rcmini rcphone" id="rcMini" aria-label="This section: drag the red IN or OUT flag to change where the section starts or ends"></canvas>
+      <div class="rczoom rcphone" id="rcZoomP" role="group" aria-label="Zoom"><button data-z="out" title="Zoom out" aria-label="Zoom out">−</button><button data-z="in" title="Zoom in" aria-label="Zoom in">+</button><button data-z="part" title="Fit the selected section">Section</button><button data-z="song" title="Fit the whole song">Song</button><button data-z="hand" aria-pressed="false" title="Hand: drag to scroll instead of moving flags" aria-label="Hand">✋</button></div>
+      <div class="rcrecrow">
+        <button class="rcbtn rcphone rcside" id="rcPlayP">▶ Play</button>
+        <button class="rcbig" id="rcBig" title="Record a take on this section (R)"><span class="ring"><span class="dot"></span><span class="lab" id="rcBigLabel">Record<br>take 1</span></span></button>
+        <button class="rcbtn rcphone rcside" id="rcStopP">■ Stop</button>
+      </div>
+      <div class="rcorr" id="rcOrR">or press <b>R</b></div>
+      <div class="rcwhy" id="rcBigWhy" role="status" hidden></div>
+      <div class="rcmicp rcphone"><span>MIC</span><button class="rcmeter" id="rcMeterBtnP" title="Tap to check your mic level"><i id="rcMeterP"></i></button><button class="cliplight" id="rcClipP">CLIP</button></div>
+      <div class="rcmicp rcphone rcphset"><select id="rcCountP" aria-label="Count-in"><option value="0">No count-in</option><option value="1">Count-in 1 bar</option><option value="2">Count-in 2 bars</option></select><button class="rctog" id="rcClickP" aria-pressed="false">CLICK</button><button class="rctog" id="rcMonitorP" aria-pressed="false">HEAR ME</button></div>
+      <div class="rcmicp rcphone rcphset rcbackp"><span>BACKING</span><div class="rcseg" role="group" aria-label="Record with or without the backing track"><button id="rcWithP" aria-pressed="true">With</button><button id="rcWithoutP" aria-pressed="false">Without</button></div><button class="rctog" id="rcBackMenuP" aria-haspopup="true" aria-label="Backing track menu: load, replace, remove, level" title="Load, replace or remove the backing track">Track ▾</button></div>
+      <div class="rcmicp rcphone rcphset"><span>GAIN</span><input type="range" class="rcgain" id="rcGainP" min="-12" max="24" step="1" value="0" aria-label="Mic gain in dB"><output id="rcGainVP">0 dB</output></div>
+      <div class="rcctl"><button class="rcbtn rcredo" id="rcRedoLast" title="Record this section again and throw away the last take (Undo brings it back)">↺ Redo last take</button><button class="rcbtn rcstopend" id="rcStopEnd" aria-pressed="false" title="OFF (normal): a take keeps recording until you press Stop, and the section grows if you sing past OUT. ON: recording stops by itself at the section's OUT flag.">⏹ Stop at section end: OFF</button><button class="rcbtn rcloop" id="rcLoop" aria-pressed="false" title="Loop recording (L): the section plays round and round and every full pass becomes a new take">⟲ Loop: OFF</button><button class="rcbtn rcimport" id="rcImport" title="Bring in a take you recorded somewhere else (audio file)">⤓ Import take…</button><button class="rcbtn rcprev" id="rcPrev">◀ Previous section</button><button class="rcbtn rcnext" id="rcNext">Next section ▶</button></div>
+      <h3 class="rcsub">TAKES</h3>
+      <div class="rctakes" id="rcTakes"></div>
+      <div class="rcdelrow"><button class="rcbtn rcdelun" id="rcDelUn">Delete unchosen takes (0)</button><button class="rclink" id="rcDelAll" title="Delete every take that is not chosen, in every section (Undo brings them back)">…in all sections</button></div>
+      <div class="rcprog"><div class="rcproghead"><h3 class="rcsub">COMP PROGRESS</h3><button class="rctog rcphone rcvocp" id="rcVocalMenuP" aria-haspopup="true" title="Import a whole vocal, play it, or clear it">Vocal ▾</button><b id="rcProgText">0 of 0 sections chosen</b></div><div class="rcsegs" id="rcSegs"></div><div class="rctodo" id="rcTodo"></div></div>
+      <div class="rcpfoot rcphone"><button class="rcbtn rcgreen" id="rcExportP">Export comp</button><button class="rcbtn rcgo" id="rcDoneP">Go to POLISH ▶</button></div>
+      <div class="rctip rcphone">Tip: pick a section, tap Record, sing, choose the best take. While the song plays, the red button punches in right where you are.</div>
+    </aside>
+  </div>
+  <footer class="rcfoot rcdesk"><div><h3>HOW IT WORKS <button class="rclink rchelplink" id="rcHelpLink" aria-controls="rcHelpBox" aria-expanded="false">Help</button></h3><p id="rcHowText">Select a section → press Record (or R) → the backing plays from just before the section and you record until you press Stop (R or Space). Sing past the OUT flag and the section grows to fit; “Stop at section end: ON” stops at OUT instead. Or press Play and hit R anywhere to punch in (R again punches out). Choose the best take. When every section is chosen → Go to POLISH.</p></div><button class="rcbtn rcgo" id="rcDone">Comp done → Go to POLISH ▶</button></footer>
+</section>
+<div class="rcpop rcmore" id="rcMore" role="menu" aria-label="More recording tools" hidden></div>
+<div class="rcpop rcmore rclanemenu" id="rcLaneMenu" role="menu" aria-label="Lane menu" hidden></div>
+<div class="rcpop rcadd" id="rcAdd" role="dialog" aria-label="Add a section" hidden>
+  <h3>ADD A PART</h3>
+  <div class="rcnames" id="rcAddNames"><button data-n="Intro">Intro</button><button data-n="Verse">Verse</button><button data-n="Pre-chorus">Pre-chorus</button><button data-n="Chorus">Chorus</button><button data-n="Bridge">Bridge</button><button data-n="Outro">Outro</button></div>
+  <label class="rcrow">Name <input type="text" id="rcAddName" maxlength="40" placeholder="e.g. Verse 2"></label>
+  <label class="rcrow">Length <select id="rcAddLen"><option value="1">1 bar</option><option value="2">2 bars</option><option value="4">4 bars</option><option value="8" selected>8 bars</option><option value="12">12 bars</option><option value="16">16 bars</option></select></label>
+  <label class="rcrow">Starts <select id="rcAddWhere"><option value="end">after the last section</option><option value="play">at the playhead</option></select></label>
+  <p class="rcaddinfo" id="rcAddInfo"></p>
+  <div class="rcaddbtns"><button class="rcbtn" id="rcAddCancel">Cancel</button><button class="rcbtn rcgo" id="rcAddOk">Add section</button></div>
+</div>
+<div class="rcpop rcadd" id="rcImp" role="dialog" aria-label="Import a take" hidden>
+  <h3>IMPORT A TAKE</h3>
+  <p class="rcaddinfo" id="rcImpInfo">The file becomes a new take of the selected section.</p>
+  <label class="rcrow">Lines up <select id="rcImpWhere"><option value="part">with the start of this section</option><option value="song">with the start of the song (0:00)</option></select></label>
+  <p class="rcaddinfo">Pick “start of the song” for a whole-song vocal you exported from 0:00 (FL Studio, another app); only this section's piece is used.</p>
+  <div class="rcaddbtns"><button class="rcbtn" id="rcImpCancel">Cancel</button><button class="rcbtn rcgo" id="rcImpOk">Choose file…</button></div>
+  <input type="file" id="rcImpFile" accept="audio/*,video/mp4,.m4a,.mp3,.wav,.aac,.flac,.ogg,.opus,.webm,.3gp" hidden>
+</div>
+
+<div class="daw" id="daw">
+<header class="menubar" role="menubar">
+  <nav class="menus">
+    <div class="menu"><button class="mtop" aria-haspopup="true" aria-expanded="false">File</button><div class="mdrop" role="menu" hidden><button role="menuitem" data-proxy="beatPick">Open backing track…</button>
+<button role="menuitem" data-proxy="pickBtn">Import vocal (whole song)…</button>
+<button role="menuitem" data-proxy="captureBtn">Use my phone’s recorder…</button>
+<button role="menuitem" data-proxy="projBtn">Open song project…</button>
+<button role="menuitem" data-act="session">Session &amp; tracks (classic OPEN)…</button>
+<hr>
+<button role="menuitem" data-act="newSession">New empty session…</button>
+<button role="menuitem" data-proxy="clearVocal">Clear vocal &amp; takes</button>
+<button role="menuitem" data-proxy="undoClear">Undo clear</button>
+<hr><div class="msub">SAVE / EXPORT</div>
+<button role="menuitem" data-proxy="phraseSave">Save project with every take<kbd>Ctrl+S</kbd></button>
+<button role="menuitem" data-proxy="saveProject">Song project (ZIP)</button>
+<button role="menuitem" data-save-proxy="final">Final vocal (WAV)</button>
+<button role="menuitem" data-save-proxy="tuned">Tuned vocal (dry)</button>
+<button role="menuitem" data-save-proxy="cleaned">Cleaned vocal</button>
+<button role="menuitem" data-save-proxy="raw">Edited raw</button>
+<button role="menuitem" data-save-proxy="original">Original</button>
+<button role="menuitem" data-save-proxy="mix">Rough mix (−14 LUFS)</button>
+<button role="menuitem" data-save-proxy="all">Everything</button>
+<button role="menuitem" data-act="custom">Custom export…</button>
+<button role="menuitem" data-act="save">All export options…</button>
+<hr>
+<button role="menuitem" data-act="toRC">Back to 1 RECORD &amp; COMP</button></div></div>
+    <div class="menu"><button class="mtop" aria-haspopup="true" aria-expanded="false">Edit</button><div class="mdrop" role="menu" hidden><button role="menuitem" data-act="undo">Undo<kbd>Ctrl+Z</kbd></button>
+<button role="menuitem" data-act="redo">Redo<kbd>Ctrl+Shift+Z</kbd></button>
+<hr>
+<button role="menuitem" data-act="loadComp">Load my latest comp from RECORD &amp; COMP</button>
+<button role="menuitem" data-act="reset">Reset all settings…</button></div></div>
+    <div class="menu"><button class="mtop" aria-haspopup="true" aria-expanded="false">View</button><div class="mdrop" role="menu" hidden><button role="menuitem" data-act="zin">Zoom in<kbd>+</kbd></button>
+<button role="menuitem" data-act="zout">Zoom out<kbd>−</kbd></button>
+<button role="menuitem" data-act="zfit">Fit song</button>
+<hr>
+<button role="menuitem" data-act="tab:clean">Clean<kbd>1</kbd></button>
+<button role="menuitem" data-act="tab:tune">Tune<kbd>2</kbd></button>
+<button role="menuitem" data-act="tab:chain">Chain<kbd>3</kbd></button>
+<button role="menuitem" data-act="tab:detail">Vocal Detail<kbd>4</kbd></button>
+<button role="menuitem" data-act="tab:mix">Mixer<kbd>5</kbd></button>
+<hr>
+<button role="menuitem" data-act="dock:notes">Note editor (dock)</button>
+<button role="menuitem" data-act="dock:wave">Wave edit (dock)</button>
+<button role="menuitem" data-act="dock:ref">Compare reference (dock)</button>
+<button role="menuitem" data-act="dockToggle">Show / hide dock</button>
+<hr>
+<button role="menuitem" data-proxy="guideBtn">Smart Guide</button></div></div>
+    <div class="menu"><button class="mtop" aria-haspopup="true" aria-expanded="false">Help</button><div class="mdrop" role="menu" hidden><button role="menuitem" data-act="help">Keyboard shortcuts<kbd>?</kbd></button>
+<button role="menuitem" data-act="howto">How recording works</button>
+<button role="menuitem" data-act="about">About this engine</button></div></div>
+  </nav>
+  <div class="apptitle"><b>Playbook Vocal Studio 0.32.1</b> <span id="dawSong">·</span></div>
+  <div class="savedind" id="dawSaved" role="status" aria-live="polite" title="Autosave on this browser"></div><div class="headright"><button class="guidebtn" id="guideBtn" aria-haspopup="dialog" aria-controls="guideSheet">✦ SMART GUIDE <span class="count" id="guideCount"></span></button><div class="chip" id="chip">Starting the engine...</div></div>
+</header>
+<div class="busybar" id="busybar"><i></i></div>
+
+<div class="tbar" role="region" aria-label="Transport">
+  <div class="tgroup">
+    <button class="tbtn" title="Back to start (Home / Enter)" id="toStart" aria-label="Back to the start"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M5 4h3v16H5zM20 4v16L9 12z"/></svg></button>
+    <button class="tbtn play" title="Play / pause (Space)" id="playBtn"><svg viewBox="0 0 24 24" id="playIcon"><path fill="currentColor" d="M7 4l13 8-13 8z"/></svg><span id="playLabel">Play</span></button>
+    <button class="tbtn" id="dawStop" title="Stop (press again: back to start)" aria-label="Stop"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M6 6h12v12H6z"/></svg></button>
+    <button class="tbtn loop" id="dawLoop" aria-pressed="false" title="Loop for listening (L): the ruler region you dragged, else the section under the playhead, else 4 bars">LOOP</button>
+  </div>
+  <div class="tclock"><div class="tc-main" id="dawTime">0:00.000</div><div class="tc-sub"><span id="dawBars">bar 1 · beat 1</span> · <div class="time" id="timeText">0:00.0 / 0:00</div></div><div class="progress" id="progress" aria-label="Song position"><i id="progressFill"></i></div></div>
+  <button class="tinfo" id="dawTempo" title="Tempo is set on CHAIN, key on TUNE"><span id="dawBpm">75 BPM</span> <span>4/4</span><br><span id="dawKey">Key —</span></button>
+  <div class="tmeters"><label>OUT<div class="hm"><i id="dawOutMeter"></i></div></label></div>
+  <div class="tlisten"><span>LISTEN</span><div class="seg" id="abSeg"><button data-mode="before">BEFORE</button><button data-mode="cleaned">CLEANED</button><button data-mode="after">TUNED</button><button data-mode="final">FINAL</button></div></div>
+  <div class="tundo"><button class="btn small" id="dawUndo" title="Undo (Ctrl+Z)">↶ Undo</button><button class="btn small" id="dawRedo" title="Redo (Ctrl+Shift+Z)">↷ Redo</button><span class="ctx" id="dawUndoCtx">takes</span></div>
+</div>
+
+<main class="work">
+  <section class="arrange" aria-label="Arrangement">
+    <div class="lanes">
+      <div class="heads" id="laneHeads"></div>
+      <div class="tl-scroll" id="tlScroll"><div class="tl-inner" id="tlInner"><canvas id="dawCanvas" aria-label="Timeline: click to move the playhead, drag the ruler to set a loop for listening"></canvas></div></div>
+    </div>
+
+      <div class="tl-actions" id="tlActions">
+  <span class="polcomp" id="polCompInfo">Vocal: —</span>
+  <button class="btn primary" id="polLoadComp" hidden title="Your comp on 1 RECORD &amp; COMP changed since it was loaded here">Load my new comp</button>
+  <button class="btn" id="polToRC" title="Go back to 1 SONG &amp; VOCALS to record, punch in or choose takes">◀ Song &amp; vocals</button>
+  <span class="tl-zoom"><button class="btn small" id="dawZoomOut" aria-label="Zoom timeline out">−</button><button class="btn small" id="dawZoomFit">Fit</button><button class="btn small" id="dawZoomIn" aria-label="Zoom timeline in">+</button></span>
+</div>
+    <section class="dock" id="dock">
+      <div class="dtabs" role="tablist"><button data-dock="notes" role="tab">NOTE EDITOR <small>(Tune)</small></button><button data-dock="wave" role="tab">WAVE EDIT <small>(Breaths · Timing · Comp)</small></button><button data-dock="ref" role="tab">COMPARE REFERENCE</button><button class="dclose" id="dockToggle" title="Show / hide the dock">▾</button></div>
+      <div class="dbody">
+<section class="page dpanel" id="dockNotes" data-dpanel="notes" hidden>
+    <div class="rack">
+      <h2>Your notes</h2>
+      <div class="legend"><span><i style="background:var(--mint)"></i>what you sang</span><span><i style="background:var(--fg)"></i>after tuning</span><span><i style="background:var(--gold)"></i>target note</span><span><i style="background:var(--edit)"></i>your edit</span><span><i style="background:var(--muted)"></i>left untouched</span><span><b style="color:var(--amber)">?</b> pitch unsure: not tuned until you check it</span><span><i style="background:var(--slide);width:9px;height:9px;transform:rotate(45deg);border-radius:1px"></i>tap a diamond for slide / bend / scoop</span></div>
+      <canvas id="notesCanvas" aria-label="Note editor"></canvas>
+      <div class="noteinfo" id="noteInfo">Tap a gold note to edit it. Drag empty space to scroll.</div>
+      <div class="shape" id="shapePanel" hidden>
+        <div class="tabs"><button data-panel="note">THIS NOTE</button><button data-panel="into">INTO THIS NOTE</button></div>
+        <div class="readout"><div class="hz" id="pitchHz"></div><div class="sub" id="pitchSub"></div></div>
+        <div id="notePane"><div class="knobs four" id="noteKnobs"></div></div>
+        <div id="intoPane" hidden><div class="knobs four" id="intoKnobs"></div></div>
+        <p class="note" id="shapeHelp"></p>
+      </div>
+      <div class="tools">
+        <button id="noteDown" aria-label="Move note down a semitone">▼ Down</button>
+        <button id="noteUp" aria-label="Move note up a semitone">▲ Up</button>
+        <button id="noteKeep">Leave untouched</button>
+        <button id="noteApprove" hidden>Tune this note</button>
+        <button id="noteReset">Reset note</button>
+        <button id="noteSplit">Split at red line</button>
+        <button id="noteMerge">Merge next</button>
+        <button id="loopPhrase">Loop phrase</button>
+        <button id="nextUnsure">Next unsure</button>
+        <span class="toolsep"></span>
+        <button id="undoBtn">Undo</button>
+        <button id="redoBtn">Redo</button>
+        <button id="resetAll">Reset all</button>
+        <button id="zoomOut" aria-label="Zoom out">−</button>
+        <button id="zoomIn" aria-label="Zoom in">+</button>
+      </div>
+    </div>
+</section>
+  <section class="page dpanel" id="page-edit" data-dpanel="wave">
+    <div class="rack">
+      <h2>Performance edits</h2>
+      <div class="seg" id="editTabs"><button data-etab="breath">BREATHS</button><button data-etab="timing">TIMING</button><button data-etab="comp">TAKES / COMP</button></div>
+      <p class="note" id="editHelp"></p>
+    </div>
+    <div class="rack">
+      <h2 id="editWaveTitle">Main take</h2>
+      <canvas id="editCanvas" aria-label="Main take waveform: drag to select a passage"></canvas>
+      <input type="range" class="scroller" id="editScroll" min="0" max="1000" value="0" aria-label="Scroll the waveform" hidden>
+      <div class="selrow">
+        <label class="field"><span>START (S)</span><input type="number" id="selStart" step="0.01" min="0" inputmode="decimal"></label>
+        <label class="field"><span>END (S)</span><input type="number" id="selEnd" step="0.01" min="0" inputmode="decimal"></label>
+        <button class="btn small" id="editZoom">Zoom to selection</button>
+        <button class="btn small" id="editFit">Fit all</button>
+      </div>
+      <div class="btnrow">
+        <button class="btn" id="hearMain">Hear main original</button>
+        <button class="btn" id="hearRaw">Hear edited raw</button>
+        <button class="btn" id="hearFinal">Hear final</button>
+      </div>
+    </div>
+    <div class="rack" id="breathRack">
+      <h2>Breaths</h2>
+      <div class="knobs" id="breathKnobs"></div>
+      <div class="btnrow">
+        <button class="btn primary" id="breathApply">Reduce this breath</button>
+        <button class="btn" id="breathNext">Next possible breath</button>
+        <button class="btn" id="breathRemove">Remove this edit</button>
+      </div>
+      <p class="note">A suggestion can contain an S, F or other consonant. Listen first, keep your natural breathing, and never reduce words. Start with 6 dB.</p>
+    </div>
+    <div class="rack" id="timingRack" hidden>
+      <h2>Timing</h2>
+      <div class="knobs" id="timingKnobs"></div>
+      <div class="btnrow">
+        <button class="btn primary" id="timingApply">Apply timing</button>
+        <button class="btn" id="timingRemove">Remove this edit</button>
+      </div>
+      <p class="note">DURATION 100 % keeps the length; 110 % makes it 10 % longer without changing pitch. MOVE −30 ms brings it earlier, +30 ms later. Try small edits first. Up to half a second around the edit adjusts smoothly; the song's length stays the same.</p>
+    </div>
+    <div class="rack" id="compRack" hidden>
+      <h2>Takes</h2>
+      <div class="btnrow">
+        <label class="btn" for="fileTake">Add a whole-song take (audio file)</label>
+        <input type="file" id="fileTake" accept="audio/*,video/mp4,.m4a,.mp3,.wav,.aac,.flac,.ogg,.opus,.webm,.3gp">
+      </div>
+      <label class="field"><span>USE PASSAGES FROM</span><select id="takeSel"></select></label>
+      <canvas id="takeCanvas" aria-label="Alternate take waveform: drag to select the passage to use"></canvas>
+      <div class="selrow">
+        <label class="field"><span>TAKE START (S)</span><input type="number" id="srcStart" step="0.01" min="0" inputmode="decimal"></label>
+        <label class="field"><span>TAKE END (S)</span><input type="number" id="srcEnd" step="0.01" min="0" inputmode="decimal"></label>
+        <button class="btn small" id="matchRange">Match time range</button>
+      </div>
+      <div class="btnrow">
+        <button class="btn" id="hearTake">Hear this take</button>
+        <button class="btn primary" id="compApply">Use selected take</button>
+        <button class="btn" id="compRemove">Remove this edit</button>
+      </div>
+      <p class="note">Select the passage to replace in the main take (top), then the better passage in the other take (here). It's stretched to fit, with 15 ms joins. Choose quiet boundaries and listen to every join. Up to 8 takes.</p>
+    </div>
+    <div class="rack">
+      <h2>Saved edits</h2>
+      <div class="editlist" id="editList"></div>
+      <div class="row"><button class="btn small" id="editUndo">Undo</button><button class="btn small" id="editRedo">Redo</button><span class="note" id="editStatus" aria-live="polite"></span></div>
+    </div>
+  </section>
+<section class="page dpanel" id="dockRef" data-dpanel="ref" hidden>
+    <div class="rack" id="referenceRack">
+      <h2>Compare with a reference</h2>
+      <p>Choose a finished solo vocal you like. Pick similar sung passages, then compare at matched volume. Your reference stays separate from your song and exports.</p>
+      <button class="btn wide" id="referencePick">Choose reference audio</button>
+      <input type="file" id="fileReference" accept="audio/*,.wav,.mp3,.m4a,.flac">
+      <p class="note" id="referenceName">No reference loaded. Reload it after reopening the app.</p>
+      <div class="selrow">
+        <label class="field"><span>YOUR START (S)</span><input id="referenceStartA" type="number" min="0" step="0.1" value="0" inputmode="decimal"></label>
+        <label class="field"><span>REFERENCE START (S)</span><input id="referenceStartB" type="number" min="0" step="0.1" value="0" inputmode="decimal"></label>
+        <label class="field"><span>LENGTH (S)</span><input id="referenceLength" type="number" min="1" max="30" step="1" value="12" inputmode="decimal"></label>
+      </div>
+      <button class="btn primary wide" id="referencePrepare">Prepare matched comparison</button>
+      <div class="btnrow"><button class="btn" id="referenceA" disabled>A: my final vocal</button><button class="btn" id="referenceB" disabled>B: reference</button><button class="btn" id="referenceStop">Stop</button></div>
+      <p class="note" id="referenceStatus" aria-live="polite">Match uses attenuation only. The beat is muted during comparison.</p>
+      <div id="referenceMetrics"></div>
+      <p class="note">Tone is energy in four frequency ranges. Pitch figures are tracker estimates from stable notes relative to A=440 Hz; expressive motion is not a tuning error. Different singers, keys and arrangements need different settings. This is a comparison, not a quality score or automatic preset.</p>
+    </div>
+</section>
+      </div>
+    </section>
+  </section>
+  <aside class="insp" aria-label="Inspector">
+    <div class="itabs" role="tablist"><button data-tab="clean">CLEAN</button><button data-tab="tune">TUNE</button><button data-tab="chain">CHAIN</button><button data-tab="detail">DETAIL</button><button data-tab="mix">MIX</button></div>
+    <div class="ibody">
+  <section class="page ipanel" id="page-clean" data-ipanel="clean" hidden>
+    <div class="rack">
+      <h2>Background noise</h2><button class="btn" data-open-detail>Vocal Detail: clicks, plosives &amp; room echo</button>
+      <div class="big" id="noiseBig">-<small>dB</small></div>
+      <div class="verdict" id="noiseVerdict">Open a vocal to measure it.</div>
+      <p class="note" id="humInfo"></p>
+      <div class="warnbox" id="musicWarn" hidden>Music detected behind your voice. Cleaning can't separate a voice from a beat, so it stays gentle. For the best result, record with the beat in your headphones only.</div>
+    </div>
+    <div class="rack">
+      <h2>Adjust</h2>
+      <div class="field"><span>CLEANER</span><div class="seg two" id="modeSeg"><button data-cmode="1">VOICE FOCUS</button><button data-cmode="0">GENTLE SPECTRAL</button></div></div>
+      <p class="note" id="modeHelp"></p>
+      <p class="note" id="cleanStartHelp">New vocals start with cleaning bypassed when the background estimate is low or unavailable; otherwise Gentle spectral starts at 6 dB. Compare the vocal and Removed noise before increasing it.</p>
+      <div class="knobs" id="cleanKnobs"></div>
+      <div class="grid2">
+        <label class="field"><span>HUM FILTER</span>
+          <select id="humSel"><option value="0">Automatic</option><option value="1">50 Hz filter</option><option value="2">60 Hz filter</option></select>
+        </label>
+        <div class="field"><span>CLEANING</span><label class="switch"><input type="checkbox" id="cleanOn" checked> Clean my vocal</label></div>
+      </div>
+      <div class="row"><button class="btn primary" id="cleanAuto">Try gentle cleaning · 6 dB</button><span class="note">Start low and compare. Double-tap resets reduction to 6 dB, sensitivity to 100%, or rumble to Off.</span></div>
+    </div>
+    <div class="rack">
+      <h2>Listen &amp; compare</h2>
+      <canvas id="cleanCanvas" aria-label="Loudness of the vocal before and after cleaning"></canvas>
+      <div class="legend"><span><i style="background:var(--muted)"></i>before cleaning</span><span><i style="background:var(--mint)"></i>after cleaning</span><span>lower gaps between phrases = quieter background</span></div>
+      <div class="seg" id="cleanListen">
+        <button data-mode="before">BEFORE</button><button data-mode="cleaned">CLEANED</button><button data-mode="removed">REMOVED NOISE</button>
+      </div>
+      <p class="note">REMOVED NOISE plays only what the cleaner took out. It should sound like background only. If you hear words, breaths or musical tone in it, turn NOISE REDUCTION down or try the other cleaner.</p>
+    </div>
+  </section>
+<section class="page ipanel" id="page-tune" data-ipanel="tune" hidden>
+    <div class="rack">
+      <h2>Key &amp; style</h2>
+      <div class="grid2">
+        <label class="field"><span>SONG KEY</span><select id="keySel"></select></label>
+        <label class="field"><span>SCALE</span><select id="scaleSel"></select></label>
+      </div>
+      <div class="row"><span class="note" id="keyInfo"></span><button class="btn" id="useKey" hidden>Use detected key</button></div>
+      <div class="seg" id="styleSeg"><button data-style="0">NATURAL</button><button data-style="1">POLISHED</button><button data-style="2">HARD TUNE</button></div>
+      <p class="note" id="styleHelp"></p>
+      <div class="knobs four" id="tuneKnobs"></div>
+      <div class="grid2">
+        <label class="switch"><input type="checkbox" id="preserve" checked> Keep my voice tone</label>
+        <label class="switch"><input type="checkbox" id="snapKey"> Use song key (snap notes to the key)</label>
+        <label class="switch"><input type="checkbox" id="protect" checked> Protect consonants &amp; breaths</label>
+        <label class="switch"><input type="checkbox" id="protectExpression" checked> Protect expressive note centres and slides</label>
+        <label class="switch"><input type="checkbox" id="keepInTune" checked> Leave in-tune notes alone</label>
+        <label class="switch"><input type="checkbox" id="followSinging" checked> Tune to my singing's pitch</label>
+        <label class="switch"><input type="checkbox" id="matchVol" checked> Match playback volume</label>
+      </div>
+      <div class="field"><span>VOCAL RANGE</span><div class="seg five" id="rangeSeg"><button data-range="0">FULL</button><button data-range="1">LOW</button><button data-range="2">MID</button><button data-range="3">HIGH</button><button data-range="4">LEARNED</button></div></div>
+      <div class="row"><button class="btn small" id="learnRange">Learn my range</button><span class="note" id="rangeInfo"></span></div>
+    </div>
+</section>
+<section class="page ipanel" id="page-chain" data-ipanel="chain" hidden>
+    <div class="rack">
+      <h2>Vocal chain</h2><button class="btn" data-open-detail>Vocal Detail: dynamic EQ, reverb ducking &amp; doubler</button>
+      <div class="seg four" id="presetSeg"><button data-preset="0">ROOTS REGGAE</button><button data-preset="1">MODERN POP</button><button data-preset="2">WARM &amp; INTIMATE</button><button data-preset="3">DRY STEM</button><button data-preset="4">CLEAN &amp; NATURAL</button></div>
+      <p class="note" id="presetHelp"></p>
+      <div class="row resetrow"><button class="btn" id="resetPreset">Reset preset</button><label class="switch"><input type="checkbox" id="resetFinishing"> Also the Second EQ &amp; limiter</label></div>
+      <div class="row"><label class="switch"><input type="checkbox" id="chainOn" checked> Use the vocal chain</label><span class="note">Listen with <strong>FINAL</strong> on the bar below; <strong>TUNED</strong> is without the chain.</span></div>
+    </div>
+    <div class="rack">
+      <h2>EQ · Low, Mid &amp; High</h2>
+      <div class="legend" aria-label="EQ frequency bands">
+        <span><i style="background:#ff9f6b"></i>LOW (Body)</span><span><i style="background:#b48cff"></i>LOW-MID (Mud)</span><span><i style="background:#5eead4"></i>HIGH-MID (Presence)</span><span><i style="background:#6aa9ff"></i>HIGH (Air)</span>
+      </div>
+      <canvas id="eqCanvas" aria-label="EQ graph: drag the coloured frequency-band points" aria-describedby="eqGainHelp"></canvas>
+      <div class="legend"><span><i style="background:rgba(163,175,185,.6)"></i>your voice before</span><span><i style="background:var(--mint)"></i>after the chain</span><span><i style="background:var(--gold)"></i>EQ curve</span><span>drag a point: left/right = frequency, up/down = boost/cut</span></div>
+      <div class="bandinfo" id="bandInfo"></div>
+      <div class="knobs" id="bandKnobs"></div>
+      <p class="note" id="eqGainHelp"><strong>GAIN</strong> boosts (+) or cuts (−) the selected band in dB; 0 dB leaves that band unchanged. Select a coloured point to choose its band. FREQUENCY chooses where it acts; WIDTH controls how much of the surrounding range it affects. Overall vocal loudness is controlled under Level.</p>
+      <div class="knobs" id="tameKnobs"></div>
+      <p class="note">TAME BOOM and TAME HARSH are a dynamic EQ: they turn the low-mid boom range (around 250 Hz) or the high-mid harsh range (around 3 kHz) down only on the notes where it builds up. The EQ points above set the steady tone.</p>
+    </div>
+    <div class="rack">
+      <h2>Dynamics &amp; tone</h2>
+      <div class="knobs" id="dynKnobs"></div>
+      <p class="note">PEAK CONTROL is a fast first compressor that only catches sudden loud words, so COMPRESS can stay gentle: two light stages sound smoother than one hard one. WORD LEVELING gently evens out loud and quiet words before both (at most ±6 dB). Try 20–30 %.</p>
+    </div>
+    <div class="rack">
+      <h2>Second EQ · Low, Mid &amp; High</h2>
+      <label class="switch"><input type="checkbox" id="eq2On"> Use the second EQ</label>
+      <div class="knobs" id="eq2Knobs"></div>
+      <details class="how" id="eq2Adv"><summary>Advanced frequencies</summary><div class="knobs" id="eq2FreqKnobs"></div></details>
+      <p class="note">Final tone shaping after compression and warmth, before echo and reverb. LOW GAIN (Body) adjusts warmth and bass; MID GAIN adjusts the middle frequencies; HIGH GAIN adjusts brightness and air. Each boosts (+) or cuts (−) its band by up to 6 dB; 0 dB is unchanged. Low and High are shelf filters; Mid is a bell. Double-tap a gain knob to return it to 0 dB.</p>
+    </div>
+    <div class="rack">
+      <h2>Echo &amp; space</h2>
+      <div class="knobs" id="spaceKnobs"></div>
+      <p class="note">ECHO DUCK turns the echoes down while you sing and lets them bloom in the gaps (up to 18 dB), so your words stay clear. The reggae and dub way.</p>
+      <div class="row tempo"><span class="note">Song tempo</span><input type="number" id="bpm" min="50" max="200" value="75" inputmode="numeric" aria-label="Song tempo in BPM"><span class="note">BPM · echo on</span>
+        <button class="btn small" data-div="1">¼</button><button class="btn small" data-div="0.75">⅛ dotted</button><button class="btn small" data-div="0.5">⅛</button></div>
+    </div>
+    <div class="rack">
+      <h2>Level</h2>
+      <div class="knobs" id="levelKnobs"></div>
+      <div class="row"><label class="switch"><input type="checkbox" id="limitOn" checked> Use the output limiter</label><label class="switch"><input type="checkbox" id="limitAuto" checked> Automatic release</label></div>
+      <div class="knobs" id="limitKnobs"></div>
+      <p class="warnbox" id="limitWarn" hidden></p>
+      <div class="readout2" id="chainReadout">-</div>
+      <p class="note">VOCAL LEVEL sets the finished vocal to a steady loudness; the output limiter then keeps its peaks under the CEILING. The rough mix on SAVE is mastered to <strong>-14 LUFS</strong>, an optional rough-mix target, not a universal requirement for streaming.</p>
+    </div>
+</section>
+<section class="page ipanel" id="detailPanel" data-ipanel="detail" hidden>
+<div class="sheet" id="detailSheet" role="dialog" aria-label="Vocal Detail" hidden>
+ <div class="inner"><div class="top"><h2>VOCAL DETAIL</h2><button class="closebtn" id="detailClose" aria-label="Close Vocal Detail">×</button></div>
+ <p>Start with one effect. All five start bypassed. Compare at matched volume, then choose whether to keep the effect enabled. Repair and de-reverb work before tuning; the other three need the vocal chain.</p>
+ <label class="switch"><input type="checkbox" id="detailChain"> Use vocal chain</label>
+ <button class="btn" id="detailReset">Reset Vocal Detail</button><div id="detailControls"></div>
+ <div class="rack"><label class="field"><span>COMPARE EFFECT</span><select id="detailEffect"></select></label>
+ <div class="row"><button class="btn" id="detailPrepare">Prepare A/B</button><button class="btn" id="detailA">A: bypassed</button><button class="btn" id="detailB">B: enabled</button><button class="btn" id="detailRemoved">Hear removed</button><button class="btn" id="detailStop">Stop</button></div>
+ <label class="switch"><input type="checkbox" id="detailMono"> Check mono</label><p id="detailStatus" class="note" aria-live="polite">Import or record a vocal, then wait for Ready.</p></div>
+ </div>
+</div>
+</section>
+<section class="page ipanel" id="mixPanel" data-ipanel="mix" hidden>
+  <div class="rack">
+    <h2>Mixer · monitor levels</h2>
+    <div class="mixer">
+      <div class="strip beat"><b>BACKING</b><input type="range" class="fader" id="mixBeatFader" min="0" max="100" value="80" aria-label="Backing level"><output id="mixBeatVal">80%</output><div class="ms"><button class="msb" data-ms="bMute" aria-pressed="false" title="Mute backing">M</button><button class="msb" data-ms="bSolo" aria-pressed="false" title="Solo backing">S</button></div></div>
+      <div class="strip voc"><b>VOCAL</b><input type="range" class="fader" id="mixVocFader" min="0" max="150" value="100" aria-label="Vocal monitor level"><output id="mixVocVal">100%</output><div class="ms"><button class="msb" data-ms="vMute" aria-pressed="false" title="Mute vocal">M</button><button class="msb" data-ms="vSolo" aria-pressed="false" title="Solo vocal">S</button></div></div>
+    </div>
+    <p class="note">Backing level and mute are the same controls used while recording (headphone level / include backing). Vocal fader, vocal mute and solo change only what you hear here; exports use VOCAL LEVEL on CHAIN.</p>
+  </div>
+    <div class="rack">
+      <h2>Mix with your beat</h2>
+      <label class="switch"><input type="checkbox" id="mixFit" checked> Fit the beat to my vocal</label>
+      <div class="knobs" id="mixKnobs"></div>
+      <p class="note" id="mixInfo">Add your beat on step 1 to fit it under your vocal.</p>
+      <p class="note">Sets the beat's level so your finished vocal sits just above it, and while you sing dips the beat's word range (1–5 kHz) so your words come through. Bass and drums' low end are never touched. Only playback and the rough mix change; your vocal saves stay the same.</p>
+    </div>
+</section>
+    </div>
+    <button class="btn primary wide savebtn" data-act="save">SAVE / EXPORT ▾</button>
+  </aside>
+</main>
+<footer class="statusbar">  <div class="session-strip sb" role="status" aria-live="polite"><span id="sessionStatus">Opening previous session…</span><button class="btn" id="sessionOpen">My tracks</button></div><div class="playback-info"><span id="playbackStatus" role="status" aria-live="polite">Ready to listen</span><span id="outputSignal">Output idle</span></div></footer>
+  <nav class="steps" hidden role="tablist" aria-label="Steps">
+    <button id="tab-open" role="tab" aria-selected="true" data-page="open"><b>1</b>OPEN</button>
+    <button id="tab-record" role="tab" aria-selected="false" data-page="record">RECORD</button>
+    <button id="tab-edit" role="tab" aria-selected="false" data-page="edit"><b>2</b>EDIT</button>
+    <button id="tab-clean" role="tab" aria-selected="false" data-page="clean"><b>3</b>CLEAN</button>
+    <button id="tab-tune" role="tab" aria-selected="false" data-page="tune"><b>4</b>TUNE</button>
+    <button id="tab-chain" role="tab" aria-selected="false" data-page="chain"><b>5</b>CHAIN</button>
+    <button id="tab-save" role="tab" aria-selected="false" data-page="save"><b>6</b>SAVE</button>
+  </nav>
+</div>
+
+<div class="modal" id="sessionModal" role="dialog" aria-label="Session and tracks" hidden><div class="mbox"><div class="mhead"><h2>SESSION &amp; TRACKS</h2><button class="closebtn" data-close aria-label="Close">×</button></div>
+<section class="page" id="page-open">
+    <div class="rack" id="sessionRack">
+      <h2>Your recording session</h2>
+      <p>Load the backing track here. All recording happens on <strong>1 RECORD &amp; COMP</strong> (section by section, several takes, choose the best). You can also import a finished or raw vocal to polish.</p>
+      <button class="btn primary wide" data-act="toRC">Record your vocal on 1 RECORD &amp; COMP</button>
+      <div class="row"><button class="btn" id="newSession">New empty session</button><button class="btn" id="undoClear" hidden>Undo clear</button></div>
+      <p class="note" id="clearStatus" aria-live="polite">A new session clears the vocal, extra takes, backing track and reference.</p>
+    </div>
+    <div class="tracks">
+    <div class="rack track beat-track">
+      <h2>1 · Backing track · listen</h2>
+      <div class="track-name" id="beatName">No backing track loaded</div>
+      <p class="note" id="beatInfo">Choose your instrumental, then preview it here.</p>
+      <div class="btnrow"><button class="btn" id="beatPick">Load backing track</button><button class="btn" id="beatPlay" disabled>Play backing only</button></div>
+      <input type="file" id="fileBeat" accept="audio/*,.m4a,.mp3,.wav">
+      <label class="switch"><input type="checkbox" id="beatOn" checked> Include backing during playback & recording</label>
+      <label class="field"><span>HEADPHONE LEVEL <output id="beatLevelText">80%</output></span><input type="range" id="beatLevel" min="0" max="100" value="80" aria-label="Backing track headphone level"></label>
+      <p class="note">Preview and recording volume only. Adjust the saved rough mix on CHAIN. Wear headphones to keep the beat out of the microphone.</p>
+      <button class="btn" id="beatRemove" disabled>Remove backing track</button>
+    </div>
+    <div class="rack track vocal-track">
+      <h2>2 · Vocal · import</h2>
+      <div class="track-name" id="songName">No vocal loaded</div>
+      <p class="track-status" id="vocalStatus" role="status" aria-live="polite">Choose a WAV or record your voice below.</p>
+      <p class="note" id="songInfo"></p>
+      <div class="btnrow"><button class="btn" id="vocalPlay" disabled>Play original vocal</button><button class="btn" id="finalPlay" disabled>Play final vocal</button></div>
+      <button class="btn" id="clearVocal" disabled>Clear vocal & takes</button>
+      <div class="getin">
+        <button class="btn wide" id="captureBtn">Use my phone’s recorder</button>
+        <input type="file" id="fileCapture" accept="audio/*" capture>
+        <p class="note" id="captureNote">For singing over the backing track, use 1 RECORD &amp; COMP. The separate phone recorder may pause this page’s backing track.</p>
+        <label class="field"><span>IMPORT AS</span><select id="importKind"><option value="0">Raw vocal — clean and tune</option><option value="1">Finished vocal — preserve my sound</option></select></label><p class="note">Finished vocal starts with cleaning, tuning and effects bypassed. Stereo and original level are kept. Add a separate reference below to compare without replacing your song.</p>
+        <button class="btn primary wide" id="pickBtn">Import vocal WAV / audio</button>
+        <p class="note">Importing here replaces the vocal in POLISH (your sections and takes on RECORD &amp; COMP stay). Save your project first if you want to keep it.</p>
+        <input type="file" id="fileVocal" accept="audio/*,video/mp4,.m4a,.mp3,.wav,.aac,.flac,.ogg,.opus,.webm,.3gp">
+        <details class="how">
+          <summary>Where are my voice memos?</summary>
+          <p><strong>iPhone:</strong> in Voice Memos, tap the recording, tap ••• then <strong>Save to Files</strong>. Then tap <strong>Import vocal WAV / audio</strong> above and pick it from Files.</p>
+          <p><strong>Android:</strong> tap <strong>Import vocal WAV / audio</strong>, then look in <strong>Audio</strong>, <strong>Recordings</strong> or <strong>Downloads</strong> (Samsung: Recordings › Voice Recorder). WhatsApp voice notes work too: save them to your phone first.</p>
+          <p>.m4a, .mp3, .wav, .aac and .ogg files all work.</p>
+        </details>
+      </div>
+    </div>
+    </div>
+    <div class="rack">
+      <h2>Song project</h2>
+      <p>Open a project saved on this phone or in the Windows app / FL Studio plugin. Every setting and note edit comes with it.</p>
+      <button class="btn wide" id="projBtn">Open a song project</button>
+      <input type="file" id="fileProject" multiple accept=".zip,.pbv,application/zip,application/json,audio/*,.wav">
+      <p class="note">Pick the project ZIP you saved on SAVE. From the desktop, select the .pbv file together with its vocal WAV (and any extra takes), or a ZIP of that folder.</p>
+      <p class="note" id="projStatus" aria-live="polite"></p>
+    </div>
+</section>
+</div></div>
+<div class="modal" id="saveModal" role="dialog" aria-label="Save and export" hidden><div class="mbox"><div class="mhead"><h2>SAVE / EXPORT</h2><button class="closebtn" data-close aria-label="Close">×</button></div>
+  <section class="page" id="page-save">
+    <div class="rack">
+      <h2>Save to your phone</h2>
+      <p>Audio exports are ZIP files containing 24-bit WAV audio. Song project saves also include recordings, tracks and editable settings. Open audio exports with your Files app, or move them to your laptop and place the vocal WAV at 0:00 in your DAW to keep it aligned with the beat.</p>
+      <div class="savelist">
+        <div class="saveitem"><div><b>Song project</b><p>All vocal tracks, attempts, sections and each track’s POLISH settings in one ZIP. Reopen in version 0.31.4 or newer to retain the current cleaner, tuner, track and phrase-volume settings. Keep a separate backup before using an older version.</p></div><button class="btn primary" id="saveProject">Save</button></div>
+        <div class="saveitem"><div><b>Final vocal</b><p>All your edits, cleaned, tuned and through the vocal chain (stereo, with its echo and reverb). Drop it on your beat.</p></div><button class="btn primary" data-save="final">Save</button></div>
+        <div class="saveitem"><div><b>Tuned vocal (dry)</b><p>All edits, cleaned and tuned, no vocal chain. Use it if you'll add your own effects in FL Studio.</p></div><button class="btn" data-save="tuned">Save</button></div>
+        <div class="saveitem"><div><b>Cleaned vocal</b><p>All edits and breath reduction, cleaned, not tuned.</p></div><button class="btn" data-save="cleaned">Save</button></div>
+        <div class="saveitem"><div><b>Edited raw</b><p>Your comp and timing edits only, before cleaning, breaths or tuning.</p></div><button class="btn" data-save="raw">Save</button></div>
+        <div class="saveitem"><div><b>Original</b><p>The main take exactly as recorded, as a backup.</p></div><button class="btn" data-save="original">Save</button></div>
+        <div class="saveitem"><div><b>Rough mix</b><p>Final vocal and beat together, mastered to -14 LUFS for streaming. Needs a beat on step 1.</p></div><button class="btn" data-save="mix">Save</button></div>
+        <div class="saveitem"><div><b>Everything</b><p>All of the above in one ZIP.</p></div><button class="btn" data-save="all">Save</button></div>
+      </div>
+      <p class="note" id="saveStatus" aria-live="polite"></p>
+    </div>
+    <div class="rack" id="customRack">
+      <h2>Custom export</h2>
+      <p>Choose what goes into the file. Keep cleaning, breaths and tuning and leave the chain out to finish the vocal in your DAW, or leave out only the echo and reverb. Comp and timing edits are always kept. A/B plays your choice against FINAL at the same volume, so you hear what each stage really does.</p>
+      <div class="seg" id="stageQuick"><button data-quick="all">EVERYTHING</button><button data-quick="dry">DRY FOR MY DAW</button><button data-quick="nospace">NO ECHO &amp; REVERB</button></div>
+      <h3 class="stagehead">Before the chain</h3>
+      <div class="stagelist" id="stagesBefore"></div>
+      <h3 class="stagehead" id="stagesChainHead">Vocal chain</h3>
+      <div class="stagelist" id="stagesChain"></div>
+      <div class="btnrow abrow"><button class="btn" id="hearCustom">B: Hear my choice</button><button class="btn" id="hearFull">A: Hear FINAL</button><button class="btn" id="hearStop">Stop</button></div>
+      <div class="saveitem"><div><b>Save my choice</b><p>A ZIP with the 24-bit WAV and a settings sheet that explains each stage and how to set it up in FL Studio.</p></div><button class="btn primary" id="saveCustom">Save</button></div>
+      <p class="note" id="customStatus" aria-live="polite"></p>
+      <details class="sheetbox"><summary>Settings sheet (saved with the WAV)</summary><pre class="settings" id="sheetText"></pre></details>
+    </div>
+    <div class="rack" id="resetRack">
+      <h2>Start over</h2>
+      <p>Reset the original cleaner, original tuner, CHAIN, Second EQ &amp; limiter, custom export and Smart Guide settings. Studio Spectral and the Playbook Note Editor keep their own settings and Undo controls. Your recordings, takes and note edits are kept, and Undo brings your settings back.</p>
+      <button class="btn" id="resetSettings">Reset all settings…</button>
+      <div class="confirmbox" id="resetConfirm" hidden>
+        <p><strong>Reset all settings?</strong> Your recordings, takes and note edits stay.</p>
+        <div class="row"><button class="btn primary" id="resetYes">Reset all settings</button><button class="btn" id="resetNo">Cancel</button></div>
+      </div>
+    </div>
+    <div class="rack">
+      <h2>Settings for the desktop app</h2>
+      <p>The easy way: save a <strong>Song project</strong> above and open it on the desktop. Or type these values into the Windows app or FL Studio plugin.</p>
+      <pre class="settings" id="settingsText"></pre>
+      <div class="row"><button class="btn" id="copySettings">Copy settings</button><span class="note" id="copyStatus" aria-live="polite"></span></div>
+    </div>
+  </section>
+</div></div>
+<div class="modal" id="helpModal" role="dialog" aria-label="Help" hidden><div class="mbox small"><div class="mhead"><h2 id="helpTitle">KEYBOARD SHORTCUTS</h2><button class="closebtn" data-close aria-label="Close">×</button></div>
+<div id="helpKeys" class="rack"><p class="note"><b>1 SONG &amp; VOCALS screen</b></p><table class="keys">
+<tr><td><kbd>R</kbd></td><td>Start / stop recording on the selected lane</td></tr>
+<tr><td><kbd>Space</kbd></td><td>Stop recording or play / pause</td></tr>
+<tr><td><kbd>Home</kbd></td><td>Move to the song start</td></tr>
+<tr><td><kbd>Ctrl/⌘ Z</kbd> · <kbd>Ctrl/⌘ Shift Z</kbd></td><td>Undo / redo a song edit</td></tr>
+<tr><td><kbd>Ctrl/⌘ S</kbd></td><td>Back up the project</td></tr></table>
+<p class="note"><b>2 POLISH screen</b></p><table class="keys">
+<tr><td><kbd>Space</kbd></td><td>Play / pause</td></tr><tr><td><kbd>Enter</kbd> / <kbd>Home</kbd></td><td>Back to start</td></tr>
+<tr><td><kbd>L</kbd></td><td>Loop for listening: the ruler region, else the section under the playhead, else 4 bars</td></tr>
+<tr><td><kbd>1</kbd>–<kbd>5</kbd></td><td>Clean · Tune · Chain · Detail · Mix</td></tr>
+<tr><td><kbd>Ctrl/⌘ Z</kbd>, <kbd>Ctrl/⌘ Shift Z</kbd>, <kbd>Ctrl Y</kbd></td><td>Undo / redo (in the area you last worked: wave edit or sound/notes)</td></tr>
+<tr><td><kbd>+</kbd> / <kbd>−</kbd></td><td>Zoom the timeline</td></tr><tr><td><kbd>Ctrl/⌘ S</kbd></td><td>Save project with every take</td></tr>
+<tr><td><kbd>?</kbd></td><td>This help · <kbd>Esc</kbd> closes menus and windows</td></tr></table>
+<p class="note">Shortcuts are ignored while you type in a box. POLISH timeline: click = move the playhead, drag the ruler = loop region. Recording, phrase attempts and song sections live on 1 SONG &amp; VOCALS.</p></div>
+<div id="helpHow" class="rack" hidden>
+<p><strong>1 · Record your song.</strong> In SONG &amp; VOCALS, select Lead vocal, load backing music if needed, then press Record. Sing and press Stop. A whole performance stays together.</p>
+<p><strong>2 · Fix a word or phrase.</strong> Drag over its range, or enter Start and End in seconds. Press Fix phrase. Repeat until comfortable, then Listen and Choose. The rest of the performance stays in place. Repeat with lead-in adds an attempt each pass.</p>
+<p><strong>3 · Organise and layer.</strong> Song sections label Intro, Verse, Chorus and Outro without cutting recordings. Add vocal track gives harmonies, doubles and ad-libs their own lane.</p>
+<p><strong>4 · Polish each voice.</strong> Press Polish on a lane. Clean, Tune, note edits and effects belong to that voice. Use the Polishing selector to work on another track; each retains its settings. Hear song plays the processed tracks together.</p>
+<p><strong>5 · Save your result.</strong> Export song offers the vocal mix, song with backing, polished stems or dry stems. Back up project keeps all tracks, attempts and editable POLISH sessions. Check that the ZIP finished downloading.</p>
+<p><strong>After re-recording:</strong> only that track needs a POLISH update. Its sound settings are kept, but the app asks before resetting manual edits attached to the old performance. Other vocals stay unchanged.</p>
+<p class="note">Use headphones to avoid backing leaking into the mic. Recording from playback uses lead-in; use a selected phrase for an exact replacement. Full instructions: START-HERE.txt.</p></div>
+<div id="helpAbout" hidden>    <div class="rack">
+      <h2>Same engine as the desktop app</h2>
+      <p>Playbook Vocal Studio app version 0.31.0. It runs audio engine version 0.12.1 of the Windows app and the FL Studio plugin: Voice focus cleaning, performance edits, tuning, the vocal chain and the Smart Guide. Everything stays on your phone; nothing is uploaded.</p>
+      <p class="note" id="engineInfo"></p>
+    </div></div>
+</div></div>
+<div class="modal" id="micModal" role="dialog" aria-label="Mic level check" hidden><div class="mbox small"><div class="mhead"><h2>MIC LEVEL CHECK</h2><button class="closebtn" data-close aria-label="Close">×</button></div>
+<div class="rack"><p>Sing the loudest part of the song for a few seconds.</p>
+<div class="chk"><div class="meter big"><i id="mcMeter"></i><b id="mcHold"></b></div><span class="mono" id="mcPeak">— dBFS</span><button class="cliplight" id="mcClip">CLIP</button></div>
+<p class="note" id="mcAdvice">Waiting for the microphone…</p>
+<label class="field"><span>MIC GAIN <output id="mcGainVal">0 dB</output></span><input type="range" id="mcGain" min="-12" max="24" step="1" value="0"></label>
+<label class="switch"><input type="checkbox" id="mcNoAsk"> Don’t ask before the first take again</label>
+<div class="btnrow"><button class="btn rec" id="mcGo"><span class="dot"></span> Looks good — record</button><button class="btn" id="mcSkip">Skip check</button></div></div></div></div>
+<div class="modal" id="calModal" role="dialog" aria-label="Latency calibration" hidden><div class="mbox small"><div class="mhead"><h2>LATENCY CALIBRATION</h2><button class="closebtn" data-close aria-label="Close">×</button></div>
+<div class="rack"><h2>1 · Loopback (most accurate)</h2><p class="note">Turn the volume up and hold your headphone speaker against the microphone (or use the phone/laptop speaker). The app plays 8 clicks and measures when the mic hears them.</p>
+<div class="btnrow"><button class="btn primary" id="calLoop">Start loopback test</button></div></div>
+<div class="rack"><h2>2 · Tap along</h2><p class="note">Wear your headphones. Press TAP (or the T key) exactly on each click you hear — 10 clicks; the first 2 are ignored. Less accurate: it measures the headphone delay plus your timing.</p>
+<div class="btnrow"><button class="btn" id="calTapStart">Start tap test</button><button class="btn big" id="calTap" disabled>TAP</button></div></div>
+<p class="note">Device: <span id="calDevice">—</span></p><p class="track-status" id="calResult" aria-live="polite">Not measured yet.</p>
+<div class="btnrow"><button class="btn primary" id="calSave" disabled>Use this result for new takes</button></div></div></div>
+<div class="ctxmenu" id="ctxMenu" role="menu" hidden></div>
+<input class="inline-edit" id="inlineEdit" type="text" maxlength="60" hidden aria-label="Rename">
+<span id="pvsRecTime" hidden></span>
+<!-- 0.17.0: internal wiring. The old PHRASE / REC panels are no longer part of the app's screens; the
+     RECORD & COMP screen still drives the same tested take engine through these hidden fields. Never shown. -->
+<div id="engineRoom" hidden aria-hidden="true" inert>
+<section id="page-record">
+    <div class="rack">
+      <h2>Record & Takes</h2>
+      <p>Sing one phrase at a time. Keep every attempt, choose your favourite, then continue where you left off.</p>
+      <label class="field"><span>SONG NAME</span><input id="phraseTitle" type="text" maxlength="80" value="My phrase recording"></label>
+      <p class="note" id="phraseBaseInfo"></p>
+      <div class="btnrow"><button class="btn" id="phraseBacking">Load backing track</button><button class="btn" id="phraseListenSong">Hear assembled vocal + backing</button><button class="btn" id="phraseStop">Stop playback</button></div>
+      <p class="note" id="phraseBackingInfo"></p>
+      <div class="classic-tl"><span class="note">Overview (tap to move the resume line)</span><canvas id="phraseTimeline" aria-label="Song timeline. Tap to move the resume position; use Start and End below to mark a phrase."></canvas></div>
+      <label class="field"><span>RESUME POSITION <output id="phraseCursorText">0:00</output></span><input type="range" id="phraseCursor" min="0" max="900" step="0.1" value="0" aria-label="Resume position in seconds"></label>
+      <div class="phrase-list" id="phraseList" aria-label="Recorded phrases"></div>
+    </div>
+    <div class="rack">
+      <h2>Selected phrase</h2>
+      <label class="field"><span>PHRASE NAME</span><input id="phraseLabel" type="text" maxlength="80" placeholder="Verse 1 · line 1"></label>
+      <div class="selrow"><label class="field"><span>START (SECONDS)</span><input id="phraseStart" type="number" min="0" max="899.5" step="0.1" value="0"></label><label class="field"><span>END (SECONDS)</span><input id="phraseEnd" type="number" min="0.5" max="900" step="0.1" value="8"></label></div>
+      <div class="btnrow"><button class="btn" id="phraseNew">Mark a new phrase</button><button class="btn" id="phraseBounds">Update this phrase’s boundaries</button></div>
+      <button class="btn rec wide" id="phraseRecord"><span class="dot"></span><span id="phraseRecordLabel">Redo this section · record a take</span></button>
+            <p class="note warnline" id="phraseWarn" hidden></p>
+      <div class="recbox" id="phraseRecBox" hidden><div id="phraseRecTime" class="rectime">0:00</div><div class="meter"><i id="phraseRecMeter"></i></div><p id="phraseRecNote" class="note"></p></div>
+      <div class="btnrow"><button class="btn" id="phraseImport">Import an attempt for this phrase</button><button class="btn" id="phraseUnchoose">Clear take choice</button><button class="btn" id="phraseRemove">Remove phrase</button><button class="btn" id="phraseUndo" hidden>Undo last change</button><button class="btn" id="phraseRedo" hidden>Redo</button></div>
+      <input id="phraseFile" type="file" accept="audio/*,.wav,.mp3,.m4a,.flac">
+      <p class="note">Wear headphones. The backing plays from the lead-in; the existing vocal is heard before and after the selected phrase. Recording runs until you press Stop (or stops just after End when “Stop at section end” is ON). At 0:00, a short count-in gives you time to begin. Imported attempts start at the phrase’s Start. Keep this page visible while recording; leaving it stops and keeps the attempt. If a take feels early or late, adjust its Alignment below.</p>
+      <button class="btn" id="phraseRecover" hidden>Download last microphone file for recovery</button>
+      <p id="phraseStatus" class="track-status" role="status" aria-live="polite">Choose Continue from here to mark your first phrase.</p>
+    </div>
+    <div class="rack">
+      <h2>Compare and choose a take</h2>
+      <div class="selrow"><label class="field"><span>PITCH KEY</span><select id="phraseKey"></select></label><label class="field"><span>SCALE</span><select id="phraseScale"></select></label></div>
+      <label class="field"><span>OPTIONAL MELODY / TIMING REFERENCE</span><select id="phraseReference"><option value="">No reference take</option></select></label>
+      <label class="switch"><input type="checkbox" id="phraseCompareBeat" checked> Hear backing during take comparisons</label>
+      <p id="phraseRecommendation" class="note" aria-live="polite">The analyzer recommends; you choose.</p>
+      <div id="phraseTakes" class="phrase-takes"></div>
+      <details class="how"><summary>What the analyzer can tell you</summary><p>It compares stable note centres, clipping and background contrast when a recorded lead-in is available. Without a reference take, pitch is measured against notes in your selected key—not the intended melody. With a reference and matching note counts, it also estimates melody and timing differences. These are technical estimates, not a measure of emotion, lyrics or artistic quality. Vibrato and expressive slides are not scored as mistakes. Background contrast does not measure all aspects of clarity or room sound.</p></details>
+    </div>
+    <div class="rack">
+      <h2>Build and keep your song</h2>
+      <p id="phraseAssemblyInfo" class="note"></p>
+      <div class="btnrow"><button class="btn primary" data-proxy="phraseApply">Apply chosen takes to vocal</button><button class="btn" id="phraseSave">Save project with every take</button></div>
+      <p class="note">Apply rebuilds the vocal for CLEAN, TUNE and CHAIN. Your sound settings stay; note and performance edits on the previous assembly reset. All phrase takes stay here. Later phrases replace earlier ones where they overlap.</p>
+      <p id="phraseSaveStatus" class="note" role="status" aria-live="polite"></p>
+    </div>
+</section>
+<section id="recPanel" hidden>
+    <div class="rack">
+      <h2>Click &amp; count-in</h2>
+      <label class="switch"><input type="checkbox" id="optCountIn" checked> Count-in before phrase recording</label>
+      <div class="selrow"><label class="field"><span>COUNT-IN</span><select id="optCountBars"><option value="1">1 bar</option><option value="2">2 bars</option></select></label><label class="field"><span>CLICK LEVEL <output id="optClickVolVal">60%</output></span><input type="range" id="optClickVol" min="0" max="100" value="60"></label></div>
+      <label class="switch"><input type="checkbox" id="optMetro"> Metronome click during playback and recording</label>
+      <p class="note">Tempo comes from CHAIN › BPM (<span id="clickBpm">75</span> BPM, 4/4). The click goes only to your headphones; it is never recorded into a take and never exported. With speakers the mic will hear it — use headphones.</p>
+    </div>
+    <div class="rack">
+      <h2>What you hear while recording</h2>
+      <label class="switch"><input type="checkbox" id="optHearOld" checked> Hear the old vocal while recording (lead-in, around the phrase, before a punch-in)</label>
+      <p class="note">Inside the section being recorded the old vocal is always silent. VOCAL / BACKING mute and solo on the lanes now also apply while recording.</p>
+      <label class="switch"><input type="checkbox" id="optMonitor"> Input monitoring — hear your own mic</label>
+      <label class="field"><span>MONITOR LEVEL <output id="optMonVolVal">80%</output></span><input type="range" id="optMonVol" min="0" max="100" value="80"></label>
+      <p class="note warnline" id="monWarn">Off by default. Wired headphones only: through speakers it will howl. Browsers add delay to what you hear (about <span id="monLat">—</span> ms here); if it sounds like an echo, turn it off and use your headphones’ own monitoring.</p>
+    </div>
+    <div class="rack">
+      <h2>Mic level &amp; gain</h2>
+      <div class="chk"><div class="meter big"><i id="chkMeter"></i><b id="chkHold"></b></div><span class="mono" id="chkPeak">— dBFS</span><button class="cliplight" id="chkClip">CLIP</button></div>
+      <div class="btnrow"><button class="btn" id="chkToggle" aria-pressed="false">Start mic check</button></div>
+      <p class="note" id="chkAdvice">Sing your loudest line. Aim for peaks between −18 and −6 dBFS. Red CLIP = too loud: move back or turn the gain down.</p>
+      <label class="field"><span>MIC GAIN <output id="optMicGainVal">0 dB</output></span><input type="range" id="optMicGain" min="-12" max="24" step="1" value="0"></label>
+      <p class="note">Digital gain applied in the app before recording. Browsers do not let a web page change the microphone’s hardware level, so gain cannot undo clipping that happens in the mic or interface — lower the hardware/OS level for that.</p>
+      <label class="switch"><input type="checkbox" id="optMicFirst" checked> Ask for a mic check before the first take of each session</label>
+    </div>
+    <div class="rack">
+      <h2>Latency</h2>
+      <p class="note" id="latInfo"></p>
+      <div class="selrow"><label class="field"><span>LATENCY USED FOR NEW TAKES (MS)</span><input type="number" id="latMs" min="0" max="800" step="1"></label></div>
+      <div class="btnrow"><button class="btn" id="latCal">Calibrate…</button><button class="btn" id="latAuto">Use automatic</button></div>
+    </div>
+    <div class="rack">
+      <h2>Autosave &amp; backups</h2>
+      <p class="note" id="bkInfo"></p>
+      <div class="selrow"><label class="field"><span>REMIND ME TO BACK UP AFTER</span><select id="optBackupEvery"><option value="0">never</option><option value="3">3 new takes</option><option value="6" selected>6 new takes</option><option value="10">10 new takes</option></select></label></div>
+      <div class="btnrow"><button class="btn primary" data-proxy="phraseSave">Download project backup (every take)</button></div>
+    </div>
+  </section>
+<div id="oldTlActions">
+  <div class="btnrow"><button class="btn primary" id="phraseContinue">Continue from here</button><button class="btn" id="phraseAtPlayhead">Use playback position</button></div>
+  <button class="btn apply" id="phraseApply">Apply chosen takes</button>
+  <div class="selrow"><label class="field"><span>LEAD-IN (SECONDS)</span><input id="phraseLead" type="number" min="0" max="5" step="0.5" value="2"></label><label class="field"><span>JOIN FADE (MS)</span><input id="phraseFade" type="number" min="0" max="100" step="5" value="20"></label></div>
+  
+</div>
+<div id="oldMainRec">        <button class="btn rec wide" id="recBtn"><span class="dot"></span><span id="recLabel">Record my vocal</span></button>
+        <div class="recbox" id="recBox" hidden>
+          <div class="rectime" id="recTime">0:00.0</div>
+          <div class="meter"><i id="recMeter"></i></div>
+          <p class="note" id="recNote">Recording. Tap Stop when you're done.</p>
+        </div>
+        <p class="warnbox" id="recBlocked" hidden></p>
+</div>
+</div>
+
+<!-- 0.12.1 confirmation after a reset or a save -->
+<div class="toast" id="toast" role="status" aria-live="polite" hidden><span class="tick" aria-hidden="true"></span><div><b id="toastTitle"></b><p id="toastText"></p></div><button class="closebtn" id="toastClose" aria-label="Close">×</button></div>
+<!-- 0.10.1 knob step editor -->
+<div class="stepper" id="stepper" role="dialog" aria-label="Adjust in steps" hidden>
+  <div class="steplabel" id="stepLabel"></div>
+  <div class="steprow"><button class="btn stepbtn" id="stepMinus" aria-label="Step down">−</button><div class="stepvalue" id="stepValue" aria-live="polite"></div><button class="btn stepbtn" id="stepPlus" aria-label="Step up">+</button></div>
+  <div class="steprow2"><button class="btn" id="stepAuto">Auto</button><button class="btn primary" id="stepDone">Done</button></div>
+  <p class="note">Hold − or + to keep stepping. The sound updates when you pause.</p>
+</div>
+<!-- SMART GUIDE -->
+<div class="sheet" id="guideSheet" role="dialog" aria-label="Smart Guide" hidden>
+  <div class="inner">
+    <div class="top"><h2>✦ SMART GUIDE</h2><div class="row"><label class="switch"><input type="checkbox" id="guideOn" checked> On</label><button class="closebtn" id="guideClose" aria-label="Close Smart Guide">×</button></div></div>
+    <div class="grid2">
+      <label class="field"><span>HELP WITH</span><select id="guideConcern"><option value="0">Overall check</option><option value="1">Thin / airy</option><option value="2">Muddy / muffled</option><option value="3">Harsh / rough</option><option value="4">Uneven volume</option><option value="5">Pitch</option><option value="6">Background noise</option></select></label>
+      <label class="field"><span>TARGET SOUND</span><select id="guideGoal"><option value="0">Natural Reggae</option><option value="1">Polished Vocal</option><option value="2">Hard Tune</option></select></label>
+      <div class="field"><span>SONG BPM</span><div class="row"><input type="number" id="guideBpm" class="tempoin" min="50" max="200" value="75" inputmode="numeric" aria-label="Song BPM" style="width:90px;font:600 16px var(--mono);color:var(--fg);background:var(--raised);border:1px solid var(--line);border-radius:10px;padding:10px;min-height:44px"><label class="switch"><input type="checkbox" id="guideSync"> Lock echo advice to this tempo</label></div></div>
+    </div>
+    <p class="note">Clicks, room echo and thickness need a listening check. <button class="btn small" data-open-detail>Open Vocal Detail</button></p>
+    <div class="tipbadge" id="tipBadge">SMART GUIDE</div>
+    <div class="tiptitle" id="tipTitle"></div>
+    <p class="tipreason" id="tipReason"></p>
+    <p class="note" id="tipListen"></p>
+    <div class="tipchange" id="tipChange"></div>
+    <div class="gaincost" id="tipGainCost"></div>
+    <div class="btnrow">
+      <button class="btn" id="gPreview">Preview change</button>
+      <button class="btn" id="gCurrent">Hear current</button>
+      <button class="btn" id="gSuggested">Hear suggested</button>
+      <button class="btn" id="gStop">Stop</button>
+    </div>
+    <div class="btnrow">
+      <button class="btn primary" id="gApply">Apply</button>
+      <button class="btn" id="gLater">Not now</button>
+      <button class="btn" id="gKeep">Keep my choice</button>
+      <button class="btn" id="gOpen">Open controls</button>
+    </div>
+    <div class="gmsg" id="gMsg" aria-live="polite"></div>
+    <div class="measured" id="gMeasured"></div>
+    <div class="row"><button class="btn small" id="gUndo">Undo</button><button class="btn small" id="gReset">Reset guide choices</button></div>
+  </div>
+</div>
+
+<link rel="stylesheet" href="song-studio.css?v=cleanup1">
+<link rel="stylesheet" href="quality-studio.css?v=cleanup1">
+<link rel="stylesheet" href="reference-guide.css?v=0.32.1">
+<link rel="stylesheet" href="tuner-routing.css?v=0.32.1">
+<script src="note-editor-safety.js?v=0.32.1"></script>
+<script src="finish-policy.js?v=0.32.1"></script>
+<script src="quality-core.js?v=0.32.1"></script>
+<script src="reference-core.js?v=0.32.1"></script>
+<script src="song-core.js?v=0.32.1"></script>
+<link rel="stylesheet" href="noise-cleaner.css?v=0.32.1">
+<script src="noise-core.js?v=0.32.1"></script>
+<script src="noise-cleaner.js?v=0.32.1"></script>
+<script src="tuner-routing.js?v=0.32.1"></script>
+<script src="studio-main.js"></script>
+
+<script src="daw.js?v=0.32.1"></script>
+<script src="recovery.js?v=0.32.1"></script>
+<script src="rec.js?v=0.32.1"></script>
+<script src="rc.js?v=0.32.1"></script>
+<script src="edit-core.js?v=0.32.1"></script>
+<script src="separation.js"></script>
+<script src="studio.js?v=cleanup1"></script>
+
+<script src="ref-align.js?v=0.32.1"></script>
+<script src="song-studio.js?v=cleanup1"></script>
+<script src="song-polish.js?v=0.32.1"></script>
+<script src="quality-studio.js?v=0.32.1"></script>
+<script src="reference-preview.js?v=0.32.1"></script>
+<script src="reference-guide.js?v=0.32.1"></script>
+
+<script src="work-windows.js?v=0.32.1"></script>
+<script src="workspace-transfer.js?v=0.32.1"></script>

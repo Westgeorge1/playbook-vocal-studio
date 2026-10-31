@@ -1,0 +1,65 @@
+PLAYBOOK VOCAL STUDIO 0.25.1 — REVIEW FIXES
+20 October 2026
+
+FIXED
+- Autosave cleanup no longer calls Redo. Read-only history inspection and user
+  Undo/Redo now use different methods; history() without a direction does nothing.
+- Removing a polished track, saving, using Undo and saving again preserves the
+  restored processing after reload. Cleanup keeps audio referenced by history
+  and removes committed deletions from both source and POLISH write caches.
+- Browser saves are serialized. Root editor audio and backing also use separate
+  audio records rather than repeatedly embedding large copies in session metadata.
+  Retirement and replacement are atomic; a failed save keeps the previous save.
+  Full-song save/reload and both backup formats passed in normal browser profiles.
+  The test browser temporary-profile storage ceiling was separately reproduced;
+  real quota failures still require a backup or additional browser storage.
+- Browser save failures show an actionable banner: Back up project now / Retry.
+  Missing POLISH audio retains editable settings and reports the problem.
+- A standalone vocal in a project with an entirely empty song workspace becomes
+  a selected lead take. Its saved POLISH notes, edits and settings stay attached.
+  Existing populated arrangements are never replaced by this recovery path.
+- Switching the selected track between stereo and explicit mono processing now
+  rebuilds the bound editor. Time-based edits and effects are kept; the original
+  recording is unchanged. Readiness and export follow the actual processing mode.
+- Modern backups omit input audio only when reconstructing it is sample-exact.
+  Valid legacy processing with different join fades keeps its explicit input WAV.
+- Low-sample-rate POLISH refusals show their actual reason. The stereo duration
+  limit is stated for the song's sample rate, rather than always saying 3 minutes.
+
+EASIER EDITING
+- Final handover debug fix: lane height follows its controls, so Level, Pan,
+  Mute and Solo are not clipped on phones or larger screens. Long track names,
+  larger touch targets and loaded instrumentals can expand the lane safely.
+- Show vocal jumps to the selected recording lane.
+- Recording helpers fold on phones. Record, Play, Stop and the clock remain
+  visible while scrolling; Options returns to the full recording controls.
+- The optional empty instrumental lane takes less space.
+- Edit waveform and Sound controls give direct access to POLISH editing areas.
+  The waveform editor has a return button to Sound controls.
+- Opening the current polished lane selects FINAL listening mode.
+
+UNCHANGED ENGINE
+The seven files listed in ENGINE-SHA256.txt are byte-identical to 0.25.0.
+Modern backups retain the existing 16-bit-final policy (float fallback for
+out-of-range peaks). Compatibility backups retain float final audio.
+
+Validation and limits: TEST-RESULTS-0.25.1.txt.
+Agent integration instructions: IMPLEMENTATION-HANDOVER-0.25.1.txt.
+
+ADOPTION FIXES (our integration of the 0.25.1 handover)
+- Scrolling down the Song screen no longer hides controls. Fix phrase, |◀,
+  Show vocal, Tempo, Click, Count-in, HEAR ME and With backing / Vocals only
+  stay in the sticky top bar. (The handover build hid them once you scrolled.)
+  Only read-outs (Room, Ready, bar/beat) fold away to keep the bar short. On phones
+  Recording helpers fold again as you scroll; one tap opens them. A lane you
+  scroll to always lands below the bar, never under it.
+- Taller phone lanes kept on purpose, so Level, Pan, Mute and Solo are never cut off.
+- New automatic checks: no exported API object may define a key twice (this
+  catches the 0.25.0 history/Redo bug), and the scrolled bar must never hide
+  controls. New browser test tests-0.25.1/scrolled251.py at 390 and 1366 wide.
+- Older layout tests now allow lanes up to 380 px (was 216 px), matching the
+  intentional taller lanes. No other old test was changed.
+
+BEFORE YOU UPDATE
+Back up your project first (Back up project). Browser autosave is forward-only:
+after 0.25.1 opens it, 0.25.0 cannot read it. Your backup ZIP opens in either.

@@ -1,0 +1,293 @@
+PLAYBOOK VOCAL STUDIO 0.24.0
+Comprehensive review and agent handover
+20 October 2026
+
+DECISION
+
+Keep Stage 3 open. The recording workflow is substantially improved and fits the intended purpose: sing the song, replace a word or phrase, organise sections, and record backing vocals on separate lanes. The desktop and phone interfaces are also clearer.
+
+The main unfinished requirement is POLISH for a realistic full song with several vocal lanes. A four-minute lead could be polished, but the first four-minute backing vocal could not: the shared POLISH memory budget was already insufficient. Recording capacity and processing capacity are different limits in this build.
+
+I found six remaining issues. Resolve the high-priority audio and capacity issues before treating this build as a finished song-production application. The two settings issues also need correction before Stage 3 sign-off.
+
+This was an inspection, not an implementation. The 23 runtime JS/CSS/HTML/WASM files checked still match the supplied archive. No application changes or deployment were made.
+
+WHAT NOW WORKS
+
+Fresh tests confirmed:
+- Microphone/worklet recording, phrase replacement, alternative takes, interruption recovery, and keyboard shortcuts.
+- A continuous recording beyond 60 seconds, including stop and interruption handling.
+- Separate lead and harmony lanes, with independent Clean, Tune, effects, note, breath and timing edits.
+- Returning to a previously polished lane restores its individual settings and edits.
+- Replacing a phrase invalidates the affected lane and keeps manual edits outside the changed range. Other vocal lanes remain intact.
+- Song playback combines the independently processed lanes.
+- Listen now auditions the requested take over a later overlapping chosen recording. An independent Web Audio interception received the requested 0.5 sample, rather than the covering 0.25 sample.
+- Splitting a continuous take preserves every sample in the supplied seam regressions. An additional 1,000 synthetic overlap/split cases produced no sample differences.
+- Ordinary fade/trim edits correctly require a POLISH update; undo, redo and reopening retain the correct state.
+- Deleting an unchosen reference clears the reference, and Undo restores it.
+- Reference comparison handles unequal note counts, or labels a take that cannot be compared. The phone UI reference/split workflow also passed.
+- Older supplied 0.18.3, 0.20, 0.21 and 0.22 projects open; an explicitly stale fixture stays stale.
+- Float sources that are not on the 16-bit grid survive a project save/reopen unchanged, with their POLISH validity preserved.
+- The larger source allowance holds the supplied realistic test: four-minute lead, two four-minute backing lanes, and three minutes of fixes, totalling 15 minutes of source audio.
+- That larger project survives autosave/reload and ZIP save/reopen bit-exact on every lane. Its vocal mix export covers 240 seconds.
+
+The new source storage is a useful improvement. In the 15-minute test, 164.8 MiB of Float32 source data occupied about 82.6 MiB in browser storage. Later autosaves avoided rewriting the source recordings. The full project ZIP was still about 291.2 MiB because it also contains compatibility copies.
+
+PREVIOUS EIGHT FINDINGS: CURRENT STATUS
+
+F1 — First fade ignored by processed output: the ordinary edit is fixed. A remaining older-project migration exception can still approve stale audio near joins; see R3.
+F2 — Listen plays the wrong overlapping take: fixed in the tested model and actual browser playback.
+F3 — Split introduces a dip: fixed for the tested continuous-take split cases. The supplied different-take crossfade checks also pass.
+F4 — Song key leaves other processed lanes outdated: changing the global key now marks affected lanes and blocks export. The new per-track own-key exception is broken; see R4.
+F5 — Immediate crash loses settings: the tested Song-screen settings now survive. POLISH-screen key changes and dry/processed preference still have gaps; see R5.
+F6 — Removing a reference take fails: fixed for the tested Delete unchosen/Undo path; source inspection also shows reference clearing in the other removal paths.
+F7 — Unequal note counts silently defeat reference comparison: alignment and fallback explanations pass the new core and phone workflow checks.
+F8 — Older-version write-back changes the lead comp: supplied sample-by-sample composition checks pass. This review did not run a separate live 0.18.3 application.
+
+REMAINING FINDINGS
+
+R1 — HIGH: A normal full-song multitrack session cannot finish POLISH
+
+User impact:
+The app has room to record lead and backing vocals, but cannot process all of them. Asking the singer to shorten or delete a needed vocal does not satisfy the purpose of this application.
+
+Reproduction:
+1. Create three mono vocal lanes at 48 kHz, each four minutes long.
+2. Choose their recordings. This is only 12 minutes of source audio and fits the new recording allowance.
+3. Open the lead in POLISH. It succeeds.
+4. Open the first backing vocal in POLISH.
+
+Observed:
+The backing vocal is refused with:
+"This vocal needs more POLISH memory than the remaining 256 MB budget. Back up the project and shorten or remove an unused track before processing."
+
+The first processed lane used 141,088,000 bytes for its input and final audio. The next lane's reservation is 142,080,000 bytes. Together that is 283,168,000 bytes, above the 268,435,456-byte budget.
+
+The refusal took about 119 seconds in this test because the error path restored/reprocessed the already-open four-minute lead. Timing is specific to this test machine; the budget mismatch is deterministic. The redundant third-lane attempt was stopped after the second-lane refusal was established.
+
+Cause/location:
+song-polish.js:8,21-22,48-88 — shared MAX_BYTES, reserve/budget, and unconditional restoration of the previous engine session in the catch path. The supplied capacity24 test checks that the lead polishes; it does not polish all three full-length lanes.
+
+Fix direction:
+- Support completed lane renders and editable sessions without keeping every full buffer resident simultaneously. Disk-backed caches, loading only the active editor, and bounded render/mix work are appropriate directions.
+- Run a reservation check before changing the engine or scheduling expensive restoration.
+- Show processing capacity/readiness as well as recording room.
+- Do not simply raise the memory cap without measuring supported phones.
+
+Acceptance:
+A four-minute lead plus two four-minute backing vocals, with phrase fixes, must all complete POLISH, retain separate manual edits, play together, export processed stems/mix, and reopen correctly. A budget refusal must be quick and preserve the current editor.
+
+R2 — HIGH: Reopening a long stereo vocal silently changes it to mono
+
+User impact:
+A saved vocal can sound different after reopening even though it remains marked POLISH-valid. Stereo width is lost, and opposing channel content can cancel.
+
+Reproduction/evidence:
+A 181-second stereo lane was created at 8 kHz with different left/right tones. Clean, tuning amount and Chain were then disabled to isolate the save/restore path from processing.
+
+Before saving:
+- Two input channels.
+- Finite processed output, sample-identical to the input with those stages disabled.
+- Input/final hash: b7268c3585c5a9ad.
+
+After autosave and reload:
+- One input channel, produced by averaging the two original channels.
+- Input hash: 3239fbbecbd16b.
+- Final hash: 89a46c075e53a149.
+- POLISH-valid and export-allowed both remain true.
+- No visible conversion notice.
+
+A separate opposite-polarity channel test confirmed that the restored averaged input becomes zero. The original source channels remain stored; the changed POLISH input/result is the problem.
+
+Cause/location:
+index.html:2809-2812, restoreSession: any stereo input longer than 180 seconds is automatically averaged. S.monoNote is assigned but is not displayed anywhere in this build. This branch is duration-based and is not restricted to 8 kHz.
+
+Fix direction:
+Preserve channel content on restore. If processing cannot support a file, fail without replacing its saved sound, or offer an explicit conversion option with an audible comparison and the original retained. Keep fresh-open and restore behaviour consistent. Do not approve a changed processing input as the original valid result.
+
+Acceptance:
+Save/reload and ZIP round trips preserve channel count and sound for stereo material over three minutes. Test different signals in each channel and opposite-polarity content. Any deliberate conversion must be visible and chosen by the user.
+
+R3 — HIGH: Migration can approve an older, wrong take near a join
+
+User impact:
+An older project with a short replacement can reopen showing the replacement chosen while processed playback still uses the earlier performance.
+
+Independent model reproduction:
+- Song rate: 8 kHz; join fade: 100 ms.
+- Three adjacent chosen regions: 0-2 s, 2-2.08 s, and 2.08-4 s.
+- Save a legacy layout signature and POLISH input/output for those choices.
+- Add and choose a different take for the middle 80 ms range, retaining the old POLISH result.
+- Run normalizeSigs, as project loading does.
+
+Observed at 2.04 seconds:
+- New chosen/dry sample: approximately 0.6.
+- Processed sample: approximately 0.2, from the previous take.
+- Before normalization, POLISH is invalid; after normalization, it is valid.
+
+With the default 20 ms join fade, adding a 10 ms or 20 ms fade at an adjacent boundary can also be ignored. At 2.005 seconds in one case, dry audio was 0.05 while the old processed input remained 0.10.
+
+Cause/location:
+song-core.js:37-45, normalizeSigs. The migration ignores ALL sample differences inside zones around adjacent boundaries. It does not first establish that those differences are solely the renderer's old/new seam behaviour. It then replaces the saved signature with the current hash.
+
+Fix direction:
+Do not blanket-ignore boundary zones. Compare the original choices and all audio-affecting edit values, or render/verify the precise legacy behaviour before declaring compatibility. Real take/fade changes must remain stale. Preserve manual edits through an explicit update path.
+
+Acceptance:
+The 80 ms replacement and 10/20 ms fade examples remain stale after opening, saving and reopening. Processed export is blocked until updated. Unchanged older fixtures still retain their edits.
+
+Minimal reproduction for the agent (run from the application folder):
+
+const C = require('./song-core.js');
+const w = C.empty(8000), t = w.tracks[0];
+w.fadeMs = 100;
+C.addTake(w, {start:0, end:2,
+  channels:[new Float32Array(16000).fill(.1)], choose:true});
+const mid = C.addTake(w, {start:2, end:2.08,
+  channels:[new Float32Array(640).fill(.2)], choose:true});
+C.addTake(w, {start:2.08, end:4,
+  channels:[new Float32Array(15360).fill(.3)], choose:true});
+const pcm = C.renderTrack(w,t,{end:4});
+t.polish = {rate:w.rate, sourceSig:C.layoutSig(w,t),
+  session:{pcm}, channels:pcm};
+C.addTake(w, {regionId:mid.region.id, start:2, end:2.08,
+  channels:[new Float32Array(640).fill(.6)], choose:true});
+C.normalizeSigs(w);
+console.log(C.polishValid(w,t)); // currently true; must be false
+console.log(C.renderTrack(w,t,{end:4})[0][16320]); // ~0.6
+console.log(C.renderVoice(w,t,{end:4})[0][16320]); // ~0.2
+
+R4 — MEDIUM: "Keep this vocal in its own key" does not work consistently
+
+Reproduction through the actual interface:
+1. Open the supplied polished-0.20 fixture; its harmony is saved in E (key 4).
+2. In that track's settings, enable "Keep this vocal in its own key".
+3. Set the song key to D (key 2).
+4. Open the harmony in POLISH.
+5. Change that vocal's key to F (key 5).
+
+Observed:
+Before opening: song 2, harmony 4, ownKey true.
+After opening: song 2, harmony 2, ownKey still true.
+After changing the supposedly independent vocal: song 5, harmony 5.
+
+Cause/location:
+song-studio.js:411 and 417. syncPolishKey unconditionally pushes the song key into the editor, and the editor's change listener unconditionally writes back to the song. keyStale respects ownKey, but synchronization does not.
+
+Fix/acceptance:
+Honour the override in both directions, using the bound vocal's state. Opening, switching, saving and reopening must preserve the independent key. Editing it must not change the global key or other lanes. Turning the override off should explicitly adopt the song key and update that vocal safely.
+
+R5 — MEDIUM: Immediate-crash recovery is incomplete for POLISH settings
+
+Two separate reproductions:
+A. Persist a project with the song/editor in D. Change the key to F inside POLISH and immediately crash the tab. Before the crash: song key 5, journal key 2, revision unchanged at 1. Reopened song/editor: key 2.
+B. Persist a project with processed playback enabled. Enable "Use dry vocal" through track settings and immediately crash. Before: bypass true. Reopened: bypass false.
+
+These are settings losses, not evidence that ordinary completed recordings were lost. The supplied Song-screen crash tests passed.
+
+Cause/location:
+song-studio.js:396,417,453-457. The POLISH key listener only schedules persist; it does not use the durable revision/journal path. The journal deliberately drops the whole polish object and therefore also drops small flags such as bypass and ownKey. Recovery reattaches the older polish object.
+
+Fix/acceptance:
+Use one durable settings path for both screens. Journal small POLISH preference metadata separately from its large audio buffers, then merge it safely by project/revision. Crash immediately after changing key, scale, bypass and own-key flags; each completed setting change must return correctly without reviving stale audio or another project.
+
+R6 — HIGH, LIMITED TO TESTED 8 kHz SESSIONS: Invalid DSP samples pass validation/export checks
+
+User impact:
+A supported song/project sample rate can produce invalid processed audio while the app treats the lane as polished and exportable. This was not reproduced at 48 kHz in the comparison tests.
+
+Evidence:
+Fresh two-second stereo 8 kHz sessions, with either different tones or opposite-polarity channels, were opened in POLISH. Default Clean/Tune/Chain processing returned 150,668 non-finite samples. polishValid returned true, and SongPolish.assertExport allowed the result.
+
+Turning Clean off, tuning amount to zero, and Chain off produced finite, sample-identical output. Equivalent two-second 48 kHz cases were finite with normal processing. The longer 8 kHz example also reproduced non-finite output under normal processing.
+
+This is a processing/validation finding; this review does not establish which DSP stage creates the invalid values or which release introduced it. The normal import route resamples into the current song rate, so this finding should not be read as affecting every imported 8 kHz file. It affects an 8 kHz song/engine session, which the model and project route accept.
+
+Cause locations to inspect:
+- song-core.js: sample-rate validation accepts 8 kHz; polishValid checks identity/rate/presence, not finite PCM.
+- song-polish.js: open/capture can store S.final without checking every output sample.
+- song-studio.js: export guard checks peak > 1, which is false when the peak is NaN.
+
+Fix/acceptance:
+Validate processed PCM before accepting it and again at export boundaries. Reject invalid results while preserving the last good render and raw audio. Investigate low-rate DSP support; if a rate cannot be processed, normalize safely to a supported rate or give a clear unsupported-rate error. Tests must include accepted low-rate projects, normal 44.1/48 kHz material, and NaN/Infinity rejection. The export-guard acceptance was tested; no claim is made here of a separately inspected downloaded invalid WAV.
+
+USER-FRIENDLINESS ASSESSMENT
+
+The direction is right. The ordinary workflow is understandable and substantially better than making song-section labels also act as mandatory recording boundaries.
+
+Verified improvements:
+- Song sections remain separate from recordings.
+- Main recording controls are clear; the active recording track is named.
+- On the tested phone layout, Song controls meet the new 44 px target checks.
+- Take editor Apply/Cancel remain visible in the sticky footer. Split/Reference actions are secondary.
+- The chosen-take note explains where another correction covers it.
+- POLISH distinguishes "this vocal" from "Whole song".
+- Clean/Tune/Chain controls appear ahead of the detailed note editor on phones.
+
+Next usability priorities:
+1. Make full-song readiness visible: how many vocal lanes still need POLISH, and whether the project can finish processing.
+2. Make a known memory refusal immediate. Reprocessing the current vocal before reporting an impossible next step feels like a freeze.
+3. Keep conversions and key overrides explicit and predictable.
+4. Consider a guided default sequence: Clean, Tune, Tone/effects, Compare, Hear whole song; keep advanced editing available beneath it.
+5. Offer a modern project backup without redundant older-app copies, with a separate compatibility export where needed. The tested 291.2 MiB ZIP is cumbersome for phone use.
+6. Refresh the handover and help documents. AGENT-HANDOVER.md still identifies itself as 0.20.0 and contains obsolete workflow/limit statements; START-HERE.txt identifies 0.23.0. Current exports also contain older-version wording. Reconcile minimum-reader guidance with the new PCM signatures and capacity, rather than promising every older multitrack reader can restore them.
+
+TEST EVIDENCE AND LIMITS
+
+Freshly executed selected regression checks: 375 passed, zero failed.
+
+Core suites: 123 checks
+- 0.20 core: 21
+- 0.21 core: 19
+- 0.22 core: 24
+- 0.23 core: 15
+- 0.23 range safety: 8
+- 0.24 core regressions: 27
+- 0.24 reference alignment: 9
+
+Browser suites: 228 checks
+- Recording/workspace browser suite: 43
+- Failure and recovery edges: 17
+- Per-track POLISH integration: 30
+- POLISH edge cases: 11
+- Older-project fixtures: 6
+- 0.24 UI regressions: 19 desktop + 19 phone
+- Durable Song settings: 13
+- UX: 8 phone + 7 desktop
+- End-to-end record/fix/polish workflow: 17 desktop + 17 phone
+- Realistic source capacity: 12
+- Sustained recording: 9
+
+Additional adapted 0.24 phone workflow: 24 passed. Two checks requiring a running historical 0.18.3 app were explicitly omitted. Legacy ZIP metadata, old fixtures and sample composition were checked separately; they are not a claim of testing that old app itself.
+
+Independent investigation additionally covered actual Listen playback, own-key behaviour, POLISH key/bypass crash recovery, float-source project roundtrip, long stereo restoration, complete-lane POLISH capacity, low-rate/non-finite DSP output, split transparency and migration boundary cases. These additional investigations produced R1-R6; passing bundled checks do not supersede those findings.
+
+All seven protected engine/hash entries matched ENGINE-SHA256.txt. Tests used real WASM processing and Chromium Web Audio/AudioWorklet, synthetic microphone signals, local hosting, and desktop/phone viewport emulation. Fresh screenshots were visually inspected. Recording/layout checks included widths from 360 to 1366 CSS pixels.
+
+Not certified by this review:
+- Real singing quality, natural pitch correction or aesthetic mix quality.
+- Physical microphone/headphone latency and acoustic leakage.
+- Safari/iOS, Android hardware, background/OS termination behaviour or low-memory phone performance.
+- A production deployment or separately running legacy desktop/plugin application.
+
+Before release, listen to a real reggae lead with breaths, sustained notes, consonants, harmonies and phrase replacements on the target devices. Compare dry/processed sound and saved/reopened output. This is a necessary musical/device acceptance check beyond synthetic test coverage.
+
+AGENT PRIORITIES
+
+1. Make the four-minute lead + two full backing vocals complete POLISH end to end.
+2. Preserve stereo input/result through restore and reject non-finite DSP output.
+3. Remove the migration boundary exception that can approve a stale replacement.
+4. Correct own-key synchronization and durable POLISH preference recovery.
+5. Update current documentation and add the missing regression scenarios above.
+
+Preserve the fixes that already pass. Extend tests around actual samples, selected performances, completed stored state and exported audio. Do not mark Stage 3 finished solely because the existing suite is green.
+
+ARCHIVE IDENTIFICATION
+
+Input: playbook-vocal-studio-0.24.0 (2).zip
+Archive size: 114,660,174 bytes
+SHA-256: e256723db48e1f9e91abbf317e560fcf75d85d40cce8dc0b17746d868a8c1ed6
+Application root: vocalapp-0.24
+Browser used: Chromium 153.0.8010.0 (headless)
+
+End of review.

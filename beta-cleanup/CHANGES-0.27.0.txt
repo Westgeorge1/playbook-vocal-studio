@@ -1,0 +1,41 @@
+PLAYBOOK VOCAL STUDIO 0.27.0 — REFERENCE-GUIDED FINISH
+
+Based on the complete 0.26.0 package.
+
+NEW
+- Save one named reference-vocal measurement profile with each song.
+- Reuse profiles after reload and project backup/reopen without embedding reference audio.
+- Compare voice-like tone, sung-frame variation, high-frequency bursts and stereo width.
+- Small, explicit trials using existing EQ, de-esser, word leveling and doubler controls.
+- Isolated current/suggested previews, measured loudness matching and peak protection.
+- Mono audition, Apply through normal POLISH editing, and existing Undo support.
+- Cancelling or changing the passage invalidates pending/stale previews.
+- Entry points in Smart Guide, reference comparison and the POLISH toolbar.
+
+INTEGRATION
+- Optional validated referenceGuide song metadata, deep history cloning and profile-only saves.
+- Versioned assets and measurement-report appVersion updated to 0.27.0.
+- Existing tuning engine and all seven byte-locked files are unchanged.
+- No second tuner, automatic application, reference-audio embedding or voice cloning.
+
+Read REFERENCE-GUIDE-0.27.0.md for use and limitations.
+Read TEST-RESULTS-0.27.0.txt for the executed checks.
+Current package hashes are in FILES-SHA256-0.27.0.txt; older manifests are historical.
+No live website was changed. Back up your project before opening a new version.
+
+ADOPTION FIXES (our integration, 25 October 2026)
+- Fixed: a short Fix phrase or recording could be silently lost. If the
+  browser's audio clock had not started yet (busy phone, audio device switching),
+  the screen already said "Recording"; pressing Stop then kept nothing.
+  Now the Record button says "Stop (mic starting…)" until audio is really
+  flowing, and Stop at that moment tells you nothing was recorded so you can
+  try again. Once recording, even a 1-second early stop is kept as an attempt.
+- New automatic checks: phrase volume and finished-WAV paths (R10), honest
+  recording state (R11), and the new quality/reference files are covered by the
+  "no own WAV writer" and "no duplicate keys" checks.
+- New browser test tests-0.27/mic_start271.py (desktop and phone widths).
+- Test runner reads the app version from index.html.
+
+BEFORE YOU UPDATE
+Back up your project first. Phrase-volume moves and reference profiles need
+0.26.0/0.27.0 or newer to sound and work the same.

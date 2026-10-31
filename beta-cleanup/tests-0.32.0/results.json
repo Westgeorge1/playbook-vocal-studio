@@ -1,0 +1,325 @@
+{
+ "rows": [
+  {
+   "name": "Natural engine with default controls is bit-identical to 0.31.13 (800 random runs)",
+   "pass": true,
+   "detail": 0
+  },
+  {
+   "name": "Vibrato 50% roughly halves the vibrato depth",
+   "pass": true,
+   "detail": {
+    "v0": 0.2089665790205354,
+    "vHalf": 0.09915109144575934
+   }
+  },
+  {
+   "name": "Flex 30 leaves a note 8 cents off alone",
+   "pass": true
+  },
+  {
+   "name": "Humanize relaxes drift correction late in a long note",
+   "pass": true
+  },
+  {
+   "name": "Approved sound unchanged at the same reference: none",
+   "pass": true
+  },
+  {
+   "name": "Approved sound unchanged at the same reference: presetSnapSmooth",
+   "pass": true
+  },
+  {
+   "name": "Approved A tunes the test vocal within 4 cents at A = 440",
+   "pass": true,
+   "detail": {
+    "centreErr": 2.6,
+    "vibKept": 98,
+    "scoopKept": 79
+   }
+  },
+  {
+   "name": "Approved sound unchanged at the same reference: presetCenterSmooth",
+   "pass": true
+  },
+  {
+   "name": "presetRoots: new vocal starts on Auto at A = 440",
+   "pass": true
+  },
+  {
+   "name": "presetRoots accuracy and expression",
+   "pass": true,
+   "detail": {
+    "centreErr": 2.6,
+    "vibKept": 92,
+    "scoopKept": 67
+   }
+  },
+  {
+   "name": "Natural Roots sets Natural mode, smart centres and its values",
+   "pass": true
+  },
+  {
+   "name": "Status counts automatically tuned notes",
+   "pass": true
+  },
+  {
+   "name": "Drift slider updates the setting",
+   "pass": true
+  },
+  {
+   "name": "Undo restores the drift setting",
+   "pass": true
+  },
+  {
+   "name": "Research preset settings survive a reload",
+   "pass": true
+  },
+  {
+   "name": "presetGentle: new vocal starts on Auto at A = 440",
+   "pass": true
+  },
+  {
+   "name": "presetGentle accuracy and expression",
+   "pass": true,
+   "detail": {
+    "centreErr": 6.7,
+    "vibKept": 100,
+    "scoopKept": 79
+   }
+  },
+  {
+   "name": "presetTight: new vocal starts on Auto at A = 440",
+   "pass": true
+  },
+  {
+   "name": "presetTight accuracy and expression",
+   "pass": true,
+   "detail": {
+    "centreErr": 2.6,
+    "vibKept": 82,
+    "scoopKept": 59
+   }
+  },
+  {
+   "name": "presetHard: new vocal starts on Auto at A = 440",
+   "pass": true
+  },
+  {
+   "name": "presetHard accuracy and expression",
+   "pass": true,
+   "detail": {
+    "centreErr": 2.9,
+    "vibKept": 36,
+    "scoopKept": 14
+   }
+  },
+  {
+   "name": "Tilt is stored per note (row index 13)",
+   "pass": true
+  },
+  {
+   "name": "Tilt changes the tuned vocal",
+   "pass": true
+  },
+  {
+   "name": "Undo removes the tilt",
+   "pass": true
+  },
+  {
+   "name": "Level all notes moves note volumes within ±6 dB",
+   "pass": true,
+   "detail": {
+    "g0": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "g1": [
+     0.5,
+     0.5,
+     0,
+     0,
+     0.5,
+     -0.5,
+     -0.5,
+     0,
+     -0.5,
+     0,
+     1,
+     1,
+     0.5,
+     -0.5,
+     0,
+     0,
+     0,
+     0.5
+    ]
+   }
+  },
+  {
+   "name": "Blind compare shows three Hear and Keep buttons",
+   "pass": true
+  },
+  {
+   "name": "Names stay hidden during the test",
+   "pass": true
+  },
+  {
+   "name": "Each version sounds different",
+   "pass": true,
+   "detail": [
+    "fef39c766068f430",
+    "426d6678b7a68897",
+    "34a2cd156bff5e57"
+   ]
+  },
+  {
+   "name": "Keep reveals which preset was which",
+   "pass": true,
+   "detail": "You kept Y: Gentle Polish. X = Natural Roots · Y = Gentle Polish · Z = Original approved A (Snap all + Smooth 25%). Undo returns to where you started."
+  },
+  {
+   "name": "Kept version is the one heard as Y",
+   "pass": true
+  },
+  {
+   "name": "Undo returns to the settings before the test",
+   "pass": true
+  },
+  {
+   "name": "Cancel test restores the previous settings",
+   "pass": true
+  },
+  {
+   "name": "Auto without a backing explains standard A = 440",
+   "pass": true,
+   "detail": {
+    "mode": "auto",
+    "hz": 440,
+    "info": "No backing yet, so standard A = 440. Add the beat in Song & vocals and tuning follows it.",
+    "warn": false
+   }
+  },
+  {
+   "name": "Adding a backing 25 cents flat re-tunes Auto to it",
+   "pass": true,
+   "detail": {
+    "mode": "auto",
+    "hz": 433.8,
+    "info": "Tuned to the backing: A = 433.8 Hz (-25¢).",
+    "warn": false
+   }
+  },
+  {
+   "name": "Snapped notes move with the reference (none left off pitch)",
+   "pass": true
+  },
+  {
+   "name": "My singing with a backing warns about clashing with the beat",
+   "pass": true,
+   "detail": {
+    "mode": "singing",
+    "hz": 443.4,
+    "info": "Following your singing: A = 443.4 Hz (+13¢) · fair reading from 17 notes · you move from +17¢ to +9¢ across the song.",
+    "warn": true
+   }
+  },
+  {
+   "name": "Tune to the backing from the warning",
+   "pass": true,
+   "detail": {
+    "mode": "riddim",
+    "hz": 433.8,
+    "info": "Tuned to the backing: A = 433.8 Hz (-25¢).",
+    "warn": false
+   }
+  },
+  {
+   "name": "Undo restores My singing",
+   "pass": true,
+   "detail": {
+    "mode": "singing",
+    "hz": 443.4,
+    "info": "Following your singing: A = 443.4 Hz (+13¢) · fair reading from 17 notes · you move from +17¢ to +9¢ across the song.",
+    "warn": true
+   }
+  },
+  {
+   "name": "Drift curve is saved with the project",
+   "pass": true
+  },
+  {
+   "name": "Drift readout matches the singer (about +19 to +35 cents)",
+   "pass": true,
+   "detail": "Following your singing: A = 447.0 Hz (+27¢) · clear reading from 21 notes · you move from +19¢ to +36¢ across the song, and tuning follows that drift."
+  },
+  {
+   "name": "Following drift sounds the same after reopening",
+   "pass": true
+  },
+  {
+   "name": "My singing finds the singer's centre (within 5 cents)",
+   "pass": true,
+   "detail": {
+    "err": 6.6,
+    "cents": 27,
+    "info": "Following your singing: A = 447.0 Hz (+27¢) · clear reading from 21 notes · you move from +19¢ to +36¢ across the song. Try \"My singing, following drift\"."
+   }
+  },
+  {
+   "name": "Following drift tunes closer to the singer than one fixed centre",
+   "pass": true,
+   "detail": {
+    "singing": {
+     "err": 6.6,
+     "cents": 27,
+     "info": "Following your singing: A = 447.0 Hz (+27¢) · clear reading from 21 notes · you move from +19¢ to +36¢ across the song. Try \"My singing, following drift\"."
+    },
+    "singingDrift": {
+     "err": 1.3,
+     "cents": 27,
+     "info": "Following your singing: A = 447.0 Hz (+27¢) · clear reading from 21 notes · you move from +19¢ to +36¢ across the song, and tuning follows that drift."
+    }
+   }
+  },
+  {
+   "name": "Test vocal starts with an octave error",
+   "pass": true,
+   "detail": 1
+  },
+  {
+   "name": "AI octave check fixes it",
+   "pass": true,
+   "detail": {
+    "w1": 0,
+    "hint": "AI octave check moved 36 pitch frames to the right octave."
+   }
+  },
+  {
+   "name": "AI check reports what it moved",
+   "pass": true,
+   "detail": "AI octave check moved 36 pitch frames to the right octave."
+  },
+  {
+   "name": "AI check setting is saved",
+   "pass": true
+  }
+ ],
+ "errors": []
+}

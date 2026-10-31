@@ -1,0 +1,54 @@
+PLAYBOOK VOCAL STUDIO 0.31.0 — RELEASE VALIDATION
+28 October 2026 UTC
+
+Merged from the supplied revised 0.29.0 ZIP, with Studio Spectral and Natural automatic tuning.
+
+490 assertions passed across 26 completed test suites/scopes. The final Natural browser run includes the finished-vocal bypass and review-confirmation changes. No failed assertion is accepted as a passing result.
+
+tests-0.25/check25.cjs: 60 passed.
+tests-0.31/natural.test.cjs: 17 passed.
+tests-0.30/core.test.cjs: 16 passed.
+tests-0.30/extended.cjs: 34 passed.
+tests-0.20/core.test.cjs: 21 passed.
+tests-0.21/core21.test.cjs: 19 passed.
+tests-0.22/core22.test.cjs: 24 passed.
+tests-0.23/core23.test.cjs: 15 passed.
+tests-0.23/rangesafe23.test.cjs: 8 passed.
+tests-0.24/core24.test.cjs: 27 passed.
+tests-0.24/refalign24.test.cjs: 9 passed.
+tests-0.25/core25.test.cjs: 50 passed.
+tests-0.26/quality.test.cjs: 13 passed.
+tests-0.27/reference.test.cjs: 12 passed.
+tests-0.28/policy.test.cjs: 6 passed.
+tests-0.31/browser-natural.py: 18 passed.
+tests-0.29/audit.py: 21 passed.
+tests-0.30/edges.py: 14 passed.
+tests-0.30/reads-and-locks.py: 8 passed.
+original-cleaner/tests-0.29/integration: 16 passed.
+original-cleaner/tests-0.29/edges: 28 passed.
+original-cleaner/tests-0.29/ui: 12 passed.
+original-cleaner/tests-0.29/final-checks: 9 passed.
+original-cleaner/tests-0.29/concurrent-edits: 5 passed.
+original-cleaner/tests-0.29/safety-limits: 3 passed.
+tests-0.30/browser.py: 25 passed.
+
+Additional final syntax, asset, locked-engine and safety checks: 89 passed.
+Seven native engine assets are byte-identical to the reviewed upload. The immediate preview-gain and validated WAV writers are preserved.
+The original-cleaner compatibility suites use a disposable copy whose initial cleaner selection alone is set to Original; production-default Studio tests run the shipping route.
+
+MEASURED NATURAL-TUNING RESULT
+A 4-second harmonic vocal-like fixture with 35-cent pitch offset and 24-cent/5-Hz vibrato was rendered by the actual Note Editor. Independent band-limited analytic-phase measurement found about 4.76 cents residual centre error and 23.87 cents vibrato depth. These are fixture results, not a guarantee for arbitrary vocals.
+Natural bypass was sample-exact. Manual note corrections were not retuned. Saved 0.29 Classic Smooth settings produced byte-identical rendered PCM. Mode/amount undo, settings round trips, safe preview gain, review confirmation, phone-width layout and finished-vocal bypass passed.
+
+REAL VOCAL COMPARISON
+Two supplied recordings (32.31 s and 52.80 s) were rendered through Studio Spectral, original/Classic/Natural tuning, common Dry Stem effects and the application finishing code. Source files remained unchanged. All six WAVs measured -18.0 LUFS and all MP3 previews -18.3 LUFS using FFmpeg. All independent true peaks were below -1 dBTP. The original engine comparison uses the same Studio-cleaned input as the new editor to isolate tuning differences.
+The comparison render script calls the actual native worker, Note Editor, QualityCore finishing and validated WAV writer. UI project saves/downloads and finished WAV export were tested separately in the end-to-end browser suite.
+
+mary: original -4.6 dBTP, classic -4.7 dBTP, natural -4.9 dBTP; learned sample reduction 4.62 dB.
+going-on: original -3.4 dBTP, classic -4.4 dBTP, natural -3.5 dBTP; learned sample reduction 2.87 dB.
+
+LIMITS
+No listening preference or professional-release certification is claimed. Real vocals can expose pitch-detection errors and resynthesis artifacts that controlled tests miss. The user should choose the preset after hearing the supplied matched comparisons.
+This release was tested in headless Chromium on Linux, including 1366/390px viewport checks. Physical Android/iOS, real microphone/headphone latency, low-memory behavior and background suspension were not tested.
+The earlier review of the supplied ZIP stopped a long-stereo suite near the shared 8 GiB test-environment budget. It was not a pass. This release does not claim a fresh long-file capacity qualification from that interrupted run; the full real-vocal comparisons here are up to 52.80 seconds. Existing minimum sample-rate and stereo-frame limits remain.
+No live deployment or v0 import is implied by this application archive.

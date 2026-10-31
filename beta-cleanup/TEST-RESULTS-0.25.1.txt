@@ -1,0 +1,127 @@
+PLAYBOOK VOCAL STUDIO 0.25.1 — VALIDATION
+20 October 2026
+
+Environment
+Chromium 153.0.8010.0, Python Playwright, Linux headless browser.
+Phone layouts: 360 x 740 and 390 x 844; desktop/tablet: 1024 x 768 and 1366 x 900.
+These are automated browser tests, not physical-phone or microphone certification.
+
+Completed checks
+- Static architecture invariants and seven protected engine hashes: 31 passed.
+- Core model suites from 0.20 through 0.25: 173 passed.
+- New review regressions: 23 passed.
+- New responsive editing-access and mixer checks: 33 passed.
+- Missing-input backup/reopen/cancel/rebuild recovery: 14 passed.
+- Existing 0.25 settings durability/crash recovery: 19 passed.
+- Existing per-track POLISH workflow: 30 passed.
+- Complete full-song capacity / persistence / backup / refusal suite: 22 passed.
+Selected release suites: 345 passed, 0 failed.
+
+What the new regression tests actually exercised
+- Remove a polished backing track using its settings dialog; save; Undo;
+  save again; reload. Both lanes keep their valid processed audio and hashes.
+- Rename a track; Undo; change a POLISH effect; save. Cleanup does not Redo.
+  An explicit Redo still works. An omitted history direction is harmless.
+- Overlapping save requests restore the latest title with valid audio references.
+- A deliberately injected QuotaExceededError produces a visible backup/retry
+  banner. The last successful save remains intact. Retry can save successfully.
+- Stereo -> mono -> stereo through the real track settings controls, on the
+  same bound lane. The input channel count changes, originals and breath edits
+  survive, readiness is correct, and processed export is allowed. Reload retains
+  the selected input mode.
+- A real legacy-render seam differs from the current renderer. Modern backup
+  contains explicit input WAV, and reopening preserves the input exactly and the
+  final on the documented 16-bit grid.
+- Deleting one processed audio record from browser storage preserves its editable
+  settings, warns visibly, stays flagged after another save, and can rebuild the
+  final from its saved input.
+- The owner's supplied My song ZIP opens as a selected lead take with 55 notes,
+  enters POLISH through the normal button, retains its A minor key, accepts a
+  new edit, saves/reloads, and reopens from a new backup as a usable polished lane.
+  Test edits were made only in isolated browser sessions; the original ZIP is intact.
+- Show vocal reaches the selected waveform while transport remains visible.
+  The POLISH waveform shortcut opens/focuses its editor. No horizontal overflow
+  at the four tested widths; phone shortcuts meet 44-pixel touch targets.
+
+Final handover debug pass
+The delivered ZIP was extracted into a fresh directory. All 346 manifest entries
+matched, and all seven protected engine files were unchanged. The packaged
+static/core/review/UI/durability tests passed. A visual inspection then found
+fixed lane heights clipping Level/Pan controls on phones and Pan on larger screens.
+A new geometry regression reproduced this at all four screen sizes.
+
+The fix makes lane height follow its controls, with size-contained canvases to
+prevent redraw growth. Updated checks confirm the complete mixer is inside its
+lane, Level/Pan change the model through real controls, and long names, a loaded
+instrumental and extra tracks stay unclipped without continuous height growth.
+The final focused suites total 170 passing checks: static 31, core 50, review 23,
+UI 33, durability 19, missing-input recovery 14. The larger-song and older core
+evidence above is retained; unchanged audio code did not need another full-song
+engine run for this CSS-only fix.
+
+Missing-input recovery was also exercised by deleting a saved POLISH input:
+settings and manual edits survive in modern and compatibility backups; both
+reopen with original recordings and a warning; cancelling a rebuild preserves
+the earlier data; accepting it produces a valid lane, keeps effects and leaves
+the other vocal untouched. No browser errors occurred in these completed suites.
+
+Large-song storage investigation
+The original temporary-browser capacity run failed after processing all three
+four-minute lanes, playing them together and exporting their stems/mix. The same
+failure remained after the application fixes, at about 320 MB reported usage,
+while the browser advertised about 2.47 GB quota.
+
+An independent IndexedDB-only probe, without application code, then wrote 64 MiB
+records. The temporary browser profile accepted eight records (~512 MiB) and
+rejected the ninth with QuotaExceededError, while still reporting over 2 GiB quota.
+A normal disk-backed browser profile accepted all fourteen records (896 MiB).
+This isolates a temporary-profile storage ceiling in this test environment; it
+is not evidence that every user's device has the same limit. The app's visible
+backup/retry response is retained for real storage failures.
+
+Full-song verification in normal disk-backed profiles
+The same four-minute lead + two four-minute backing lanes + ten 18-second phrase
+fixes (15 minutes of source recordings) successfully:
+- processed all three lanes with separate manual breath edits;
+- played the three processed lanes together;
+- exported three processed stems and the processed vocal mix;
+- saved to browser storage (~486 MiB), then reloaded with identical final hashes
+  and the same per-lane edits;
+- created a 218.3 MiB modern project and a 650.9 MiB compatibility project;
+- reopened both projects in separate fresh disk-backed browser profiles, with
+  every lane valid, the same edits, and matching final audio (modern: 16-bit grid;
+  compatibility: exact float hashes).
+The main run produced no browser console errors.
+
+The complete capacity suite finished with 22 passed, 0 failed. A nine-minute
+lane was refused in 0.1 ms while the existing editor, its audio and its screen
+remained unchanged. The UI explained the refusal and marked that lane blocked.
+
+Evidence
+validation-0.25.1 contains current text logs, including the temporary-profile
+failure and independent storage probe. A separate scan checked all 95,008,000 exported float samples across the three
+stems and vocal mix: all were finite (see export-sample-scan.json).
+Generated audio and browser screenshots
+are excluded from this handover. Test sources are included. Historical
+audio/ZIP fixtures remain in the original 0.25.0 archive; copy them into the same
+test directories to rerun the older fixture-based suites.
+
+Limits of this validation
+No live deployment was performed. No physical microphone, headphone latency,
+real singing quality, iOS/Safari, Android hardware, low-memory phone, or operating
+system background-termination certification was performed. Not every historical
+browser suite in run_all25.sh was rerun; the suites above were selected for the
+changed behavior. All seven protected engine files remain byte-identical.
+
+ADOPTION RUN (our integration, 20 October 2026)
+Chrome headless, Python Playwright. Engine: 7/7 files byte-identical (ENGINE-SHA256.txt).
+- check25.cjs: 37 passed, 0 failed (adds duplicate-API-key lint, getHistorySnapshots, scrolled-bar CSS allow-list).
+- tests-0.25.1/run.py --capacity: 8 suites (invariants, core, regressions, ui, recovery,
+  scrolled, durable, capacity) all exit 0; 208 PASS lines, 0 FAIL.
+- tests-0.25/run_all25.sh (every 0.20–0.25 suite + scrolled251): 52 suites + runner self-test.
+  First pass 49/52; the 3 non-passing (t21-1366 HEAR ME level, t22-390 Chrome launch timeout,
+  d23-e2e-1366 POLISH open timeout) passed on rerun with no code change. 1012 PASS lines.
+- New scrolled251.py: 15/15 at 390 and 1366; the same test fails on the unadjusted handover build.
+Old tests changed only for intentional behaviour: lane height bound 216→380 px (t21, browser_test)
+and opening the folded phone "Recording helpers" before using its controls (t21, t22, ports22).
+Logs: tests-0.25.1/results/adoption/.

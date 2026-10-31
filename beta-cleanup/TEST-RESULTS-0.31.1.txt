@@ -1,0 +1,24 @@
+PLAYBOOK VOCAL STUDIO 0.31.1 — FRESH OFFLINE TEST RESULTS
+2026-10-29
+
+PASS: 15 Node test suites, 241 PASS assertions in the captured logs.
+PASS: 60 static architecture, engine-lock and data-validation invariants.
+PASS: 32 JavaScript scripts parse; HTML IDs unique and local assets present.
+PASS: 20 approved-preset synthetic checks, included in the 15 suites.
+PASS: 18 real-vocal checks across the full 6,194,176-frame recording.
+PASS: Both gain-matched WAV exports exactly match the approved reference WAVs.
+PASS: Original engine and noise-DSP hashes unchanged.
+
+The new checks cover fresh defaults; original analysis/note segmentation;
+Snap all+Smooth and 85%+Smooth output; repeated preset application; save/reopen;
+selected-note correction; Undo; fractional manual pitch targets; neutral bypass;
+busy-editor guard; invalid profile rejection; previous 0.31 detector/render
+compatibility; legacy migration; anti-phase linked stereo; invalid/clipped WAV
+rejection. Synthetic tests add isolated fractional and stereo/writer cases.
+
+The test harness initially lacked a UI stub. That harness-only failure was fixed;
+the final synthetic suite passed. Summary and logs record the final run.
+
+No new browser/device UI test or full native-chain integration test is claimed.
+Historical 0.31 and earlier reports are retained as historical evidence only.
+See APPROVED-TUNING-0.31.1.txt for exact scope, limits and reproduction.

@@ -1,0 +1,33 @@
+PLAYBOOK VOCAL STUDIO 0.31.13 — TEST RESULTS
+2026-10-31; beta only
+
+316 browser assertions passed on 0.31.13, no page errors:
+- 40 new workspace / tuning-editor checks (tests-0.31.13/workspace-editor.cjs).
+- 74 tuning, waveform, reference and take-editor checks (tests-0.31.13/editors.cjs; 0.31.12 suite with
+  the Escape check updated: the first Escape now deselects notes, the second returns to the studio).
+- 47 workspace / separate-window checks (tests-0.31.13/windows.cjs, unchanged copy).
+- 38 recording / microphone feedback checks (tests-0.31.13/recording.cjs; version string updated).
+- 56 saved-project restoration checks (tests-0.31.10/restore.cjs, unchanged).
+- 61 deletion, Undo, redo and durable cleanup checks (tests-0.31.11/delete.cjs, unchanged).
+
+Baseline: the same 0.31.12 suites were run on the unmodified 0.31.12 build in this environment
+(editors 73, windows 47, recording 38, restore 56, delete 61 — all passed).
+
+New checks cover: selector follows POLISH / Song & vocals; Expand from POLISH opens tuning and stays
+in POLISH; laptop 1280x720 opens maximized with a fully visible piano roll of at least 300 px (338 px
+measured; about 225 px was visible in 0.31.12); inspector beside the roll; desktop 1440x900 roll at
+least 340 px (388 px); phone 390x844 in Focus notes with a roll of at least 280 px in the top half
+(304 px); title-bar Play / pause; Escape deselects first (from the editor and from the title bar),
+closes the shortcuts list without closing the window, and still returns to the studio when nothing is
+selected; ? and F shortcuts; vertical zoom buttons and Alt + wheel; Fit; reference note at A = 430.1
+(39¢ flat), Use A = 440, Undo, Keep mine; Match tuning on a backing 30¢ flat (measured A = 432.6);
+collapsible panels remembered after reload; window size and Focus remembered after reload; knob tick
+clear of the readout; formant labels; round help button.
+
+Notes: one run of delete.cjs stopped at its optional screenshot step (element re-rendered during
+scrollIntoView); the immediate rerun passed 61/61. The seven locked engine files match
+ENGINE-SHA256.txt byte for byte. No processing code, presets or project format changed.
+
+Test environment: Chromium with Playwright; 390, 1280 and 1440 pixel widths plus the 0.31.12 suites'
+320–1440 widths. Microphone input is synthetic. Physical Android/Samsung-browser, real microphone and
+headphone listening still need a device check.

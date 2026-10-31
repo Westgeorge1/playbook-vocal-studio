@@ -1,0 +1,45 @@
+Playbook Vocal Studio 0.16.1 - fixes after the 0.16.0 debug and review
+
+Same project format (version 9). 0.16.1 projects open in 0.15 and 0.16.0, and
+0.15 / 0.16.0 projects open in 0.16.1. The sound engine is not changed
+(phrase-core.js, worker.js, phrase-worker.js, engine-wasm.*, daw.css are
+byte-identical to 0.16.0).
+
+FIXED
+ 1. Laptop screens (1366 x 768): the COMP lane and take lanes 4-5 were hidden
+    below the fold of the lanes box. The lanes box now uses the space it has.
+ 2. After Export, the browser's download box sat on top of
+    "Comp done -> Go to POLISH" and blocked the click (laptop) or covered it
+    (phone). On the RECORD & COMP screen the download box now sits bottom-left
+    on a computer and at the top on a phone.
+ 3. Dragging a part's IN / OUT flag past the end of its chosen take quietly
+    un-chose that take. It still has to (the take does not cover the part any
+    more), but now a message says so and Undo puts it back.
+ 4. Very slow songs (about 50 BPM) with a 2-bar count-in and a part right at
+    0:00 could throw the take away ("Invalid take position") when the latency
+    setting was about 0.25 s or more. Recording now starts just early enough to
+    be safe; the take is kept.
+ 5. Microphone errors are in plain English (blocked, no microphone found,
+    microphone in use by another app) instead of the browser's raw text.
+ 6. Shift+R on RECORD & COMP now means "next part and record" (as the help
+    says). Before it made an extra 8-second "Phrase N" part.
+ 7. After changing Count-in, R and Space work straight away (the drop-down no
+    longer keeps the keyboard).
+ 8. The 33rd take on one part (or 129th in the project) now gives a clear
+    "delete some takes first" message.
+ 9. Adding a part that overlaps another part now warns you that, where they
+    overlap, the newer part's take is used in the comp.
+10. While a big saved session is still opening, the panel says
+    "Opening your saved session... one moment" instead of "Add your first part".
+11. The part chips no longer scroll on every screen update, only when you pick
+    a different part, and only sideways.
+12. Playing the comp no longer re-copies the whole comp each time (faster
+    Play on long songs).
+13. Wording: joins between parts are described honestly as "a short smooth
+    fade at each join (no clicks)" rather than "crossfades".
+
+FILES
+  edit  rc.js, rc.css, index.html, rec.js (fixes above)
+  edit  daw.js, rec-worklet.js, rec.css (version text only)
+  same  phrase-core.js, worker.js, phrase-worker.js, engine-wasm.*, daw.css
+  new   REVIEW-0.16.1.md, TEST-RESULTS-0.16.1.txt, tests-0.16.1/

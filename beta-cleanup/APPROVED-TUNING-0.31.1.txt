@@ -1,0 +1,88 @@
+PLAYBOOK VOCAL STUDIO 0.31.1 — APPROVED ORIGINAL TUNING
+2026-10-29
+
+Owner feedback
+Both Original-Snap-All-plus-Smooth.mp3 and Original-85-plus-25.mp3 were accepted.
+Snap all + Smooth 25% is the primary workflow because the owner expects to use
+Snap all most, then correct individual notes. 85% centre + Smooth 25% is the
+alternative. Keep blue notes is off in both. The audition used G major, A=440.
+This is approval of these references on this vocal, not every possible vocal.
+
+What changed
+- Added two explicit whole-vocal preset buttons, with Snap all first/primary.
+- New vocals use the supplied standalone editor's pitch candidate ranking and
+  Classic Smooth at 25%. Applying the chosen preset adds centre correction.
+  Smooth 25% alone is not either complete approved recipe.
+- The approved sound profile uses the standalone full-vocal PSOLA resynthesis
+  when Classic Smooth is on. The integrated wet/dry pass-through remains for
+  manual-only correction with Smooth off. Exact neutral bypass is retained.
+- A detected-key suggestion is shown next to the current key. It does not
+  silently replace the song key. The Use detected key button follows the
+  existing host key-update path; apply the preset after checking the key.
+- The current key/scale and reference are retained by both presets. G major
+  and A=440 are not hardcoded for other songs.
+- A validated soundProfile is saved in note-editor settings and Undo history.
+  New imports use approved-original. Sessions lacking this field retain
+  reviewed-031. Their detector, renderer, mode, amounts and edits are preserved.
+  The profile is chosen before analysis during embedded reloads.
+- Existing sessions are not automatically converted. They are labelled in the
+  editor. Reimport a fresh vocal to use the approved original profile.
+- Presets are explicit commands, not repeated every time another edit changes.
+  They can replace manual pitch choices if applied again. Undo is available.
+  Selected-note Correct pitch and the separate Snap all command are unchanged.
+- Main application/cache references are now 0.31.1. The noise DSP, native WASM
+  engine and Natural-tuning maths are unchanged.
+
+Preserved integration and safety
+The processing order remains cleaned PCM -> note editor -> native vocal effects
+with native tuning disabled. The existing chain-input equality guard still
+prevents a second tuning/cleaning pass. This route was reviewed in source;
+this release's fresh offline test exercises the editor bridge, not the entire
+browser host or the full native processing route.
+
+The old native tuner remains selectable. The unchanged 0.31.0 runtime and the
+previously supplied reviewed 0.29 runtime ZIP are in rollback. Back up projects
+before upgrading. Use a pre-update backup when reopening an older runtime.
+
+Selection-only correction, fractional manual targets, validated PCM/WAV export,
+linked stereo without channel averaging, neutral bypass and deterministic
+rendering are retained. The original standalone's unsafe whole-selection macro,
+clipping writer and stereo summing were not restored. Original source is in
+reference-sources for comparison only; run index.html via serve.py for the app.
+
+Exact comparison evidence
+Source: Don't want to give no one (1).m4a, 48 kHz mono, 129.045333 seconds.
+Both restored presets were compared with the actual supplied standalone DSP,
+using the same decoded input and built-in fallback downsampler.
+Analysis and all 281 detected note boundaries/centres match exactly.
+Both tuned PCM outputs match sample for sample, including save/reopen.
+After the same gain-only -18 LUFS finish and 24-bit WAV export, both files are
+byte-identical to the approved reference WAVs. No new listening judgement is
+inferred from that measurement; it confirms reproduction of the approved files.
+The complete cleaned/effected output can differ with the input cleaning, effects,
+key, reference, manual edits or browser resampling settings.
+
+Original supplied HTML SHA256:
+ac39be9cf4c92ff9418b5bbbfe7ec8c44ccbdf8dfd7152a48b5dfa01d5591720
+
+Limits / outstanding verification
+There was no usable local Chrome installation. Fresh tests run the actual DSP,
+import bridge and command handlers in Node with DOM/device UI stubbed. They
+use the app's fallback downsampler, as did the approved audition references.
+Browser OfflineAudioContext resampling, rendered UI interaction, phone memory,
+real microphone/headphone playback and actual device exports remain unverified
+for this release. Historical browser reports in this package refer to their
+stated older versions. No GitHub/v0 upload or live deployment was performed.
+
+The supplied detector's known octave/segmentation limitations remain in the
+approved profile. The 0.31 tracker is retained for old sessions and rollback.
+Key detection is a suggestion and can confuse relative keys. One-note targets
+are isolated, but full-vocal PSOLA can change waveform phase after an edit;
+we do not claim sample-identical audio outside an edited note while tuning is
+active. Snap all cannot infer a deliberately different intended melody.
+
+Reproduction
+node tests-0.31.1/approved.test.cjs
+For the real vocal, decode mono 48 kHz f32le and set PVS_VOCAL_PCM to its absolute
+path. The recording itself is not bundled. Set PVS_WRITE_PCM to an existing
+output folder to save both raw renders. See results JSON and logs for hashes.

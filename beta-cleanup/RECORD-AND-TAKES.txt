@@ -1,0 +1,72 @@
+NOTE FOR 0.22.0 AND OLDER VERSIONS
+A project saved by 0.22.0 opens in 0.18.3 with the Lead vocal and its parts
+(one part per song section, with their takes and the chosen take). Harmony,
+double and ad-lib tracks are NOT shown in 0.18.3 or earlier; open the project
+in 0.20.0 or newer to get every track. The sections below describe 0.18.3.
+
+PLAYBOOK VOCAL STUDIO 0.20.0 — START HERE
+
+THE SIMPLE WORKFLOW
+
+1. Record your lead vocal.
+   Load your instrumental if you have one. Select Lead vocal and press Record.
+   Sing the song, then press Stop. The recording stays together as one take.
+
+2. Fix a word or phrase.
+   Drag over that spot, or enter its start and end in seconds. Press Fix phrase.
+   Record again as many times as needed. Listen, then Choose the attempt you like.
+   The rest of your recording stays in place. Repeat with lead-in makes another
+   attempt each pass. A partial attempt is kept but cannot replace a longer phrase.
+
+3. Label your song.
+   Add Intro, Verse, Chorus, Bridge or Outro in Song sections. These labels help
+   you navigate; they do not cut or move your recordings.
+
+4. Add backing vocals.
+   Press + Add vocal track. Name it Harmony, Double, Ad-libs, or anything you like.
+   Record and fix phrases on that lane. Your lead and other lanes stay separate.
+
+5. POLISH each voice.
+   Press Polish on a vocal lane. Clean, Tune, note edits and effects now belong
+   to that vocal only. Your changes are saved automatically on that track.
+   Use the Polishing selector to move between lead and harmony. Each keeps its
+   own settings. One voice can have light tuning and another stronger tuning;
+   one can have reverb while another stays dry.
+
+6. Hear the result together.
+   Press Hear song in POLISH. It plays every vocal lane using its saved processing
+   and the Song & vocals mixer. Play below the POLISH bar auditions the selected
+   vocal. The existing Mix panel fits backing for that selected-vocal audition;
+   full-song playback/export uses the song lane levels instead.
+   Back in Song & vocals, adjust each lane's volume, pan, Mute and Solo.
+   Use dry vocal bypasses a lane's POLISH while keeping its settings.
+
+7. Export or back up.
+   Export song in POLISH offers the finished vocal mix, song with backing,
+   separate polished stems, or dry stems. Stems all start at 0:00. A track you
+   have not polished stays dry. Muted tracks remain in separate stem exports.
+   EXPORT THIS VOCAL in the lower POLISH panel exports the selected voice using
+   the original detailed export controls.
+   Back up project saves all tracks, attempts, sections and editable POLISH
+   settings. Check that the ZIP finished downloading. Autosave is local to this
+   browser and is not a replacement for keeping a backup.
+
+IF YOU RECORD A NEW PHRASE AFTER POLISHING
+
+Only the affected vocal shows Update needed. Other vocals keep their processing.
+Press Polish on the changed track. The app keeps its cleaning, tuning settings
+and effects, but asks before resetting manual note, breath and timing edits that
+belonged to the previous performance. Back up first if you need that old version.
+Until updated, song playback uses the new dry vocal on that lane. Processed export
+asks you to update it or explicitly choose Use dry vocal in its track settings.
+
+USEFUL DETAILS
+
+- Use headphones so backing music does not leak acoustically into your microphone.
+- R starts/stops recording; Space stops recording or plays/pauses on Song & vocals.
+- A selected phrase gives an exact recording range. R during playback starts with
+  lead-in; it is not an instantaneous gapless live punch.
+- Use project backups before removing recordings. Song Undo lasts this session.
+- WAV exports use 32-bit float audio. Effect tails are retained in processed audio.
+- Projects with these features require version 0.20.0 or newer. Older apps cannot
+  restore all lanes and settings. Keep the original ZIP if trying an older app.

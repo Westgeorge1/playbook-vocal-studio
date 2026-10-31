@@ -1,0 +1,42 @@
+PLAYBOOK VOCAL STUDIO 0.32.0 — TEST RESULTS
+2026-10-31; beta only
+
+352 browser and engine assertions passed, no page errors:
+- 36 tuning checks (tests-0.32.0/tuning.cjs): approved sound unchanged, Natural engine identity,
+  research presets' accuracy, smart centres, Natural controls and Undo, reload, tilt, leveling,
+  blind compare, Natural display, AI octave check.
+- 74 tuning, waveform, reference and take-editor checks (tests-0.32.0/editors.cjs).
+- 40 workspace / tuning-window checks (tests-0.32.0/workspace-editor.cjs).
+- 47 separate-window checks (tests-0.32.0/windows.cjs).
+- 38 recording checks (tests-0.32.0/recording.cjs; version string updated).
+- 56 saved-project restoration checks (tests-0.31.10/restore.cjs).
+- 61 deletion, Undo and cleanup checks (tests-0.31.11/delete.cjs).
+The windows, recording, restore and delete suites ran before the final phone-width CSS fix for the
+Blind compare dropdowns (a stylesheet-only change in note-editor.html); editors, tuning and
+workspace-editor were rerun after it.
+
+APPROVED SOUND
+SongCore.hashPcm of the processed vocal, 0.31.13 vs 0.32.0, identical for: no preset, Snap all +
+Smooth 25%, 85% correction + Smooth 25%, on both the bundled sample and the synthetic test vocal
+(fingerprints f512165a811412b8, 4a46484d219a07ee, 1e4f667830f611c6 are checked by tuning.cjs).
+Saved note settings are identical apart from the new fields. Natural engine with default controls:
+bit-identical to 0.31.13 over 800 random runs (fixture copy in tests-0.32.0/fixtures).
+
+MEASURED TUNING (synthetic sung lines with scoops, vibrato, drift and +/-40 cent detune; three
+vocals; A = 440; notes read an octave wrong excluded and counted separately)
+  Preset                 Avg error   Vibrato kept   Scoops kept
+  No tuning              16.5 c      99 %           79 %
+  Original approved A     2.6 c      98 %           81 %
+  Original approved B     3.5 c      99 %           82 %
+  Natural Roots           2.7 c      92 %           82 %
+  Gentle Polish           6.3 c     100 %           93 %
+  Tight Modern            2.6 c      82 %           69 %
+  Hard Effect            ~2 c        31 %           18 %
+Smart note centres: Natural Roots 3.1 c without, 2.7 c with. Octave errors: 1-2 notes per test
+vocal without help; 0 with the High-note fix; the AI octave check fixed the A4-read-as-A3 case
+(36 frames moved, about 2.6 s).
+
+LIMITS
+Synthetic vocals are not your voice; choose presets by ear with Blind compare. Physical phone,
+real microphone and headphone listening still need a device check. The AI octave check needs the
+web server to serve .mjs as JavaScript and .wasm as application/wasm.

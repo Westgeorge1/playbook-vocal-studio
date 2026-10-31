@@ -81,3 +81,9 @@ body.ww-open{overflow:hidden}
  #rcSteps>#workspaceTools{grid-column:1/-1;grid-row:3}
  #rcSteps>#trackPolishBar{grid-row:4}
 }
+/* 0.31.13: the workspace help reads as a small round "?" button, not a disclosure arrow. */
+#workspaceTools details>summary{list-style:none;display:inline-grid;place-items:center;width:32px;height:32px;border-radius:50%;border:1px solid #617b90;background:#263f52;color:#fff;font:700 15px var(--body,system-ui);cursor:pointer}
+#workspaceTools details>summary::-webkit-details-marker{display:none}
+#workspaceTools details>summary::marker{content:""}
+#workspaceTools details[open]>summary{background:#f5c875;color:#13202b;border-color:#f5c875}
+#workspaceTools details>summary:focus-visible{outline:3px solid #f5c875;outline-offset:2px}

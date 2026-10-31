@@ -1,0 +1,74 @@
+Playbook Vocal Studio 0.18.2 — the new features from the 0.18.1 build, added to 0.17.2 with the tidy screen kept
+(app version 0.18.2 · audio engine version 0.12.1, byte-identical: see ENGINE-SHA256.txt)
+
+Where this comes from
+  West sent a 0.18.1 build made by another tool. It was built from 0.17.1, not from 0.17.2, so it did not have the
+  0.17.2 fixes. 0.18.2 = our 0.17.2 + every new feature or fix from 0.18.1. The two-step RECORD & COMP / POLISH screen
+  stays as approved. Nothing from 0.18.1 was copied blindly: each feature was rebuilt to fit the screen and tested in
+  Chrome with a fake microphone (tests-0.18/t182.py), and their own test files were run against this app
+  (tests-0.18/node).
+
+WHERE EACH NEW CONTROL LIVES (desktop)
+  Transport bar, right after REC      BACKING  [ With | Without ]   — record with or without hearing the backing.
+                                       Saved in your settings and in the project. "Without" works with no backing
+                                       loaded (then "With" is greyed out). It is separate from the POLISH solo buttons.
+  BACKING lane header (left)           M = mute (the same switch as Without), ▾ = Load / Replace backing…, Remove backing,
+                                       Undo remove backing, and the backing level slider (also on the lane).
+  COMP lane header (left)              VOCAL ▾ = Import vocal… (a whole vocal, before any parts exist), Play vocal,
+                                       Clear vocal… (asks first), Undo clear.
+  Timeline corner (top left)           −  +  Part  Song  ✋  — zoom out / in, fit the chosen part, fit the whole song,
+                                       Hand (drag to scroll). When zoomed in, a scrollbar appears under the timeline.
+                                       Ctrl + mouse wheel zooms; Shift + wheel scrolls.
+  Take list, each take                 Edit — opens the take editor (the only way to open it).
+  Top bar                              ⚠ Recovered audio N — shown only when there is audio to recover.
+  Settings ▾                           settings and files only (no recording or backing buttons any more).
+
+  Phone: the same idea. Under the part view: − + Part Song ✋. In the part panel: BACKING [With|Without] and
+  Track ▾ (load / replace / remove / level), and Vocal ▾ next to COMP PROGRESS. The big record button stays the
+  biggest thing on the screen. Every button is at least 44 px; the page scrolls down to "Go to POLISH".
+
+FROM 0.18.1 (ported)
+  - With / Without backing (above). With no backing loaded you can still record.
+  - Backing: load / replace, remove + Undo remove (same file, name and level come back), mute, level.
+  - Vocal: Import vocal, Play vocal before parts exist (the imported vocal counts as the comp until you add parts),
+    Clear vocal + Undo clear. Importing when you already have takes warns first that it replaces parts and takes.
+  - Take editor (Edit on a take): drag across the waveform or type Start / End to select. Level (dB), Silence,
+    Fade in and Fade out each make a NEW take — the original stays in the list, unchanged. Trim part to the
+    selection (takes are kept whole), Split part at the start of the selection, Move part (with all its takes;
+    it asks before moving onto another part), ±10 ms nudge, Undo / Redo (buttons or Ctrl+Z / Ctrl+Y), play the
+    selection, zoom with + / −, the wheel or a two-finger pinch, Hand to drag. Esc closes it and puts you back
+    on the Edit button.
+  - Timeline zoom, Fit part, Fit song, scrollbar, Hand.
+  - Recovered audio: a recording that cannot become a take is kept in a list instead of only "the last one":
+    the unfinished last pass of loop recording, a loop pass that could not be added, a punch-in that could not be
+    placed (for example the part already has 32 takes), a recording interrupted by a lost microphone that could
+    not be placed. Each file can be downloaded (WAV) or removed on its own. The list is in autosave and in the
+    project backup.
+  - Safety timer for punch-ins (the same 10-minute limit as a normal take, never under 5 s).
+  - A backup can be made with only a backing loaded, or with only Recovered audio.
+  - The mic-check meter is closed before the recorder opens the microphone (no two streams at once).
+  - Phone: page scroll, 44 px targets, keyboard focus stays inside an open window (editor, Recovered audio).
+
+KEPT AS OURS (0.18.1 had an older or different version)
+  - All 0.17.2 review fixes F1–F7 (long punch-ins kept whole in "(cont.)" parts, the 3-way choice window when a
+    take runs into other parts, mic-lost takes, save does not reset POLISH edits, GAIN / HEAR ME while recording,
+    separate Autosave / Back up / Export, the 10-minute limit with warning). 0.18.1 lacked them.
+  - "Record again" replaces the last take with one Undo (0.17.2 behaviour); 0.18.1 always added another take.
+  - Our mic input chain and safety-limit timing.
+  - The "newest take" note from 0.18.1 was not added (the take list already shows it).
+
+FIXED WHILE PORTING (bugs in 0.18.1 that are fixed here)
+  - Removing one Recovered audio file removed all of them. Now only the chosen one.
+  - Silence / Level / Fade on a selection that ran past the end (or start) of the audio left the last 5 ms
+    untouched (a small click). Fixed in edit-core.js.
+  - With a full Undo history (40 steps), one long take that made several parts lost history steps. Fixed.
+  - The prepared-downloads box (when the browser shows file links) kept every link and grew over the timeline;
+    it now keeps the 2 newest.
+  - Their README pointed at a third-party preview address; it is removed. The only links are the GitHub Pages ones.
+
+COMPATIBILITY
+  - Projects from 0.15, 0.16.1, 0.17.0, 0.17.1, 0.17.2 and the 0.18.1 build open in 0.18.2 (parts, takes,
+    choices, audio; from 0.18.1 also Without backing, Recovered audio and edited takes).
+  - 0.18.2 projects open in 0.17.2 with the same parts, takes, choices and audio. Without backing shows there as
+    BACKING OFF. 0.17.2 has no Recovered audio list (the files stay in the zip) and treats edited takes as
+    ordinary takes.
