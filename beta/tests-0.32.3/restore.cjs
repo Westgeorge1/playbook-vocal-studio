@@ -1,3 +1,4 @@
+const port = require('../tests-0.32.4/test-port.cjs')(8760,6);
 /* 0.32.3 copy: test hooks patch studio-main.js (the studio script moved out of index.html). */
 /* Restore/record regression with real DSP and fault-injected worker replies.
  * Run with the same PLAYWRIGHT_MODULE / PVS_CHROME options as recording.cjs.
@@ -26,7 +27,7 @@ async function setup(width){
  const p=await ctx.newPage();p.on('pageerror',e=>errors.push(String(e)));
  await p.route('https://**/*',r=>r.abort());
  await p.route('**/beta/?shortWatchdog=1',r=>r.fulfill({contentType:'text/html',body:fs.readFileSync(path.join(root,'beta/index.html'),'utf8')}));await p.route('**/beta/studio-main.js*',r=>{const fromShort=/shortWatchdog/.test(r.request().frame()?.url()||'');const body=fs.readFileSync(path.join(root,'beta/studio-main.js'),'utf8');r.fulfill({contentType:'text/javascript',body:fromShort?body.replace('var ENGINE_WAIT_MS = 120000;','var ENGINE_WAIT_MS = 5000;'):body});});
- await p.goto('http://127.0.0.1:8760/beta/');await idle(p);
+ await p.goto(`http://127.0.0.1:${port}/beta/`);await idle(p);
  return {ctx,p};
 }
 async function seed(p){
@@ -50,7 +51,7 @@ async function seed(p){
 }
 async function record(p){await p.evaluate(()=>{S.song.lead=0;RC.go('rc');SongStudio.render();});await p.locator('#sgRecord').tap();await p.waitForFunction(()=>SongStudio.state().recording);await p.waitForTimeout(650);await p.locator('#sgStop').tap();await p.waitForFunction(()=>!SongStudio.locked());}
 (async()=>{
- server=spawn('python3',['-m','http.server','8760','--bind','127.0.0.1','--directory',root],{stdio:'ignore'});await new Promise(r=>setTimeout(r,600));
+ server=spawn('python3',['-m','http.server',String(port),'--bind','127.0.0.1','--directory',root],{stdio:'ignore'});await new Promise(r=>setTimeout(r,600));
  browser=await chromium.launch({executablePath:process.env.PVS_CHROME,args:['--no-sandbox','--disable-dev-shm-usage']});
  for(const width of [390,980]){
   const {ctx,p}=await setup(width),tag=width+'px';await seed(p);
@@ -87,7 +88,7 @@ async function record(p){await p.evaluate(()=>{S.song.lead=0;RC.go('rc');SongStu
  for(const mode of ['original','note']){
  const {ctx,p}=await setup(390);await seed(p);
  await p.evaluate(async mode=>{saved.P.amount+=1;saved.noteTuner.mode=mode;sessionSnapshot=()=>saved;await writeRemembered(saved);localStorage.testStall='1';localStorage.removeItem(ProjectStorage.key('pvs.songJournal'));},mode);
- await p.goto('http://127.0.0.1:8760/beta/?shortWatchdog=1');
+ await p.goto(`http://127.0.0.1:${port}/beta/?shortWatchdog=1`);
  await p.waitForFunction(()=>Object.values(pending).some(p=>p.update),null,{timeout:15000}).catch(async e=>{console.log('RESTORE DEBUG',await p.evaluate(()=>({jobs:nativeJobs,loading:S.loading,paused:S.restorePaused,reason:S.restoreNote,error:engineFailure?.message,busy:S.busy,main:!!S.main,can:typeof saved==='undefined'?null:songCanOpenWithoutRender(saved)})));throw e;});
  check(mode+' stalled restore blocks Record until worker is stopped',await p.evaluate(()=>sessionLocked()&&S.loading.startsWith('Opening')));
  if(mode==='original')check('reproduces vocalLoaded + outstanding update diagnostics',await p.evaluate(()=>!!S.main&&Object.keys(pending).length===1&&S.busy&&!NoiseCleaner.locked()));

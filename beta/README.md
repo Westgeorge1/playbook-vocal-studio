@@ -1,3 +1,13 @@
+# Playbook Vocal Studio 0.32.4 beta
+
+[Open the 0.32.4 beta](https://westgeorge1.github.io/playbook-vocal-studio/beta/) · [Open the 0.32.3 main studio](https://westgeorge1.github.io/playbook-vocal-studio/)
+
+You can browse the editor before adding a vocal. Open POLISH or choose a workspace and press Expand. Empty views offer Record, Import and Open project. For testing and handover, use [release notes](CHANGES-0.32.4.md), [test results](TEST-RESULTS-0.32.4.txt), and [test setup](TESTING.md).
+
+To run locally, extract the folder, run `python3 -m http.server 8000` inside it, and open `http://localhost:8000/`.
+
+## Historical notes
+
 # Playbook Vocal Studio 0.32.3
 
 A browser-based vocal studio for recording, manual cleanup, pitch correction, mixing and WAV export. Serve the source directory over HTTPS or run `python3 -m http.server 8000` in the extracted folder and open `http://localhost:8000/`.

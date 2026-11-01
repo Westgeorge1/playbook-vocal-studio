@@ -108,6 +108,7 @@ async function open(id=W()?.activeTrack){
 function beforeShow(screen){
  if(allowStep)return true;
  if(switching||sessionLocked()){notify('Wait for processing to finish before changing screens.',true);return false;}
+ if(screen==='polish' && !S.main && !W()?.tracks.find(t=>t.id===W().activeTrack)?.regions.some(r=>r.selected)){requestAnimationFrame(render);return true;}
  if(screen==='polish'&&(!binding||binding.id!==W()?.activeTrack||needsApply())){open(W()?.activeTrack);return false;}
  if(screen==='rc')capture();requestAnimationFrame(render);return true;
 }
@@ -133,7 +134,7 @@ function render(){
  $('polishTrack').value=selected;const locked=switching||sessionLocked();for(const id of ['polishTrack','polishSong','polishExportSong','polishReturn','polishBypass'])$(id).disabled=locked;
  $('polishBypass').checked=!!T()?.polish?.bypass;$('polishSong').textContent=SongStudio.state().playing?'■ Stop whole song':'▶ Whole song';if($('polishPreview'))$('polishPreview').textContent=SongStudio.state().playing?'Preview: whole song (all lanes)':'Preview: this vocal';
  const rd=C.readiness(w);$('polishReady').textContent='Whole song: '+rd.ready+' of '+rd.total+' vocals ready'+(rd.todo?' · '+rd.todo+' to polish':'')+(rd.blocked?' · '+rd.blocked+' cannot be processed as is':'');$('polishReady').title=rd.lanes.map(l=>l.name+': '+l.text).join('\n');
- $('polishTrackStatus').textContent=lastError||(switching?'Opening vocal…':needsApply()?'Recording or input mode changed — reopen this vocal to update POLISH.':T()?.polish?.bypass?'Dry vocal is used in the song. Your POLISH settings are kept.':T()?.polishMono?'POLISH uses a mono version of this stereo vocal (your choice in track settings). The stereo original is kept.':'This vocal’s processing is saved in your song.');
+ $('polishTrackStatus').textContent=(!binding&&!S.main)?'No vocal selected for processing.':lastError||(switching?'Opening vocal…':needsApply()?'Recording or input mode changed — reopen this vocal to update POLISH.':T()?.polish?.bypass?'Dry vocal is used in the song. Your POLISH settings are kept.':T()?.polishMono?'POLISH uses a mono version of this stereo vocal (your choice in track settings). The stereo original is kept.':'This vocal’s processing is saved in your song.');
 }
 function assertExport(tracks){const bad=tracks.filter(t=>t.polish&&!t.polish.bypass&&t.polish.channels&&!C.pcmFinite(t.polish.channels));if(bad.length)throw Error('The processed audio of '+bad.map(t=>t.name).join(', ')+' is invalid. Open it in POLISH to process it again, or select Use dry vocal.');const stale=tracks.filter(t=>t.polish&&!t.polish.bypass&&!C.polishValid(W(),t));if(stale.length)throw Error('Update POLISH for '+stale.map(t=>t.name).join(', ')+' before exporting, or select Use dry vocal for that track.');const keyLag=tracks.filter(t=>C.polishValid(W(),t)&&C.keyStale(W(),t));if(keyLag.length)throw Error('The song key changed. Update POLISH for '+keyLag.map(t=>t.name).join(', ')+' (open it in POLISH; notes and effects are kept), or set that track to keep its own key.');if(lastError)throw Error(lastError);}
 async function pack(meta,files){

@@ -8,7 +8,7 @@ const { synth } = require('../tests-0.32.0/fixtures/synth-vocal.cjs');
 const dir = fs.mkdtempSync(path.join(os.tmpdir(),'pvs-audition-'));
 const reference = process.env.PVS_REFERENCE_DIR;
 const raw = Buffer.from(Float32Array.from(synth(11).a).buffer).toString('base64');
-const port = Number(process.env.PVS_COMPARE_PORT || 8966);
+const port = Number(process.env.PVS_COMPARE_PORT || require('../tests-0.32.4/test-port.cjs')(8966,8));
 let browser, server;
 async function fingerprint(page) {
   return page.evaluate(async () => {

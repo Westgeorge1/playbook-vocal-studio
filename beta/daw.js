@@ -24,12 +24,12 @@ function mixChanged(){syncMixUI();if((playing||playPending)&&monitored())restart
 const TABS=['clean','tune','chain','detail','mix'];
 function dawTab(t,noScroll){if(t==='phrase'||t==='rec')t='clean'; // 0.17.0: old tab names (links, saved state) land on CLEAN
   if(!TABS.includes(t))return;D.tab=t;for(const b of qa('.itabs [data-tab]'))b.setAttribute('aria-selected',b.dataset.tab===t);for(const p of qa('.ipanel'))p.hidden=p.dataset.ipanel!==t;
-  if(t==='detail'&&typeof syncDetail==='function')syncDetail();
+  window.StudioBrowse?.sync();if(t==='detail'&&typeof syncDetail==='function')syncDetail();
   if(t==='tune'&&S.mode==='removed')setMode('after');if(t==='chain'&&S.mode!=='final')setMode('final');
   D.ctx='engine';requestAnimationFrame(drawAll);syncUndo();try{localStorage.setItem('pvs-daw-tab',t);}catch(e){}
   if(narrow()&&!noScroll&&D.started){const el=q('.insp');if(el&&el.getBoundingClientRect().top>innerHeight*.6)el.scrollIntoView({behavior:'smooth',block:'start'});}}
 function dawDock(d){D.dock=d;$('dock').classList.remove('collapsed');for(const b of qa('.dtabs [data-dock]'))b.setAttribute('aria-selected',b.dataset.dock===d);for(const p of qa('.dpanel'))p.hidden=p.dataset.dpanel!==d;
-  if(d==='wave')D.ctx='edit';else if(d==='notes')D.ctx='engine';requestAnimationFrame(()=>{drawAll();});syncUndo();}
+  window.StudioBrowse?.sync();if(d==='wave')D.ctx='edit';else if(d==='notes')D.ctx='engine';requestAnimationFrame(()=>{drawAll();});syncUndo();}
 window.dawTab=dawTab;window.dawDock=dawDock;window.dawOpenModal=(id,sub)=>openModal(id,sub);window.dawCloseMenus=()=>closeMenus();
 function openModal(id,sub){closeMenus();const m=$(id);m.hidden=false;for(const sec of qa('section.page',m))sec.hidden=false;if(id==='helpModal'){$('helpKeys').hidden=sub!=='keys';$('helpHow').hidden=sub!=='how';$('helpAbout').hidden=sub!=='about';$('helpTitle').textContent={keys:'KEYBOARD SHORTCUTS',how:'HOW RECORDING WORKS',about:'ABOUT THIS ENGINE'}[sub];}
   requestAnimationFrame(()=>{(q('[data-close]',m)).focus();if(sub&&id==='saveModal'&&$(sub))$(sub).scrollIntoView({block:'start'});if(typeof syncCustom==='function'&&id==='saveModal')syncCustom();});}

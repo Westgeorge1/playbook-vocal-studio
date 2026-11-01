@@ -1,3 +1,11 @@
+PLAYBOOK VOCAL STUDIO 0.32.4 BETA
+
+Open https://westgeorge1.github.io/playbook-vocal-studio/beta/ to try this release. The main studio and beta have independent browser saves. Use Back up project and Open project to transfer your music.
+
+You can now explore POLISH, editing tabs, and workspaces without recording first. From a blank editor choose Record a vocal, Import a vocal, or Open a project. See CHANGES-0.32.4.md, TESTING.md and TEST-RESULTS-0.32.4.txt.
+
+Previous versions follow.
+
 PLAYBOOK VOCAL STUDIO 0.32.3
 
 Main studio: https://westgeorge1.github.io/playbook-vocal-studio/

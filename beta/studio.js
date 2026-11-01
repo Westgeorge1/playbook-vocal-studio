@@ -198,6 +198,7 @@ async function separate(action){
       const next=PhraseCore.clone(w),part=next.phrases.find(q=>q.id===p.id);
       const note=el('sepMode').value+' '+E.a.toFixed(3)+'–'+E.b.toFixed(3)+'s −'+settings.db+'dB '+settings.low+'–'+Math.round(settings.high)+'Hz '+settings.fade+'ms';
       const take={...t,id:'t'+next.nextId++,name:note,channels:t.channels.map((src,c)=>{const copy=src.slice();copy.set(channels[c],a);return copy;}),profile:null,analysisError:null,analysisToken:undefined,sourceTake:t.sourceTake||t.id};
+      srcDerive(phraseSource(take),phraseSource(t));take.cleanup={...settings,start:E.a,end:E.b};
       part.takes.push(take);if(part.selected===t.id)part.selected=take.id;
       PhraseCore.validate(next);E.tid=take.id;commit(next,'Saved '+note);return;
     }

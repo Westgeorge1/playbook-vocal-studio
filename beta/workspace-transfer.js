@@ -2,21 +2,25 @@
 (function(){
 'use strict';
 const query=new URLSearchParams(location.search),requested=query.get('workspace')||'record';let token=query.get('handoff');
-const studioURL=()=>new URL('./?v=0.32.3',location.href).href;
+const studioURL=()=>new URL('./?v=0.32.4',location.href).href;
 const standby=location.pathname.endsWith('/workspace-standby.html');
 if(standby){
- let child=null,returning=false,lastSeen=0;
+ let child=null,returning=false,reopening=false,lastSeen=0;
  const status=document.getElementById('standbyStatus'),focus=document.getElementById('standbyFocus'),back=document.getElementById('standbyReturn');
  window.addEventListener('message',e=>{
   if(e.origin!==location.origin||e.data?.type!=='pvs-workspace'||e.data.token!==token)return;
   if(child&&e.source!==child)return;child=e.source;lastSeen=Date.now();focus.disabled=false;back.disabled=false;
   status.textContent=e.data.recording?'Recording is running in the other window. Returning will stop and keep this take.':'Your project is open in the other window. This tab is standing by.';
  });
+ function reopenStudio(){
+  if(reopening)return;
+  reopening=true;location.replace(studioURL());
+ }
  function reconnect(){
   if(child)return true;
   const candidate=window.open('', 'pvs-workspace-'+token);
   if(!candidate){status.textContent='Allow pop-ups to reconnect to the workspace, then try again.';return false;}
-  try{if(candidate.location.href==='about:blank'){candidate.close();location.replace(studioURL());return false;}
+  try{if(candidate.location.href==='about:blank'){candidate.close();reopenStudio();return false;}
    if(candidate.AppWindow?.identify(token)){child=candidate;return true;}
   }catch(_){}
   status.textContent='The workspace is still opening or has navigated away. Return to that window before reopening the studio.';candidate.focus();return false;
@@ -26,14 +30,14 @@ if(standby){
  back.onclick=async()=>{
   if(returning)return;
   if(!reconnect())return;
-  if(child.closed){location.replace(studioURL());return;}
+  if(child.closed){reopenStudio();return;}
   returning=true;back.disabled=true;
   try{const ok=await child.AppWindow.returnHere();if(!ok){returning=false;back.disabled=false;status.textContent='Finish the current operation in the workspace, then try returning again.';child.focus();}}
   catch(_){returning=false;back.disabled=false;status.textContent='The workspace is still loading. Try again when it is ready.';}
  };
  // Navigation back is accepted only from the authenticated, current child.
- window.WorkspaceStandby={complete(w,key){if(w!==child||key!==token)return false;location.replace(studioURL());return true;},claim(w,key){if(key!==token||(child&&child!==w))return false;child=w;lastSeen=Date.now();return true;}};
- setInterval(()=>{if(child?.closed){location.replace(studioURL());}else if(lastSeen&&Date.now()-lastSeen>12000)status.textContent='The workspace may be in the background. Use Show workspace to return to it.';},750);
+ window.WorkspaceStandby={complete(w,key){if(w!==child||key!==token)return false;reopenStudio();return true;},claim(w,key){if(key!==token||(child&&child!==w))return false;child=w;lastSeen=Date.now();return true;}};
+ setInterval(()=>{if(child?.closed){reopenStudio();}else if(lastSeen&&Date.now()-lastSeen>12000)status.textContent='The workspace may be in the background. Use Show workspace to return to it.';},750);
  return;
 }
 let phase=token?'opening':'active',saving=false,popup=null,popupToken=null,watch=null,heartbeat=null,overlay=null,oldInert=[];
@@ -61,6 +65,7 @@ function cancelTransfer(message){clearInterval(watch);watch=null;popupToken=null
 async function open(mode){
  if(token){await WorkWindows.launch(mode);return;}
  if(blocked()){try{popup?.focus();}catch(_){}return;}
+ if(!SongStudio.hasWork()){report('Open or record a vocal first. Use Expand to explore here.');return;}
  if(!canTransfer())return;
  // Must run directly in the click, before an await, to retain popup permission.
  const key=crypto.randomUUID(),child=window.open('about:blank','pvs-workspace-'+key,'popup,width=1280,height=900,resizable=yes,scrollbars=yes');

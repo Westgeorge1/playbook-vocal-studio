@@ -1,3 +1,4 @@
+const port = require('../tests-0.32.4/test-port.cjs')(8782,4);
 /* 0.32.3 copy: test hooks patch studio-main.js (the studio script moved out of index.html). */
 /* Browser handoff, live recording and responsive workspace regression.
  * Synthetic microphone through the real capture worklet; no physical-device claim.
@@ -14,12 +15,12 @@ async function popup(p,ctx,mode='record'){
  await p.waitForURL(/workspace-standby/);await p.waitForFunction(()=>!document.getElementById('standbyReturn').disabled);return child;
 }
 (async()=>{
- server=spawn('python3',['-m','http.server','8782','--bind','127.0.0.1','--directory',root],{stdio:'ignore'});await new Promise(r=>setTimeout(r,500));
+ server=spawn('python3',['-m','http.server',String(port),'--bind','127.0.0.1','--directory',root],{stdio:'ignore'});await new Promise(r=>setTimeout(r,500));
  browser=await chromium.launch({executablePath:process.env.PVS_CHROME,args:['--no-sandbox','--disable-dev-shm-usage']});
  const ctx=await browser.newContext({viewport:{width:1440,height:1000},hasTouch:true});await ctx.route('https://**/*',r=>r.abort());
  await ctx.addInitScript(()=>{if(!navigator.mediaDevices)return;navigator.mediaDevices.getUserMedia=async()=>{const ac=new AudioContext(),osc=ac.createOscillator(),g=ac.createGain(),dest=ac.createMediaStreamDestination();g.gain.value=.15;osc.frequency.value=261.63;osc.connect(g).connect(dest);osc.start();await ac.resume();window.testMicStream=dest.stream;return dest.stream;};});
  ctx.on('page',p=>p.on('pageerror',e=>errors.push(e.message)));
- const p=await ctx.newPage();await p.goto('http://127.0.0.1:8782/beta/');await wait(p);
+ const p=await ctx.newPage();await p.goto(`http://127.0.0.1:${port}/beta/`);await wait(p);
  check('Four workspaces visible at the top',await p.locator('#workspaceChoice option').count()===4&&await p.locator('#workspacePop').isVisible());
  await p.evaluate(()=>{S.song.lead=0;SongStudio.render();window.originalRecord=document.getElementById('sgRecord');window.originalTimeline=document.getElementById('sgTimeline');});
  await p.locator('#sgRecord').click();await p.waitForFunction(()=>SongStudio.state().recording);
@@ -63,6 +64,7 @@ async function popup(p,ctx,mode='record'){
  await child.locator('#songStudio .ww-return-main').click();await p.waitForURL(/beta\/\?v/);await wait(p);
  check('Returning during recording stops and keeps the new take',await p.evaluate(()=>SongCore.usage(S.song).takes===2));check('Returning preserves project and track edits',await p.evaluate(()=>S.song.title==='Window changes'&&S.song.tracks[0].name==='Pop-out vocal'));
  check('Return closes the separate window',child.isClosed());
+ check('Restored main project can pop out again',await p.locator('#workspacePop').isEnabled());
  // The browser X close is recovered through the standby, after autosave.
  const second=await popup(p,ctx);await second.evaluate(async()=>{SongStudio.edit(w=>w.title='Closed-window save','Rename');await persistNow();});await second.close();await p.waitForURL(/beta\/\?v/);await wait(p);
  check('Closing the separate window restores its latest autosave',await p.evaluate(()=>S.song.title==='Closed-window save'));
@@ -84,6 +86,6 @@ async function popup(p,ctx,mode='record'){
  await ctx.route('**/beta/studio-main.js*',async r=>{const response=await r.fetch();const handoff=/handoff/.test(r.request().frame()?.url()||'');const text=await response.text();await r.fulfill({response,body:handoff?text.replace('const last=await restoreWithWatchdog();','await new Promise(r=>setTimeout(r,3000));const last=await restoreWithWatchdog();'):text});});
  await p.locator('#workspaceChoice').selectOption('record');const cancelNext=ctx.waitForEvent('page');await p.locator('#workspacePop').click();const cancelled=await cancelNext;await cancelled.waitForURL(/handoff/);await p.locator('#handoffCancel').click();check('Cancelling a handoff keeps the original session',await p.evaluate(()=>!AppWindow.blocked()&&SongCore.usage(S.song).takes===2));if(!cancelled.isClosed())await cancelled.waitForEvent('close');await ctx.unroute('**/beta/studio-main.js*');
  const alone=await popup(p,ctx);await p.close();await alone.locator('#songStudio .ww-return-main').click();check('Closing the original tab leaves a usable independent studio',await alone.evaluate(()=>!AppWindow.isChild()&&!AppWindow.blocked()&&SongCore.usage(S.song).takes===2&&document.getElementById('workspacePop').hidden===false));await alone.close();
- const invalid=await ctx.newPage();await invalid.goto('http://127.0.0.1:8782/beta/?handoff=invalid&workspace=record');await invalid.locator('#workspaceHandoff').waitFor();check('Expired popup links cannot become autosave writers',await invalid.evaluate(()=>AppWindow.blocked()));await invalid.close();
+ const invalid=await ctx.newPage();await invalid.goto(`http://127.0.0.1:${port}/beta/?handoff=invalid&workspace=record`);await invalid.locator('#workspaceHandoff').waitFor();check('Expired popup links cannot become autosave writers',await invalid.evaluate(()=>AppWindow.blocked()));await invalid.close();
  check('No browser JavaScript errors',errors.length===0);await ctx.close();
 })().catch(e=>{console.error(e);process.exitCode=1;}).finally(async()=>{fs.writeFileSync(path.join(out,'workspace-results.json'),JSON.stringify({rows,errors},null,2));await browser?.close();server?.kill();});

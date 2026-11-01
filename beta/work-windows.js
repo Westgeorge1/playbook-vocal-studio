@@ -56,7 +56,7 @@ function sync(){
  syncHistory();syncChoice();
  const frame=$('noteEditorFrame');$('workWindowFocus').hidden=DAW.dock!=='notes'||!frame;$('workWindowFocus').textContent=focused?'All tuning controls':'Focus notes';
  if(frame?.contentDocument){frame.contentDocument.documentElement.classList.toggle('work-window',active&&!recordingView);frame.contentDocument.documentElement.classList.toggle('focus-notes',active&&!recordingView&&focused);bindFrame(frame);}
- redraw();
+ window.StudioBrowse?.sync();redraw();
 }
 function syncChoice(){const c=$('workspaceChoice');if(!c||document.activeElement===c)return;const v=active?mode():(RC.step==='rc'?'record':DAW.dock);if(names[v]&&c.value!==v)c.value=v;}
 function setBackgroundInert(on){
@@ -69,7 +69,7 @@ function open(m=DAW.dock){
  if(m!=='record'&&RC.step==='rc')return launchMode(m);
  if(active&&recordingView!==(m==='record'))close();
  recordingView=m==='record';
- if(!active){returnFocus=document.activeElement;dawCloseMenus();$('guideSheet').hidden=true;active=true;maximized=false;{const k=recordingView?'record':'notes',saved=layout.focus[k];focused=typeof saved==='boolean'?saved:(recordingView||narrow());}if(recordingView&&narrow())record.querySelector('.sg-record-helpers').open=false;shade.hidden=false;bars.get(panel()).hidden=false;bars.get(panel()).querySelector('.ww-status').textContent='';panel().classList.add('ww-window');panel().setAttribute('role','dialog');panel().setAttribute('aria-modal','true');panel().setAttribute('aria-labelledby',recordingView?'recordWindowTitle':'workWindowTitle');document.body.classList.add('ww-open');setBackgroundInert(true);}
+ if(!active){returnFocus=document.activeElement;dawCloseMenus();$('guideSheet').hidden=true;active=true;maximized=false;{const k=recordingView?'record':'notes',saved=layout.focus[k];focused=typeof saved==='boolean'?saved:(recordingView||(narrow()&&!window.StudioBrowse?.browsing()));}if(recordingView&&narrow())record.querySelector('.sg-record-helpers').open=false;shade.hidden=false;bars.get(panel()).hidden=false;bars.get(panel()).querySelector('.ww-status').textContent='';panel().classList.add('ww-window');panel().setAttribute('role','dialog');panel().setAttribute('aria-modal','true');panel().setAttribute('aria-labelledby',recordingView?'recordWindowTitle':'workWindowTitle');document.body.classList.add('ww-open');setBackgroundInert(true);}
  if(!recordingView)dawDock(m);
  // 0.31.13: on short laptop screens tuning opens maximized until you choose a window size.
  if(!recordingView&&!sizes.has(m)&&innerHeight<800&&!narrow())maximized=true;
@@ -82,7 +82,7 @@ async function launchMode(m){
  if(m==='record')return open(m);
  if(window.SongStudio?.locked()){announce('Stop recording or wait for the current operation before changing workspace.');return false;}
  launching=true;
- try{if(RC.step==='rc'){if(!await SongPolish.open(S.song.activeTrack))return false;}if(m==='notes')showPage('tune');return open(m);}catch(e){announce(e.message);return false;}finally{launching=false;}
+ try{if(RC.step==='rc'){if(window.StudioBrowse?.empty()){RC.go('polish');if(RC.step!=='polish')return false;}else if(!await SongPolish.open(S.song.activeTrack))return false;}if(m==='notes')showPage('tune');return open(m);}catch(e){announce(e.message);return false;}finally{launching=false;}
 }
 function close(){
  if(!active)return;if(!maximized&&!narrow())remember(mode(),rect());

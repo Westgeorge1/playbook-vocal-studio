@@ -4,7 +4,7 @@
 const fs=require('fs'),path=require('path'),{spawn}=require('child_process');
 const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
 const APP=path.resolve(__dirname,'..'),OUT=process.env.PVS_TEST_OUT||path.join(__dirname,'results');fs.mkdirSync(OUT,{recursive:true});
-const rows=[],errors=[];let b,server;const PORT=8793,URL=`http://127.0.0.1:${PORT}/index.html`;
+const rows=[],errors=[];let b,server;const PORT=require('../tests-0.32.4/test-port.cjs')(8793,3),URL=`http://127.0.0.1:${PORT}/index.html`;
 function check(name,value,detail){rows.push({name,pass:!!value,detail});console.log((value?'PASS ':'FAIL ')+name+(detail!==undefined?' '+JSON.stringify(detail):''));}
 const sleep=t=>new Promise(r=>setTimeout(r,t));
 

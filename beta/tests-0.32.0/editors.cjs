@@ -1,3 +1,4 @@
+const port = require('../tests-0.32.4/test-port.cjs')(8753,1);
 /* 0.31.13 copy of the 0.31.12 suite; only the Escape check changed (selection is cleared first).
  * Real browser regression: workspace geometry, live iframe, edits and focus. */
 const fs=require('fs'),path=require('path'),{spawn}=require('child_process'),assert=require('assert/strict');
@@ -7,9 +8,9 @@ const rows=[],errors=[];let b,server;
 function check(name,value,detail){rows.push({name,pass:!!value,detail});console.log((value?'PASS ':'FAIL ')+name+(detail?' '+JSON.stringify(detail):''));}
 const sleep=t=>new Promise(r=>setTimeout(r,t));
 (async()=>{
- server=spawn('python3',['-m','http.server','8753','--bind','127.0.0.1','--directory',APP],{stdio:'ignore'});await sleep(600);
+ server=spawn('python3',['-m','http.server',String(port),'--bind','127.0.0.1','--directory',APP],{stdio:'ignore'});await sleep(600);
  b=await chromium.launch({executablePath:process.env.PVS_CHROME,args:['--no-sandbox','--disable-dev-shm-usage','--autoplay-policy=no-user-gesture-required'],headless:true});
- const ctx=await b.newContext({viewport:{width:1440,height:1000}});await ctx.route('https://**/*',r=>r.abort());const p=await ctx.newPage();p.on('pageerror',e=>errors.push(String(e)));await p.goto('http://127.0.0.1:8753/index.html');
+ const ctx=await b.newContext({viewport:{width:1440,height:1000}});await ctx.route('https://**/*',r=>r.abort());const p=await ctx.newPage();p.on('pageerror',e=>errors.push(String(e)));await p.goto(`http://127.0.0.1:${port}/index.html`);
  await p.waitForFunction(()=>window.WorkWindows&&window.SongStudio&&!S.loading);
  await p.evaluate(()=>{const C=SongCore,R=48000;S.song=C.empty(R);S.song.key=0;S.song.scale=1;const a=new Float32Array(R*3);for(let i=0;i<a.length;i++){const t=i/R,f=[261.6,293.7,329.6][Math.floor(t)];a[i]=.2*Math.sin(2*Math.PI*f*t)*Math.min(1,(t%1)*30,(1-t%1)*30);}SongStudio.edit(w=>C.addTake(w,{trackId:w.tracks[0].id,start:0,end:3,channels:[a],origin:0,choose:true}),'Window test');});
  await p.evaluate(()=>SongPolish.open(S.song.tracks[0].id));await p.waitForFunction(()=>!S.busy&&!S.dirty&&!NoteTuner.locked()&&!NoiseCleaner.locked(),null,{timeout:180000});

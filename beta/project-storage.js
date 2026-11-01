@@ -17,8 +17,9 @@ window.ProjectStorage = (() => {
         seen.add(name);
         const read = store.get(name);
         read.onsuccess = () => {
-          if (read.result === undefined) return;
+          if (read.result == null) return;
           try {
+            if (!first) { store.put(true, key('initialized')); first=true; }
             store.put(read.result, key(name));
             if (dependencies) for (const ref of dependencies(name, read.result)) copy(ref);
           } catch (error) {
@@ -30,9 +31,7 @@ window.ProjectStorage = (() => {
       const marker = store.getKey(key('initialized'));
       marker.onsuccess = () => {
         if (marker.result !== undefined) return;
-        first = true;
         for (const name of roots) copy(name);
-        store.put(true, key('initialized'));
       };
       tx.oncomplete = () => resolve(first);
       tx.onabort = () => reject(failure || tx.error || new Error('The autosave upgrade was interrupted.'));

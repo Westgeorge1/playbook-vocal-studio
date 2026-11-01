@@ -201,6 +201,8 @@ kbd{font:600 12px var(--f-mono);border:1px solid var(--line);border-bottom-width
   .hosted.work-window:not(.focus-notes) .panels .slider{grid-template-columns:6.6em minmax(0,1fr) 4.4em}
   .hosted.work-window:not(.focus-notes) #notePanel .hint{font-size:12.5px}
 }
+html.empty-editor #naturalOptions[hidden]{display:block!important}
+html.empty-editor [inert]{opacity:.58}
 </style>
 
 <div class="app">
@@ -517,9 +519,9 @@ kbd{font:600 12px var(--f-mono);border:1px solid var(--line);border-bottom-width
   <p class="foot">Everything runs on your device; your audio is never uploaded.</p>
 </div>
 
-<script src="project-storage.js?v=0.32.3"></script>
-<script src="note-editor-safety.js?v=0.31.7"></script>
-<script src="natural-tuning.js?v=0.31.1"></script>
+<script src="project-storage.js?v=0.32.4"></script>
+<script src="note-editor-safety.js?v=0.32.4"></script>
+<script src="natural-tuning.js?v=0.32.4"></script>
 <script>
 (() => {
 "use strict";
@@ -2953,6 +2955,23 @@ $("export").onclick = async () => {
 
 
 function bridgeState(){return {v:1,rate:S.sr,frames:S.orig?.length||0,channels:S.sourceChannels?.length||1,settings:editsRecord()};}
+// Disable audio editing while keeping view controls and panel headings available.
+const blankControls = new Map();
+function emptyControls(on) {
+  if (!EMBED) return;
+  document.documentElement.classList.toggle('empty-editor',on);
+  if (on) {
+    for (const el of document.querySelectorAll('button,select,input,[role="slider"]')) {
+      if (el.closest('.zoom') || el.matches('#keysBtn,#keysClose,#fitRows') || el.closest('#keysDlg')) continue;
+      if (!blankControls.has(el)) blankControls.set(el,{disabled:el.disabled,title:el.title,inert:el.inert});
+      if ('disabled' in el) el.disabled=true;
+      el.inert=true;el.title='Load a vocal to tune.';
+    }
+  } else {
+    for (const [el,old] of blankControls){if ('disabled' in el) el.disabled=old.disabled;el.inert=old.inert;el.title=old.title;}
+    blankControls.clear();
+  }
+}
 window.PlaybookNoteEditor={
  async load(channels,sr,opts={}){
   Safety.audio(channels,sr);
@@ -2961,7 +2980,7 @@ window.PlaybookNoteEditor={
     if(opts.state.v!==1||opts.state.rate!==sr||opts.state.frames!==channels[0].length||opts.state.channels!==channels.length)throw Error("Saved note edits do not fit this vocal.");
     Safety.edits(opts.state.settings,Math.max(0,Math.floor((Math.ceil(channels[0].length*11025/sr)-490)/110)));
   }
-  hostMute=true;S.smoothHeld=false;S.holdEligible=!opts.state;
+  emptyControls(false);hostMute=true;S.smoothHeld=false;S.holdEligible=!opts.state;
   try{await loadBuffer(fakeBuffer(channels,sr),opts.name||"Cleaned vocal",true,opts.state?(opts.state.settings.soundProfile||"reviewed-031"):"approved-original",opts.state?.settings);if(opts.state)applyEdits(opts.state.settings);
   if(!opts.state&&opts.automatic===false)setSmoothOn(false,false);
   // 0.32: new vocals tune to the backing (or A = 440). "My singing" is a choice in Tune to.
@@ -3032,7 +3051,7 @@ new ResizeObserver(() => { draw(); drawOverview(); }).observe($("editor"));
 resetRenders(); setTool("pitch"); gridUI(); layersUI(); setBreath(0, false);
 (async () => {
   draw();
-  if(EMBED){setBusy(false);return;}
+  if(EMBED){setBusy(false);emptyControls(true);refreshAll();return;}
   let restored = false;
   try { restored = await tryRestore(); } catch (e){ restored = false; setBusy(false); }
   if (!restored) await loadDemo();

@@ -1,0 +1,29 @@
+PLAYBOOK VOCAL STUDIO 0.32.4 BETA | HANDOVER TEST RESULTS
+31 October 2026 (Jamaica)
+
+Ran run-tests.cjs on Chromium 153 in disposable browser profiles, one suite at a time, with PVS_PORT_BASE overridden. The runner prepared the beta directory layout automatically. All 12 suites passed.
+
+navigation: 133 passed
+storage: 10 passed
+cleanup: 18 passed
+editors: 74 passed
+tuning: 44 passed
+workspace-editor: 40 passed
+windows: 48 passed
+recording: 38 passed
+restore: 56 passed
+delete: 61 passed
+playback: 4 passed
+upgrade: 13 passed
+
+Navigation was checked at 1280×800, 390×844, 320×740 and 844×390. A blank profile opened both steps, all five POLISH tabs, three dock tabs, the four workspaces, menus and Smart guide. The empty editor showed a piano roll; controls that need audio waited for input. View navigation left project records, project flags, the song journal and Undo untouched. Pop out was disabled before a project existed. The phone Return control stayed reachable. Import and simulated Record filled the tuning workspace, and Open project restored the vocal in the selected POLISH tab.
+
+The handoff tests verified that a restored project can pop out again, a closed child recovers its last autosave, and returning while recording keeps the new take.
+
+Storage tests measured a compact stereo phrase edit, reloaded both takes with the original PCM fingerprints, exercised backup confirmation and cancellation, and checked that deleting a save leaves other locations intact. Both the storage event and the database transaction prevented stale tabs from writing over a confirmed removal.
+
+The same-browser playback comparison used the previously released 0.32.3 studio. For the synthetic singing fixture at A = 443.8 Hz, the candidate and reference had identical sample rates, channel lengths, and SHA-256 fingerprints for the tuned and final PCM in the baseline, Snap all + Smooth 25%, and 85% correction + Smooth 25% cases. Blind comparison played three different tuned versions. Legacy hashes are informational. The 800-case Natural engine regression also passed.
+
+The full upgrade suite used both original references: the pinned 0.14.0 main site and 0.32.2 compact-cleanup beta. All seven locked engine checksums matched. Physical Android microphone, Samsung Internet, headphone/Bluetooth latency, listening quality on the owner's vocals, and memory on very long recordings remain device checks.
+
+See TESTING.md for exact reference locations and commands.

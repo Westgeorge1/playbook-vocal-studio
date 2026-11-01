@@ -1,3 +1,4 @@
+const port = require('../tests-0.32.4/test-port.cjs')(8761,7);
 /* Visible removal actions, durable deletion and Undo; synthetic audio only.
  * PLAYWRIGHT_MODULE, PVS_CHROME and PVS_TEST_OUT work as in recording.cjs.
  */
@@ -12,7 +13,7 @@ async function page(width){
  await ctx.addInitScript(()=>{
   navigator.mediaDevices.getUserMedia=async()=>{const a=new AudioContext(),o=a.createOscillator(),g=a.createGain(),d=a.createMediaStreamDestination();g.gain.value=.12;o.connect(g).connect(d);o.start();await a.resume();return d.stream;};
  });
- const p=await ctx.newPage();p.on('pageerror',e=>errors.push(String(e)));await p.route('https://**/*',r=>r.abort());await p.goto('http://127.0.0.1:8761/beta/');await idle(p);return {ctx,p};
+ const p=await ctx.newPage();p.on('pageerror',e=>errors.push(String(e)));await p.route('https://**/*',r=>r.abort());await p.goto(`http://127.0.0.1:${port}/beta/`);await idle(p);return {ctx,p};
 }
 async function seed(p){return p.evaluate(async()=>{
  const C=SongCore,w=C.empty(48000),x=Float32Array.from({length:96000},(_,i)=>.12*Math.sin(i/29));w.lead=0;
@@ -30,7 +31,7 @@ const undo=async p=>{await tap(p,'#rcUndo');};
 const redo=async p=>{await tap(p,'#rcRedo');};
 async function record(p){await p.evaluate(()=>{S.song.lead=0;SongStudio.render();});await tap(p,'#sgRecord');await p.waitForFunction(()=>SongStudio.state().recording);await p.waitForTimeout(550);await tap(p,'#sgStop');await p.waitForFunction(()=>!SongStudio.locked());}
 (async()=>{
- server=spawn('python3',['-m','http.server','8761','--bind','127.0.0.1','--directory',root],{stdio:'ignore'});await new Promise(r=>setTimeout(r,600));
+ server=spawn('python3',['-m','http.server',String(port),'--bind','127.0.0.1','--directory',root],{stdio:'ignore'});await new Promise(r=>setTimeout(r,600));
  browser=await chromium.launch({executablePath:process.env.PVS_CHROME,args:['--no-sandbox','--disable-dev-shm-usage']});
  for(const width of (process.env.PVS_WIDTH?[+process.env.PVS_WIDTH]:[390,980])){
   const {ctx,p}=await page(width),f=await seed(p),tag=width+'px';

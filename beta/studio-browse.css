@@ -1,0 +1,24 @@
+.studio-empty{padding:9px 12px;margin:4px 0 8px;border:1px solid #396466;border-radius:8px;color:#e5ede9;background:#152929;min-width:0}
+.studio-empty[hidden]{display:none!important}
+.studio-empty p{margin:0 0 6px;font-size:.88rem}
+.studio-empty div{display:flex;flex-wrap:wrap;gap:6px}
+.studio-empty button{min-height:34px;font-size:.82rem}
+#songStudio:not(.ww-window)>.studio-empty{display:none}
+.browsing-studio .ipanel [aria-disabled="true"],.browsing-studio .dpanel [aria-disabled="true"]{opacity:.50}
+#dock.ww-window[data-workspace="notes"] #dockNotes:has(#newNotePanel:not([hidden])){display:flex;flex-direction:column}
+#dock.ww-window[data-workspace="notes"] #dockNotes[hidden]{display:none}
+#dock.ww-window[data-workspace="notes"] #newNotePanel{min-height:0;flex:1}
+#dock.ww-window .studio-empty{flex:none;margin:0 0 4px}
+@media(max-height:480px){.studio-empty{padding:4px 8px}.studio-empty p{margin:0;font-size:.76rem}.studio-empty button{min-height:28px}}
+#projectStoragePanel{box-sizing:border-box;width:min(460px,calc(100vw - 16px));max-height:90dvh;overflow:auto;background:#172527;color:#eaf2f0;border:1px solid #648589;border-radius:10px;padding:18px}
+#projectStoragePanel header{display:flex;align-items:center;justify-content:space-between}
+#projectStoragePanel h2{font-size:1.2rem}
+#projectStoragePanel li{margin:.4em 0;overflow-wrap:anywhere}
+#projectStoragePanel .storage-actions{display:grid;gap:8px}
+#projectStoragePanel::backdrop{background:#0009}
+@media(max-width:720px){.menubar{position:relative}.menubar .menu{position:static}.menubar .mdrop{left:6px;right:6px;min-width:0;max-width:calc(100vw - 12px)}}
+.studio-empty button{border:1px solid #567a81;border-radius:6px;background:#233a40;padding:5px 10px;color:#edf6f4;font-weight:600;cursor:pointer}
+.studio-empty button:first-child{background:#bde9db;border-color:#bde9db;color:#143431}
+.studio-empty button:focus-visible{outline:2px solid #ffbd59;outline-offset:2px}
+#workspaceTools button:disabled,.ww-window-actions button:disabled{opacity:.5;cursor:default}
+body.browsing-studio #trackPolishBar [aria-disabled="true"]{opacity:.55}

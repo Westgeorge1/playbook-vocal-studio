@@ -41,7 +41,7 @@ function setStepsHeight(){const h=$('rcSteps').getBoundingClientRect().height||4
 function step(s,tab){
   if(s!=='rc'&&s!=='polish')return;if(window.SongStudio&&!SongStudio.show(s))return;RC.step=s;document.body.classList.toggle('rc-on',s==='rc');document.body.classList.add('has-steps');
   $('rcView').hidden=!!window.SongStudio||s!=='rc';$('rcStep1').setAttribute('aria-selected',s==='rc');$('rcStep2').setAttribute('aria-selected',s==='polish');
-  closePops();setStepsHeight();
+  closePops();setStepsHeight();window.StudioBrowse?.sync();
   if(s==='polish'){D.ctx='engine';requestAnimationFrame(()=>{D.layout();D.dirty=true;if(tab)dawTab(tab);});}
   else{D.ctx='phrase';RC.dirty=true;RC.sig='';requestAnimationFrame(()=>{layout();sync(true);});}
 }

@@ -1,3 +1,4 @@
+const port = require('../tests-0.32.4/test-port.cjs')(8965,9);
 /* Upgrade and isolation regression. Point PVS_OLD_MAIN at unpacked 0.14.0 and
    PVS_OLD_BETA at unpacked 0.32.2. Uses only disposable browser storage. */
 const fs = require('node:fs');
@@ -9,7 +10,7 @@ const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const app = path.resolve(__dirname, '..');
 const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'pvs-upgrade-'));
 const routes = { main:app, beta:app, preview:app, interrupted:app, oldmain:process.env.PVS_OLD_MAIN, oldbeta:process.env.PVS_OLD_BETA };
-const origin = 'http://127.0.0.1:8965';
+const origin = `http://127.0.0.1:${port}`;
 const rows = [];
 let server, browser;
 function result(name, passed) {
@@ -80,7 +81,7 @@ async function oldMainSave(context) {
     assert.ok(dir && fs.existsSync(path.join(dir,'index.html')), 'Missing source directory for '+name);
     fs.symlinkSync(path.resolve(dir),path.join(temp,name),'dir');
   }
-  server=spawn('python3',['-m','http.server','8965','--bind','127.0.0.1','--directory',temp],{stdio:'ignore'});
+  server=spawn('python3',['-m','http.server',String(port),'--bind','127.0.0.1','--directory',temp],{stdio:'ignore'});
   browser=await chromium.launch({executablePath:process.env.PVS_CHROME,args:['--no-sandbox','--disable-dev-shm-usage']});
   const context=await browser.newContext();await context.route('https://**/*',r=>r.abort());
   const before=await clean(context);

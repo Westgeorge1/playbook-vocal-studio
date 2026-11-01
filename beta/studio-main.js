@@ -146,8 +146,8 @@ const songSeconds = () => S.original ? S.original.length / S.rate : 0;
 
 // ---------------------------------------------------------------- engine (worker)
 // 0.17.2: the app and the audio engine have separate version numbers
-var APP_VERSION="0.32.3",ENGINE_VERSION="0.12.1";
-const worker = new Worker("worker.js?v=0.32.3");
+var APP_VERSION="0.32.4",ENGINE_VERSION="0.12.1";
+const worker = new Worker("worker.js?v=0.32.4");
 let reqId = 0, engineFailure = null; const pending = {};
 var ENGINE_WAIT_MS = 120000;
 worker.onmessage = ({ data: m }) => {
@@ -318,7 +318,7 @@ $("fileCapture").addEventListener("change", e => openPicked(e, recordingName()))
 $("fileVocal").addEventListener("change", e => openPicked(e));
 async function openPicked(e, name) {
   const f = e.target.files[0]; e.target.value = ""; if (!f || sessionLocked()) return;
-  if(window.SongStudio){RC.go("rc");await SongStudio.importAudio(f);return;}
+  if(window.SongStudio){if(!window.StudioBrowse?.destination())RC.go("rc");await SongStudio.importAudio(f);return;}
   prepareSongChange(); S.loading="Reading "+f.name+"…"; S.loadError=""; setBusy(true); showPage("open");
   try {
     setStatus(S.loading, "busy");
@@ -1760,7 +1760,7 @@ async function saveProject(opts) {
   const base = safeName(S.song?.title||(phraseOnly?phraseWorkspace().title:S.name)), srcName = base + " - phone source.wav", src = wavFloat(phraseWorkspaceAudio||S.audio[5]||S.main, phraseOnly?(S.song?.rate||phraseWorkspace().rate):S.rate), files = [{ name: srcName, data: src }];
   const takes = S.takes.slice(1).map((t, i) => { const name = base + " - take " + (i + 1) + ".wav", data = wavFloat(S.takeChannels[i+1]||t, S.rate); files.push({ name, data }); return { file: name, bytes: data.length, trim: 0, pad: 0 }; });
   const g = S.guide || {}, P = { ...S.P, chMixFit: S.mix.fit ? 1 : 0, chMixOver: S.mix.over, chMixRoom: S.mix.room };
-  const root = { format: "Playbook Vocal Studio", version: 9, savedBy: "Playbook Vocal Studio 0.32.3 (phone DAW)",
+  const root = { format: "Playbook Vocal Studio", version: 9, savedBy: "Playbook Vocal Studio 0.32.4 (phone DAW)",
     smartGuide: { enabled: !!S.guidePrefs.enabled, concern: S.guidePrefs.concern || 0, goal: S.guidePrefs.goal, bpm: S.guidePrefs.bpm, tempoSync: !!S.guidePrefs.sync, locked: g.locked || [], dismissed: g.dismissed || {} },
     performance: S.st?.edits||{breaths:[],timing:[],comp:[]}, notePerformance: S.st?.edits||{breaths:[],timing:[],comp:[]}, alternateTakes: takes,
     source: srcName, sourceBytes: src.length, trim: 0, pad: 0, take: false };
@@ -1775,7 +1775,7 @@ async function saveProject(opts) {
   if(!compat&&S.main&&S.song){const lt=S.song.tracks.find(t=>t.id===S.song.polishTrack),pc=lt?.polish?.session?.pcm,cur=S.audio[5]||[S.main];if(lt&&Array.isArray(pc)&&SongCore.polishValid(S.song,lt)&&SongCore.samePcm(pc,cur)){const f=files.find(f=>f.name===srcName);if(f)files.splice(files.indexOf(f),1);root.source=null;root.sourceLane=lt.id;delete root.sourceBytes;}}
   root.backupKind=compat?"compatibility":"modern";
   files.unshift({ name: base + ".pbv", data: new TextEncoder().encode(JSON.stringify(root, null, 1)) });
-  files.push({ name: "READ-ME.txt", data: new TextEncoder().encode((compat?"Playbook Vocal Studio song project, COMPATIBILITY backup (saved on the phone, 0.32.3). It also contains copies for older versions (0.18.3 parts).":"Playbook Vocal Studio song project (saved on the phone, 0.32.3). Modern backup: open it in Playbook Vocal Studio 0.31.4 or newer. Older versions need a Compatibility backup (Export song > Compatibility backup).")+"\r\n\r\nOn the laptop: extract this ZIP into its own folder, keep the files together, then use Open project in the Windows app or FL Studio plugin (0.9.8 or newer) and choose " + base + ".pbv.\r\nOpen multitrack projects in Playbook Vocal Studio 0.31.4 or newer to retain separate tracks, sections, attempts, per-track POLISH and phrase-volume moves (0.24 and earlier may not restore 0.25 POLISH preferences). Older apps open only the last POLISH vocal and will lose the multitrack data if you save over this project. Keep this original ZIP.\r\nOn the phone: SONG PROJECT > Open a song project, then pick this ZIP.\r\n") });
+  files.push({ name: "READ-ME.txt", data: new TextEncoder().encode((compat?"Playbook Vocal Studio song project, COMPATIBILITY backup (saved on the phone, 0.32.4). It also contains copies for older versions (0.18.3 parts).":"Playbook Vocal Studio song project (saved on the phone, 0.32.4). Modern backup: open it in Playbook Vocal Studio 0.31.4 or newer. Older versions need a Compatibility backup (Export song > Compatibility backup).")+"\r\n\r\nOn the laptop: extract this ZIP into its own folder, keep the files together, then use Open project in the Windows app or FL Studio plugin (0.9.8 or newer) and choose " + base + ".pbv.\r\nOpen multitrack projects in Playbook Vocal Studio 0.31.4 or newer to retain separate tracks, sections, attempts, per-track POLISH and phrase-volume moves (0.24 and earlier may not restore 0.25 POLISH preferences). Older apps open only the last POLISH vocal and will lose the multitrack data if you save over this project. Keep this original ZIP.\r\nOn the phone: SONG PROJECT > Open a song project, then pick this ZIP.\r\n") });
   let data;try{data=zip(files);}catch(err){return done(false,"failed","Couldn't save: the project could not be prepared ("+(err&&err.message||"unknown problem")+").");}
   try { const result = await saveDownload(base + (compat?" - song project (compatibility).zip":" - song project.zip"), data); const r=done(true,result==="Saved"?"saved":"requested",result + ": " + base + " - song project.zip. " + whereSaved()); toast(result, base + " - song project.zip. " + whereSaved()); return r; }
   catch (err) { return err && err.code === "declined" ? done(false,"cancelled","Not saved.") : done(false,"failed","Couldn't save: " + (err && err.message || "unknown problem") + "."); }
@@ -1833,11 +1833,12 @@ async function openProjectFiles(list) {
 $("projBtn").onclick = () => $("fileProject").click();
 $("fileProject").addEventListener("change", async e => {
   const list = [...e.target.files]; e.target.value = ""; if (!list.length||sessionLocked()) return;
+  const destination=window.StudioBrowse?.destination();
   S.loading="Reading project…";setBusy(true);
   $("projStatus").textContent = "Opening the project...";
   try { stopPlayback(); await openProjectFiles(list); try{await persistNow();}catch(e){} $("projStatus").textContent = "Opened. Your settings and note edits are restored.";if(window.SongStudio)SongStudio.notify(S.projectRecoveryNotice||"Project opened. Your tracks, takes, sections and saved POLISH settings are restored."); }
   catch (err) { $("projStatus").textContent = err.message; setStatus("Project not opened: " + err.message, "warn");if(window.SongStudio)SongStudio.notify("Project not opened: "+err.message,true); setBusy(false); }
-  finally{S.loading="";setBusy(false);renderOpen();}
+  finally{S.loading="";setBusy(false);renderOpen();}await window.StudioBrowse?.resume(destination);
 });
 
 // ---------------------------------------------------------------- remember the last session on this phone (IndexedDB)
@@ -1851,6 +1852,8 @@ function legacyAudioRefs(name, value) {
   const polish = p => { if (p) { pcm(p.channels); session(p.session); } };
   session(value);
   pcm(value?.backing?.channels);
+  const phraseAudio = [value?.phrases?.base, ...(value?.phrases?.phrases || []).flatMap(p=>p.takes || [])];
+  for (const take of phraseAudio) if (take?.channels?.ref) refs.add(take.channels.ref);
   for (const src of Object.values(value?.song?.sources || {})) if (src?.ref) refs.add(src.ref);
   for (const track of value?.song?.tracks || []) polish(track.polish);
   polish(value?.song?.previousMix);
@@ -1871,9 +1874,21 @@ function sessionSnapshot() {
 // (16-bit when the samples sit exactly on the 16-bit grid, which every new recording does) and the
 // autosave only refers to it. Entries no longer used are removed in the same transaction.
 const PVS_SRC={written:new Set(),key:new WeakMap(),q16:new WeakMap(),n:0};
-// 0.32.3: a manual-cleanup take differs from its original recording only in the edited stretch.
+// 0.32.4: a manual-cleanup take differs from its original recording only in the edited stretch.
 // Remember that (in memory only), so autosave stores the original once plus the edited samples.
 const PVS_DERIVED=new WeakMap();
+const phraseSources = new WeakMap();
+function rememberPhraseSource(src) {
+  const first=src.channels[0],group=phraseSources.get(first)||[];
+  if(!group.includes(src))group.push(src);
+  phraseSources.set(first,group);
+  return src;
+}
+function phraseSource(take) {
+  const ch=take.channels;
+  return (phraseSources.get(ch[0])||[]).find(s=>s.rate===take.rate && s.channels.length===ch.length && ch.every((c,i)=>c===s.channels[i]))
+    || rememberPhraseSource({rate:take.rate,channels:ch});
+}
 function srcDerive(src,base){
  if(!src||!base||src===base||src.rate!==base.rate||src.channels.length!==base.channels.length||src.channels[0].length!==base.channels[0].length)return false;
  let a=Infinity,b=-1;for(let c=0;c<src.channels.length;c++){const x=src.channels[c],y=base.channels[c];for(let i=0;i<x.length;i++)if(x[i]!==y[i]){if(i<a)a=i;break;}for(let i=x.length-1;i>=0;i--)if(x[i]!==y[i]){if(i>b)b=i;break;}}
@@ -1938,11 +1953,22 @@ async function storeRemembered(value,generation){
   // The root editor used to inline a second copy of its input on every save.
   stored={...value,pcm:ref(value.pcm),takes:(value.takes||[]).map(ref)};
   if(value.backing)stored.backing={...value.backing,channels:ref(value.backing.channels)};
-  if(value.song){const sources={};for(const [id,src] of Object.entries(value.song.sources||{})){
-   const k=srcKey(src);refs.add(k);sources[id]={ref:k,rate:src.rate,frames:src.channels[0].length,nch:src.channels.length};if(!PVS_SRC.written.has(k))fresh.set(k,src);
-   // A cleanup take keeps its original recording stored (even if that take was removed) and saves only the edit.
-   const d=PVS_DERIVED.get(src);if(d){const bk=srcKey(d.base);refs.add(bk);if(!PVS_SRC.written.has(bk))fresh.set(bk,d.base);}
+  function rememberSource(src) {
+    const k=srcKey(src);refs.add(k);
+    if(!PVS_SRC.written.has(k))fresh.set(k,src);
+    const derived=PVS_DERIVED.get(src);
+    if(derived){
+      const base=srcKey(derived.base);refs.add(base);
+      if(!PVS_SRC.written.has(base))fresh.set(base,derived.base);
+    }
+    return {ref:k,rate:src.rate,frames:src.channels[0].length,nch:src.channels.length};
   }
+  if(value.phrases){
+    const compact=t=>t?{...t,channels:rememberSource(phraseSource(t))}:t;
+    stored.phrases={...value.phrases,base:compact(value.phrases.base),
+      phrases:value.phrases.phrases.map(p=>({...p,takes:p.takes.map(compact)}))};
+  }
+  if(value.song){const sources={};for(const [id,src] of Object.entries(value.song.sources||{})) sources[id]=rememberSource(src);
   stored.song={...value.song,sources,tracks:value.song.tracks.map(t=>({...t,polish:one(t.polish)})),previousMix:one(value.song.previousMix)};
   }
  }
@@ -1951,8 +1977,11 @@ async function storeRemembered(value,generation){
   await new Promise((resolve,reject)=>{
    const tx=db.transaction('s','readwrite'),st=tx.objectStore('s');
    tx.oncomplete=()=>{for(const k of deleted){PVS_SRC.written.delete(k);PVS_PCM.written.delete(k);}for(const k of fresh.keys())PVS_SRC.written.add(k);for(const k of freshPcm.keys())PVS_PCM.written.add(k);resolve();};
-   tx.onerror=()=>reject(tx.error||new Error('Browser save failed.'));tx.onabort=()=>reject(tx.error||new Error('Session storage was interrupted.'));
    // Retirement and replacement share a transaction: any failure keeps the last good save.
+   const guard=st.get(ProjectStorage.key('removed-at'));
+   let stale=false;
+   guard.onsuccess=()=>{if((guard.result??null)!==storageGeneration){stale=true;tx.abort();}};
+   tx.onabort=()=>reject(stale?Error('This location’s save was removed. Back up any unsaved work, then reload.'):tx.error||Error('Session storage was interrupted.'));
    const kr=st.getAllKeys(IDBKeyRange.bound(ProjectStorage.prefix, ProjectStorage.prefix+'\uffff'));kr.onsuccess=()=>{try{
     for(const physical of kr.result){
      const k=physical.slice(ProjectStorage.prefix.length);
@@ -1974,11 +2003,13 @@ async function storeRemembered(value,generation){
 // 0.21.0: write the autosave NOW (no 800 ms debounce). Used after a backup or an
 // opened project, and when the page is hidden or closing, so a reload never
 // brings back an older song.
-async function persistNow(){if(S.isSample)return;cancelPersist();const generation=persistGeneration,snapshot=sessionSnapshot();if(snapshot)await writeRemembered(snapshot,generation);}
+function pristineStudio(){return !S.main && !S.beat && !S.song?.revision && !window.SongStudio?.hasWork() && !S.phrases?.phrases?.length && !S.phrases?.base && !S.recoveryFiles?.length;}
+async function persistNow(){if(S.isSample||pristineStudio())return;cancelPersist();const generation=persistGeneration,snapshot=sessionSnapshot();if(snapshot)await writeRemembered(snapshot,generation);}
 window.persistNow=persistNow;
 for(const ev of ["pagehide","freeze","beforeunload"])window.addEventListener(ev,()=>{try{if(!sessionLocked())persistNow().catch(()=>{});}catch(e){}});
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden"){try{if(!sessionLocked())persistNow().catch(()=>{});}catch(e){}}});
 function persist() {
+  if(pristineStudio())return;
   if(S.isSample)return;
   cancelPersist();const generation=persistGeneration;
   persistTimer=setTimeout(async()=>{try{const snapshot=sessionSnapshot();if(snapshot){await writeRemembered(snapshot,generation);if(typeof phraseReady!=="undefined"&&phraseReady)$("phraseSaveStatus").textContent="Saved on this browser. Download a song project for a backup.";}}catch(e){if(typeof phraseReady!=="undefined"&&phraseReady)$("phraseSaveStatus").textContent="Browser save failed: "+e.message+". Download a song project now.";}},250);
@@ -2022,6 +2053,7 @@ $("undoClear").onclick=async()=>{
 var restoreStage="opening this phone's storage";
 // 0.31.12 (R15): remember on this phone that a project has been kept here, so a browser whose storage cannot even be opened
 // (private mode, storage turned off) and that never kept a project does not start a first-time singer with autosave paused.
+let storageGeneration=null;
 const HAD_KEY=ProjectStorage.key("pvs.hadProject");
 function hadProject(){try{return localStorage.getItem(HAD_KEY)==="1"||localStorage.getItem("pvs.hadProject")==="1";}catch(_){return false;}}
 function markHadProject(){try{localStorage.setItem(HAD_KEY,"1");}catch(_){}}
@@ -2042,29 +2074,49 @@ async function restore() {
   const st=db.transaction('s').objectStore('s'),cache=new Map();
   const get=k=>{if(!cache.has(k))cache.set(k,new Promise((resolve,reject)=>{const r=st.get(ProjectStorage.key(k));r.onsuccess=()=>{if(k!=='last')restoreStage="reading saved audio ("+(++got)+" parts read)";resolve(r.result);};r.onerror=()=>reject(r.error);}));return cache.get(k);};
   restoreStage="reading the saved project";
+  storageGeneration=await get('removed-at') ?? null;
   let last=await get('last');if(!last)return null;markHadProject();restoreStage="reading saved audio";const warnings=[];
   const pcm=async x=>{if(!x?.pcmRef)return x;const e=await get(x.pcmRef);if(!e?.channels?.[0])return null;PVS_PCM.key.set(e.channels[0],x.pcmRef);PVS_PCM.written.add(x.pcmRef);return e.channels;};
   last={...last,pcm:await pcm(last.pcm),takes:(await Promise.all((last.takes||[]).map(pcm))).filter(Boolean)};
   if(last.backing){const ch=await pcm(last.backing.channels);if(ch)last.backing={...last.backing,channels:ch};else{last.backing=null;warnings.push('The saved backing audio is missing. Import it again or open a project backup.');}}
+  const sourceCache=new Map();
+  async function readSource(src){
+    if(!src.ref)return src;
+    if(sourceCache.has(src.ref))return sourceCache.get(src.ref);
+    const e=await get(src.ref);if(!e)return null;
+    let audio;
+    if(e.derived){
+      const original=await get(e.derived.base);if(!original||original.derived)return null;
+      const base=await readSource({ref:e.derived.base});
+      const patch=srcUnpack(e.patch);
+      if(!base || base.channels[0].length!==e.derived.frames || patch.channels.length!==base.channels.length)return null;
+      audio={rate:e.rate,channels:base.channels.map((c,i)=>{const out=c.slice();out.set(patch.channels[i],e.derived.at);return out;})};
+      PVS_DERIVED.set(audio,{base,at:e.derived.at,len:e.derived.len});
+    }else{
+      audio=srcUnpack(e);if(e.q16)PVS_SRC.q16.set(audio,true);
+    }
+    sourceCache.set(src.ref,audio);PVS_SRC.key.set(audio,src.ref);PVS_SRC.written.add(src.ref);
+    return audio;
+  }
+  if(last.phrases){
+    const expand=async t=>{
+      if(!t?.channels?.ref)return t;
+      const src=await readSource(t.channels);
+      if(!src)throw Error('Saved phrase audio is missing. Open a project backup to recover it.');
+      rememberPhraseSource(src);return {...t,channels:src.channels};
+    };
+    last.phrases={...last.phrases,base:await expand(last.phrases.base),
+      phrases:await Promise.all(last.phrases.phrases.map(async p=>({...p,takes:await Promise.all(p.takes.map(expand))})))};
+  }
   if(last.song){
    const one=async(p,name)=>{if(!p)return p;const channels=await pcm(p.channels),input=await pcm(p.session?.pcm),takes=await Promise.all((p.session?.takes||[]).map(pcm));
     const missing=!channels?.length||!input?.length||takes.some(x=>!x);if(missing)warnings.push(name+': some saved POLISH audio is missing. Your settings and edits are kept; back up, then reopen this vocal in POLISH to rebuild it.');
     return {...p,channels,session:p.session?{...p.session,pcm:input,takes:takes.filter(Boolean),edits:takes.some(x=>!x)?{...p.session.edits,comp:[]}:p.session.edits}:p.session,...(missing?{recoveryMissing:true}:{})};
    };
    const tracks=[];for(const t of last.song.tracks)tracks.push({...t,polish:await one(t.polish,t.name)});
-   const previousMix=await one(last.song.previousMix,'Earlier mix'),sources={},baseCache=new Map();let missingSource=false;
+   const previousMix=await one(last.song.previousMix,'Earlier mix'),sources={};let missingSource=false;
    for(const [id,src] of Object.entries(last.song.sources||{})){
-    if(!src.ref){sources[id]=src;continue;}const e=await get(src.ref);if(!e){missingSource=true;continue;}
-    let audio;
-    if(e.derived){
-     // Rebuild a cleanup take: its original recording with the saved edited stretch on top.
-     let base=baseCache.get(e.derived.base);
-     if(!base){const be=await get(e.derived.base);if(!be||be.derived){missingSource=true;continue;}base=srcUnpack(be);baseCache.set(e.derived.base,base);PVS_SRC.key.set(base,e.derived.base);PVS_SRC.written.add(e.derived.base);if(be.q16)PVS_SRC.q16.set(base,true);}
-     const patch=srcUnpack(e.patch);if(base.channels[0].length!==e.derived.frames||patch.channels.length!==base.channels.length){missingSource=true;continue;}
-     audio={rate:e.rate,channels:base.channels.map((c,i)=>{const o=c.slice();o.set(patch.channels[i],e.derived.at);return o;})};
-     PVS_DERIVED.set(audio,{base,at:e.derived.at,len:e.derived.len});
-    }else{audio=baseCache.get(src.ref)||srcUnpack(e);baseCache.set(src.ref,audio);if(e.q16)PVS_SRC.q16.set(audio,true);}
-    sources[id]=audio;PVS_SRC.key.set(audio,src.ref);PVS_SRC.written.add(src.ref);
+     const audio=await readSource(src);if(audio)sources[id]=audio;else missingSource=true;
    }
    if(missingSource){warnings.push('Some saved original recordings are missing. Open your latest project backup to restore all tracks.');last.song=null;}
    else last.song={...last.song,tracks,sources,previousMix};
@@ -2303,7 +2355,7 @@ function phraseAdjust(id,field,value){if(phraseBusy())return;const p=selectedPhr
 function phraseSafeGain(channels){let peak=0;for(const c of channels)for(const x of c)peak=Math.max(peak,Math.abs(x));return peak>.891251?.891251/peak:1;}
 async function phraseListen(id){if(phraseBusy())return;try{const w=phraseWorkspace(),p=selectedPhrase();let channels,start=0,end,rate=w.rate,gain=1;if(id){const t=p?.takes.find(t=>t.id===id);if(!t)return;const excerpt=PhraseCore.audition(t,p);channels=excerpt;start=p.start;end=channels[0].length/rate;gain=PhraseCore.matchGains(p)[id]||phraseSafeGain(channels);}else{channels=PhraseCore.compose(w);end=channels[0].length/rate;gain=phraseSafeGain(channels);start=0;}if(!end)throw new Error('No audio in this phrase.');endLoop();loop={phrase:true,chs:channels,rate,gain,start:0,end,noBeat:!$('phraseCompareBeat').checked,beatOffset:start,oneShot:true};const ok=await startPlayback(0);phraseMessage(ok?(id?'Playing attempt at a matched level':'Playing assembled vocal')+($('phraseCompareBeat').checked&&S.beat?' with backing.':'.'):'Audio could not start. '+$('playbackStatus').textContent);}catch(e){phraseMessage(e.message);}}
 function phraseFailWorker(error){if(phraseWorker)phraseWorker.terminate();phraseWorker=null;for(const j of phraseJobs.values()){clearTimeout(j.timer);j.reject(new Error(error));}phraseJobs.clear();}
-function phraseWorkerRequest(t,p){return new Promise((resolve,reject)=>{if(!phraseWorker){phraseWorker=new Worker('phrase-worker.js?v=0.32.3');phraseWorker.onmessage=({data:m})=>{const j=phraseJobs.get(m.id);if(!j)return;clearTimeout(j.timer);phraseJobs.delete(m.id);m.error?j.reject(new Error(m.error)):j.resolve(m.profile);};phraseWorker.onerror=e=>phraseFailWorker(e.message||'Take analysis stopped. Retry analysis.');phraseWorker.onmessageerror=()=>phraseFailWorker('Take analysis returned unreadable data.');}const id=++phraseSerial,channels=t.channels.map(c=>c.slice());phraseJobs.set(id,{resolve,reject,timer:setTimeout(()=>phraseFailWorker('Take analysis timed out. Your recording is kept; retry analysis.'),120000)});try{phraseWorker.postMessage({id,take:{...t,channels,profile:null},phrase:{start:p.start,end:p.end}},channels.map(c=>c.buffer));}catch(e){const j=phraseJobs.get(id);clearTimeout(j.timer);phraseJobs.delete(id);reject(e);}});}
+function phraseWorkerRequest(t,p){return new Promise((resolve,reject)=>{if(!phraseWorker){phraseWorker=new Worker('phrase-worker.js?v=0.32.4');phraseWorker.onmessage=({data:m})=>{const j=phraseJobs.get(m.id);if(!j)return;clearTimeout(j.timer);phraseJobs.delete(m.id);m.error?j.reject(new Error(m.error)):j.resolve(m.profile);};phraseWorker.onerror=e=>phraseFailWorker(e.message||'Take analysis stopped. Retry analysis.');phraseWorker.onmessageerror=()=>phraseFailWorker('Take analysis returned unreadable data.');}const id=++phraseSerial,channels=t.channels.map(c=>c.slice());phraseJobs.set(id,{resolve,reject,timer:setTimeout(()=>phraseFailWorker('Take analysis timed out. Your recording is kept; retry analysis.'),120000)});try{phraseWorker.postMessage({id,take:{...t,channels,profile:null},phrase:{start:p.start,end:p.end}},channels.map(c=>c.buffer));}catch(e){const j=phraseJobs.get(id);clearTimeout(j.timer);phraseJobs.delete(id);reject(e);}});}
 function phraseAnalyze(t,p){const token={};t.analysisToken=token;t.profile=null;t.analysisError=null;phraseJobQueue=phraseJobQueue.then(async()=>{if(t.analysisToken!==token||!S.phrases?.phrases.includes(p)||!p.takes.includes(t))return;try{const profile=await phraseWorkerRequest(t,p);if(t.analysisToken===token){t.profile=profile;t.profileKey=phraseProfileKey(t,p);}}catch(e){if(t.analysisToken===token)t.analysisError=e.message;}finally{if(t.analysisToken===token){delete t.analysisToken;syncPhraseUI();persist();}}});return phraseJobQueue;}
 // 0.18.3 (review 06): a check result belongs to one part span and take position; Undo / Redo / trim / split that change them run it again
 function phraseProfileKey(t,p){return [p.start,p.end,t.origin,t.offsetMs||0,t.channels[0]?.length||0].join(',');}
