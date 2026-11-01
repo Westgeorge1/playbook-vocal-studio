@@ -35,16 +35,18 @@ const rollPng=fr=>fr().evaluate(()=>document.getElementById('roll').toDataURL())
  await p.locator('#workspaceExpand').click();await sleep(600);
  check('Expand from POLISH opens tuning and stays in POLISH',await p.evaluate(()=>WorkWindows.state().open&&WorkWindows.state().mode==='notes'&&RC.step!=='rc'));
  check('Short laptop screen opens tuning maximized the first time',await p.evaluate(()=>WorkWindows.state().maximized));
- const lap=await fr().evaluate(()=>{const r=document.getElementById('roll').getBoundingClientRect(),n=document.getElementById('notePanel').getBoundingClientRect();return{top:r.top,h:r.height,bottom:r.bottom,right:r.right,inner:innerHeight,nl:n.left,nt:n.top};});
+ const lap=await fr().evaluate(()=>{const r=document.getElementById('roll').getBoundingClientRect(),n=document.querySelector('.panels').getBoundingClientRect();return{top:r.top,h:r.height,bottom:r.bottom,right:r.right,inner:innerHeight,nl:n.left,nt:n.top};});
  check('Piano roll fully visible and at least 300 px tall at 1280x720',lap.bottom<=lap.inner&&lap.h>=300,lap);
- check('Selected-note inspector sits beside the piano roll',lap.nl>=lap.right&&lap.nt<lap.top+40,lap);
+ check('Settings column (Note · Tune · Check · More) sits beside the piano roll',lap.nl>=lap.right&&lap.nt<lap.top+40,lap);
  await p.screenshot({path:path.join(OUT,'tuning-laptop-1280x720.png')});
 
  // Title-bar Play / pause drives the editor's own audition
- await p.locator('#workWindowPlay').click();await sleep(700);
- check('Title-bar Play starts tuning playback',await fr().evaluate(()=>/pause/i.test(document.getElementById('playLabel').textContent)));
- await p.locator('#workWindowPlay').click();await sleep(300);
- check('Title-bar Play pauses again',await fr().evaluate(()=>/play/i.test(document.getElementById('playLabel').textContent)));
+ // 0.34.0: the title bar no longer repeats Play; the editor's own Play is the one control.
+ check('Tuning window has one Play (title-bar copy hidden)',!(await p.locator('#workWindowPlay').isVisible()));
+ await fr().locator('#play').click();await sleep(700);
+ check('Editor Play starts tuning playback',await fr().evaluate(()=>/pause/i.test(document.getElementById('playLabel').textContent)));
+ await fr().locator('#play').click();await sleep(300);
+ check('Editor Play pauses again',await fr().evaluate(()=>/play/i.test(document.getElementById('playLabel').textContent)));
 
  // Escape ownership: a selected note is deselected first, the window stays open
  await fr().evaluate(()=>document.getElementById('selAll').click());await sleep(200);

@@ -12,6 +12,8 @@ suite('layout',12,async({page,check})=>{
  /* ---------- 1. POLISH splitters (desktop) ---------- */
  let p=await page(1280,800);
  await p.locator('#rcStep2').click();await p.waitForTimeout(300);
+ // 0.34.0: the editor panel starts as a slim bar; open it as a user would.
+ await p.locator('[data-dock="notes"]').click();await p.waitForTimeout(200);
  const i0=await box(p,'.work > .insp'),d0=await box(p,'#dock'),h0=await box(p,'#laneHeads');
  check('Original sizes are unchanged until you drag',i0.w===420&&near(h0.w,150)&&await p.evaluate(()=>!document.documentElement.style.cssText.includes('--pvs')));
  for(const s of ['.pvs-split-insp','.pvs-split-dock','.pvs-split-heads'])check('Handle visible and labelled: '+s,await p.locator(s).isVisible()&&await p.locator(s).getAttribute('role')==='separator'&&!!await p.locator(s).getAttribute('aria-label'));

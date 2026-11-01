@@ -15,7 +15,7 @@ const sleep=t=>new Promise(r=>setTimeout(r,t));
  await p.evaluate(()=>{const C=SongCore,R=48000;S.song=C.empty(R);S.song.key=0;S.song.scale=1;const a=new Float32Array(R*3);for(let i=0;i<a.length;i++){const t=i/R,f=[261.6,293.7,329.6][Math.floor(t)];a[i]=.2*Math.sin(2*Math.PI*f*t)*Math.min(1,(t%1)*30,(1-t%1)*30);}SongStudio.edit(w=>C.addTake(w,{trackId:w.tracks[0].id,start:0,end:3,channels:[a],origin:0,choose:true}),'Window test');});
  await p.evaluate(()=>SongPolish.open(S.song.tracks[0].id));await p.waitForFunction(()=>!S.busy&&!S.dirty&&!NoteTuner.locked()&&!NoiseCleaner.locked(),null,{timeout:180000});
  await p.evaluate(()=>showPage('tune'));const fr=p.frames().find(f=>f.url().includes('note-editor.html'));assert(fr,'note iframe exists');
- await fr.evaluate(()=>{window._workspaceToken='live-frame';});await fr.locator('#presetSnapSmooth').click();await p.waitForFunction(()=>!S.busy&&!S.dirty&&!NoteTuner.locked(),null,{timeout:180000});
+ await fr.evaluate(()=>{window._workspaceToken='live-frame';});await fr.evaluate(()=>{try{localStorage.setItem('pvs.classicTools','1');}catch(_){}window.PlaybookUX?.apply?.();window.PlaybookUX?.show?.('tune');});await fr.locator('#presetSnapSmooth').click();await p.waitForFunction(()=>!S.busy&&!S.dirty&&!NoteTuner.locked(),null,{timeout:180000});
  const before=await fr.evaluate(()=>JSON.stringify(PlaybookNoteEditor.state()));const audio=await p.evaluate(()=>SongCore.hashPcm(S.final));const widthBefore=await p.locator('#noteEditorFrame').evaluate(e=>e.clientWidth);
  await p.locator('#noteRouteOpen').click();await sleep(100);
  check('Tuning opens as a dialog',await p.locator('#dock').getAttribute('role')==='dialog');
@@ -41,7 +41,7 @@ const sleep=t=>new Promise(r=>setTimeout(r,t));
  await p.locator('#workWindowMax').click();await p.locator('#workWindowMax').click();check('Waveform selection and zoom survive maximize',selection===await p.evaluate(()=>JSON.stringify({sel:S.edit.sel,view:S.edit.view})));
  await p.locator('#breathApply').click();await p.waitForFunction(()=>!S.busy&&!S.dirty&&!NoteTuner.locked(),null,{timeout:180000});check('Audio edits work in expanded window',await p.evaluate(()=>S.st.edits.breaths?.length>0||S.st.edits.breath?.length>0),await p.evaluate(()=>S.st.edits));
  await p.locator('#dock .dbody').evaluate(e=>e.scrollTop=0);await p.screenshot({path:path.join(OUT,'editing-desktop.png')});
- await p.locator('#polishBackToControls').click();check('Sound controls leaves the work window',!await p.evaluate(()=>WorkWindows.state().open));await p.locator('#polishWave').click();check('Top editing action opens the work window',await p.evaluate(()=>WorkWindows.state().open&&WorkWindows.state().mode==='wave'));
+ await p.locator('#polishBackToControls').click();check('Sound controls leaves the work window',!await p.evaluate(()=>WorkWindows.state().open));await p.locator('[data-dock="wave"]').click();await p.locator('#page-edit .ww-inline-open').click();check('WAVE EDIT\'s Open editing window opens the work window (0.34.0: the Polishing-bar duplicate is gone)',await p.evaluate(()=>WorkWindows.state().open&&WorkWindows.state().mode==='wave'));
  await p.locator('#workWindowClose').focus();await p.keyboard.press('Tab');check('Keyboard focus stays in work window',await p.evaluate(()=>!!document.activeElement.closest('#dock')));
  await p.locator('[data-dock="ref"]').click();check('Reference comparison has its own expanded view',await p.locator('#workWindowTitle').textContent()==='Reference comparison');
  for(const [w,h] of [[768,1024],[390,844],[320,740],[844,390]]){

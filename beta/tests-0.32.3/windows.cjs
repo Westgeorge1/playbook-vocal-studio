@@ -70,7 +70,7 @@ async function popup(p,ctx,mode='record'){
  check('Closing the separate window restores its latest autosave',await p.evaluate(()=>S.song.title==='Closed-window save'));
  // The same handoff works with a loaded tuning engine and its iframe settings.
  const tuning=await popup(p,ctx,'notes');await tuning.waitForFunction(()=>!sessionLocked(),null,{timeout:180000});const fr=tuning.frames().find(f=>f.url().includes('note-editor.html'));
- check('Separate tuning window opens the live note editor',!!fr);await fr.locator('#presetSnapSmooth').click();await tuning.waitForFunction(()=>!sessionLocked(),null,{timeout:180000});
+ check('Separate tuning window opens the live note editor',!!fr);await fr.evaluate(()=>{try{localStorage.setItem('pvs.classicTools','1');}catch(_){}window.PlaybookUX?.apply?.();window.PlaybookUX?.show?.('tune');});await fr.locator('#presetSnapSmooth').click();await tuning.waitForFunction(()=>!sessionLocked(),null,{timeout:180000});
  const tuned=await fr.evaluate(()=>JSON.stringify(PlaybookNoteEditor.state()));await tuning.locator('#dock .ww-return-main').click();await p.waitForURL(/beta\/\?v/);await wait(p);await p.locator('#workspaceChoice').selectOption('notes');await p.locator('#workspaceExpand').click();await p.waitForFunction(()=>WorkWindows.state().open&&WorkWindows.state().mode==='notes'&&!sessionLocked(),null,{timeout:180000});
  const restored=p.frames().find(f=>f.url().includes('note-editor.html'));check('Tuning edits survive returning to the original tab',await restored.evaluate(()=>JSON.stringify(PlaybookNoteEditor.state()))===tuned);await p.locator('#workWindowClose').click();await p.evaluate(()=>RC.go('rc'));
  // A refused restore never makes the child a writer or discards the original state.

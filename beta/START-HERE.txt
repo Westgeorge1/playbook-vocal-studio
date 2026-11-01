@@ -1,3 +1,13 @@
+PLAYBOOK VOCAL STUDIO 0.34.0 BETA
+
+Easier to use. Controls now sit next to the feature they belong to, and the older tools are hidden until you ask for them.
+- Older tuner, older cleaner and the original approved presets: View > Classic tools (or tuning window > More > Classic tools). Off by default; a song that uses them keeps them visible.
+- Tuning window settings are four tabs: Note, Tune (presets with Automatic tuning under them), Check, More. Tapping a note opens Note.
+- CLEAN shows the everyday controls first; learning a noise sample, room profiles, AI isolation and filters are under More cleaning controls. CHAIN folds its detailed EQ, second EQ and echo.
+- CLEAN, TUNE and CHAIN have a pinned listen strip at the top.
+- Laptop: the editor panel starts as a slim bar (open it from its tabs or the TUNE tab). Phone: POLISH tabs stay pinned; Song & vocals shows its tools above the tracks and the takes right under them.
+Sound, saved songs and Undo are unchanged. See CHANGES-0.34.0.md.
+
 PLAYBOOK VOCAL STUDIO 0.33.1 BETA
 
 0.33.1 fixes three problems found while debugging 0.33.0: Pauses only could clean a fading held note, Undo these (breaths) could undo a later edit, and Undo of a timeline move left hand-tuned notes behind. See CHANGES-0.33.1.md.

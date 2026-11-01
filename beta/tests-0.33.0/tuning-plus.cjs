@@ -35,6 +35,7 @@ suite('tuning-plus',15,async({page,check})=>{
  await f.evaluate(()=>PlaybookNoteEditor.key(0,'major'));await idle();
  for(const id of ['lockMan','myVoiceLearn','presetMyVoice','chordShow','chordFit','corrMap','corrNext'])check('Tuning panel shows '+id,await f.locator('#'+id).count()===1);
  // Correction map.
+ await f.locator('#neTab-check').click(); // 0.34.0: chords and the correction map are on the Check tab
  await f.locator('#corrMap').click();check('Correction map turns on',await f.locator('#corrMap').getAttribute('aria-pressed')==='true');
  const corr=await f.evaluate(()=>PlaybookNoteEditor.analysis().notes.map((n,i)=>PlaybookTuningPlus.corrOf(i)));
  check('Each note has a measured correction in cents',corr.length>=6&&corr.every(Number.isFinite),corr);
@@ -49,6 +50,7 @@ suite('tuning-plus',15,async({page,check})=>{
  check('Fit doubtful notes: a note between E and F goes to E over a C chord and to F over an F chord',Math.abs(fit[0]-64)<.05&&Math.abs(fit[1]-65)<.05,{before,fit});
  check('Fitted notes count as hand edits',await f.evaluate(()=>PlaybookNoteEditor.state().settings.notes.slice(0,2).every(n=>n[11]===1)));
  // Locked hand-tuned notes survive a preset; unlocking lets the preset reset them.
+ await f.locator('#neTab-tune').click(); // 0.34.0: presets are on the Tune tab
  await f.locator('#presetRoots').click();await idle();
  const kept=await f.evaluate(()=>PlaybookNoteEditor.analysis().notes.slice(0,2).map(n=>+n.target.toFixed(2)));
  check('Natural Roots keeps the hand-tuned notes when the lock is on',Math.abs(kept[0]-64)<.05&&Math.abs(kept[1]-65)<.05,kept);

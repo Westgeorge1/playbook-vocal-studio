@@ -1,6 +1,8 @@
-# Playbook Vocal Studio 0.33.1 beta
+# Playbook Vocal Studio 0.34.0 beta
 
-[Open the 0.33.1 beta](https://westgeorge1.github.io/playbook-vocal-studio/beta/) · [Open the 0.32.3 main studio](https://westgeorge1.github.io/playbook-vocal-studio/)
+[Open the 0.34.0 beta](https://westgeorge1.github.io/playbook-vocal-studio/beta/) · [Open the 0.32.3 main studio](https://westgeorge1.github.io/playbook-vocal-studio/)
+
+0.34.0 makes the studio easier to use: controls sit next to their feature, the tuning window settings are four tabs (Note · Tune · Check · More), CLEAN and CHAIN fold their advanced controls, and the older tuner, cleaner and approved presets are under View → Classic tools. See CHANGES-0.34.0.md.
 
 New in 0.33.0: drag recordings along the Song & vocals timeline (Move parts), beat-bleed removal, Pauses-only cleaning, a voice-safety meter, room profiles, optional AI voice isolation, Find all breaths, a live pitch guide while recording, a correction map, locked hand-tuned notes, riddim chords, and a My Voice tuning profile. Everything new is off until you use it.
 

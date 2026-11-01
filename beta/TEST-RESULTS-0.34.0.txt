@@ -1,0 +1,33 @@
+Playbook Vocal Studio 0.34.0 beta: test results
+Candidate run: node run-tests.cjs (serial, Chromium/Playwright), 2026-11-01
+
+The supplied candidate recorded 18/18 suites passed, 792 checks. The published beta adds a navigation regression for the workspace selector. Release review on the corrected build: all 793 checks in all 18 suites passed using Chromium 151.0.7922.34 and the pinned reference builds in TESTING.md.
+
+cleaning             31 checks passed
+cleanup              18 checks passed
+delete               61 checks passed
+editors              74 checks passed
+layout               61 checks passed
+navigation           134 checks passed
+playback             4 checks passed
+recording            38 checks passed
+regressions          21 checks passed
+restore              56 checks passed
+storage              10 checks passed
+timeline-move        41 checks passed
+tuning-plus          32 checks passed
+tuning               44 checks passed
+upgrade              13 checks passed
+ux                   66 checks passed
+windows              48 checks passed
+workspace-editor     41 checks passed
+total 793
+
+Approved presets (Snap all + Smooth 25%, 85% correction + Smooth 25%) and no preset: identical tuned and final PCM versus the 0.32.3 reference in the same browser (playback suite).
+ENGINE-SHA256.txt: all 7 locked engine files OK.
+Baseline: 0.33.1 passed 17/17 in the same environment before the change.
+
+Older suites changed only where a control is now hidden by design (Classic tools, tuning-window tabs, folded CLEAN controls, slim editor panel, removed duplicate buttons). See HANDOVER-0.34.0.md, section 'Older tests that changed'.
+
+Release review: the supplied build measured 297 px for the piano roll in the expanded tuning window at 1280 x 720 with Chromium 151.0.7922.34. The reviewed build reduces vertical gaps by 2 px only in short, wide tuning windows. The same unmodified check measured 307 px and passed its 300 px minimum.
+The review reproduced Reference comparison reverting to Audio editing when the viewport resized after focus left the selector. The published build synchronizes the selector only when the active workspace changes. The navigation suite now tests that the selected workspace survives resizing before Expand.

@@ -24,7 +24,16 @@ suite('navigation',10,async({page,check,b,url})=>{
   }
   await p.locator('#guideBtn').click();check(tag+' guide opens',await p.locator('#guideSheet').isVisible()&&await quiet());await p.locator('#guideClose').click();
   for(const mode of ['record','notes','wave','ref']){
-   await p.locator('#workspaceChoice').selectOption(mode);await p.locator('#workspaceExpand').click();
+   const choice=p.locator('#workspaceChoice');
+   await choice.selectOption(mode);
+   if(width===844&&mode==='ref'){
+    await choice.focus();await choice.press('Tab');
+    await p.setViewportSize({width:width-1,height});
+    await p.evaluate(()=>new Promise(done=>requestAnimationFrame(()=>requestAnimationFrame(done))));
+    check(tag+' keeps the chosen workspace after a resize before Expand',await choice.inputValue()===mode);
+    await p.setViewportSize({width,height});
+   }
+   await p.locator('#workspaceExpand').click();
    await p.waitForFunction(m=>WorkWindows.state().open&&WorkWindows.state().mode===m,mode);
    const host=mode==='record'?'#songStudio':'#dock',prefix=mode==='record'?'recordWindow':'workWindow';
    const box=p.locator(host+' .studio-empty:visible').first();
@@ -55,7 +64,7 @@ suite('navigation',10,async({page,check,b,url})=>{
    const chooser=p.waitForEvent('filechooser');await p.locator('#dockNotes .studio-empty button').filter({hasText:'Import a vocal'}).click();await(await chooser).setFiles(wave());
    await p.waitForFunction(()=>!!SongPolish.state().binding&&!sessionLocked(),null,{timeout:60000});
    check('Import binds and retains the tuning workspace',await p.evaluate(()=>RC.step==='polish'&&DAW.dock==='notes'&&WorkWindows.state().open&&DAW.tab==='tune'&&!StudioBrowse.browsing()));
-   const fr=p.frames().find(f=>f.url().includes('note-editor.html'));await fr.locator('#presetSnapSmooth').click();check('Preset works on the imported take',await fr.evaluate(()=>PlaybookNoteEditor.analysis().notes.length>0));
+   const fr=p.frames().find(f=>f.url().includes('note-editor.html'));await fr.evaluate(()=>{try{localStorage.setItem('pvs.classicTools','1');}catch(_){}window.PlaybookUX?.apply?.();window.PlaybookUX?.show?.('tune');});await fr.locator('#presetSnapSmooth').click();check('Preset works on the imported take',await fr.evaluate(()=>PlaybookNoteEditor.analysis().notes.length>0));
    await p.locator('#workWindowClose').click();await p.locator('#rcStep1').click();const dl=p.waitForEvent('download');await p.locator('#sgSave').click();backup=await(await dl).path();
    // Save an external copy because closing the browser context removes its downloads.
    const fs=require('node:fs');backup={name:'test-project.zip',mimeType:'application/zip',buffer:fs.readFileSync(backup)};

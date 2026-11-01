@@ -3,7 +3,7 @@ const fs=require('node:fs'),os=require('node:os'),path=require('node:path');
 const {spawnSync}=require('node:child_process');
 const source=__dirname,temp=fs.mkdtempSync(path.join(os.tmpdir(),'pvs-suites-'));
 const output=path.resolve(process.env.PVS_TEST_OUT || path.join(os.tmpdir(),'pvs-results-'+Date.now()));
-const suites=['tests-0.32.4/navigation','tests-0.32.4/storage','tests-0.32.5/layout','tests-0.33.0/timeline-move','tests-0.33.0/cleaning','tests-0.33.0/tuning-plus','tests-0.33.1/regressions','tests-0.32.3/cleanup','tests-0.32.0/editors','tests-0.32.0/tuning','tests-0.32.0/workspace-editor','tests-0.32.3/windows','tests-0.33.1/recording','tests-0.32.3/restore','tests-0.31.11/delete','tests-0.32.3/playback','tests-0.32.3/upgrade'];
+const suites=['tests-0.32.4/navigation','tests-0.32.4/storage','tests-0.32.5/layout','tests-0.33.0/timeline-move','tests-0.33.0/cleaning','tests-0.33.0/tuning-plus','tests-0.33.1/regressions','tests-0.34.0/ux','tests-0.32.3/cleanup','tests-0.32.0/editors','tests-0.32.0/tuning','tests-0.32.0/workspace-editor','tests-0.32.3/windows','tests-0.34.0/recording','tests-0.32.3/restore','tests-0.31.11/delete','tests-0.32.3/playback','tests-0.32.3/upgrade'];
 try{
   for(const key of ['PVS_REFERENCE_DIR','PVS_OLD_BETA','PVS_OLD_MAIN']){
     if(!process.env[key]||!fs.existsSync(path.join(process.env[key],'index.html')))throw Error('Set '+key+' to an unpacked reference directory. See TESTING.md.');

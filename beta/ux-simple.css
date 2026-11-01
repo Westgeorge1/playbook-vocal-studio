@@ -1,0 +1,92 @@
+/* 0.34.0: easier to use (see ux-simple.js). */
+/* Classic tools: hidden unless switched on, or unless this song uses them. */
+body.pvs-simple .ux-classic-only{display:none!important}
+body.pvs-simple.pvs-legacy-tuner .ux-classic-only[data-ux-use="tuner"],
+body.pvs-simple.pvs-legacy-cleaner .ux-classic-only[data-ux-use="cleaner"]{display:revert!important}
+#uxClassicItem b{margin-left:auto;padding-left:10px;font-weight:700;color:var(--gold,#f5c875)}
+#uxClassicItem[aria-checked="true"] b{color:var(--mint,#8aebba)}
+
+/* Duplicates that stay in the code for compatibility but are not shown. */
+.ux-dup{display:none!important}
+#trackPolishBar>p.ux-explain{display:none}
+
+/* Folding racks */
+.ux-fold-btn{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:8px;width:100%;cursor:pointer;font:inherit;color:inherit;letter-spacing:inherit;text-transform:inherit;min-height:28px;border-radius:6px}
+.ux-fold-btn::before{content:"";width:7px;height:7px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg) translateY(-2px);transition:transform .15s;flex:none;opacity:.8}
+.ux-folded .ux-fold-btn::before{transform:rotate(-45deg)}
+.ux-fold-btn:focus-visible,.ux-more-btn:focus-visible{outline:2px solid #f5c875;outline-offset:2px}
+.rack.ux-folded>:not(h2){display:none!important}
+.rack.ux-folded{padding-bottom:10px}
+.rack.ux-empty{display:none!important}
+
+/* "More cleaning controls" */
+.ux-more{border-top:1px solid var(--line,#2c3a46);margin-top:4px;padding-top:6px}
+.ux-more-btn{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:8px;width:100%;cursor:pointer;min-height:40px;font:600 13px var(--body,system-ui);color:var(--fg,#e6e9ec);padding:4px 2px}
+.ux-more-btn::before{content:"+";display:inline-grid;place-items:center;width:20px;height:20px;border:1px solid currentColor;border-radius:5px;font-weight:700;flex:none}
+.ux-more.open .ux-more-btn::before{content:"−"}
+.ux-more-body{display:flex;flex-direction:column;gap:10px;padding:6px 0 4px}
+.ux-more-body>h3{margin:8px 0 0}
+.ux-more-body details>summary[hidden]{display:none}
+.ux-wide{width:100%}
+.ux-noise-head{display:grid;grid-template-columns:auto 1fr;gap:2px 12px;align-items:center}
+.ux-noise-head .big{font-size:26px;grid-row:span 2}
+.ux-noise-head .verdict{font-size:13px;margin:0}
+.ux-noise-head .note,.ux-noise-head .warnbox{grid-column:1/-1;margin:0}
+
+/* Listen strip, pinned at the top of CLEAN, TUNE and CHAIN */
+.ux-listen{position:sticky;top:-8px;z-index:4;display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;padding:7px 8px;margin:-8px -8px 0;background:#0f1418;border-bottom:1px solid var(--line,#2c3a46)}
+.ux-listen>span{font:700 11px var(--display,system-ui);letter-spacing:.08em;color:var(--muted,#8d98a5)}
+.ux-listen .seg{display:flex;gap:3px;flex:1 1 auto;margin:0}
+.ux-listen .seg button{flex:1 1 0;min-height:36px;padding:4px 6px;font:700 11.5px var(--display,system-ui);letter-spacing:.04em;white-space:nowrap}
+.ux-listen>small{flex:1 1 100%;font-size:11.5px;color:var(--muted,#8d98a5);line-height:1.3}
+.ux-listen .seg button[aria-pressed="true"]{background:var(--accent,#f0a030);color:#1a1205;border-color:var(--accent,#f0a030)}
+
+/* Play says what it plays */
+#playBtn{position:relative}
+#playBtn .ux-what{position:absolute;left:0;right:0;bottom:3px;text-align:center;font-size:9.5px;font-weight:700;letter-spacing:.02em;opacity:.8;line-height:1;pointer-events:none}
+.tbar .tbtn.play{padding-bottom:9px}
+
+/* Editor-panel launcher in the tab row */
+#dock .dtabs #workWindowOpen.ux-in-tabs{margin-left:auto;min-height:38px;white-space:nowrap;flex:none}
+@media (max-width:899px){#dock .dtabs #workWindowOpen.ux-in-tabs{grid-column:1/-1;margin:0}}
+#dock.collapsed .dtabs{border-bottom:0}
+
+/* ---------------- Laptop ---------------- */
+@media (min-width:900px){
+ /* One-row step header: steps and workspace on the same line, the Polishing bar as one slim row. */
+ body.ux-034 .rcsteps{row-gap:4px;column-gap:10px;padding-top:4px;padding-bottom:4px;min-height:0}
+ body.ux-034 .rcbrand span{display:none}
+ body.ux-034 #workspaceTools{flex:0 1 auto;width:auto;margin:0;padding:0;border:0}
+ body.ux-034 #trackPolishBar{padding:4px 10px;gap:6px}
+ body.ux-034 #trackPolishBar #polishControls{display:none}
+ body.ux-034 #trackPolishBar #polishTrackStatus,body.ux-034 #trackPolishBar #polishReady{flex:0 1 auto;min-width:0;max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12px}
+ body.ux-034 #trackPolishBar #polishPreview{display:none}
+ body.ux-034 #trackPolishBar #polishTrackStatus{max-width:150px}
+ body.ux-034 #trackPolishBar select,body.ux-034 #trackPolishBar button{min-height:32px;padding:3px 9px}
+ body.ux-034 .tl-actions{padding-top:4px;padding-bottom:4px}
+ /* The settings panel runs the full height beside the timeline and the editor panel. */
+ body.ux-034 .insp{min-height:0;height:100%}
+ body.ux-034 .work{min-height:0;overflow:hidden}
+ body.ux-034 .arrange{overflow:hidden}
+}
+
+/* ---------------- Phone and narrow ---------------- */
+@media (max-width:899px){
+ /* POLISH tabs and the listen strip stay on screen while you scroll the settings. */
+ body.ux-034 .insp>.itabs{position:sticky;top:0;z-index:6;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:3px;padding:5px}
+ body.ux-034 .insp>.itabs button{min-height:40px;padding:4px 2px;font-size:11px;letter-spacing:.03em}
+ body.ux-034 .insp .ux-listen{top:50px;margin:0 0 8px;border-radius:8px;border:1px solid var(--line,#2c3a46)}
+ body.ux-034 .insp .ux-listen>small{display:none}
+ body.ux-034 .insp{scroll-margin-top:0}
+}
+@media (max-width:600px){
+ /* Song & vocals: timeline tools directly above the tracks, the takes directly below them. */
+ body.ux-034 #songStudio>.sg-tools{order:0!important}
+ body.ux-034 #songStudio>#sgTimeline{order:1!important}
+ body.ux-034 #songStudio>.sg-scroll{order:2!important}
+ body.ux-034 #songStudio>.sg-takes{order:3!important}
+ body.ux-034 #songStudio>.sg-selection{order:4!important}
+ body.ux-034 #songStudio>.sg-tools{margin:6px 0}
+ body.ux-034 #songStudio>.sg-tools>.sg-row{gap:4px}
+ body.ux-034 #songStudio>.sg-tools button,body.ux-034 #songStudio>.sg-tools label{min-height:36px;font-size:12.5px}
+}

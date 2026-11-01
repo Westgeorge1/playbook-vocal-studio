@@ -41,7 +41,7 @@ async function render(route) {
   });
   const output={};
   for(const id of ['none','presetSnapSmooth','presetCenterSmooth']){
-    if(id!=='none')await fr.locator('#'+id).click();
+    if(id!=='none'){await fr.evaluate(()=>{try{localStorage.setItem('pvs.classicTools','1');}catch(_){}window.PlaybookUX?.apply?.();window.PlaybookUX?.show?.('tune');});await fr.locator('#'+id).click();}
     await p.waitForTimeout(500);await idle();output[id]=await fingerprint(p);
   }
   if(route==='candidate'){
@@ -54,7 +54,7 @@ async function render(route) {
       };
     });
     await fr.locator('#abOrig').click();
-    await fr.locator('#cmpStart').click();
+    await fr.evaluate(()=>window.PlaybookUX?.show?.('check'));await fr.locator('#cmpStart').click();
     assert.equal(await fr.locator('#abTuned').getAttribute('aria-pressed'),'true');
     const heard=[];
     for(let i=0;i<3;i++){

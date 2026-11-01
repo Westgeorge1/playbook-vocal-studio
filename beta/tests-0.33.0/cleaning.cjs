@@ -32,6 +32,8 @@ suite('cleaning',14,async({page,check})=>{
  await p.waitForFunction(()=>!!S.beat,null,{timeout:30000});await p.waitForTimeout(400);
  await p.locator('#rcStep2').click();await p.waitForFunction(()=>RC.step==='polish'&&!SongPolish.state().switching&&!!SongPolish.state().binding,null,{timeout:120000});
  await p.locator('[data-tab=clean]').click();
+ // 0.34.0: learn noise, room profiles, AI isolation and filters sit under More cleaning controls.
+ await p.evaluate(()=>{const m=document.getElementById('uxCleanMore');if(m&&!m.classList.contains('open'))m.querySelector('.ux-more-btn').click();});
  const idle=()=>p.waitForFunction(()=>!S.busy&&!S.dirty&&!NoteTuner.locked()&&!NoiseCleaner.locked()&&!NoiseCleaner.debug().error,null,{timeout:180000});await idle();
  check('Studio Spectral is active for the song vocal',await p.evaluate(()=>NoiseCleaner.active()));
  for(const id of ['noiseScope','noiseBleed','noiseAi','noiseRoomSave','noiseRoomUse','noiseSafety'])check('CLEAN shows '+id,await p.locator('#'+id).count()===1);

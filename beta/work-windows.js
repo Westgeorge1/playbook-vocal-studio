@@ -58,7 +58,17 @@ function sync(){
  if(frame?.contentDocument){frame.contentDocument.documentElement.classList.toggle('work-window',active&&!recordingView);frame.contentDocument.documentElement.classList.toggle('focus-notes',active&&!recordingView&&focused);bindFrame(frame);}
  window.StudioBrowse?.sync();redraw();
 }
-function syncChoice(){const c=$('workspaceChoice');if(!c||document.activeElement===c)return;const v=active?mode():(RC.step==='rc'?'record':DAW.dock);if(names[v]&&c.value!==v)c.value=v;}
+// Keep an explicit choice until the active workspace actually changes.
+let lastChoiceContext;
+function syncChoice(){
+ const c=$('workspaceChoice');
+ if(!c||document.activeElement===c)return;
+ const value=active?mode():(RC.step==='rc'?'record':DAW.dock);
+ const context=(active?'window':RC.step)+'/'+value;
+ if(!names[value]||context===lastChoiceContext)return;
+ lastChoiceContext=context;
+ if(c.value!==value)c.value=value;
+}
 function setBackgroundInert(on){
  if(!on){for(const [el,was] of blocked)el.inert=was;blocked=[];return;}
  for(let el=panel();el&&el!==document.body;el=el.parentElement)for(const sibling of el.parentElement.children){if(sibling===el||sibling===shade||['SCRIPT','STYLE','LINK','DIALOG'].includes(sibling.tagName))continue;blocked.push([sibling,sibling.inert]);sibling.inert=true;}

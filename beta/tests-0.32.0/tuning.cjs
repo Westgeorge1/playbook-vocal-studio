@@ -68,9 +68,9 @@ const APPROVED={none:'f512165a811412b8',presetSnapSmooth:'4a46484d219a07ee',pres
  for(const preset of Object.keys(APPROVED)){
   const {p,fr}=await open(vox);
   await fr.evaluate(()=>{const i=document.getElementById('refHz');i.value='443.8';i.dispatchEvent(new Event('change'));});await sleep(300);await idle(p);
-  if(preset!=='none'){await fr.locator('#'+preset).click();await sleep(300);await idle(p);}
+  if(preset!=='none'){await fr.evaluate(()=>{try{localStorage.setItem('pvs.classicTools','1');}catch(_){}window.PlaybookUX?.apply?.();window.PlaybookUX?.show?.('tune');});await fr.locator('#'+preset).click();await sleep(300);await idle(p);}
   const hash=await p.evaluate(()=>SongCore.hashPcm(S.final));console.log('INFO historical fingerprint',preset,hash,hash===APPROVED[preset]?'match':'differs; see same-browser playback comparison');
-  if(preset==='presetSnapSmooth'){await fr.locator('#refMode').selectOption('standard');await sleep(300);await idle(p);await fr.locator('#presetSnapSmooth').click();await sleep(300);await idle(p);const m=await metrics(fr);check('Approved A tunes the test vocal within 4 cents at A = 440',m.centreErr<4,m);}
+  if(preset==='presetSnapSmooth'){await fr.locator('#refMode').selectOption('standard');await sleep(300);await idle(p);await fr.evaluate(()=>{try{localStorage.setItem('pvs.classicTools','1');}catch(_){}window.PlaybookUX?.apply?.();window.PlaybookUX?.show?.('tune');});await fr.locator('#presetSnapSmooth').click();await sleep(300);await idle(p);const m=await metrics(fr);check('Approved A tunes the test vocal within 4 cents at A = 440',m.centreErr<4,m);}
   await p.close();
  }
 
@@ -103,7 +103,7 @@ const APPROVED={none:'f512165a811412b8',presetSnapSmooth:'4a46484d219a07ee',pres
  /* ---------- 4. tilt, leveling, blind compare ---------- */
  {
   const {p,fr}=await open(vox);
-  await fr.locator('#presetSnapSmooth').click();await sleep(300);await idle(p);
+  await fr.evaluate(()=>{try{localStorage.setItem('pvs.classicTools','1');}catch(_){}window.PlaybookUX?.apply?.();window.PlaybookUX?.show?.('tune');});await fr.locator('#presetSnapSmooth').click();await sleep(300);await idle(p);
   const before=await p.evaluate(()=>SongCore.hashPcm(S.final));
   // Tilt applies to the selection; Select all puts every note in it.
   await fr.locator('#selAll').click();await sleep(150);await fr.locator('#nTilt').fill('40');await sleep(300);await idle(p);
@@ -114,12 +114,13 @@ const APPROVED={none:'f512165a811412b8',presetSnapSmooth:'4a46484d219a07ee',pres
   check('Undo removes the tilt',await p.evaluate(()=>SongCore.hashPcm(S.final))===before);
   await fr.locator('#status').click();await p.keyboard.press('Escape');await sleep(150);
   const g0=await fr.evaluate(()=>PlaybookNoteEditor.state().settings.notes.map(r=>r[9]));
+  await fr.evaluate(()=>window.PlaybookUX?.show?.('more')); // 0.34.0: Voice and Note detection are on the More tab
   await fr.locator('#levApply').click();await sleep(300);await idle(p);
   const g1=await fr.evaluate(()=>PlaybookNoteEditor.state().settings.notes.map(r=>r[9]));
   check('Level all notes moves note volumes within ±6 dB',g1.some((v,i)=>v!==g0[i])&&g1.every((v,i)=>Math.abs(v-g0[i])<=6),{g0,g1});
   await fr.locator('#undo').click();await sleep(300);await idle(p);
   const base=await fr.evaluate(()=>{const {id,...s}=PlaybookNoteEditor.state().settings;return JSON.stringify(s);});
-  await fr.locator('#cmpStart').click();await sleep(500);await idle(p);
+  await fr.evaluate(()=>window.PlaybookUX?.show?.('check'));await fr.locator('#cmpStart').click();await sleep(500);await idle(p);
   check('Blind compare shows three Hear and Keep buttons',await fr.locator('#cmpPlays button').count()===3&&await fr.locator('#cmpKeeps button').count()===3);
   check('Names stay hidden during the test',!/Natural Roots|Gentle Polish|approved/i.test(await fr.locator('#cmpRun').textContent()));
   const h=[];for(let k=0;k<3;k++){await fr.locator('#cmpPlays button').nth(k).click();await sleep(400);await idle(p);h.push(await p.evaluate(()=>SongCore.hashPcm(S.final)));await fr.locator('#play').click().catch(()=>{});}
@@ -131,7 +132,7 @@ const APPROVED={none:'f512165a811412b8',presetSnapSmooth:'4a46484d219a07ee',pres
   check('Kept version is the one heard as Y',await p.evaluate(()=>SongCore.hashPcm(S.final))===h[1]);
   await fr.locator('#undo').click();await sleep(400);await idle(p);
   check('Undo returns to the settings before the test',await fr.evaluate(()=>{const {id,...s}=PlaybookNoteEditor.state().settings;return JSON.stringify(s);})===base);
-  await fr.locator('#cmpStart').click();await sleep(400);await idle(p);await fr.locator('#cmpPlays button').nth(0).click();await sleep(300);await idle(p);
+  await fr.evaluate(()=>window.PlaybookUX?.show?.('check'));await fr.locator('#cmpStart').click();await sleep(400);await idle(p);await fr.locator('#cmpPlays button').nth(0).click();await sleep(300);await idle(p);
   await fr.locator('#cmpCancel').click();await sleep(300);await idle(p);
   check('Cancel test restores the previous settings',await fr.evaluate(()=>{const {id,...s}=PlaybookNoteEditor.state().settings;return JSON.stringify(s);})===base);
   await p.close();
@@ -142,7 +143,7 @@ const APPROVED={none:'f512165a811412b8',presetSnapSmooth:'4a46484d219a07ee',pres
   const {p,fr}=await open(vox);
   const ref=()=>fr.evaluate(()=>({mode:document.getElementById('refMode').value,hz:+document.getElementById('refHz').value,info:document.getElementById('refInfo').textContent,warn:!document.getElementById('refWarn').hidden}));
   let r=await ref();check('Auto without a backing explains standard A = 440',r.mode==='auto'&&r.hz===440&&/No backing yet/.test(r.info),r);
-  await fr.locator('#presetSnapSmooth').click();await sleep(300);await idle(p);
+  await fr.evaluate(()=>{try{localStorage.setItem('pvs.classicTools','1');}catch(_){}window.PlaybookUX?.apply?.();window.PlaybookUX?.show?.('tune');});await fr.locator('#presetSnapSmooth').click();await sleep(300);await idle(p);
   await fr.evaluate(()=>{const R=44100,a=new Float32Array(R*20),f=440*Math.pow(2,-25/1200);for(let i=0;i<a.length;i++){const t=i/R;a[i]=.25*(Math.sin(2*Math.PI*f*t)+.5*Math.sin(2*Math.PI*f*1.5*t)+.4*Math.sin(2*Math.PI*f*2*t));}PlaybookNoteEditor.backing([a],R);});
   await sleep(800);await idle(p);r=await ref();
   check('Adding a backing 25 cents flat re-tunes Auto to it',r.mode==='auto'&&Math.abs(r.hz-433.6)<1.2&&/Tuned to the backing/.test(r.info),r);
@@ -159,7 +160,7 @@ const APPROVED={none:'f512165a811412b8',presetSnapSmooth:'4a46484d219a07ee',pres
   const v=singer(9,17,20),truth=17+20/2;const res={};
   for(const mode of ['singing','singingDrift']){
    const {p,fr}=await open(v);await fr.locator('#refMode').selectOption(mode);await sleep(400);await idle(p);
-   await fr.locator('#presetSnapSmooth').click();await sleep(300);await idle(p);
+   await fr.evaluate(()=>{try{localStorage.setItem('pvs.classicTools','1');}catch(_){}window.PlaybookUX?.apply?.();window.PlaybookUX?.show?.('tune');});await fr.locator('#presetSnapSmooth').click();await sleep(300);await idle(p);
    const an=await fr.evaluate(()=>PlaybookNoteEditor.analysis()),info=await fr.evaluate(()=>document.getElementById('refInfo').textContent);
    let e=0,n=0;const mean=x=>x.reduce((a,b)=>a+b,0)/x.length;
    for(const nt of v.notes){const f=t=>Math.round((t-an.tOff)/an.hop),a=f(nt.t0+(nt.t1-nt.t0)*.25),z=f(nt.t0+(nt.t1-nt.t0)*.85),x=[];for(let i=a;i<=z;i++)if(an.final[i]!=null)x.push(an.final[i]);if(x.length<5)continue;const m=mean(x);if(Math.abs(m-nt.mid)>.6)continue;e+=Math.abs(m-(nt.mid+(v.offsetC+v.driftC*nt.tc/v.total)/100))*100;n++;}
@@ -184,6 +185,7 @@ const APPROVED={none:'f512165a811412b8',presetSnapSmooth:'4a46484d219a07ee',pres
   const v37=synth(37);const {p,fr}=await open(v37);
   const wrong=async()=>{const an=await fr.evaluate(()=>PlaybookNoteEditor.analysis());let w=0;for(const nt of v37.notes){const a=Math.round((nt.t0+(nt.t1-nt.t0)*.3-an.tOff)/an.hop),z=Math.round((nt.t0+(nt.t1-nt.t0)*.7-an.tOff)/an.hop);let bad=0,c=0;for(let i=a;i<=z;i++){if(an.m[i]==null)continue;c++;if(Math.abs(an.m[i]-nt.mid)>6)bad++;}if(c&&bad/c>.3)w++;}return w;};
   const w0=await wrong();
+  await fr.evaluate(()=>window.PlaybookUX?.show?.('more')); // 0.34.0: Voice and Note detection are on the More tab
   await fr.locator('#aiPitch').click();await sleep(800);await idle(p);await fr.waitForFunction(()=>document.getElementById('busy').hidden,null,{timeout:300000});await sleep(300);
   const w1=await wrong(),hint=await fr.locator('#aiPitchHint').textContent();
   check('Test vocal starts with an octave error',w0>=1,w0);
