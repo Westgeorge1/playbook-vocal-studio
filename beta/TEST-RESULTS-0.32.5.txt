@@ -1,0 +1,40 @@
+PLAYBOOK VOCAL STUDIO 0.32.5 BETA | HANDOVER TEST RESULTS
+31 October 2026
+
+Ran run-tests.cjs on Playwright Chromium in disposable browser profiles, one suite at a time, with every reference
+set (0.14.0 main at commit 3fd7da8, the 0.32.2 beta, the 0.32.3 main release). All 13 suites passed.
+
+navigation: 133 passed
+storage: 10 passed
+layout (new): 61 passed
+cleanup: 18 passed
+editors: 74 passed
+tuning: 44 passed
+workspace-editor: 40 passed
+windows: 48 passed
+recording (0.32.5 version expectation): 38 passed
+restore: 56 passed
+delete: 61 passed
+playback: 4 passed (approved presets: identical tuned and final PCM to the 0.32.3 reference in the same browser)
+upgrade: 13 passed
+
+Before any change, the unmodified 0.32.4 source also passed all 12 of its suites with the same counts.
+
+The layout suite does all of the following with real mouse drags:
+- POLISH: drags the settings panel, editor panel and track-name column handles. Checks drag amounts, limits,
+  keyboard resizing (arrows, Shift+arrows, Home), aria values, double-click reset, persistence after reload,
+  View > Reset panel sizes, and that the dock handle hides while the dock is collapsed.
+- Tuning window: resizes from all eight edges and corners. Left and top edges keep the opposite side fixed.
+  Checks the 640 px minimum, the size remembered after reopening, and that handles hide while maximized.
+- Recording window: resizes from its right edge.
+- Note editor: checks the tuning settings column splitter and the docked piano-roll grip.
+- Song & vocals: checks the name column (lanes and ruler together) and track height. A track can be shorter than
+  its controls, which then scroll. Checks that a lane drag never starts a selection or edits the song.
+- Dialogs: moves the song dialog and the take editor, and checks they reopen in their usual place.
+- Phones: at 390x844 and 844x390, no handles and no horizontal overflow.
+- Small window: at 1000x700, an oversized saved width is limited.
+- Project safety: no IndexedDB project keys, dirty flag or Undo entries after resizing, and no page errors.
+
+ENGINE-SHA256.txt verifies. Audio, tuning, cleanup and storage files are byte-identical to 0.32.4.
+Still needs device checks: touch tablets (lane-edge drags can be taken over by page scrolling), real Android and
+iPad in landscape, and a screen-reader pass.

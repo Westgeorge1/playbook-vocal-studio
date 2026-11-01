@@ -1,0 +1,44 @@
+/* 0.32.5: resizable panels. Variables are set by layout-resize.js; fallbacks are the original sizes. */
+.pvs-split{position:absolute;z-index:6;touch-action:none;background:transparent;outline:none}
+.pvs-split::after{content:"";position:absolute;background:#6d879d;opacity:0;transition:opacity .12s;border-radius:2px}
+.pvs-split:hover::after,.pvs-split:focus-visible::after,body.pvs-resizing .pvs-split::after{opacity:.75}
+.pvs-split:focus-visible::after{background:#f5c875;opacity:1}
+.pvs-split-x{top:0;bottom:0;width:10px;cursor:col-resize}
+.pvs-split-x::after{top:0;bottom:0;left:4px;width:2px}
+.pvs-split-y{left:0;right:0;height:10px;cursor:row-resize}
+.pvs-split-y::after{left:0;right:0;top:4px;height:2px}
+body.pvs-resizing,body.pvs-resizing *{user-select:none!important;-webkit-user-select:none!important}
+body.pvs-resizing-x,body.pvs-resizing-x *{cursor:col-resize!important}
+body.pvs-resizing-y,body.pvs-resizing-y *{cursor:row-resize!important}
+body.pvs-resizing iframe{pointer-events:none}
+.pvs-split-insp,.pvs-split-dock,.pvs-split-heads{display:none}
+@media (min-width:900px){
+ .work{grid-template-columns:minmax(0,1fr) var(--pvs-insp-w,420px)}
+ .insp{position:relative}
+ .pvs-split-insp{display:block;left:-5px}
+ .dock{position:relative;height:var(--pvs-dock-h,min(38vh,340px))}
+ .dock.collapsed{height:auto}
+ .dock:not(.collapsed):not(.ww-window)>.pvs-split-dock{display:block;top:-6px}
+ .lanes{position:relative;grid-template-columns:var(--pvs-heads-w,150px) minmax(0,1fr)}
+ .pvs-split-heads{display:block;left:calc(var(--pvs-heads-w,150px) - 5px)}
+ /* Song & vocals: name column width for every lane (ruler included) and the minimum height of filled tracks.
+    Track controls still set a floor, so a track never gets shorter than its own buttons. */
+ #songStudio .sg-lane{grid-template-columns:var(--pvs-sghead-w,205px) minmax(0,1fr)}
+ /* Once a track height is chosen, every filled track uses it and its controls scroll inside the name column. */
+ :root[data-pvs-sglaneh] #songStudio .sg-lane:not(.sg-ruler):not(.sg-empty-backing){height:var(--pvs-sglane-h);min-height:0}
+ :root[data-pvs-sglaneh] #songStudio .sg-lane:not(.sg-ruler):not(.sg-empty-backing)>.sg-lane-head{overflow-y:auto;min-height:0;overscroll-behavior:contain}
+ body.pvs-lane-h .sg-lane,body.pvs-lane-h .sg-lane *{cursor:row-resize}
+ body.pvs-lane-w .sg-lane,body.pvs-lane-w .sg-lane *{cursor:col-resize}
+}
+/* Dialogs moved by their header. */
+#vocalEditor .stdialog>header,#songDialog h2,dialog>header{cursor:move}
+#vocalEditor .stdialog>header button,#songDialog h2 button,dialog>header button{cursor:pointer}
+.pvs-moving{transition:none!important}
+/* Tablets with touch: wider grab areas, same visible line. */
+@media (min-width:900px) and (pointer:coarse){
+ .pvs-split-x{width:22px}.pvs-split-x::after{left:10px}
+ .pvs-split-y{height:22px}.pvs-split-y::after{top:10px}
+ .pvs-split-insp{left:-11px}
+ .dock:not(.collapsed):not(.ww-window)>.pvs-split-dock{top:-12px}
+ .pvs-split-heads{left:calc(var(--pvs-heads-w,150px) - 11px)}
+}

@@ -1,3 +1,22 @@
+PLAYBOOK VOCAL STUDIO 0.33.1 BETA
+
+0.33.1 fixes three problems found while debugging 0.33.0: Pauses only could clean a fading held note, Undo these (breaths) could undo a later edit, and Undo of a timeline move left hand-tuned notes behind. See CHANGES-0.33.1.md.
+
+PLAYBOOK VOCAL STUDIO 0.33.0 BETA
+
+Open https://westgeorge1.github.io/playbook-vocal-studio/beta/ to try this release.
+
+Song & vocals: turn on Move parts and drag a recording to move it in time (Shift+drag moves the whole track, Move... sets an exact amount, one Undo puts it back). Your POLISH tuning edits move with it. Recording helpers > Pitch guide shows your pitch while you record.
+POLISH > CLEAN: Beat bleed, Where to clean (Pauses only), AI voice isolation, room profiles and a voice-safety meter. WAVE EDIT > Breaths > Find all breaths.
+POLISH > TUNE note editor: Keep my hand-tuned notes, My voice (learn and preset), Show riddim chords, Fit doubtful notes to the chord, Correction map.
+Everything new is off or unchanged until you use it. See CHANGES-0.33.0.md, TESTING.md and TEST-RESULTS-0.33.0.txt.
+
+PLAYBOOK VOCAL STUDIO 0.32.5 BETA
+
+Open https://westgeorge1.github.io/playbook-vocal-studio/beta/ to try this release.
+
+On a laptop or desktop you can now resize panels by dragging their edges: the POLISH settings panel and editor panel, the track-name column, Song & vocals track heights, any edge or corner of an expanded window, the tuning window's settings column and the piano roll. Dialogs move by their title bar. Double-click a handle to reset it, or use View > Reset panel sizes. Sizes are remembered on this device only and never change your song. Phones keep the stacked layout. See CHANGES-0.32.5.md, TESTING.md and TEST-RESULTS-0.32.5.txt.
+
 PLAYBOOK VOCAL STUDIO 0.32.4 BETA
 
 Open https://westgeorge1.github.io/playbook-vocal-studio/beta/ to try this release. The main studio and beta have independent browser saves. Use Back up project and Open project to transfer your music.

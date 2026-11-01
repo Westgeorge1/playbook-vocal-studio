@@ -1,8 +1,10 @@
-# Playbook Vocal Studio 0.32.4 beta
+# Playbook Vocal Studio 0.33.1 beta
 
-[Open the 0.32.4 beta](https://westgeorge1.github.io/playbook-vocal-studio/beta/) · [Open the 0.32.3 main studio](https://westgeorge1.github.io/playbook-vocal-studio/)
+[Open the 0.33.1 beta](https://westgeorge1.github.io/playbook-vocal-studio/beta/) · [Open the 0.32.3 main studio](https://westgeorge1.github.io/playbook-vocal-studio/)
 
-You can browse the editor before adding a vocal. Open POLISH or choose a workspace and press Expand. Empty views offer Record, Import and Open project. For testing and handover, use [release notes](CHANGES-0.32.4.md), [test results](TEST-RESULTS-0.32.4.txt), and [test setup](TESTING.md).
+New in 0.33.0: drag recordings along the Song & vocals timeline (Move parts), beat-bleed removal, Pauses-only cleaning, a voice-safety meter, room profiles, optional AI voice isolation, Find all breaths, a live pitch guide while recording, a correction map, locked hand-tuned notes, riddim chords, and a My Voice tuning profile. Everything new is off until you use it.
+
+You can browse the editor before adding a vocal. Open POLISH or choose a workspace and press Expand. Empty views offer Record, Import and Open project. On a laptop, drag panel edges, track edges, window edges and dialog titles to resize or move them; View → Reset panel sizes restores them. For testing and handover, use [release notes](CHANGES-0.33.1.md) and [0.33.0 features](CHANGES-0.33.0.md), [test results](TEST-RESULTS-0.33.1.txt), and [test setup](TESTING.md).
 
 To run locally, extract the folder, run `python3 -m http.server 8000` inside it, and open `http://localhost:8000/`.
 

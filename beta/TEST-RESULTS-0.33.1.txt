@@ -1,0 +1,26 @@
+PLAYBOOK VOCAL STUDIO 0.33.1 BETA | HANDOVER TEST RESULTS
+1 November 2026
+
+Ran run-tests.cjs on Playwright Chromium in disposable browser profiles, one suite at a time.
+Reference sets: 0.14.0 main at commit 3fd7da8, the 0.32.2 beta and the 0.32.3 main release.
+All 17 suites passed (725 checks), on the exact files in this folder.
+
+navigation 133 · storage 10 · layout 61 · timeline-move 41 · cleaning 31 · tuning-plus 32 ·
+regressions-0.33.1 21 (new) · cleanup 18 · editors 74 · tuning 44 · workspace-editor 40 · windows 48 ·
+recording 38 · restore 56 · delete 61 · playback 4 (approved presets identical to the 0.32.3 reference) · upgrade 13
+
+The new regressions suite reproduces the three reported problems. On 0.33.0, 11 of its 21 checks fail; on 0.33.1 all pass.
+- Pauses only: a held note fading 45 dB is never cleaned; quiet pitched singing is protected; unpitched noise at
+  the same level and the real pauses are still cleaned.
+- Undo these: removes every breath of the batch; keeps a later timing edit and a breath reduced by hand
+  afterwards; the button stays when every breath was reduced.
+- Timeline moves:
+  - after a move, Undo, Redo, and a burst of five arrow-key nudges followed by one Undo,
+    POLISH opens without a reset prompt
+  - the hand-tuned notes sit at the right place with the same pitch edits
+  - POLISH is up to date
+
+During the run, the cleaning suite's meter check read the screen before its half-second refresh. The test now
+waits up to 5 s for the meter; the product behaviour was correct.
+
+ENGINE-SHA256.txt verifies (7 files).

@@ -257,7 +257,19 @@ function splitRegion(w,t,r,at){if(!(at>r.start+.04&&at<r.end-.04))throw Error('S
  r.takes=r.takes.map(a=>clean(a));r.end=at;if(r.name&&!/\(1\)$/.test(r.name)){right.name=r.name+' (2)';r.name=r.name+' (1)';}
  for(const x of [r,right])if(x.selected&&!covers(w,x.takes.find(a=>a.id===x.selected),x))x.selected=null;
  t.regions.splice(t.regions.indexOf(r)+1,0,right);w.selectedRegion=right.id;return [r,right];}
+// 0.33: move parts in time. Every attempt in a moved part moves with it, so comping stays aligned. Phrase-volume
+// moves lying wholly inside a moved part travel with it. The move is clamped to the song (0-900 s) and to whole samples.
+function moveLimits(w,t,ids){const set=new Set(ids),rs=t.regions.filter(r=>set.has(r.id));if(!rs.length)throw Error('Choose a part to move.');
+ const lo=Math.min(...rs.map(r=>r.start)),hi=Math.max(...rs.map(r=>r.end)),org=Math.min(...rs.flatMap(r=>r.takes.map(a=>a.origin)));
+ return {rs,min:Math.max(-lo,-10-org),max:LIMITS.seconds-hi};}
+function moveRegions(w,trackId,ids,delta){const t=track(w,trackId);if(!t)throw Error('Choose a vocal track.');const {rs,min,max}=moveLimits(w,t,ids);
+ let d=clamp(Number(delta)||0,min,max);d=Math.round(d*w.rate)/w.rate;if(d<min)d+=1/w.rate;if(d>max)d-=1/w.rate;if(Math.abs(d)<.5/w.rate)return 0;
+ const inside=m=>rs.some(r=>m.start>=r.start-1e-9&&m.end<=r.end+1e-9),moving=(t.levelMoves||[]).filter(inside);
+ for(const r of rs){r.start+=d;r.end+=d;for(const a of r.takes)a.origin+=d;}
+ if(moving.length){for(const m of moving){m.start+=d;m.end+=d;}t.levelMoves.sort((a,b)=>a.start-b.start);let end=-1;for(const m of t.levelMoves){if(m.start<end-1e-9)throw Error('This move would overlap a phrase-volume change. Move or remove that change first, then try again.');end=m.end;}}
+ return d;}
+function moveOverlaps(w,t,ids){const set=new Set(ids),mv=t.regions.filter(r=>set.has(r.id));return t.regions.filter(r=>!set.has(r.id)&&r.kind!=='legacy-base'&&mv.some(m=>r.start<m.end-1e-6&&r.end>m.start+1e-6));}
 function setReference(w,t,regs,regionId,takeId){for(const x of regs)x.reference=null;if(!takeId)return;const r=t.regions.find(x=>x.id===regionId);if(!r||!r.takes.some(a=>a.id===takeId))throw Error('That attempt is not here.');r.reference=takeId;}
-const api={LIMITS,validateMoves,levelDbAt,setLevelMove,applyLevelMoves,splitRegion,setReference,takeSpan,partRegions,partTakes,choosePart,growSection,takeAudio,toPhrases,laneCount,clamp,label,id,empty,clone,range,usage,track,region,origin,covers,duration,validate,checkAudio,addTrack,addSection,findRange,addTake,choose,gc,selectedCount,trackEnd,trackSignature,layoutSig,hashPcm,normalizeSigs,samePcm,renderTrackLegacy23,migrationProof,polishKey,songKeyOf,wantedKey,keyStale,monoMix,pcmFinite,acceptPcm,POLISH_PREFS,polishPrefs,validPrefs,ENGINE,polishPlan,readiness,roomSeconds,polishValid,renderTrack,renderVoice,panGains,mix,signature,peak,migrate,METERS,prefs,beatSec,barBeat,snapTime,beatsIn,countInWindow,loopPasses};
+const api={LIMITS,moveRegions,moveLimits,moveOverlaps,validateMoves,levelDbAt,setLevelMove,applyLevelMoves,splitRegion,setReference,takeSpan,partRegions,partTakes,choosePart,growSection,takeAudio,toPhrases,laneCount,clamp,label,id,empty,clone,range,usage,track,region,origin,covers,duration,validate,checkAudio,addTrack,addSection,findRange,addTake,choose,gc,selectedCount,trackEnd,trackSignature,layoutSig,hashPcm,normalizeSigs,samePcm,renderTrackLegacy23,migrationProof,polishKey,songKeyOf,wantedKey,keyStale,monoMix,pcmFinite,acceptPcm,POLISH_PREFS,polishPrefs,validPrefs,ENGINE,polishPlan,readiness,roomSeconds,polishValid,renderTrack,renderVoice,panGains,mix,signature,peak,migrate,METERS,prefs,beatSec,barBeat,snapTime,beatsIn,countInWindow,loopPasses};
 root.SongCore=api;if(typeof module!=='undefined')module.exports=api;
 })(globalThis);

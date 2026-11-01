@@ -91,7 +91,7 @@ select{font:600 14px var(--f-body);color:var(--ink);background:var(--panel);bord
 .chk input{width:18px;height:18px;accent-color:var(--accent)}
 .zoom{display:inline-flex;gap:4px;margin-left:auto}
 .zoom .btn{width:40px;justify-content:center;padding:0;font-size:18px}
-.editor{position:relative;height:clamp(300px,56vh,620px);border-radius:12px;overflow:hidden;border:1px solid var(--line);background:var(--lane)}
+.editor{position:relative;height:var(--ne-roll-h,clamp(300px,56vh,620px));border-radius:12px;overflow:hidden;border:1px solid var(--line);background:var(--lane)}
 #roll{display:block;width:100%;height:100%;touch-action:none;cursor:grab}
 #overview{display:block;width:100%;height:38px;border-radius:8px;border:1px solid var(--line);background:var(--panel);touch-action:none;cursor:pointer}
 .busy{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:color-mix(in srgb, var(--bg) 82%, transparent);font-weight:600;z-index:6}
@@ -179,6 +179,18 @@ kbd{font:600 12px var(--f-mono);border:1px solid var(--line);border-bottom-width
 .panel.collapsed>*:not(.phead){display:none!important}
 .panel.collapsed{gap:0}
 .mainCol{display:contents}
+#tuningPresets button[aria-pressed="true"]{outline:2px solid var(--sel);outline-offset:1px}
+/* 0.32.5: drag handles: piano-roll height (below the roll) and, in a wide tuning window, the settings column width. */
+.neSplit,.neRollGrip{touch-action:none;position:relative;outline:none;flex-shrink:0}
+.neSplit{display:none;flex:0 0 10px;margin:0 -6px;cursor:col-resize;z-index:2}
+.neSplit::after{content:"";position:absolute;top:0;bottom:0;left:4px;width:2px;border-radius:2px;background:var(--muted);opacity:0}
+.neRollGrip{height:12px;margin:-8px 0 -4px;cursor:row-resize;z-index:2}
+.neRollGrip::after{content:"";position:absolute;left:calc(50% - 24px);width:48px;top:4px;height:4px;border-radius:2px;background:var(--muted);opacity:.45}
+.neSplit:hover::after,.neSplit:focus-visible::after,.neRollGrip:hover::after,.neRollGrip:focus-visible::after,.ne-resizing .neSplit::after{opacity:.9}
+.neSplit:focus-visible::after,.neRollGrip:focus-visible::after{background:var(--sel)}
+.ne-resizing,.ne-resizing *{user-select:none!important;-webkit-user-select:none!important}
+.hosted.work-window.focus-notes .neRollGrip{display:none}
+@media (min-width:1000px){.hosted.work-window:not(.focus-notes) .neRollGrip{display:none}}
 .hosted.work-window.focus-notes .mainCol>header,.hosted.work-window.focus-notes .mainCol>.hint{display:none}
 /* Wide tuning window: piano roll keeps the full height; the note inspector and settings sit beside it. */
 @media (min-width:1000px){
@@ -196,7 +208,8 @@ kbd{font:600 12px var(--f-mono);border:1px solid var(--line);border-bottom-width
   .hosted.work-window:not(.focus-notes) .mainCol .zoom .btn.vz{width:38px;font-size:13px}
   .hosted.work-window:not(.focus-notes) .mainCol .transport{gap:6px}
   .hosted.work-window:not(.focus-notes) .mainCol .zoom .btn.fitBtn{width:auto}
-  .hosted.work-window:not(.focus-notes) .panels{flex:0 0 clamp(320px,30vw,400px);display:flex;flex-direction:column;gap:10px;overflow:auto;overscroll-behavior:contain;padding:0 2px 24px 0;min-height:0}
+  .hosted.work-window:not(.focus-notes) .neSplit{display:block}
+  .hosted.work-window:not(.focus-notes) .panels{flex:0 0 var(--ne-side-w,clamp(320px,30vw,400px));display:flex;flex-direction:column;gap:10px;overflow:auto;overscroll-behavior:contain;padding:0 2px 24px 0;min-height:0}
   .hosted.work-window:not(.focus-notes) .panels>.panel{flex-shrink:0;padding:12px 14px}
   .hosted.work-window:not(.focus-notes) .panels .slider{grid-template-columns:6.6em minmax(0,1fr) 4.4em}
   .hosted.work-window:not(.focus-notes) #notePanel .hint{font-size:12.5px}
@@ -367,6 +380,23 @@ html.empty-editor [inert]{opacity:.58}
         <button id="presetHard" class="btn soft" type="button" title="Classic Smooth 100% (about 12 ms): the deliberate auto-tune sound">Hard Effect</button>
       </div>
       <p class="hint">Research presets reset each note's pitch, drift, vibrato, tilt and slide, then tune the whole vocal. Timing, volume and formant edits are kept. Apply on the vocal before fixing single notes. Undo restores the previous settings.</p>
+      <label class="chk" for="lockMan"><input type="checkbox" id="lockMan" checked> Keep my hand-tuned notes when I apply a preset or Snap all</label>
+      <p class="hint" id="lockInfo" role="status"></p>
+      <h3>My voice</h3>
+      <p class="hint" id="myVoiceInfo">Learn how you naturally sing (vibrato, scoops, slides) from your vocals, then tune with a preset that keeps it.</p>
+      <div class="row presetGrid">
+        <button id="myVoiceLearn" class="btn soft" type="button">Learn from this vocal</button>
+        <button id="presetMyVoice" class="btn soft" type="button" disabled>My Voice preset</button>
+        <button id="myVoiceForget" class="btn ghost" type="button">Forget my voice</button>
+      </div>
+      <h3>Chords and corrections</h3>
+      <div class="row presetGrid">
+        <button id="chordShow" class="btn soft" type="button" aria-pressed="false">Show riddim chords</button>
+        <button id="chordFit" class="btn soft" type="button">Fit doubtful notes to the chord</button>
+        <button id="corrMap" class="btn soft" type="button" aria-pressed="false">Correction map</button>
+        <button id="corrNext" class="btn soft" type="button">Next heavy correction ▸</button>
+      </div>
+      <p class="hint" id="chordInfo">Chords come from the backing. A doubtful note sits between two key notes; fitting moves it to the one in the chord. The correction map colours each note by how far tuning moved it: green under 20¢, amber 20–50¢, red over 50¢ (where tuning starts to be heard).</p>
       <h3>Original approved</h3>
       <div class="row">
         <button id="presetSnapSmooth" class="btn primary" type="button">Snap all + Smooth 25%</button>
@@ -519,9 +549,10 @@ html.empty-editor [inert]{opacity:.58}
   <p class="foot">Everything runs on your device; your audio is never uploaded.</p>
 </div>
 
-<script src="project-storage.js?v=0.32.4"></script>
-<script src="note-editor-safety.js?v=0.32.4"></script>
-<script src="natural-tuning.js?v=0.32.4"></script>
+<script src="project-storage.js?v=0.33.1"></script>
+<script src="note-editor-safety.js?v=0.33.1"></script>
+<script src="natural-tuning.js?v=0.33.1"></script>
+<script src="chord-core.js?v=0.33.1"></script>
 <script>
 (() => {
 "use strict";
@@ -1551,7 +1582,10 @@ function draw(){
       g.beginPath(); g.moveTo(S.hoverCut.x, yc - bh/2 - 8); g.lineTo(S.hoverCut.x, yc + bh/2 + 8); g.stroke(); g.setLineDash([]);
     }
     if (x1 - x0 > 44 && !info.ok){ g.fillStyle = C.off; g.font = "600 10.5px " + C.mono; g.fillText(signed(info.c, "¢"), x0 + 3, yc - bh/2 - 4); }
+    if (S.corrMap){ const c = corrOf(nt); g.fillStyle = c < 20 ? "#4fd18b" : c < 50 ? "#f5c875" : "#ff6b6b"; g.fillRect(x0, yc + bhN/2 + 2, Math.max(4, x1 - x0), 3); if (x1 - x0 > 36){ g.font = "600 10px " + C.mono; g.fillText(Math.round(c) + "¢", x0 + 2, yc + bhN/2 + 15); } }
+    if (S.chordShow && S.chords && clashOf(nt)){ g.strokeStyle = "#c792ff"; g.lineWidth = 1.5; g.setLineDash([3,2]); roundRect(g, x0 - 3, yc - bhN/2 - 3, Math.max(4, x1 - x0) + 6, bhN + 6, bhN/2 + 3); g.stroke(); g.setLineDash([]); }
   });
+  if (S.chordShow && S.chords){ g.font = "600 11px " + C.mono; for (const c of S.chords){ if (c.root < 0) continue; const a = Math.max(KEY_W, xOf(c.t0)), b = Math.min(W, xOf(c.t1)); if (b - a < 4) continue; g.fillStyle = "#3b2a5acc"; g.fillRect(a + 1, RULER_H + 1, b - a - 2, 15); g.fillStyle = "#e6d2ff"; if (b - a > 22) g.fillText(c.name, a + 4, RULER_H + 12); } }
   curve(S.final, C.fin, 1.6);
   if (S.boxRect){ const [a, b, c2, d] = S.boxRect; g.strokeStyle = C.sel; g.lineWidth = 1.5; g.setLineDash([5,3]); g.strokeRect(a, b, c2 - a, d - b); g.setLineDash([]); g.fillStyle = C.sel; g.globalAlpha = 0.07; g.fillRect(a, b, c2 - a, d - b); g.globalAlpha = 1; }
   drawRuler(g, W, step);
@@ -2161,7 +2195,7 @@ KEY_NAMES.forEach((n, i) => { const o = document.createElement("option"); o.valu
 keySel.onchange = () => { pushHist(); S.key = +keySel.value; S.keyChosen=true; releaseKeyHold(); changed(); };
 $("scale").onchange = e => { pushHist(); S.scale = e.target.value; S.keyChosen=true; releaseKeyHold(); changed(); };
 $("free").onchange = e => { S.free = e.target.checked; };
-$("snapAll").onclick = () => { pushHist(); S.notes.forEach((_, i) => snapNote(i)); changed(); };
+$("snapAll").onclick = () => { pushHist(); S.keptMsg = keptText(S.notes.filter(keepMan).length); S.notes.forEach((nt, i) => { if (!keepMan(nt)) snapNote(i); }); changed(); };
 $("resetAll").onclick = () => { pushHist(); S.notes.forEach(n => Object.assign(n, NOTE_DEFAULTS)); changed(); };
 $("play").onclick = () => { if (S.playing){ S.playhead = curPos(); stop(); updateTime(); } else startPlayback(S.playhead); };
 const setMode = m => { const pos = curPos(); S.mode = m; $("abOrig").setAttribute("aria-pressed", m === "orig"); $("abTuned").setAttribute("aria-pressed", m === "tuned"); if (S.playing) startPlayback(pos); };
@@ -2401,8 +2435,9 @@ function applyVocalPreset(kind,opts={}){
   S.centreMode="detected";
   S.autoMode="classic";S.keepBlue=false;$("keepBlue").checked=false;
   setSmooth(25,false);setSmoothOn(true,false);
-  if(kind==="snap")S.notes.forEach((_,i)=>snapNote(i));
-  else S.notes.forEach(nt=>{nt.shift=.85*(snapP(noteC(nt),undefined,noteOff(nt))-noteC(nt));nt.drift=0;nt.man=false;});
+  S.keptMsg=keptText(S.notes.filter(keepMan).length);
+  if(kind==="snap")S.notes.forEach((nt,i)=>{if(!keepMan(nt))snapNote(i);});
+  else S.notes.forEach(nt=>{if(keepMan(nt))return;nt.shift=.85*(snapP(noteC(nt),undefined,noteOff(nt))-noteC(nt));nt.drift=0;nt.man=false;});
   $("cCenter").value=85;$("cCenterOut").textContent="85%";
   $("cDrift").value=0;$("cDriftOut").textContent="0%";
   if(!opts.noChange)changed();
@@ -2418,7 +2453,7 @@ function applyResearchPreset(kind,opts={}){
   const P=RESEARCH_PRESETS[kind];if(!P||S.busy||!S.orig||!S.notes.length)return;
   if(!opts.quiet&&!confirmPresetKey())return;
   if(!opts.noHist)pushHist();
-  S.notes.forEach(nt=>{nt.shift=0;nt.drift=0;nt.vib=1;nt.tr=0;nt.tl=0;nt.man=false;});
+  const keptN=S.notes.filter(keepMan).length;S.notes.forEach(nt=>{if(keepMan(nt))return;nt.shift=0;nt.drift=0;nt.vib=1;nt.tr=0;nt.tl=0;nt.man=false;});S.keptMsg=keptText(keptN);
   S.keepBlue=false;$("keepBlue").checked=false;
   if(P.classic){S.autoMode="classic";S.centreMode="detected";}
   else{S.autoMode="natural";S.centreMode="weighted";S.autoSpeed=P.speed;S.autoFlex=P.flex;S.autoKeepInTune=P.flex>0;S.autoExpression=true;S.autoKeepBlue=P.blue;S.autoDrift=P.drift;S.autoVib=P.vib;S.autoHumanize=P.human;}
@@ -3012,7 +3047,7 @@ window.PlaybookNoteEditor={
  /* 0.32: read-only analysis for tests and future meters: detected pitch, tuned pitch line and notes (MIDI). */
  analysis(){const ro=refOff();return {hop:S.hop,tOff:S.tOff,ref:S.ref,m:Array.from(S.m||[],v=>v===v?v:null),final:Array.from(S.final||[],v=>v===v?v:null),notes:S.notes.map(n=>({i0:n.i0,i1:n.i1,centre:n.center,heard:noteC(n),target:noteC(n)+n.shift}))};}
 };
-if(EMBED){document.documentElement.classList.add("hosted");document.documentElement.dataset.theme="dark";const style=document.createElement("style");style.textContent='.hosted .loadWrap,.hosted #saveSession,.hosted #restoreBar,.hosted .export,.hosted #rFile,.hosted #freshBtn,.hosted #saveState,.hosted #harmPanel,.hosted #rRemove{display:none!important}.hosted .wrap{max-width:none;padding:8px}.hosted .app{max-width:none}.hosted.work-window .app{padding:10px 12px 32px}.hosted.work-window .editor{height:clamp(300px,58vh,900px)}.hosted #rName{font-size:12px}';document.head.appendChild(style);$("abOrig").textContent="Cleaned input";
+if(EMBED){document.documentElement.classList.add("hosted");document.documentElement.dataset.theme="dark";const style=document.createElement("style");style.textContent='.hosted .loadWrap,.hosted #saveSession,.hosted #restoreBar,.hosted .export,.hosted #rFile,.hosted #freshBtn,.hosted #saveState,.hosted #harmPanel,.hosted #rRemove{display:none!important}.hosted .wrap{max-width:none;padding:8px}.hosted .app{max-width:none}.hosted.work-window .app{padding:10px 12px 32px}.hosted.work-window .editor{height:var(--ne-roll-h,clamp(300px,58vh,900px))}.hosted #rName{font-size:12px}';document.head.appendChild(style);$("abOrig").textContent="Cleaned input";
  const help=document.createElement("p");help.className="hint";help.textContent="This editor processes the selected vocal. Use Song & vocals for separate backing-vocal tracks. Play here auditions tuning; use FINAL in Vocal Studio to hear the vocal effects.";$("harmPanel").after(help);
 }
 
@@ -3029,6 +3064,9 @@ reviewButton.onclick=()=>{const ids=selIdx();if(!ids.length)return;pushHist();id
     if (col.querySelector(".export")) app.append(col.querySelector(".export"));
     const z = document.querySelector(".tools .zoom"), tr = document.querySelector(".transport");
     if (z && tr) tr.append(z);
+    const grip = document.createElement("div"); grip.className = "neRollGrip"; $("editor").after(grip);
+    const split = document.createElement("div"); split.className = "neSplit"; panels.before(split);
+    paneHandles(grip, split);
   }
   let saved = {}; try { saved = JSON.parse(localStorage.getItem("pne.collapsed") || "{}") || {}; } catch (e){ saved = {}; }
   document.querySelectorAll(".panels>.panel").forEach(pn => {
@@ -3042,6 +3080,90 @@ reviewButton.onclick=()=>{const ids=selIdx();if(!ids.length)return;pushHist();id
     h.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " "){ e.preventDefault(); toggle(); } });
   });
 })();
+/* 0.32.5: resizable piano roll and settings column (view preferences on this device; never in the project). */
+function paneHandles(grip, split){
+  const KEY = "pne.layout.v1", rootEl = document.documentElement;
+  let L = {}; try { L = JSON.parse(localStorage.getItem(KEY) || "{}") || {}; } catch (e){ L = {}; }
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(L)); } catch (e){} };
+  const limits = { rollH:[180, () => Math.max(240, innerHeight - 120)], sideW:[260, () => Math.max(300, innerWidth - 420)] };
+  const vars = { rollH:"--ne-roll-h", sideW:"--ne-side-w" };
+  const apply = k => { if (Number.isFinite(L[k])){ const [a, b] = limits[k]; rootEl.style.setProperty(vars[k], Math.round(clamp(L[k], a, b())) + "px"); } else rootEl.style.removeProperty(vars[k]); };
+  const set = (k, v) => { const [a, b] = limits[k]; L[k] = Math.round(clamp(v, a, b())); apply(k); save(); };
+  const reset = k => { delete L[k]; apply(k); save(); };
+  apply("rollH"); apply("sideW"); addEventListener("resize", () => { apply("rollH"); apply("sideW"); });
+  const wire = (el, k, axis, sign, measure, label) => {
+    el.tabIndex = 0; el.setAttribute("role", "separator"); el.setAttribute("aria-orientation", axis === "x" ? "vertical" : "horizontal");
+    el.setAttribute("aria-label", label); el.title = label + " · drag to resize · double-click to reset";
+    let d = null;
+    el.addEventListener("pointerdown", e => { if (e.button !== 0) return; e.preventDefault(); d = { id:e.pointerId, p:axis === "x" ? e.clientX : e.clientY, v:measure() }; el.setPointerCapture(e.pointerId); rootEl.classList.add("ne-resizing"); });
+    el.addEventListener("pointermove", e => { if (!d || d.id !== e.pointerId) return; set(k, d.v + sign*((axis === "x" ? e.clientX : e.clientY) - d.p)); });
+    const end = () => { if (!d) return; d = null; rootEl.classList.remove("ne-resizing"); draw(); drawOverview(); };
+    for (const t of ["pointerup", "pointercancel", "lostpointercapture"]) el.addEventListener(t, end);
+    el.addEventListener("dblclick", () => { reset(k); draw(); drawOverview(); });
+    el.addEventListener("keydown", e => { const st = e.shiftKey ? 60 : 15; let v = 0;
+      if (axis === "y" && (e.key === "ArrowUp" || e.key === "ArrowDown")) v = (e.key === "ArrowDown" ? 1 : -1)*st*sign;
+      if (axis === "x" && (e.key === "ArrowLeft" || e.key === "ArrowRight")) v = (e.key === "ArrowRight" ? 1 : -1)*st*sign;
+      if (e.key === "Home"){ e.preventDefault(); reset(k); }
+      if (v){ e.preventDefault(); set(k, measure() + v); } });
+  };
+  wire(grip, "rollH", "y", 1, () => $("editor").getBoundingClientRect().height, "Piano roll height");
+  wire(split, "sideW", "x", -1, () => document.querySelector(".panels").getBoundingClientRect().width, "Settings column width");
+  window.PlaybookNoteEditorLayout = { reset:() => { reset("rollH"); reset("sideW"); draw(); drawOverview(); }, get:k => L[k] ?? null };
+}
+/* 0.33: locked hand-tuned notes, correction map, chord-aware tuning and the My Voice profile. */
+function keepMan(nt){ return S.lockMan !== false && !!nt.man; }
+function keptText(n){ S.keptAt = Date.now(); return n ? "Kept " + n + " hand-tuned note" + (n === 1 ? "" : "s") + " exactly as you left " + (n === 1 ? "it" : "them") + "." : ""; }
+try { S.lockMan = localStorage.getItem("pne.lockMan") !== "0"; } catch (e) { S.lockMan = true; }
+function corrOf(nt){ if (!S.final || !S.m) return 0; const v = []; for (let f = nt.i0; f <= nt.i1; f++){ const a = S.m[f], b = S.final[f]; if (Number.isFinite(a) && Number.isFinite(b)) v.push(Math.abs(b - a)*100); } if (!v.length) return 0; v.sort((x, y) => x - y); return v[v.length >> 1]; }
+function finalMid(nt){ const v = []; for (let f = nt.i0; f <= nt.i1; f++){ const b = S.final?.[f]; if (Number.isFinite(b)) v.push(b); } if (!v.length) return noteC(nt) + nt.shift; v.sort((x, y) => x - y); return v[v.length >> 1]; }
+function chordAt(nt){ const sp = span(nt); return window.ChordCore ? ChordCore.at(S.chords, (sp.oa + sp.ob)/2) : null; }
+function clashOf(nt){ const c = chordAt(nt); if (!c || c.root < 0) return false; const pc = ((Math.round(finalMid(nt) - refOff()) % 12) + 12) % 12; if (c.pcs.includes(pc)) return false; return c.pcs.some(x => { const d = Math.abs(x - pc); return Math.min(d, 12 - d) === 1; }); }
+function computeChords(){ const b = S.riddim?.buf; if (!b || !window.ChordCore){ S.chords = null; return false; } const n = b.length, m = new Float32Array(n); for (let c = 0; c < b.numberOfChannels; c++){ const d = b.getChannelData(c); for (let i = 0; i < n; i++) m[i] += d[i]/b.numberOfChannels; } S.chords = ChordCore.detect(m, b.sampleRate); S.chordsFor = b; return true; }
+function doubtful(nt){ const c = noteC(nt) - refOff(), d = Math.abs(c - Math.round(c)); return d > 0.3; }
+function fitToChords(){ if (!S.notes.length) return 0; if (S.chordsFor !== S.riddim?.buf) computeChords(); if (!S.chords) return -1; const pcs = allowedPcs(), plan = [];
+  S.notes.forEach((nt, i) => { if (keepMan(nt) || !doubtful(nt)) return; const ch = chordAt(nt); if (!ch || ch.root < 0) return; const c = noteC(nt) - refOff(), lo = Math.floor(c), hi = Math.ceil(c);
+   const cand = [lo, hi, lo - 1, hi + 1].filter(m => pcs.has(((m % 12) + 12) % 12) && ch.pcs.includes(((m % 12) + 12) % 12)).sort((a, b) => Math.abs(a - c) - Math.abs(b - c))[0];
+   if (cand != null && Math.abs(cand - c) <= 1.1) plan.push([i, cand + refOff() - noteC(nt)]); });
+  if (!plan.length) return 0; pushHist(); for (const [i, sh] of plan){ S.notes[i].shift = sh; S.notes[i].man = true; } changed(); return plan.length; }
+function measureVoice(){ if (!S.m || !S.notes.length) return null; const fps = 1/S.hop, vib = [], dev = [], scoop = [], trans = [];
+  const seg = (a, b) => { const v = []; for (let f = a; f <= b; f++){ const x = S.m[f]; if (Number.isFinite(x)) v.push(x); } return v; };
+  S.notes.forEach((nt, k) => { const len = (nt.i1 - nt.i0)/fps, c = noteC(nt);
+   if (len > .6){ const a = nt.i0 + Math.round((nt.i1 - nt.i0)*.15), b = nt.i1 - Math.round((nt.i1 - nt.i0)*.15), v = seg(a, b); if (v.length > 20){ const n = v.length, mx = (n - 1)/2; let sx = 0, sy = 0, sxy = 0, sxx = 0; v.forEach((y, i) => { sx += i; sy += y; sxy += i*y; sxx += i*i; }); const sl = (n*sxy - sx*sy)/(n*sxx - sx*sx || 1), ic = (sy - sl*sx)/n, r = v.map((y, i) => y - (ic + sl*i)); let z = 0; for (let i = 1; i < n; i++) if ((r[i] >= 0) !== (r[i - 1] >= 0)) z++; const rate = z/2/(n/fps), srt = r.map(Math.abs).sort((x, y) => x - y), depth = srt[Math.floor(.9*(n - 1))]*100; if (rate > 3.5 && rate < 8 && depth > 8) vib.push([rate, depth]); dev.push(srt[n >> 1]*100); } }
+   if (len > .25){ const head = seg(nt.i0, nt.i0 + Math.round(.12*fps)); if (head.length > 3){ const st = (head[0] + head[1] + head[2])/3 - c; let t = 0; for (let i = 0; i < head.length; i++) if (Math.abs(head[i] - c) > .2) t = i + 1; scoop.push([st*100, t/fps*1000]); } }
+   const nx = S.notes[k + 1]; if (nx && (nx.i0 - nt.i1)/fps < .05 && Math.abs(noteC(nx) - c) >= .8){ const v = seg(nt.i1 - Math.round(.1*fps), nx.i0 + Math.round(.15*fps)), c2 = noteC(nx), lo = c + (c2 - c)*.1, hi = c + (c2 - c)*.9, up = c2 > c; let a = -1, b = -1; v.forEach((y, i) => { if (a < 0 && (up ? y > lo : y < lo)) a = i; if (b < 0 && (up ? y > hi : y < hi)) b = i; }); if (a >= 0 && b > a) trans.push((b - a)/fps*1000); } });
+  const med = a => { if (!a.length) return null; const s = a.slice().sort((x, y) => x - y); return s[s.length >> 1]; };
+  return { notes:S.notes.length, vibRate:med(vib.map(v => v[0])), vibDepth:med(vib.map(v => v[1])), vibShare:dev.length ? vib.length/dev.length : 0, dev:med(dev), scoopCents:med(scoop.map(s => s[0])), scoopMs:med(scoop.map(s => s[1])), transMs:med(trans) };
+}
+const MYV = "pne.myVoice.v1";
+function myVoice(){ try { const v = JSON.parse(localStorage.getItem(MYV) || "null"); return v && Array.isArray(v.takes) ? v : null; } catch (e){ return null; } }
+function myVoiceAverage(v){ const keys = ["vibRate","vibDepth","vibShare","dev","scoopCents","scoopMs","transMs"], o = { count:v.takes.length }; for (const k of keys){ const a = v.takes.map(t => t[k]).filter(Number.isFinite); o[k] = a.length ? a.reduce((x, y) => x + y, 0)/a.length : null; } return o; }
+function myVoicePreset(a){ const speed = Math.round(clamp(Number.isFinite(a.transMs) ? a.transMs*.8 : 50, 30, 90)), flex = Math.round(clamp(Number.isFinite(a.dev) ? a.dev*.8 : 15, 10, 30));
+  return { label:"My Voice", amount:100, speed, flex, drift:.3, vib:a.vibShare > .25 ? 1 : .9, human:.2, blue:true }; }
+function myVoiceUI(){ const v = myVoice(), info = $("myVoiceInfo"); if (!info) return; const a = v && myVoiceAverage(v);
+  if (!a){ info.textContent = "Learn how you naturally sing (vibrato, scoops, slides) from your vocals, then tune with a preset that keeps it. Three different vocals give the best picture."; $("presetMyVoice").disabled = true; $("myVoiceForget").disabled = true; return; }
+  const p = myVoicePreset(a), f = (x, d = 0) => Number.isFinite(x) ? x.toFixed(d) : "–";
+  info.textContent = "Learned from " + a.count + " vocal" + (a.count === 1 ? "" : "s") + ": vibrato " + f(a.vibRate, 1) + " Hz ± " + f(a.vibDepth) + "¢ on " + f(a.vibShare*100) + "% of long notes; you start notes " + (Number.isFinite(a.scoopCents) ? Math.abs(Math.round(a.scoopCents)) + "¢ " + (a.scoopCents < 0 ? "below" : "above") : "–") + " for about " + f(a.scoopMs) + " ms; slides take about " + f(a.transMs) + " ms. My Voice preset: note transition " + p.speed + " ms, flex " + p.flex + "¢, vibrato kept " + Math.round(p.vib*100) + "%." + (a.count < 3 ? " Learn " + (3 - a.count) + " more vocal" + (3 - a.count === 1 ? "" : "s") + " for a steadier profile." : "");
+  $("presetMyVoice").disabled = !S.orig || !S.notes.length; $("myVoiceForget").disabled = false; }
+function tuningPlusUI(){
+  $("lockMan").checked = S.lockMan !== false;
+  $("lockMan").onchange = e => { S.lockMan = e.target.checked; try { localStorage.setItem("pne.lockMan", e.target.checked ? "1" : "0"); } catch (_){} };
+  try { S.corrMap = localStorage.getItem("pne.corrMap") === "1"; } catch (e){}
+  const press = (id, on) => $(id).setAttribute("aria-pressed", on ? "true" : "false");
+  press("corrMap", S.corrMap);
+  $("corrMap").onclick = () => { S.corrMap = !S.corrMap; press("corrMap", S.corrMap); try { localStorage.setItem("pne.corrMap", S.corrMap ? "1" : "0"); } catch (_){} draw(); };
+  $("corrNext").onclick = () => { if (!S.notes.length) return; let lim = 50, list = S.notes.map((nt, i) => [i, corrOf(nt)]).filter(x => x[1] >= lim); if (!list.length){ lim = 35; list = S.notes.map((nt, i) => [i, corrOf(nt)]).filter(x => x[1] >= lim); }
+   if (!list.length){ $("chordInfo").textContent = "No heavy corrections: every note moved less than 35¢."; return; }
+   const nx = list.find(x => x[0] > S.sel) || list[0]; selectOnly(nx[0]); const sp = span(S.notes[nx[0]]); S.playhead = sp.oa; S.view.t0 = Math.max(0, sp.oa - .3); if (!S.corrMap){ S.corrMap = true; press("corrMap", true); } refreshAll();
+   $("chordInfo").textContent = "Heavy correction " + (list.indexOf(nx) + 1) + " of " + list.length + ": tuning moved this note " + Math.round(nx[1]) + "¢. Fix it by hand, or re-sing the phrase."; };
+  $("chordShow").onclick = () => { if (!S.chordShow){ if (S.chordsFor !== S.riddim?.buf && !computeChords()){ $("chordInfo").textContent = "Add the backing (riddim) first: chords are read from it."; return; } } S.chordShow = !S.chordShow; press("chordShow", S.chordShow);
+   if (S.chordShow){ const names = [...new Set((S.chords || []).filter(c => c.root >= 0).map(c => c.name))]; const clashes = S.notes.filter(clashOf).length; $("chordInfo").textContent = "Chords found: " + (names.join(", ") || "none clear") + ". " + clashes + " note" + (clashes === 1 ? "" : "s") + " clash with the chord (purple outline)."; } draw(); };
+  $("chordFit").onclick = () => { if (S.busy || !S.orig) return; const n = fitToChords(); $("chordInfo").textContent = n < 0 ? "Add the backing (riddim) first: chords are read from it." : n ? "Moved " + n + " doubtful note" + (n === 1 ? "" : "s") + " to the chord note. They count as your hand edits; Undo puts them back." : "No doubtful notes to fit (every note is clearly on a key note)."; if (n > 0 && !S.chordShow) $("chordShow").onclick(); else draw(); };
+  $("myVoiceLearn").onclick = () => { const m = measureVoice(); if (!m || m.notes < 8){ $("myVoiceInfo").textContent = "This vocal is too short to learn from. Use a full verse or song."; return; } const v = myVoice() || { v:1, takes:[] }; v.takes.push({ ...m, at:Date.now(), name:S.name || "vocal" }); v.takes = v.takes.slice(-3); try { localStorage.setItem(MYV, JSON.stringify(v)); } catch (e){ $("myVoiceInfo").textContent = "This browser could not save your voice profile."; return; } myVoiceUI(); };
+  $("presetMyVoice").onclick = () => { const v = myVoice(); if (!v) return; RESEARCH_PRESETS.myvoice = myVoicePreset(myVoiceAverage(v)); applyResearchPreset("myvoice"); };
+  $("myVoiceForget").onclick = () => { if (!confirm("Forget your learned voice profile on this device?")) return; try { localStorage.removeItem(MYV); } catch (_){} myVoiceUI(); };
+  myVoiceUI(); setInterval(() => { const li = $("lockInfo"); if (li) li.textContent = S.keptMsg && Date.now() - (S.keptAt || 0) < 15000 ? S.keptMsg : ""; const b = $("presetMyVoice"); if (b && myVoice()) b.disabled = !S.orig || !S.notes.length || S.busy; for (const id of ["chordFit","corrNext","myVoiceLearn"]) $(id).disabled = !S.orig || !S.notes.length || S.busy; }, 400);
+}
+window.PlaybookTuningPlus = { measureVoice, corrOf:i => corrOf(S.notes[i]), clashes:() => S.notes.map((n, i) => clashOf(n) ? i : -1).filter(i => i >= 0), chords:() => S.chords, computeChords, fitToChords };
 /* ---------- boot ---------- */
 readColors();
 const reTheme = () => { readColors(); draw(); drawOverview(); updateStatus(); updateNotePanel(); };
@@ -3049,6 +3171,7 @@ try { matchMedia("(prefers-color-scheme: dark)").addEventListener("change", reTh
 new MutationObserver(reTheme).observe(document.documentElement, { attributes:true, attributeFilter:["data-theme"] });
 new ResizeObserver(() => { draw(); drawOverview(); }).observe($("editor"));
 resetRenders(); setTool("pitch"); gridUI(); layersUI(); setBreath(0, false);
+try { tuningPlusUI(); } catch (e) { console.warn("Tuning additions could not start:", e); }
 (async () => {
   draw();
   if(EMBED){setBusy(false);emptyControls(true);refreshAll();return;}

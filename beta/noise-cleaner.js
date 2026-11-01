@@ -8,7 +8,12 @@ function state(){return clone(cfg);}
 function begin(saved,fresh){generation++;cfg=saved?clone(NoiseCore.validate(saved)):{...NoiseCore.defaults(),mode:fresh?'studio':'original'};client?.terminate();client=null;for(const j of jobs.values()){clearTimeout(j.timer);j.reject(Error('Vocal changed.'));}jobs.clear();bypassed=false;busy=false;error='';notice='';cache=null;baseline=null;sourceAudio=null;undo=[];redo=[];ui();}
 function worker(msg){if(!client){client=new Worker('noise-worker.js?v=0.31.1');client.onmessage=({data:m})=>{if(m.type==='progress'){$('noiseStatus').textContent='Reducing noise… '+Math.min(99,Math.round(m.value*100))+'%';return;}const j=jobs.get(m.id);if(!j)return;clearTimeout(j.timer);jobs.delete(m.id);m.error?j.reject(Error(m.error)):j.resolve(m);};client.onerror=e=>{for(const j of jobs.values()){clearTimeout(j.timer);j.reject(Error(e.message||'Noise processing stopped.'));}jobs.clear();client?.terminate();client=null;};}return new Promise((resolve,reject)=>{const id=++seq,timer=setTimeout(()=>{jobs.delete(id);client?.terminate();client=null;reject(Error('Noise processing took too long. Restore the original cleaner to continue.'));},240000);jobs.set(id,{resolve,reject,timer});client.postMessage({...msg,id});});}
 function wrap(r){if(r.state)r={...r,state:{...r.state,params:{...r.state.params,cleanOn:cfg.legacyOn}}};return r;}
-async function render(ch,settings=cfg){const key=rate+':'+SongCore.hashPcm(ch)+':'+JSON.stringify(settings);if(cache?.key===key)return cache.result;const r=await worker({type:'process',channels:ch,rate,settings});NoteEditorSafety.audio(r.channels,rate);return { ...r,_key:key};}
+async function render(ch,settings=cfg){const key=rate+':'+SongCore.hashPcm(ch)+':'+JSON.stringify(settings)+(window.CleanPlus?.cacheTag?.(settings)||'');if(cache?.key===key)return cache.result;
+ // 0.33: beat bleed, AI isolation and Pauses only (cleaning-plus.js). Off by default; when off, the worker gets exactly the 0.32 settings and input.
+ const P=window.CleanPlus,plus=!!P?.wants(settings),pre=plus?await P.before(ch,rate,settings):ch;
+ const r=await worker({type:'process',channels:pre,rate,settings:P?P.strip(settings):settings});NoteEditorSafety.audio(r.channels,rate);
+ let out={ ...r,_key:key};if(plus){out=P.after(ch,out,rate,settings,pre);NoteEditorSafety.audio(out.channels,rate);}
+ try{out.safety=P?.measure(ch,out,rate)||null;}catch(_){out.safety=null;}return out;}
 async function dispatch(msg,transfer,raw){
  if(!active()){
   if(bypassed){await raw({type:'run',steps:[['set','cleanOn',cfg.legacyOn]],update:true,want:[]});bypassed=false;}
@@ -44,7 +49,7 @@ async function finish(r){if(!r.audio?.[1])return r;busy=true;ui();rate=r.state.r
  const id=rate+':'+SongCore.hashPcm([Float32Array.from(source,c=>c.charCodeAt(0))]);
  if(cfg.source&&cfg.source!==id){cfg.profile=null;notice='The source or timing changed. The previous noise profile was cleared; check the new sample.';undo=[];redo=[];}cfg.source=id;
  const result=await render(baseline);if(!cfg.profile&&result.profile){cfg.profile=result.profile;notice=result.report.reason;}
- cache={key:rate+':'+SongCore.hashPcm(baseline)+':'+JSON.stringify(cfg),result};error='';
+ cache={key:rate+':'+SongCore.hashPcm(baseline)+':'+JSON.stringify(cfg)+(window.CleanPlus?.cacheTag?.(cfg)||''),result};error='';
  const removed=result.removed||baseline.map(c=>new Float32Array(c.length));return {...r,mask:(r.mask||0)|2,audio:{...r.audio,1:result.channels,2:removed}};
 }
 function mutate(patch,history=true){if(busy||typeof S==='undefined'||S.busy||S.loading)return false;const next=NoiseCore.validate({...clone(cfg),...patch});if(history){undo.push(state());if(undo.length>30)undo.shift();redo=[];}cfg=next;error='';cache=null;endLoop();stopPlayback();NoteTuner.refreshNoise();ui();return true;}

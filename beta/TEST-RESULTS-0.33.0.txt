@@ -1,0 +1,55 @@
+PLAYBOOK VOCAL STUDIO 0.33.0 BETA | HANDOVER TEST RESULTS
+31 October 2026
+
+Ran run-tests.cjs on Playwright Chromium in disposable browser profiles, one suite at a time.
+Reference sets: 0.14.0 main at commit 3fd7da8, the 0.32.2 beta and the 0.32.3 main release.
+All 16 suites passed (704 checks). The final run was on the exact files in this folder; an earlier run before the
+review fixes also passed 16/16.
+
+navigation: 133 passed
+storage: 10 passed
+layout (0.32.5): 61 passed
+timeline-move (new): 41 passed
+cleaning (new): 31 passed
+tuning-plus (new): 32 passed
+cleanup: 18 passed
+editors: 74 passed
+tuning: 44 passed
+workspace-editor: 40 passed
+windows: 48 passed
+recording (0.33.0 version expectation): 38 passed
+restore: 56 passed
+delete: 61 passed
+playback: 4 passed. The approved presets produce identical tuned and final PCM to the 0.32.3 reference in the same browser.
+upgrade: 13 passed
+
+Highlights of the new suites
+- Timeline moves:
+  - drag distance and whole-sample landing
+  - one Undo / Redo, snap / Alt / Esc
+  - overlap prompt (Cancel and Move anyway), Shift whole track, clamp at 0:00
+  - keyboard nudges merged into one Undo
+  - Move... by beats and to a start time; track menu Move track...
+  - sample-exact render at the new time
+  - autosave and reopen; moved Manual-cleanup take rebuilds exactly and stays compact
+  - POLISH note edits shift by one second (100 analysis frames) with pitch edits unchanged
+  - reopening POLISH keeps every hand-tuned note and asks nothing
+- Cleaning:
+  - beat bleed finds a 9.3 ms leak within 0.3 ms and removes at least 20 dB (Node)
+  - beat bleed lowers the backing in the pauses by at least 15 dB in the browser with the loaded backing
+  - a vocal without bleed is unchanged (below -60 dB)
+  - Pauses only leaves every sung sample exactly as recorded
+  - output is byte-identical to 0.32 with every new option off
+  - meter, room profiles, RNNoise isolation (runs and blends)
+  - Find all breaths: list, untick, reduce, Undo these
+- Tuning:
+  - pitch detection within 1 cent from 82 to 880 Hz
+  - chords C, F, Am, G read from the backing, with changes within 0.2 s
+  - correction map and Next heavy correction
+  - Fit doubtful notes: E over C and F over F
+  - locked hand-tuned notes survive Natural Roots; unlocking resets them
+  - My Voice measures 5.5 Hz vibrato and scoops from below, and its preset tunes in Natural mode
+  - live pitch guide shows during simulated-mic recording, hides when recording stops, and can be switched off
+
+ENGINE-SHA256.txt verifies (7 files).
+Still needs real-device and listening checks (see HANDOVER-0.33.0.md section 6).

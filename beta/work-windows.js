@@ -18,7 +18,7 @@ for(const [el,prefix,title] of [[dock,'workWindow','Vocal tuning'],[record,'reco
  bar.innerHTML=`<strong id="${prefix}Title">${title}</strong><div class="ww-window-actions"><button type="button" id="${prefix}Focus" aria-pressed="false">Focus ${el===record?'timeline':'notes'}</button>${el===record?'<button type="button" id="recordWindowUndo">Undo</button><button type="button" id="recordWindowRedo">Redo</button>':'<button type="button" id="workWindowPlay" title="Play / pause (Space)">▶ Play / pause</button><button type="button" id="workWindowStop">■ Stop</button>'}<button type="button" id="${prefix}Max" aria-pressed="false">Maximize</button><button type="button" id="${prefix}Screen">Full screen</button><button type="button" id="${prefix}Pop">Pop out ↗</button><button type="button" id="${prefix}Close">Return to studio</button></div>`;
  const status=document.createElement('output');status.className='ww-status';status.setAttribute('role','status');status.setAttribute('aria-live','polite');bar.append(status);
  el.prepend(bar);bars.set(el,bar);
- const foot=document.createElement('div');foot.className='ww-footer';foot.hidden=true;foot.innerHTML=`<span>Drag the title bar to move · Drag the corner to resize</span><button type="button" id="${prefix}Resize" aria-label="Resize ${el===record?'recording':'work'} window" title="Drag to resize, or use arrow keys. Shift + arrow changes size faster.">↘</button>`;
+ const foot=document.createElement('div');foot.className='ww-footer';foot.hidden=true;foot.innerHTML=`<span>Drag the title bar to move · Drag any edge or corner to resize</span><button type="button" id="${prefix}Resize" aria-label="Resize ${el===record?'recording':'work'} window" title="Drag to resize, or use arrow keys. Shift + arrow changes size faster.">↘</button>`;
  el.append(foot);feet.set(el,foot);
  $(prefix+'Close').onclick=()=>close();
  $(prefix+'Max').onclick=()=>{if(!maximized)remember(mode(),rect());maximized=!maximized;if(!maximized)applyRect(sizes.get(mode())||rect());sync();};
@@ -107,6 +107,19 @@ new MutationObserver(()=>{if(active&&((recordingView&&RC.step!=='rc')||(!recordi
 // Legacy dialogs live outside the workspace; docking releases their ancestors.
 new MutationObserver(()=>{if(active&&document.querySelector('.stmodal:not([hidden]),.modal:not([hidden]),.sheet:not([hidden])'))close();}).observe(document.body,{subtree:true,attributes:true,attributeFilter:['hidden']});
 window.addEventListener('resize',()=>{if(active&&!maximized)applyRect(rect());sync();});document.addEventListener('fullscreenchange',sync);
+// 0.32.5: resize from any edge or corner, not just the bottom-right grip. Left and top edges keep the
+// opposite edge in place; the existing minimum size and screen clamping still apply.
+let edgeDrag=null;
+for(const el of [dock,record])for(const d of ['n','s','e','w','ne','nw','se','sw']){
+ const h=document.createElement('div');h.className='ww-edge ww-edge-'+d;h.dataset.edge=d;h.setAttribute('aria-hidden','true');el.append(h);
+ h.addEventListener('pointerdown',e=>{if(!active||maximized||narrow()||e.button!==0||el!==panel())return;e.preventDefault();e.stopPropagation();edgeDrag={id:e.pointerId,x:e.clientX,y:e.clientY,r:rect(),d};h.setPointerCapture(e.pointerId);el.classList.add('ww-dragging');});
+ h.addEventListener('pointermove',e=>{if(!edgeDrag||edgeDrag.id!==e.pointerId)return;const {r}=edgeDrag,dx=e.clientX-edgeDrag.x,dy=e.clientY-edgeDrag.y,minW=Math.min(640,innerWidth-16),minH=Math.min(400,innerHeight-16);let x=r.x,y=r.y,w=r.w,hh=r.h;
+  if(d.includes('e'))w=r.w+dx;if(d.includes('s'))hh=r.h+dy;
+  if(d.includes('w')){w=Math.max(minW,Math.min(r.x+r.w-8,r.w-dx));x=r.x+r.w-w;}
+  if(d.includes('n')){hh=Math.max(minH,Math.min(r.y+r.h-8,r.h-dy));y=r.y+r.h-hh;}
+  applyRect({x,y,w,h:hh});});
+ for(const t of ['pointerup','pointercancel','lostpointercapture'])h.addEventListener(t,()=>{if(edgeDrag&&edgeDrag.id!==undefined){remember(mode(),rect());edgeDrag=null;el.classList.remove('ww-dragging');}});
+}
 function beginDrag(e,resize){if(!active||maximized||narrow()||e.button!==0||(!resize&&e.target.closest('button')))return;e.preventDefault();drag={id:e.pointerId,x:e.clientX,y:e.clientY,r:rect(),resize};e.currentTarget.setPointerCapture(e.pointerId);panel().classList.add('ww-dragging');}
 const focusable=root=>[...root.querySelectorAll('button,input,select,textarea,a[href],summary,iframe,[tabindex]')].filter(e=>!e.disabled&&e.tabIndex>=0&&!e.closest('[inert]')&&e.getClientRects().length&&getComputedStyle(e).visibility!=='hidden');
 function key(e,frame){

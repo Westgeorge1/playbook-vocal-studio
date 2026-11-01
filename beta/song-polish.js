@@ -60,6 +60,32 @@ function changedRanges(w,t,oldSig,oldPcm){
  if(s>=0)out.push([s/R,len/R]);return out.map(([a,b])=>[Math.max(0,a-.05),b+.05]);}
 function hits(ranges,a,b){return !ranges||ranges.some(([s,e])=>a<e&&b>s);}
 function fmtRanges(r){return r?r.map(([a,b])=>a.toFixed(2)+'–'+b.toFixed(2)+' s').join(', '):'the whole vocal';}
+// 0.33: a part (or whole track) moved on the timeline. Move this track's saved POLISH edits with the audio: the
+// note editor's notes, breath and timing edits, the loop, the noise sample and (for a whole-track move) the
+// singing drift. The saved input becomes the new arrangement, so reopening POLISH re-renders with every edit kept.
+// Edits that straddle a moved part's edge, or that the moved part now covers, are dropped. Returns a summary.
+function followMove(w,t,ranges,d,whole){
+ const p=t.polish,s=p?.session;if(!s?.pcm?.length||!d)return null;
+ const pl=C.polishPlan(w,t);if(!pl.ok)return null;
+ let pcm=C.renderTrack(w,t,{end:C.trackEnd(t)});if(pl.mono)pcm=[monoOf(pcm)];
+ if(pcm.length!==s.pcm.length)return null;
+ // Analysis frames and edits can start a little before a part's first sample, so part edges get a 60 ms margin.
+ if(whole)ranges=[[-1e9,1e9]];const E=.06,inPart=x=>ranges.some(([a,b])=>x>=a-E&&x<=b+E),now=ranges.map(([a,b])=>[a+d,b+d]);let dropped=0,moved=0;
+ const span=(a,b,ed=true)=>{const ma=inPart(a),mb=inPart(b);if(ma!==mb){if(ed)dropped++;return null;}if(ma){if(ed)moved++;return [a+d,b+d];}if(!whole&&now.some(([x,y])=>a<y-E&&b>x+E)){if(ed)dropped++;return null;}return [a,b];};
+ const len=pcm[0].length/w.rate,list=(arr,isEd=()=>true)=>(arr||[]).flatMap(x=>{const e=isEd(x),k=span(x[0],x[1],e);if(k&&k[0]>=0&&k[1]<=len+E){const c=Array.from(x);c[0]=k[0];c[1]=k[1];return [c];}if(k&&e)dropped++;return [];});
+ const ns={...s,pcm,notes:list(s.notes,a=>a[5]>.5),edits:{...(s.edits||{}),breaths:list(s.edits?.breaths),timing:list(s.edits?.timing)}};
+ if(s.noteTuner){const nt=structuredClone({...s.noteTuner,previousEditor:undefined});delete nt.previousEditor;
+  const ed=nt.editor;
+  if(ed?.settings){const AR=11025,HOP=110,fr=x=>x*HOP/AR,maxF=Math.max(0,Math.floor((Math.ceil(pcm[0].length*AR/w.rate)-490)/HOP)),st=ed.settings;
+   if(Array.isArray(st.notes)){const out=[];for(const n of st.notes){const e=!!n[11],k=span(fr(n[0]),fr(n[1]),e);if(!k)continue;const i0=Math.round(k[0]*AR/HOP),i1=i0+(n[1]-n[0]);if(i0<0||i1>=maxF){if(e)dropped++;continue;}const c=n.slice();c[0]=i0;c[1]=i1;out.push(c);}
+    out.sort((a,b)=>a[0]-b[0]);st.notes=out.filter((n,i)=>!i||n[0]>out[i-1][1]||(n[11]&&dropped++,false));}
+   if(st.loop?.on){const k=span(st.loop.a,st.loop.b,false);st.loop=k?{...st.loop,a:k[0],b:k[1]}:{a:0,b:0,on:false};}
+   if(whole&&st.refDrift?.v?.length){const step=st.refDrift.step??.5,k=Math.round(d/step),v=st.refDrift.v;st.refDrift={...st.refDrift,v:(k>0?[...Array(k).fill(v[0]),...v]:v.slice(-k)).slice(0,4000)};if(!st.refDrift.v.length)st.refDrift=null;}
+   ed.frames=pcm[0].length;}
+  if(nt.cleaner?.profile){const k=span(nt.cleaner.profile.start,nt.cleaner.profile.end,false);if(k&&k[0]>=0&&k[1]<=900)nt.cleaner.profile={...nt.cleaner.profile,start:k[0],end:k[1]};}
+  nt.sourceHash=C.hashPcm(pcm);ns.noteTuner=nt;}
+ t.polish={...p,session:ns};return {moved,dropped};
+}
 function planKeep(w,t,old){const ranges=changedRanges(w,t,old.sourceSig,old.session?.pcm),s=old.session||{},e=s.edits||{},notes=(s.notes||[]).filter(a=>a[5]>.5);
  const part=(list,f)=>{const keep=[],drop=[];for(const x of list||[])(hits(ranges,...f(x))?drop:keep).push(x);return {keep,drop};};
  return {ranges,notes:part(notes,a=>[a[0],a[1]]),breaths:part(e.breaths,b=>[b[0],b[1]]),timing:part(e.timing,x=>[x[0],x[1]]),comp:(e.comp||[]).length,takes:(s.takes||[]).length};}
@@ -79,7 +105,8 @@ async function open(id=W()?.activeTrack){
  let plan=null;const rebuildSaved=old?.recoveryMissing&&old.sourceSig===sig&&Array.isArray(old.session?.pcm)&&old.session.pcm.length===pl.inputChannels;const modeChange=old&&old.sourceSig===sig&&old.session?.pcm?.length!==pl.inputChannels&&!old.recoveryMissing;
  if(old&&!valid&&!modeChange&&!rebuildSaved){
   plan=planKeep(w,t,old);const c=(n,s)=>n+' '+s+(n===1?'':'s'),pl=plan;
-  const answer=await SongStudio.dialog('Update POLISH for '+t.name+'?', (old.recoveryMissing?'<p>Some saved POLISH audio is missing. Rebuild this vocal from its original recordings. The edits listed below cannot be checked against the missing input.</p>':'<p>Your chosen recording changed in <b>'+fmtRanges(pl.ranges)+'</b>. This updates <b>only this vocal track</b>.</p>')+'<ul class="sg-gone"><li>Kept: cleaning, tuning settings and effects.</li><li>Kept (outside the change): '+c(pl.notes.keep.length,'note edit')+', '+c(pl.breaths.keep.length,'breath edit')+', '+c(pl.timing.keep.length,'timing edit')+'.</li><li>Reset (inside the change): '+c(pl.notes.drop.length,'note edit')+', '+c(pl.breaths.drop.length,'breath edit')+', '+c(pl.timing.drop.length,'timing edit')+'.</li>'+(pl.comp||pl.takes?'<li>Reset: POLISH alternate takes ('+c(pl.takes,'take')+').</li>':'')+'</ul>'+(old.session?.noteTuner?.mode==='note'?'<p>The new note editor will detect notes again for the changed recording. Back up first to keep an editable copy of your previous vocal and its note edits.</p>':'')+'<p>Back up first if you need the earlier edited version.</p>',[['cancel','Keep current version'],['ok','Update this vocal']]);
+  // 0.33: after a timeline move the edits were moved with the audio, so the input is identical and nothing is reset.
+  const answer=(pl.ranges&&!pl.ranges.length&&!old.recoveryMissing&&!pl.comp&&!pl.takes)?{action:'ok'}:await SongStudio.dialog('Update POLISH for '+t.name+'?', (old.recoveryMissing?'<p>Some saved POLISH audio is missing. Rebuild this vocal from its original recordings. The edits listed below cannot be checked against the missing input.</p>':'<p>Your chosen recording changed in <b>'+fmtRanges(pl.ranges)+'</b>. This updates <b>only this vocal track</b>.</p>')+'<ul class="sg-gone"><li>Kept: cleaning, tuning settings and effects.</li><li>Kept (outside the change): '+c(pl.notes.keep.length,'note edit')+', '+c(pl.breaths.keep.length,'breath edit')+', '+c(pl.timing.keep.length,'timing edit')+'.</li><li>Reset (inside the change): '+c(pl.notes.drop.length,'note edit')+', '+c(pl.breaths.drop.length,'breath edit')+', '+c(pl.timing.drop.length,'timing edit')+'.</li>'+(pl.comp||pl.takes?'<li>Reset: POLISH alternate takes ('+c(pl.takes,'take')+').</li>':'')+'</ul>'+(old.session?.noteTuner?.mode==='note'?'<p>The new note editor will detect notes again for the changed recording. Back up first to keep an editable copy of your previous vocal and its note edits.</p>':'')+'<p>Back up first if you need the earlier edited version.</p>',[['cancel','Keep current version'],['ok','Update this vocal']]);
   if(answer.action!=='ok')return false;
  }
  const previous=binding?{...binding}:null,previousSession=snapshot();
@@ -167,7 +194,7 @@ $('polishExportSong').onclick=()=>{capture();const id=T()?.id;RC.go('rc');SongSt
 $('polishSong').onclick=async()=>{if(SongStudio.state().playing){SongStudio.stopPlay();render();return;}capture();try{await SongStudio.play(0);}catch(e){notify(e.message,true);}render();};
 $('polishBypass').onchange=()=>{const t=T();if(!t?.polish)return;const bypass=$('polishBypass').checked;SongStudio.setPolishPref(t.id,{bypass},bypass?'Dry vocal enabled. Processing settings are kept.':'Processed vocal enabled.');render();};
 for(const b of document.querySelectorAll('.savebtn'))b.textContent='EXPORT THIS VOCAL ▾';
-window.SongPolish={open,capture,detach,releaseDeleted,restored,beforeShow,render,pack,unpack,needsApply,assertExport,snapshot,acceptPolish,monoOf,state:()=>({binding:binding?{...binding}:null,switching,error:lastError,refusal:lastRefusal})};
+window.SongPolish={followMove,open,capture,detach,releaseDeleted,restored,beforeShow,render,pack,unpack,needsApply,assertExport,snapshot,acceptPolish,monoOf,state:()=>({binding:binding?{...binding}:null,switching,error:lastError,refusal:lastRefusal})};
 if(S.song&&S.main)restored({song:S.song});
 setInterval(render,400);
 })();

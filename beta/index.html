@@ -2,7 +2,7 @@
 <html lang="en">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Playbook Vocal Studio 0.32.4 · DAW</title>
+<title>Playbook Vocal Studio 0.33.1 · DAW</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,500..800&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
@@ -233,12 +233,13 @@ nav.steps button { flex:1 0 64px; min-height:48px; }
 .phrase-take .metrics { font:13px/1.65 var(--mono); color:var(--muted); }
 .phrase-take.suggested { color:var(--gold); }
 </style>
-<link rel="stylesheet" href="daw.css?v=0.32.4">
-<link rel="stylesheet" href="rec.css?v=0.32.4">
-<link rel="stylesheet" href="rc.css?v=0.32.4">
-<link rel="stylesheet" href="studio.css?v=0.32.4">
-<link rel="stylesheet" href="work-windows.css?v=0.32.4">
-<link rel="stylesheet" href="studio-browse.css?v=0.32.4">
+<link rel="stylesheet" href="daw.css?v=0.33.1">
+<link rel="stylesheet" href="rec.css?v=0.33.1">
+<link rel="stylesheet" href="rc.css?v=0.33.1">
+<link rel="stylesheet" href="studio.css?v=0.33.1">
+<link rel="stylesheet" href="work-windows.css?v=0.33.1">
+<link rel="stylesheet" href="studio-browse.css?v=0.33.1">
+<link rel="stylesheet" href="layout-resize.css?v=0.33.1">
 <link rel="icon" href="data:,">
 
 <!-- 0.16.0 RECORD & COMP: two-step switch (always visible) -->
@@ -409,7 +410,7 @@ nav.steps button { flex:1 0 64px; min-height:48px; }
 <button role="menuitem" data-act="howto">How recording works</button>
 <button role="menuitem" data-act="about">About this engine</button></div></div>
   </nav>
-  <div class="apptitle"><b>Playbook Vocal Studio 0.32.4</b> <span id="dawSong">·</span></div>
+  <div class="apptitle"><b>Playbook Vocal Studio 0.33.1</b> <span id="dawSong">·</span></div>
   <div class="savedind" id="dawSaved" role="status" aria-live="polite" title="Autosave on this browser"></div><div class="headright"><button class="guidebtn" id="guideBtn" aria-haspopup="dialog" aria-controls="guideSheet">✦ SMART GUIDE <span class="count" id="guideCount"></span></button><div class="chip" id="chip">Starting the engine...</div></div>
 </header>
 <div class="busybar" id="busybar"><i></i></div>
@@ -1010,38 +1011,42 @@ nav.steps button { flex:1 0 64px; min-height:48px; }
   </div>
 </div>
 
-<link rel="stylesheet" href="song-studio.css?v=0.32.4">
-<link rel="stylesheet" href="quality-studio.css?v=0.32.4">
-<link rel="stylesheet" href="reference-guide.css?v=0.32.4">
-<link rel="stylesheet" href="tuner-routing.css?v=0.32.4">
-<script src="project-storage.js?v=0.32.4"></script>
-<script src="note-editor-safety.js?v=0.32.4"></script>
-<script src="finish-policy.js?v=0.32.4"></script>
-<script src="quality-core.js?v=0.32.4"></script>
-<script src="reference-core.js?v=0.32.4"></script>
-<script src="song-core.js?v=0.32.4"></script>
-<link rel="stylesheet" href="noise-cleaner.css?v=0.32.4">
-<script src="noise-core.js?v=0.32.4"></script>
-<script src="noise-cleaner.js?v=0.32.4"></script>
-<script src="tuner-routing.js?v=0.32.4"></script>
-<script src="studio-main.js?v=0.32.4"></script>
+<link rel="stylesheet" href="song-studio.css?v=0.33.1">
+<link rel="stylesheet" href="quality-studio.css?v=0.33.1">
+<link rel="stylesheet" href="reference-guide.css?v=0.33.1">
+<link rel="stylesheet" href="tuner-routing.css?v=0.33.1">
+<script src="project-storage.js?v=0.33.1"></script>
+<script src="note-editor-safety.js?v=0.33.1"></script>
+<script src="finish-policy.js?v=0.33.1"></script>
+<script src="quality-core.js?v=0.33.1"></script>
+<script src="reference-core.js?v=0.33.1"></script>
+<script src="song-core.js?v=0.33.1"></script>
+<link rel="stylesheet" href="noise-cleaner.css?v=0.33.1">
+<script src="noise-core.js?v=0.33.1"></script>
+<script src="noise-cleaner.js?v=0.33.1"></script>
+<script src="cleaning-plus.js?v=0.33.1"></script>
+<script src="tuner-routing.js?v=0.33.1"></script>
+<script src="studio-main.js?v=0.33.1"></script>
 
-<script src="daw.js?v=0.32.4"></script>
-<script src="recovery.js?v=0.32.4"></script>
-<script src="rec.js?v=0.32.4"></script>
-<script src="rc.js?v=0.32.4"></script>
-<script src="edit-core.js?v=0.32.4"></script>
-<script src="separation.js?v=0.32.4"></script>
-<script src="studio.js?v=0.32.4"></script>
+<script src="daw.js?v=0.33.1"></script>
+<script src="recovery.js?v=0.33.1"></script>
+<script src="rec.js?v=0.33.1"></script>
+<script src="rc.js?v=0.33.1"></script>
+<script src="edit-core.js?v=0.33.1"></script>
+<script src="separation.js?v=0.33.1"></script>
+<script src="studio.js?v=0.33.1"></script>
+<script src="breath-find.js?v=0.33.1"></script>
 
-<script src="ref-align.js?v=0.32.4"></script>
-<script src="song-studio.js?v=0.32.4"></script>
-<script src="song-polish.js?v=0.32.4"></script>
-<script src="quality-studio.js?v=0.32.4"></script>
-<script src="reference-preview.js?v=0.32.4"></script>
-<script src="reference-guide.js?v=0.32.4"></script>
+<script src="ref-align.js?v=0.33.1"></script>
+<script src="live-pitch.js?v=0.33.1"></script>
+<script src="song-studio.js?v=0.33.1"></script>
+<script src="song-polish.js?v=0.33.1"></script>
+<script src="quality-studio.js?v=0.33.1"></script>
+<script src="reference-preview.js?v=0.33.1"></script>
+<script src="reference-guide.js?v=0.33.1"></script>
 
-<script src="work-windows.js?v=0.32.4"></script>
-<script src="workspace-transfer.js?v=0.32.4"></script>
-<script src="studio-browse.js?v=0.32.4"></script>
-<script src="storage-panel.js?v=0.32.4"></script>
+<script src="work-windows.js?v=0.33.1"></script>
+<script src="workspace-transfer.js?v=0.33.1"></script>
+<script src="studio-browse.js?v=0.33.1"></script>
+<script src="storage-panel.js?v=0.33.1"></script>
+<script src="layout-resize.js?v=0.33.1"></script>

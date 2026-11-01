@@ -10,3 +10,16 @@
 .noise-studio select {max-width:100%;min-width:0}
 #noiseStatus {font-size:13px;line-height:1.5}
 @media(max-width:600px){.noise-presets .btn {flex:1 1 90px}.noise-studio .btn{white-space:normal}.noise-studio .grid2 {grid-template-columns:1fr 1fr}}
+
+/* 0.33: cleaning additions */
+.noise-plus{display:grid;gap:8px;margin:10px 0}
+.noise-plus .field select{width:100%}
+.noise-safety{font-weight:600;color:#9fe0c0}
+.noise-safety.warn{color:#ffcf7a}
+.noise-rooms{flex-wrap:wrap;gap:6px;align-items:center}
+.noise-rooms select{min-height:36px;max-width:100%}
+.breath-list{margin-top:10px;display:grid;gap:8px}
+.breath-rows{display:grid;gap:4px;max-height:260px;overflow:auto;padding-right:4px}
+.breath-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.breath-row label{flex:1 1 180px;display:flex;gap:8px;align-items:center;font-variant-numeric:tabular-nums}
+.breath-row small{opacity:.7}

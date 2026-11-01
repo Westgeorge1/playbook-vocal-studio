@@ -295,3 +295,16 @@ body.song-studio.sg-onsong #rcExport{display:none}
 #songStudio .sg-polish-state{min-width:0;overflow-wrap:anywhere}
 #songStudio .sg-lane-head label:has([data-level]),#songStudio .sg-lane-head label:has([data-pan]){flex-wrap:nowrap;gap:3px}
 @media(max-width:600px){#songStudio .sg-lane-head input[data-level],#songStudio .sg-lane-head input[data-pan]{width:52px!important}}
+
+/* 0.33: Move parts */
+#songStudio.sg-move-on canvas.sg-wave:not([data-wave="ruler"]):not([data-wave="beat"]){cursor:grab}
+body.sg-moving,body.sg-moving *{cursor:grabbing!important;user-select:none!important}
+#sgMovePart{min-height:34px}
+
+/* 0.33: live pitch guide */
+.sg-pitch{display:inline-flex;align-items:center;gap:8px;padding:3px 6px;border:1px solid #2c4154;border-radius:8px;background:#0f1a24}
+.sg-pitch[hidden]{display:none}
+.sg-pitch canvas{width:220px;height:30px;border-radius:4px}
+#sgPitchText{font:600 14px var(--mono,monospace);min-width:150px;color:#c9d8e4}
+#sgPitchText.ok{color:#62e3a0}#sgPitchText.near{color:#f5c875}#sgPitchText.off{color:#ff8a8a}
+@media(max-width:600px){.sg-pitch{flex:1 1 100%}.sg-pitch canvas{width:120px}#sgPitchText{min-width:0;font-size:13px}}
