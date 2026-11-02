@@ -231,6 +231,7 @@ function outlook(){
 function nextStep(){
  const w=ST()?.song,has=w?.tracks?.some(t=>t.regions?.length),c=context();
  if(!has)return 'Record or import a vocal on Song & vocals.';
+ const reviewed=window.PhraseGuide?.nextStep();if(reviewed)return reviewed;
  if(window.RC?.step!=='polish')return 'Choose your best take for each part, then press 2 POLISH to clean, tune and mix it.';
  if(!visited.has('clean')&&c!=='clean')return 'Step 2: CLEAN. Listen to BEFORE and decide whether the background needs cleaning.';
  if(!visited.has('tune')&&c!=='tune')return 'Step 3: TUNE. Check the key, choose a preset, then fix single notes.';
@@ -253,6 +254,7 @@ function install(){
   '<div class="coach-explain"><label class="switch"><input type="checkbox" id="coachExplain"> Explain controls: hover (or tap) any control and the guide says what it does</label><p id="coachExplainOut" class="note"></p></div>'+
   '<details class="coach-log"><summary>What you just did</summary><ol id="coachLog"></ol></details>';
  top.after(panel);
+ const guided=document.createElement('button');guided.id='guideThisVocal';guided.className='btn';guided.textContent='Guide this vocal';guided.title='Review one phrase, compare takes and hear changes before keeping them.';guided.onclick=()=>window.PhraseGuide.open();panel.prepend(guided);
  // The original measured tips stay, folded underneath.
  const old=document.createElement('details');old.id='coachClassic';old.className='coach-classic';old.innerHTML='<summary>Measured tips · help with · target sound</summary>';
  for(const el of [...inner.children])if(el!==top&&el!==panel)old.append(el);inner.append(old);
@@ -317,7 +319,7 @@ function explainHandlers(doc,offset){
  doc.addEventListener('pointerover',e=>{if(!explain||e.pointerType==='touch')return;const el=e.target.closest?.('button,select,input,label,[role=slider],canvas,summary');if(!el||el===tipFor||el.closest('#coachTip,#coachToast'))return;const o=offset();showTip(el,explainFor(el),e.clientX+o.x,e.clientY+o.y);},true);
  doc.addEventListener('pointerout',e=>{if(explain&&e.target===tipFor)hideTip();},true);
  // Touch: in Explain mode a tap explains instead of pressing (switch Explain off to work again).
- doc.addEventListener('click',e=>{if(!explain||!lastTouch||e.target.closest?.('#guideSheet,#coachToast,#coachBtn,#guideBtn'))return;const el=e.target.closest?.('button,select,input,label,[role=slider],canvas,summary');if(!el)return;e.preventDefault();e.stopImmediatePropagation();const o=offset();showTip(el,explainFor(el)||'No explanation for this control yet.',e.clientX+o.x,e.clientY+o.y);},true);
+ doc.addEventListener('click',e=>{if(!explain||!lastTouch||e.target.closest?.('#guideSheet,#coachToast,#coachBtn,#guideBtn,#phraseGuide'))return;const el=e.target.closest?.('button,select,input,label,[role=slider],canvas,summary');if(!el)return;e.preventDefault();e.stopImmediatePropagation();const o=offset();showTip(el,explainFor(el)||'No explanation for this control yet.',e.clientX+o.x,e.clientY+o.y);},true);
  doc.addEventListener('pointerdown',e=>{lastTouch=e.pointerType==='touch';},true);
 }
 let lastTouch=false;

@@ -11,7 +11,7 @@ function number(x,a,b,name){if(!Number.isFinite(x)||x<a||x>b)throw Error('Invali
 function label(s,fallback){return String(s||fallback).trim().slice(0,100)||fallback;}
 function id(w,prefix){return prefix+(w.nextId++);}
 function empty(rate=48000){return {v:1,uid:Math.random().toString(36).slice(2)+Date.now().toString(36),title:'My song',rate,nextId:2,revision:0,tracks:[{id:'v1',name:'Lead vocal',gainDb:0,pan:0,mute:false,solo:false,regions:[]}],sections:[],sources:{},activeTrack:'v1',selectedRegion:null,cursor:0,range:null,lead:2,fadeMs:20,masterDb:-6,appliedSig:null};}
-function clone(w){return {...w,referenceGuide:w.referenceGuide?structuredClone(w.referenceGuide):undefined,range:w.range?.slice()||null,sections:w.sections.map(s=>({...s})),sources:{...w.sources},tracks:w.tracks.map(t=>({...t,levelMoves:t.levelMoves?.map(m=>({...m})),regions:t.regions.map(r=>({...r,takes:r.takes.map(a=>({...a}))}))}))};}
+function clone(w){return {...w,referenceGuide:w.referenceGuide?structuredClone(w.referenceGuide):undefined,range:w.range?.slice()||null,sections:w.sections.map(s=>({...s})),sources:{...w.sources},tracks:w.tracks.map(t=>({...t,levelMoves:t.levelMoves?.map(m=>({...m})),regions:t.regions.map(r=>({...r,takes:r.takes.map(a=>a.coachDecisions?{...a,coachDecisions:a.coachDecisions.map(d=>({...d}))}:{...a})}))}))};}
 function range(a,b){number(a,0,LIMITS.seconds-.04,'start');number(b,a+.04,LIMITS.seconds,'end');}
 function roomSeconds(w){const u=usage(w);return Math.max(0,(LIMITS.bytes-u.bytes)/(w.rate*4));}
 function usage(w){let bytes=0,seconds=0,takes=0;for(const s of Object.values(w.sources)){bytes+=s.channels.reduce((n,c)=>n+c.byteLength,0);seconds+=s.channels[0].length/s.rate;}for(const t of w.tracks)for(const r of t.regions)takes+=r.kind==='legacy-base'?0:r.takes.length;return {bytes,seconds,takes};}
@@ -95,6 +95,17 @@ function readiness(w){const lanes=w.tracks.filter(t=>t.regions.some(r=>r.selecte
  const todo=lanes.filter(l=>['todo','update','key'].includes(l.state)).length,blocked=lanes.filter(l=>l.state==='blocked').length;
  return {lanes,total:lanes.length,ready:lanes.filter(l=>l.state==='ready'||l.state==='dry').length,todo,blocked,canFinish:!blocked};}
 function duration(w){return Math.max(1,...w.sections.map(s=>s.end),...w.tracks.flatMap(t=>t.regions.map(r=>r.end)),...w.tracks.map(t=>polishValid(w,t)&&!t.polish.bypass?t.polish.channels[0].length/w.rate:0));}
+function validateCoachDecisions(a){
+ if(a.coachDecisions==null)return;
+ const list=a.coachDecisions;
+ if(!Array.isArray(list)||list.length>512)throw Error('Invalid phrase review list.');
+ const keys=new Set();
+ for(const d of list){
+  if(!d||typeof d.key!=='string'||d.key.length>100||keys.has(d.key)||typeof d.label!=='string'||d.label.length>180||
+     !Number.isFinite(d.start)||!Number.isFinite(d.end)||d.end<=d.start)throw Error('Invalid saved phrase decision.');
+  keys.add(d.key);
+ }
+}
 function validate(w){
  if(!w||w.v!==1||!Array.isArray(w.tracks)||!w.tracks.length||w.tracks.length>LIMITS.tracks||!Array.isArray(w.sections)||w.sections.length>LIMITS.sections||!w.sources||typeof w.sources!=='object')throw Error('Invalid song workspace.');
  if(w.referenceGuide){const RC=root.ReferenceCore||(typeof require==='function'?require('./reference-core.js'):null);if(!RC)throw Error('Reference profile support did not load.');RC.validate(w.referenceGuide);}
@@ -110,7 +121,7 @@ function validate(w){
  let nr=0;
  for(const t of w.tracks){seen(t.id);validateMoves(t);number(t.gainDb,-36,12,'track level');if(t.polishMono!=null&&typeof t.polishMono!=='boolean')throw Error('Invalid mono choice.');number(t.pan,-1,1,'track pan');if(!Array.isArray(t.regions))throw Error('Invalid recording regions.');
   for(const r of t.regions){seen(r.id);nr++;range(r.start,r.end);if(r.fadeMs!=null)number(r.fadeMs,0,100,'range fade');if(!Array.isArray(r.takes)||r.takes.length>LIMITS.perRegion)throw Error('Up to 32 attempts for one recording range.');
-   const tids=new Set();for(const a of r.takes){seen(a.id);tids.add(a.id);if(!Object.hasOwn(w.sources,a.source))throw Error('Missing recording audio.');number(a.origin,-10,LIMITS.seconds,'take position');number(a.offsetMs||0,-500,500,'take alignment');number(a.gainDb||0,-36,24,'take gain');number(a.trimIn||0,0,LIMITS.seconds,'take trim');number(a.trimOut||0,0,LIMITS.seconds,'take trim');number(a.fadeIn||0,0,5000,'take fade');number(a.fadeOut||0,0,5000,'take fade');if(a.rating!=null&&![0,1,2,3,4,5].includes(a.rating))throw Error('Invalid take rating.');const sp=takeSpan(w,a);if(sp[1]-sp[0]<1)throw Error('A take cannot be trimmed to nothing.');}
+   const tids=new Set();for(const a of r.takes){seen(a.id);tids.add(a.id);validateCoachDecisions(a);if(!Object.hasOwn(w.sources,a.source))throw Error('Missing recording audio.');number(a.origin,-10,LIMITS.seconds,'take position');number(a.offsetMs||0,-500,500,'take alignment');number(a.gainDb||0,-36,24,'take gain');number(a.trimIn||0,0,LIMITS.seconds,'take trim');number(a.trimOut||0,0,LIMITS.seconds,'take trim');number(a.fadeIn||0,0,5000,'take fade');number(a.fadeOut||0,0,5000,'take fade');if(a.rating!=null&&![0,1,2,3,4,5].includes(a.rating))throw Error('Invalid take rating.');const sp=takeSpan(w,a);if(sp[1]-sp[0]<1)throw Error('A take cannot be trimmed to nothing.');}
    if(r.selected&&!tids.has(r.selected))throw Error('Chosen take is missing.');if(r.reference&&!tids.has(r.reference))throw Error('Reference take is missing.');if(r.selected&&!covers(w,r.takes.find(a=>a.id===r.selected),r))throw Error('Chosen take does not cover its recording range.');
   }
  }

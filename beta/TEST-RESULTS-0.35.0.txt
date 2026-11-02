@@ -1,0 +1,26 @@
+Playbook Vocal Studio 0.35.0 beta
+All 907 checks across 21 Chromium/Playwright suites passed. The lane controls and phone layout were tested again after positioning Play/Pause directly on the waveform.
+
+cleaning             31 checks passed
+cleanup              18 checks passed
+coach                45 checks passed
+delete               61 checks passed
+editors              74 checks passed
+laptop               34 checks passed
+layout               61 checks passed
+navigation           134 checks passed
+phrase-guide         35 checks passed
+playback             4 checks passed
+recording            38 checks passed
+regressions          21 checks passed
+restore              56 checks passed
+storage              10 checks passed
+timeline-move        41 checks passed
+tuning               44 checks passed
+tuning-plus          32 checks passed
+upgrade              13 checks passed
+ux                   66 checks passed
+windows              48 checks passed
+workspace-editor     41 checks passed
+
+Approved tuning and default playback matched 0.32.3 sample for sample on the synthetic reference vocal. The guide auditioned the approved tuning preset in isolation, and its audio matched the applied phrase after monitoring gain. The new suite also checked tone and balance previews, take selection, cleanup, undo, persistence, project backup/reopen, the active mix, touch input, and phone width. Recording checks used a simulated microphone.

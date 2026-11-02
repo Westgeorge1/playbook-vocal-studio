@@ -85,7 +85,7 @@ function removeBleed(ch,ref,rate,strength=1,opt={}){
 
 /* ---------- RNNoise (browser only) ---------- */
 let rnLoad=null;
-async function rnnoise(){if(!rnLoad)rnLoad=import('./vendor/rnnoise/rnnoise.js?v=0.34.2').then(m=>m.Rnnoise.load());return rnLoad;}
+async function rnnoise(){if(!rnLoad)rnLoad=import('./vendor/rnnoise/rnnoise.js?v=0.35.0').then(m=>m.Rnnoise.load());return rnLoad;}
 async function resample(ch,from,to){if(from===to)return ch;const len=Math.round(ch[0].length*to/from),ctx=new OfflineAudioContext(ch.length,len,to),buf=new AudioBuffer({numberOfChannels:ch.length,length:ch[0].length,sampleRate:from});ch.forEach((c,i)=>buf.copyToChannel(c,i));const s=ctx.createBufferSource();s.buffer=buf;s.connect(ctx.destination);s.start();const r=await ctx.startRendering();return Array.from({length:ch.length},(_,i)=>r.getChannelData(i).slice());}
 async function isolate(ch,rate,blend){
  const rn=await rnnoise(),x48=await resample(ch,rate,48000),F=rn.frameSize,out=[];
@@ -109,7 +109,7 @@ function backing(rate){
 // the page itself if workers are unavailable.
 let bw=null,bwSeq=0;const bwJobs=new Map();
 function bleedJob(ch,ref,rate,strength){return new Promise((resolve,reject)=>{
- if(!bw){try{bw=new Worker('cleaning-plus.js?v=0.34.2');bw.onmessage=({data})=>{const j=bwJobs.get(data.id);if(!j)return;bwJobs.delete(data.id);data.error?j.reject(Error(data.error)):j.resolve({channels:data.channels,report:data.report});};bw.onerror=e=>{e.preventDefault?.();for(const j of bwJobs.values())j.reject(Error(e.message||'Beat-bleed processing stopped.'));bwJobs.clear();bw?.terminate();bw=null;};}
+ if(!bw){try{bw=new Worker('cleaning-plus.js?v=0.35.0');bw.onmessage=({data})=>{const j=bwJobs.get(data.id);if(!j)return;bwJobs.delete(data.id);data.error?j.reject(Error(data.error)):j.resolve({channels:data.channels,report:data.report});};bw.onerror=e=>{e.preventDefault?.();for(const j of bwJobs.values())j.reject(Error(e.message||'Beat-bleed processing stopped.'));bwJobs.clear();bw?.terminate();bw=null;};}
   catch(_){bw=null;try{resolve(removeBleed(ch,ref,rate,strength));}catch(e){reject(e);}return;}}
  const id=++bwSeq,c=ch.map(a=>a.slice()),r=ref.slice();bwJobs.set(id,{resolve,reject});bw.postMessage({id,ch:c,ref:r,rate,strength},[...c.map(a=>a.buffer),r.buffer]);});}
 async function before(ch,rate,s){let x=ch;last={};

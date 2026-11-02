@@ -308,3 +308,8 @@ body.sg-moving,body.sg-moving *{cursor:grabbing!important;user-select:none!impor
 #sgPitchText{font:600 14px var(--mono,monospace);min-width:150px;color:#c9d8e4}
 #sgPitchText.ok{color:#62e3a0}#sgPitchText.near{color:#f5c875}#sgPitchText.off{color:#ff8a8a}
 @media(max-width:600px){.sg-pitch{flex:1 1 100%}.sg-pitch canvas{width:120px}#sgPitchText{min-width:0;font-size:13px}}
+
+#songStudio .sg-lane:not(.sg-ruler){position:relative}
+#songStudio .sg-lane-play{position:absolute;z-index:1;top:5px;right:6px;min-width:54px;font-weight:700;color:#d4ffeb;background:#193e33;border-color:#73a58d}
+#songStudio .sg-lane-play[data-transport="Pause"]{background:#435039;border-color:#c5cc8a}
+#songStudio .sg-lane-play:disabled{opacity:.55}

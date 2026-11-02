@@ -549,10 +549,10 @@ html.empty-editor [inert]{opacity:.58}
   <p class="foot">Everything runs on your device; your audio is never uploaded.</p>
 </div>
 
-<script src="project-storage.js?v=0.34.2"></script>
-<script src="note-editor-safety.js?v=0.34.2"></script>
-<script src="natural-tuning.js?v=0.34.2"></script>
-<script src="chord-core.js?v=0.34.2"></script>
+<script src="project-storage.js?v=0.35.0"></script>
+<script src="note-editor-safety.js?v=0.35.0"></script>
+<script src="natural-tuning.js?v=0.35.0"></script>
+<script src="chord-core.js?v=0.35.0"></script>
 <script>
 (() => {
 "use strict";
@@ -2441,6 +2441,7 @@ function applyVocalPreset(kind,opts={}){
   $("cCenter").value=85;$("cCenterOut").textContent="85%";
   $("cDrift").value=0;$("cDriftOut").textContent="0%";
   if(!opts.noChange)changed();
+  return true;
 }
 /* 0.32: research presets (section 6 of the research doc). Natural mode with smart centres; Hard Effect uses Classic. */
 const RESEARCH_PRESETS={
@@ -3025,6 +3026,12 @@ window.PlaybookNoteEditor={
   computeCurves();refreshAll();return bridgeState();}finally{hostMute=false;setBusy(false);}
  },
  render(){ensureRendered();return {channels:S.tunedChannels,sampleRate:S.sr,state:bridgeState(),notes:S.notes.map((n,i)=>({start:span(n).oa,end:span(n).ob,centre:noteC(n),target:noteC(n)+n.shift,enabled:true,review:autoReview(n,i)})),duration:S.durOut};},
+ focusPhrase(a,b){
+  const inside=S.notes.map((n,i)=>({i,s:span(n)})).filter(x=>x.s.ob>a&&x.s.oa<b);
+  const x=inside.find(x=>autoReview(S.notes[x.i],x.i)||corrOf(S.notes[x.i])>=50)||inside[0];
+  if(x)selectOnly(x.i);S.playhead=x?x.s.oa:a;S.view.t0=Math.max(0,a-.25);refreshAll();
+ },
+ approvedPreset(kind,preview=false){return !!applyVocalPreset(kind,{quiet:preview,noHist:preview});},
  reviewNext(){const i=S.notes.findIndex((n,i)=>autoReview(n,i)&&i>S.sel),j=i>=0?i:S.notes.findIndex(autoReview);if(j<0)return;selectOnly(j);S.playhead=span(S.notes[j]).oa;S.view.t0=Math.max(0,S.playhead-.3);changed();},
  state:bridgeState,
  keyChosen(chosen){S.keyChosen=chosen!==false;const eligible=S.holdEligible;S.holdEligible=false;let change=false;
@@ -3181,6 +3188,6 @@ try { tuningPlusUI(); } catch (e) { console.warn("Tuning additions could not sta
 })();
 })();
 </script>
-<script src="note-editor-ux.js?v=0.34.2"></script>
+<script src="note-editor-ux.js?v=0.35.0"></script>
 
 </html>
