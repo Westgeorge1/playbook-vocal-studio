@@ -82,7 +82,8 @@ function open(m=DAW.dock){
  if(!active){returnFocus=document.activeElement;dawCloseMenus();$('guideSheet').hidden=true;active=true;maximized=false;{const k=recordingView?'record':'notes',saved=layout.focus[k];focused=typeof saved==='boolean'?saved:(recordingView||(narrow()&&!window.StudioBrowse?.browsing()));}if(recordingView&&narrow())record.querySelector('.sg-record-helpers').open=false;shade.hidden=false;bars.get(panel()).hidden=false;bars.get(panel()).querySelector('.ww-status').textContent='';panel().classList.add('ww-window');panel().setAttribute('role','dialog');panel().setAttribute('aria-modal','true');panel().setAttribute('aria-labelledby',recordingView?'recordWindowTitle':'workWindowTitle');document.body.classList.add('ww-open');setBackgroundInert(true);}
  if(!recordingView)dawDock(m);
  // 0.31.13: on short laptop screens tuning opens maximized until you choose a window size.
- if(!recordingView&&!sizes.has(m)&&innerHeight<800&&!narrow())maximized=true;
+ // 0.34.1: the recording window does the same, so the tracks are not squeezed under its title bar.
+ if(!sizes.has(m)&&innerHeight<800&&!narrow())maximized=true;
  applyRect(sizes.get(m)||{x:innerWidth*.04,y:innerHeight*.04,w:innerWidth*.92,h:innerHeight*.9});sync();
  if(recordingView)record.scrollTop=0;else{dock.querySelector('.dbody').scrollTop=0;$('noteEditorFrame')?.contentWindow?.scrollTo(0,0);}
  $(recordingView?'recordWindowClose':'workWindowClose').focus({preventScroll:true});return true;

@@ -26,7 +26,8 @@ const body=document.body;
 /* ---------------- Classic tools ---------------- */
 function frameDoc(){try{return $('noteEditorFrame')?.contentDocument||null;}catch(_){return null;}}
 function setClassic(on){classic=!!on;write(CLASSIC,classic?'1':'0');apply();}
-function legacyInUse(){return {tuner:$('tunerChoice')?.value==='original',cleaner:$('noiseChoice')?.value==='original'};}
+// Only a vocal open in POLISH can be "using" the older tuner or cleaner (before that the choices hold defaults).
+function legacyInUse(){const bound=window.RC?.step==='polish'&&!!window.SongPolish?.state?.().binding;return {tuner:bound&&$('tunerChoice')?.value==='original',cleaner:bound&&$('noiseChoice')?.value==='original'};}
 function apply(){
  body.classList.toggle('pvs-simple',!classic);body.classList.toggle('pvs-classic',classic);
  const use=legacyInUse();body.classList.toggle('pvs-legacy-tuner',use.tuner);body.classList.toggle('pvs-legacy-cleaner',use.cleaner);
@@ -197,7 +198,7 @@ function arrange(){
 }
 function boot(){arrange();
  const ab=$('abSeg');if(ab)new MutationObserver(syncStrips).observe(ab,{subtree:true,attributes:true,attributeFilter:['aria-pressed','disabled']});
- setInterval(()=>{const u=legacyInUse();if(u.tuner!==body.classList.contains('pvs-legacy-tuner')||u.cleaner!==body.classList.contains('pvs-legacy-cleaner'))apply();syncKey();},700);
+ setInterval(()=>{const rm=$('sgRoom'),ck=$('sgClock');if(rm&&ck&&ck.title!==rm.textContent)ck.title=rm.textContent;const u=legacyInUse();if(u.tuner!==body.classList.contains('pvs-legacy-tuner')||u.cleaner!==body.classList.contains('pvs-legacy-cleaner'))apply();syncKey();},700);
  const k=$('dawKey');if(k)new MutationObserver(()=>{if(k.textContent!==keyText)syncKey();}).observe(k,{childList:true,characterData:true,subtree:true});
  // The note editor frame is created on first use: give it the current switch as soon as it loads.
  const np=$('newNotePanel');if(np)new MutationObserver(()=>{const f=$('noteEditorFrame');if(f)f.addEventListener('load',()=>{apply();syncKey();},{once:true});}).observe(np,{childList:true,subtree:true});

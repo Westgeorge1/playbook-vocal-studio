@@ -1,0 +1,30 @@
+Playbook Vocal Studio 0.34.1 beta: test results
+Run: node run-tests.cjs (serial, Chromium/Playwright), 2026-11-02
+
+19/19 suites passed, 826 checks.
+Full run: 18/19. tests-0.32.5/layout expected the original 176 px tracks at 1280x800; the slimmer tracks were then limited to screens 760 px tall or less, and layout, laptop and ux were re-run green.
+
+cleaning             31 checks passed
+cleanup              18 checks passed
+delete               61 checks passed
+editors              74 checks passed
+laptop               34 checks passed
+layout               61 checks passed
+navigation           133 checks passed
+playback             4 checks passed
+recording            38 checks passed
+regressions          21 checks passed
+restore              56 checks passed
+storage              10 checks passed
+timeline-move        41 checks passed
+tuning-plus          32 checks passed
+tuning               44 checks passed
+upgrade              13 checks passed
+ux                   66 checks passed
+windows              48 checks passed
+workspace-editor     41 checks passed
+total 826
+
+Approved presets and no preset: identical tuned and final PCM versus the 0.32.3 reference in the same browser (playback suite).
+ENGINE-SHA256.txt: all 7 locked engine files OK.
+See TEST-RESULTS-0.34.0.txt and HANDOVER-0.34.1.md for the 0.34.0 test changes.

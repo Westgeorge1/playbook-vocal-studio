@@ -8,11 +8,19 @@ suite('timeline-move',13,async({page,check})=>{
  // Two 2-second tones on one track: part A at 1-3 s (220 Hz), part B at 6-8 s (330 Hz). Part A has two attempts.
  await p.evaluate(()=>{const C=SongCore,R=48000,tone=(f,n)=>{const a=new Float32Array(R*n);for(let i=0;i<a.length;i++)a[i]=.25*Math.sin(2*Math.PI*f*i/R)*Math.min(1,i/480,(a.length-i)/480);return a;};
   S.song=C.empty(R);SongStudio.edit(w=>{const id=w.tracks[0].id;C.addTake(w,{trackId:id,start:1,end:3,channels:[tone(220,2)],origin:1,choose:true});const r=w.tracks[0].regions[0];C.addTake(w,{trackId:id,regionId:r.id,start:1,end:3,channels:[tone(247,2)],origin:1});C.addTake(w,{trackId:id,start:6,end:8,channels:[tone(330,2)],origin:6,choose:true});},'move test');});
- await sleep(700);
+ // Each take analysis rebuilds the lane canvases. Find the drag target after the last result.
+ await p.waitForFunction(()=>S.song.tracks[0].regions.every(r=>r.takes.every(a=>a.profile||a.analysisError)),null,{timeout:120000});
  const lane='#songStudio canvas.sg-wave[data-wave]:not([data-wave="ruler"]):not([data-wave="beat"])';
  await p.locator(lane).first().scrollIntoViewIfNeeded();await sleep(600);
  const regs=()=>p.evaluate(()=>S.song.tracks[0].regions.map(r=>({id:r.id,start:r.start,end:r.end,origins:r.takes.map(a=>a.origin),selected:r.selected})));
- const geo=async()=>{const b=await p.locator(lane).first().boundingBox(),v=await p.evaluate(()=>SongStudio.view());return {b,v,X:t=>b.x+(t-v.start)/v.span*b.width,px:v.span/b.width};};
+ const geo=async()=>{
+  const result=await p.waitForFunction(selector=>{
+   const box=document.querySelector(selector)?.getBoundingClientRect();
+   return box?.width&&box.height?{b:box.toJSON(),v:SongStudio.view()}:false;
+  },lane);
+  const {b,v}=await result.jsonValue();await result.dispose();
+  return {b,v,X:t=>b.x+(t-v.start)/v.span*b.width,px:v.span/b.width};
+ };
  const near=(a,b,t)=>Math.abs(a-b)<=t;
  check('Move parts switch and Move… button are in the timeline tools',await p.locator('#sgMove').isVisible()&&await p.locator('#sgMovePart').isVisible());
  const r0=await regs();

@@ -1,0 +1,52 @@
+/* 0.34.2 Smart Guide coach */
+#coachPanel{display:grid;gap:10px}
+.coach-stages{display:flex;flex-wrap:wrap;align-items:center;gap:4px}
+.coach-stages i{color:var(--muted,#8d98a5);font-style:normal}
+.coach-stage{padding:4px 9px;border:1px solid var(--line,#2c3a46);border-radius:999px;font:600 12px var(--body,system-ui);color:var(--muted,#8d98a5)}
+.coach-stage.here{border-color:var(--mint,#8aebba);color:var(--mint,#8aebba)}
+.coach-stage.attn{border-color:#f5c875;color:#f5c875}
+.coach-now,.coach-next{margin:0;font-size:14px}
+.coach-advice{display:grid;gap:8px}
+.coach-item{border:1px solid var(--line,#2c3a46);border-left:4px solid #6aa9ff;border-radius:8px;padding:9px 11px;background:rgba(255,255,255,.02)}
+.coach-item.warn{border-left-color:#f5c875;background:rgba(245,200,117,.06)}
+.coach-item.ok{border-left-color:var(--mint,#8aebba)}
+.coach-item b{display:block;font-size:14px}
+.coach-item p{margin:4px 0 6px;font-size:13.5px;line-height:1.45}
+.coach-item .row,.coach-toast .row{display:flex;flex-wrap:wrap;gap:6px}
+.coach-outlook h3{margin:4px 0;font-size:15px}
+.coach-outlook p{margin:4px 0;font-size:13.5px}
+.coach-outlook table{width:100%;border-collapse:collapse;font-size:13px}
+.coach-outlook th{text-align:left;font-weight:600;padding:4px 8px 4px 0;white-space:nowrap;vertical-align:top}
+.coach-outlook td{padding:4px 6px;vertical-align:top;border-top:1px solid var(--line,#2c3a46)}
+.coach-r{display:inline-block;padding:1px 8px;border-radius:999px;font-weight:700;font-size:12px;white-space:nowrap}
+.coach-r.r0{background:#1d4a37;color:#bdf5d6}.coach-r.r1{background:#4a3d1a;color:#ffe2a3}.coach-r.r2{background:#5a2330;color:#ffc4cd}
+.coach-how summary,.coach-log summary,.coach-classic summary{cursor:pointer;font-weight:700;min-height:36px;display:flex;align-items:center}
+.coach-how ol,.coach-how ul{margin:4px 0 8px;padding-left:22px;font-size:13.5px;line-height:1.5}
+.coach-how p{font-size:13.5px;margin:6px 0}
+.coach-log ol{margin:4px 0;padding-left:22px;font-size:13px}
+.coach-log li span{color:var(--muted,#8d98a5);font-size:11.5px;margin-right:6px}
+.coach-explain .note{margin:4px 0 0;min-height:1.2em}
+.coach-classic{border-top:1px solid var(--line,#2c3a46);padding-top:6px}
+.coach-classic>*:not(summary){margin-top:10px}
+#coachToast{flex:1 0 100%;order:9;display:flex;align-items:center;gap:6px 10px;min-width:0;margin:2px 0 0;padding:4px 8px 4px 10px;background:#141c24;border:1px solid var(--line,#2c3a46);border-left:4px solid #6aa9ff;border-radius:7px;color:var(--fg,#e6e9ec);font-size:13px}
+#coachToast[hidden]{display:none!important}
+#coachToast.warn{border-left-color:#f5c875;background:#1f1c14}
+#coachToast b{flex:0 0 auto;font-size:13px;white-space:nowrap}
+#coachToast .coach-toast-text{flex:1 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#c9d4de}
+#coachToast .row{flex:0 0 auto;display:flex;gap:5px}
+#coachToast .btn{min-height:28px;height:28px;padding:0 9px;font-size:12.5px}
+@media (max-width:899px){#coachToast{flex-wrap:wrap}#coachToast b{white-space:normal}#coachToast .coach-toast-text{flex:1 1 100%;white-space:normal}}
+#coachTip{position:fixed;z-index:90;pointer-events:none;background:#0b1119;color:#edf4f9;border:1px solid #6aa9ff;border-radius:8px;padding:7px 10px;font:500 13px/1.4 var(--body,system-ui);box-shadow:0 6px 20px rgba(0,0,0,.5)}
+.coach-btn{white-space:nowrap}
+.coach-btn .count,#guideBtn #coachCount{display:inline-grid;place-items:center;min-width:18px;height:18px;padding:0 4px;margin-left:4px;border-radius:9px;background:#f5c875;color:#1a1205;font-size:11px;font-weight:800}
+.coach-btn .count:empty,#guideBtn #coachCount:empty{display:none}
+/* Laptop: the guide is a side panel beside your work instead of covering the timeline. */
+@media (min-width:900px){
+ #guideSheet{left:auto;right:0;top:0;bottom:0;width:min(480px,42vw);max-height:none;border-top:0;border-left:2px solid var(--mint,#8aebba);z-index:66;padding:14px 16px}
+ #guideSheet .inner{max-width:none}
+}
+/* The studio makes room for the guide instead of hiding under it. */
+@media (min-width:900px){
+ body.coach-docked{margin-right:min(480px,42vw)}
+}
+body:not(.rc-on) #coachBtn{display:none}

@@ -1,0 +1,154 @@
+# Handover: Playbook Vocal Studio 0.34.2 beta (Smart Guide coach, Clean up here)
+
+## 0.34.2 in short
+
+Read CHANGES-0.34.2.md first.
+
+**Clean up here:**
+- song-studio.js: `cleanupHere()` and `openCleanup()`; the Edit dialog's Manual cleanup now goes through `openCleanup`.
+- Entry points: the `#sgCleanHere` button, the N key, right-click, and a 550 ms touch-and-hold on a vocal lane. Movement beyond 5 px cancels the hold.
+- studio.js: `openSongCleanup(t, p, save, opt)` takes optional `{a, b, message, onClose}`. Without them it behaves as before.
+
+**Smart Guide coach** (smart-coach.js, smart-coach.css, loaded after ux-simple):
+
+| Part | What it does |
+|---|---|
+| `context()` | Where you are: cleanup modal, RC step, work window mode, inspector tab, or the dock if you last pointed there. |
+| Tracking | Capture-phase click/change on the studio and the note-editor frame, kept as the action log. |
+| `rules()` | All checks, using real measurements: `S.P` chain parameters, `S.guide.measured`, NoiseCleaner state and safety, note-editor analysis and `corrOf`, mic meter and CLIP. Manual cleanup's singing check: pitched-frame detection (energy against the whole track, zero-crossing rate under 0.12), cached by song revision and the take open in Manual cleanup. |
+| `outlook()` | Good / Fair / At risk ratings. |
+| `HOW` / `EXPLAIN` | Per-context how-to, and per-control explanations. Unknown controls fall back to their title, aria-label or label text. |
+| Panel | `#coachPanel` is inserted at the top of `#guideSheet`, and the sheet moves to `<body>` so it also works on Song & vocals. The original guide controls are kept inside `#coachClassic`. |
+| Advice line | `#coachToast` lives inside `#rcSteps`. Only warnings for the current stage pop up, so it never covers controls. |
+| Laptop docking | The sheet is a side panel and `body.coach-docked` adds a right margin so the studio makes room. |
+| API | `window.PvsCoach = {context, items, outlook, log, open, evaluate, explainFor, nextStep}` |
+
+**Fix buttons** only call the same controls a user would: `setP` + `syncControls`, preset buttons, select/range changes.
+
+**Thresholds:** they are common-practice ranges (for example EQ boosts over +6 dB, compression over 75%, limiter ceiling above −0.5 dB, background less than 35–45 dB below the voice, more than 15% of notes moved 50¢ or more). Tune them with the owner after listening tests on his vocals.
+
+**Header:** the app name is hidden below 1440 px wide, so the new Guide button fits the one-row header at 1280 px.
+
+---
+
+## 0.34.1 and 0.34.0
+
+## 0.34.1 in short
+
+The owner tested 0.34.0 on a Windows laptop. Song & vocals showed the header, buttons and recording helpers, and the tracks were below the window. Windows display scaling leaves about 1280×600 in the browser. 0.34.0 had only been checked at 1280×800 and on phones, so the tracks started at 650 px.
+
+All fixes are CSS in **ux-simple.css**, in the sections marked 0.34.1:
+- a one-row step header
+- compact Song & vocals rows
+- Recording helpers on one row
+- one-row Song sections
+- 132 px tracks on screens 760 px tall or less, using the `--pvs-sglane-h` override, so dragging a track's height still wins
+- a slimmer POLISH menu row and transport on short screens
+- the app name hidden between 900 and 1199 px
+
+Two small script changes:
+- **work-windows.js:** the recording window also opens maximized the first time when `innerHeight < 800`.
+- **ux-simple.js:**
+  - The recording-room text moves into the clock's tooltip on short screens.
+  - Legacy "in use" now counts only for a vocal bound in POLISH.
+
+At 1280×600 the tracks now start at 342 px. New suite tests-0.34.1/laptop.cjs: 34 checks at 1280×600, 1366×650 and 1536×730. See CHANGES-0.34.1.md.
+
+Still to check on the owner's laptop: browser zoom other than 100% (Ctrl + / −) changes the space in the same way.
+
+---
+
+## 0.34.0 details
+
+**Base:** 0.33.1, the copy published in westgeorge1/playbook-vocal-studio under `beta/`.
+
+**Owner's request:** make the studio "very user friendly". The controls a feature needs should sit next to it, and the older tuning tools should be hidden behind a switch.
+
+The owner agreed to 13 recommendations after a scan at 390×844 and 1280×800. All 13 are built. Details are in CHANGES-0.34.0.md.
+
+## Guarantees
+
+- This release changes **layout and labels only**:
+  - No engine, processing, saved-project or Undo code changed.
+  - Every control keeps its id and handler. It is moved, folded or relabelled, never rebuilt.
+- The approved presets give identical tuned and final PCM to the 0.32.3 reference in the same browser (playback suite).
+- ENGINE-SHA256.txt verifies.
+- All view choices live in localStorage on the device. None are stored in the project.
+
+| Key | What it remembers |
+|---|---|
+| `pvs.classicTools` | Classic tools switch (`'1'` = on) |
+| `pvs.folds.v1` | Which CLEAN / CHAIN sections are folded |
+| `pvs.dockOpen.v1` (+`.narrow`) | Whether the editor panel is open (laptop and phone separately) |
+| `pne.sideTab` | Tuning-window tab |
+
+## Files
+
+| File | What it does |
+|---|---|
+| ux-simple.js / ux-simple.css | Studio side, loaded last in index.html. See the table below. |
+| note-editor-ux.js | Tuning-window side, loaded after the editor's inline script. See the second table. |
+| tests-0.34.0/ux.cjs | 66 checks |
+| tests-0.34.0/recording.cjs | Copy of the 0.33.1 suite with the version string updated |
+
+What `ux-simple.js` handles:
+
+| Part | Details |
+|---|---|
+| Classic switch | `setClassic`, `apply`. A body class `pvs-simple` / `pvs-classic` drives the CSS. Elements tagged `.ux-classic-only` (with `data-ux-use="tuner"` or `"cleaner"`) stay visible while the song uses them (`body.pvs-legacy-tuner` / `pvs-legacy-cleaner`, polled every 0.7 s). |
+| View menu item | `#uxClassicItem` |
+| `arrangeClean()` | Moves the measurement into Noise removal and the everyday controls first. Builds the `#uxCleanMore` fold. Moves `#cleanListen` into a pinned `.ux-listen` strip. Folds the loudness graph. |
+| `arrangeTune()` / `arrangeChain()` | Listen strips: proxy buttons that click the matching `#abSeg` button and mirror its `aria-pressed`. CHAIN rack folds via `fold(rack, key, openByDefault)`. |
+| `arrangeHeader()` | Slimmer Polishing bar. `.ux-dup` hides #polishWave, #polToRC, and the tuning-window title-bar Play/Stop when the workspace is notes. Labels: Play says "this vocal", plus song Undo titles. Moves #workWindowOpen into the dock tab row. |
+| `arrangeDock()` | Editor panel starts collapsed unless remembered open. TUNE tab opens it on laptops. After a work window opened from a slim panel closes, the panel goes back to slim. |
+| `syncKey()` | `#dawKey` shows the note editor's KEY / SCALE while the note editor is the tuner. |
+| API | `window.PvsUX = {classic, setClassic, apply, folds}` |
+
+What `note-editor-ux.js` handles:
+
+| Part | Details |
+|---|---|
+| Tab bar | `.neTabs` with `#neTab-note/-tune/-check/-more`. Each panel's `data-tab` comes from the `assign` map. Non-panel children of `.panels` (the hosted help line) belong to More. |
+| `#checkPanel` | New panel built from the "Chords and corrections" block. |
+| `#classicApproved` | Wraps the approved presets (`.neClassic`); `#correctPanel` also gets `.neClassic`. |
+| `#classicPanel` | Holds the `#classicTools` checkbox. |
+| `#keyLine` | Holds #presetKeyHint, #useDetectedKey and #refInfo, placed right after `.tools`. |
+| `apply()` | Every 0.8 s and on `storage` events. Hides the Classic Smooth option unless it is the current mode (new vocals start in Classic Smooth 25%). Hides approved presets in the Blind compare lists when classic is off. Sets editor Undo/Redo titles after the empty-state code restores titles. |
+| Note tab | A MutationObserver on `#noteBody[hidden]` switches to Note when a selection appears and returns to the previous tab when it clears. |
+| API | `window.PlaybookUX = {apply, show, tab}` |
+
+## Decisions the owner should know about
+
+1. **Hard Effect stays visible.** The owner didn't answer this, so I kept it as a creative effect.
+2. **Classic Smooth stays in the Mode list while it is in use.** It is the starting sound of every new vocal (and of Hard Effect), so hiding it would misreport the current setting. It is labelled "(current)" and is tucked away once a Natural preset is chosen.
+3. **The editor panel starts as a slim bar** on laptops and phones. On laptops, choosing TUNE opens it. On phones, TUNE's "Open tuning window" opens the editor full screen.
+
+## Older tests that changed (only where a control is now hidden by design)
+
+| Suite | Change |
+|---|---|
+| tuning, windows, playback, navigation, editors | Before clicking the approved presets, turn Classic tools on in the editor (`localStorage pvs.classicTools='1'` + `PlaybookUX.apply()`) and show the Tune tab. |
+| tuning, playback | Show the Check tab before Blind compare, and the More tab before Level notes / AI octave check. |
+| tuning-plus | Click the Check tab before chords / correction map, and the Tune tab before presets. |
+| cleaning | Open More cleaning controls before room profiles, learn noise and AI isolation. |
+| layout | Open the editor panel before checking its resize handle. |
+| workspace-editor | Settings column beside the roll is checked on `.panels`. Play is the editor's own #play, and the title-bar copy is checked as hidden. |
+| editors | "Open editing window" is the one inside WAVE EDIT; the Polishing-bar duplicate was removed. |
+| recording | tests-0.34.0/recording.cjs replaces tests-0.33.1/recording.cjs (version string). |
+
+All suites ran green on 0.33.1 in this environment before the change. Results are in TEST-RESULTS-0.34.0.txt.
+
+## Still to check on real devices
+
+1. The owner's Android phone:
+   - pinned POLISH tabs and listen strip while scrolling
+   - the one-row tab bar at 360 px
+   - Song & vocals tools above the tracks
+2. Older Samsung Internet. CSS uses `display:revert` and sticky positioning. No `:has()` is used.
+3. Whether the owner wants the editor panel open by default on laptops. It is a single default in `arrangeDock()`.
+
+## Possible next steps (not built)
+
+- One shared Undo across the song, cleaning and notes. Each Undo is only labelled for now.
+- Merge the File/Edit/View/Help menu row into the step header to give the settings panel another ~45 px.
+- Fold DETAIL's five effects like CHAIN. It is still 2,600 px tall on a laptop.

@@ -44,12 +44,15 @@ recovery.innerHTML='<div class="stdialog stsmall"><header><h2 id="recoveryTitle"
 document.body.append(recovery);
 
 let songCleanup=null;
-function openSongCleanup(t,p,save){
-  stop();songCleanup={t,p,save};modal.classList.add('song-cleanup');
+// 0.34.2: opt.a/opt.b preselect a stretch (Clean up here); opt.onClose runs after the window closes.
+function openSongCleanup(t,p,save,opt={}){
+  stop();songCleanup={t,p,save,onClose:opt.onClose};modal.classList.add('song-cleanup');
   E.lastFocus=document.activeElement;E.pid=p.id;E.tid=t.id;
   el('veTitle').textContent='Manual cleanup · '+t.name;el('sepMap').hidden=true;
-  modal.hidden=false;document.body.classList.add('st-open');selection(p.start,p.end);setView(p.start-.2,p.end-p.start+.4);
-  message('Select a breath or note. Keep as new take returns to the song.');el('veClose').focus();
+  modal.hidden=false;document.body.classList.add('st-open');
+  const a=Number.isFinite(opt.a)?Math.max(p.start,Math.min(p.end,opt.a)):p.start,b=Number.isFinite(opt.b)?Math.max(a,Math.min(p.end,opt.b)):p.end;
+  selection(a,b);if(a>p.start||b<p.end)setView(Math.max(p.start-.2,a-1.2),Math.max(2.4,b-a+2.4));else setView(p.start-.2,p.end-p.start+.4);
+  message(opt.message||'Select a breath or note. Keep as new take returns to the song.');el('veClose').focus();
 }
 function find(){if(songCleanup)return songCleanup;const w=phraseWorkspace(),p=w.phrases.find(p=>p.id===E.pid),t=p?.takes.find(t=>t.id===E.tid);return {w,p,t};}
 function message(s){el('veStatus').textContent=s;}
@@ -74,7 +77,7 @@ function openEditor(id){if(busy()){toast('Not right now','Stop recording first, 
   if(!t){toast('No take yet','Record or import a take first, then press Edit on it.');return;}
   stop();el('rcLaneMenu').hidden=true;E.lastFocus=document.activeElement;E.pid=p.id;E.tid=t.id;RC.aud=t.id;if(w.selected!==p.id)phraseSelect(p.id);
   modal.hidden=false;document.body.classList.add('st-open');message('The original recordings are always kept.');refresh(false);el('veClose').focus();}
-function closeEditor(){stop();songCleanup=null;modal.classList.remove("song-cleanup");modal.hidden=true;E.drag=null;document.body.classList.remove('st-open');RC.sig='';RC.dirty=true;const fid=E.lastFocus?.closest?.('.rctake')?.dataset.id,back=late=>{if(!modal.hidden)return;const ae=document.activeElement;if(late&&ae&&ae!==document.body&&ae.isConnected)return;const q=id=>id&&[...document.querySelectorAll('#rcTakes .rctake')].find(r=>r.dataset.id===id)?.querySelector('[data-act=edit]');const t=(E.lastFocus?.isConnected&&E.lastFocus)||q(fid)||q(E.tid)||el('rcBig');if(t&&document.activeElement!==t)t.focus();};back();setTimeout(()=>back(1),80);setTimeout(()=>back(1),300);}
+function closeEditor(){const done=songCleanup?.onClose;stop();songCleanup=null;if(done)setTimeout(done,0);modal.classList.remove("song-cleanup");modal.hidden=true;E.drag=null;document.body.classList.remove('st-open');RC.sig='';RC.dirty=true;const fid=E.lastFocus?.closest?.('.rctake')?.dataset.id,back=late=>{if(!modal.hidden)return;const ae=document.activeElement;if(late&&ae&&ae!==document.body&&ae.isConnected)return;const q=id=>id&&[...document.querySelectorAll('#rcTakes .rctake')].find(r=>r.dataset.id===id)?.querySelector('[data-act=edit]');const t=(E.lastFocus?.isConnected&&E.lastFocus)||q(fid)||q(E.tid)||el('rcBig');if(t&&document.activeElement!==t)t.focus();};back();setTimeout(()=>back(1),80);setTimeout(()=>back(1),300);}
 function commit(next,label){if(busy())return false;stop();phraseBackup();S.phrases=next;phraseChanged(label+' Undo puts it back.');RC.aud=E.tid;RC.sig='';RC.dirty=true;if(window.DAW)DAW.dirty=true;phraseAnalyzeMissing();persist();refresh(true);message(label+' Undo puts it back.');return true;}
 const KIND={gain:'level','silence':'silence','fade-in':'fade in','fade-out':'fade out'};
 function applyEdit(kind){if(busy())return;try{const {w,p,t}=find();if(!t)return;

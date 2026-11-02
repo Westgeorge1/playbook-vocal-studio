@@ -1,3 +1,12 @@
+PLAYBOOK VOCAL STUDIO 0.34.2 BETA
+
+Smart Guide coach: it follows what you do (recording, Manual cleanup, CLEAN, tuning, EQ and the vocal chain), warns when something is likely wrong and says what usually works better, with fix buttons, a step-by-step tracker, a Good / Fair / At risk sound outlook, how each part works, and Explain controls (hover a control). Open it with SMART GUIDE (POLISH) or ✦ Guide (Song & vocals).
+Clean up here: while listening on Song & vocals, press Clean up here (or N, or right-click the recording) to open Manual cleanup right at that spot. See CHANGES-0.34.2.md.
+
+PLAYBOOK VOCAL STUDIO 0.34.1 BETA
+
+Laptop spacing: on laptops (including Windows display scaling) the header is one row and Song & vocals is compact, so your tracks show without scrolling. The Expand recording window opens full size on short screens. See CHANGES-0.34.1.md.
+
 PLAYBOOK VOCAL STUDIO 0.34.0 BETA
 
 Easier to use. Controls now sit next to the feature they belong to, and the older tools are hidden until you ask for them.

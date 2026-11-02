@@ -61,7 +61,8 @@ body.pvs-simple.pvs-legacy-cleaner .ux-classic-only[data-ux-use="cleaner"]{displ
  body.ux-034 #trackPolishBar #polishControls{display:none}
  body.ux-034 #trackPolishBar #polishTrackStatus,body.ux-034 #trackPolishBar #polishReady{flex:0 1 auto;min-width:0;max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12px}
  body.ux-034 #trackPolishBar #polishPreview{display:none}
- body.ux-034 #trackPolishBar #polishTrackStatus{max-width:150px}
+ body.ux-034 #trackPolishBar #polishTrackStatus{max-width:120px}
+ body.ux-034 #trackPolishBar #polishReady{max-width:150px}
  body.ux-034 #trackPolishBar select,body.ux-034 #trackPolishBar button{min-height:32px;padding:3px 9px}
  body.ux-034 .tl-actions{padding-top:4px;padding-bottom:4px}
  /* The settings panel runs the full height beside the timeline and the editor panel. */
@@ -89,4 +90,89 @@ body.pvs-simple.pvs-legacy-cleaner .ux-classic-only[data-ux-use="cleaner"]{displ
  body.ux-034 #songStudio>.sg-tools{margin:6px 0}
  body.ux-034 #songStudio>.sg-tools>.sg-row{gap:4px}
  body.ux-034 #songStudio>.sg-tools button,body.ux-034 #songStudio>.sg-tools label{min-height:36px;font-size:12.5px}
+}
+
+/* ---------------- 0.34.1: compact laptop header and Song & vocals ---------------- */
+/* Laptops (Windows display scaling often leaves only ~600 px of browser height): the step header is one row,
+   and the Song & vocals controls are compact so the tracks show without scrolling. */
+@media (min-width:900px){
+ body.ux-034 .rcsteps{flex-wrap:wrap;align-items:center}
+ body.ux-034 .rcbrand{order:0}body.ux-034 .rcswitch{order:1}body.ux-034 #workspaceTools{order:2}body.ux-034 .rctopright{order:3}body.ux-034 #trackPolishBar{order:4}
+ body.ux-034 .rcswitch button{min-height:34px;padding-top:4px;padding-bottom:4px}
+ body.ux-034 .rcswitch button small{display:none}
+ body.ux-034 #workspaceTools{display:flex;align-items:center;gap:6px}
+ body.ux-034 #workspaceTools>label{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+ body.ux-034 #workspaceTools select{width:150px;min-height:34px;height:34px;padding-top:2px;padding-bottom:2px}
+ body.ux-034 #workspaceTools button{min-height:34px;height:34px;padding:2px 10px}
+ body.ux-034 #workspaceTools summary{width:30px;height:30px}
+ body.ux-034 .rctopright .rcbtn{min-height:34px;height:34px;padding-top:2px;padding-bottom:2px}
+
+ body.ux-034 #songStudio{padding-top:8px}
+ body.ux-034 #songStudio .sg-top{gap:6px}
+ body.ux-034 #songStudio .sg-top button{min-height:34px;padding:4px 11px;font-size:13px}
+ body.ux-034 #songTitle{min-height:34px!important;font-size:17px!important}
+ body.ux-034 #songStudio .sg-transport{gap:6px;padding:7px 10px;margin-top:6px}
+ body.ux-034 #songStudio .sg-transport>button{min-height:38px;padding:5px 11px}
+ body.ux-034 #songStudio .sg-transport #sgTempo{min-height:34px;padding:3px 8px}
+ body.ux-034 #songStudio .sg-transport .sg-room{max-width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12px}
+ body.ux-034 #songStudio .sg-transport .sg-clock{font-size:22px}
+ /* Recording helpers: summary and its tools on one slim row; the recording-track readout beside them. */
+ body.ux-034 #songStudio .sg-record-helpers{flex:1 1 820px;min-width:0;margin:0;padding:0;border-top:1px solid var(--song-line,#344456)}
+ body.ux-034 #songStudio .sg-record-helpers>summary{min-height:34px;padding:7px 10px 0 0;font-size:13px;float:left}
+ body.ux-034 #songStudio .sg-record-helpers[open]>.sg-rtools{padding-top:3px}
+ body.ux-034 #songStudio .sg-record-helpers .sg-rtools{gap:6px;padding-bottom:2px}
+ body.ux-034 #songStudio .sg-record-helpers button,body.ux-034 #songStudio .sg-record-helpers select{min-height:34px;padding-top:3px;padding-bottom:3px}
+ body.ux-034 #songStudio .sg-transport #sgArmed{margin-left:auto;max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12.5px}
+ body.ux-034 #songStudio .sg-transport #sgMeter{width:80px}
+ /* Status message: one slim line. */
+ body.ux-034 #songStudio .sg-status{margin:6px 0!important;padding:5px 10px;min-height:0;font-size:13px}
+ /* Song sections: one row (title, section buttons, Add / Edit). */
+ body.ux-034 #songStudio .sg-sectionbar{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin:6px 0;padding:6px 9px}
+ body.ux-034 #songStudio .sg-sectionbar>.sg-row{display:contents}
+ body.ux-034 #songStudio .sg-sectionbar h2{order:0;margin:0;font-size:14px}
+ body.ux-034 #songStudio .sg-sectionbar .sg-row>.sg-help{display:none}
+ body.ux-034 #songStudio .sg-sectionbar #sgSections{order:1;flex:1 1 300px;min-width:0}
+ body.ux-034 #songStudio .sg-sectionbar #sgSections .sg-help{margin:0;font-size:12.5px}
+ body.ux-034 #songStudio .sg-sectionbar #sgSections button{min-height:32px;padding:3px 9px}
+ body.ux-034 #songStudio .sg-sectionbar>.sg-row>button{order:2;min-height:32px;padding:3px 10px}
+ body.ux-034 #songStudio>.sg-tools{margin:6px 0}
+ body.ux-034 #songStudio>.sg-tools button{min-height:32px;padding:3px 10px}
+}
+/* Short laptop screens: slimmer tracks unless you have dragged their height yourself. */
+@media (min-width:900px) and (max-height:820px){
+ /* Recording room left moves into the clock's tooltip so the transport fits on one row. */
+ body.ux-034 #songStudio .sg-transport>#sgRoom{display:none}
+}
+@media (min-width:900px) and (max-height:760px){
+ body.ux-034 #songStudio .sg-lane:not(.sg-ruler):not(.sg-empty-backing){height:var(--pvs-sglane-h,132px);min-height:0}
+ body.ux-034 #songStudio .sg-lane:not(.sg-ruler) .sg-wave{height:calc(var(--pvs-sglane-h,132px) - 1px)}
+ body.ux-034 #songStudio .sg-lane:not(.sg-ruler)>.sg-lane-head{min-height:0;max-height:var(--pvs-sglane-h,132px);overflow-y:auto;overscroll-behavior:contain;padding:6px 8px;gap:6px;align-content:start}
+ body.ux-034 #songStudio .sg-lane-head button{min-height:28px;padding:2px 8px;font-size:12.5px}
+ body.ux-034 #songStudio .sg-lane-head .sg-row{gap:4px}
+}
+@media (min-width:900px){body.ux-034 #songStudio .sg-sectionbar #sgSections .sg-help{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
+/* Short laptop screens: slimmer menu row and transport in POLISH. */
+@media (min-width:900px) and (max-height:820px){
+ body.ux-034 .menubar{min-height:36px;padding-top:2px;padding-bottom:2px}
+ body.ux-034 .tbar{padding-top:4px;padding-bottom:4px;gap:8px}
+ body.ux-034 .tbar .tbtn{width:40px;height:40px}
+ body.ux-034 .tbar .tbtn.play{width:84px}
+ body.ux-034 .tbar .tbtn.loop{width:auto;padding:0 10px}
+ body.ux-034 .tbar .tc-main{font-size:22px}
+ body.ux-034 .tlisten button,body.ux-034 .tundo .btn{min-height:32px}
+}
+/* Narrower laptops (900–1199 px): the app name (also in the browser tab) gives its room to the controls. */
+@media (min-width:900px) and (max-width:1439px){body.ux-034 .rcbrand{display:none}}
+@media (min-width:900px) and (max-width:1199px){
+ body.ux-034 #songTitle{width:200px!important}
+ body.ux-034 #songStudio .sg-top button{padding:4px 8px;font-size:12.5px}
+ body.ux-034 #songStudio .sg-record-helpers{flex-basis:560px}
+}
+
+/* Fit the transport on a short laptop without squeezing the recording helpers. */
+@media (min-width:1200px) and (max-width:1439px) and (max-height:760px){
+ body.ux-034 #songStudio .sg-transport>button{padding-inline:8px}
+ body.ux-034 #songStudio .sg-transport>#sgReady{max-width:84px}
+ body.ux-034 #trackPolishBar #polishTrackStatus{max-width:104px}
+ body.ux-034 #trackPolishBar #polishReady{max-width:112px}
 }

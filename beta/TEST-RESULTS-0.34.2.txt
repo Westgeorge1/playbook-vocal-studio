@@ -1,0 +1,29 @@
+Playbook Vocal Studio 0.34.2 beta: test results
+Published beta review, 2026-11-02. All 20 suites passed, with 872 checks.
+Chromium 151.0.7922.34, Playwright and the reference builds listed in TESTING.md.
+The supplied candidate reported 863 checks. The reviewed build restores the published workspace-selector regression and adds eight cleanup and coach checks.
+
+cleaning             31 checks passed
+cleanup              18 checks passed
+coach                45 checks passed
+delete               61 checks passed
+editors              74 checks passed
+laptop               34 checks passed
+layout               61 checks passed
+navigation           134 checks passed
+playback             4 checks passed
+recording            38 checks passed
+regressions          21 checks passed
+restore              56 checks passed
+storage              10 checks passed
+timeline-move        41 checks passed
+tuning-plus          32 checks passed
+tuning               44 checks passed
+upgrade              13 checks passed
+ux                   66 checks passed
+windows              48 checks passed
+workspace-editor     41 checks passed
+total 872
+
+Approved presets and no preset: identical tuned and final PCM versus the 0.32.3 reference in the same browser (playback suite).
+ENGINE-SHA256.txt: all 7 locked engine files OK.
