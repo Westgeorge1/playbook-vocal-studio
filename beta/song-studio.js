@@ -519,16 +519,23 @@ function draw(){if(!UI.shown)return;const w=W(),at=current(),ratio=Math.min(2,de
 
 // All pointer actions have equivalent named buttons and numeric fields.
 // A touch browser may never send a contextmenu event for a canvas.
-let cleanupPress=null;
+let cleanupPress=null,suppressCleanupRelease=false;
+// A touch hold opens the editor before the finger lifts. Consume the release click,
+// which some browsers retarget onto a button in the newly visible action bar.
+window.addEventListener('pointerdown',()=>{suppressCleanupRelease=false;},true);
+window.addEventListener('click',e=>{
+ if(!suppressCleanupRelease||e.detail===0)return;
+ suppressCleanupRelease=false;e.preventDefault();e.stopImmediatePropagation();
+},true);
 function cancelCleanupPress(){
  if(cleanupPress){clearTimeout(cleanupPress.timer);cleanupPress=null;}
 }
-function openTimelineCleanup(trackId,at){
+function openTimelineCleanup(trackId,at,fromTouch=false){
  cancelCleanupPress();
  if(!UI.shown||modal.open||Studio.state().open||busy())return;
  UI.drag=null;
  if(UI.move){UI.move=null;document.body.classList.remove('sg-moving');draw();}
- cleanupHere({trackId,at});
+ if(cleanupHere({trackId,at})&&fromTouch)suppressCleanupRelease=true;
 }
 function timeOnCanvas(canvas,x){
  const box=canvas.getBoundingClientRect();
@@ -540,13 +547,13 @@ function armCleanupPress(e,canvas){
  const song=W(),trackId=canvas.dataset.wave,at=timeOnCanvas(canvas,e.clientX);
  cleanupPress={id:e.pointerId,x:e.clientX,y:e.clientY,timer:setTimeout(()=>{
   cancelCleanupPress();
-  if(W()===song)openTimelineCleanup(trackId,at);
+  if(W()===song)openTimelineCleanup(trackId,at,true);
  },550)};
 }
 $('sgTimeline').addEventListener('pointerdown',e=>{const c=e.target.closest('canvas');if(e.button!==0||!c||busy())return;armCleanupPress(e,c);if($('sgMove').checked&&moveStart(e,c))return;e.preventDefault();stopPlay();const box=c.getBoundingClientRect();let t=UI.start+(e.clientX-box.left)/box.width*UI.span;if(prefs().snap)t=C.snapTime(t,bpm());UI.drag={canvas:c,x:e.clientX,t:C.clamp(t,0,900),view:UI.start,width:box.width,kind:c.dataset.wave,moved:false};c.setPointerCapture(e.pointerId);});
 $('sgTimeline').addEventListener('contextmenu',e=>{
  const c=e.target.closest('canvas');if(!c||!C.track(W(),c.dataset.wave))return;
- e.preventDefault();openTimelineCleanup(c.dataset.wave,timeOnCanvas(c,e.clientX));
+ e.preventDefault();openTimelineCleanup(c.dataset.wave,timeOnCanvas(c,e.clientX),e.pointerType==='touch'||!!cleanupPress);
 });
 $('sgTimeline').addEventListener('pointermove',e=>{
  if(cleanupPress&&e.pointerId===cleanupPress.id&&Math.hypot(e.clientX-cleanupPress.x,e.clientY-cleanupPress.y)>5)cancelCleanupPress();
@@ -694,12 +701,28 @@ async function whySuggested(){const {part,list}=shownTakes(W(),T(),R()),rk=rankR
  const rows=rk.rows.map(r=>'<tr><th>'+name(r.id)+(rk.winner===r.id?' ★':'')+'</th><td>'+(r.eligible?Math.round(r.score):'—')+'</td><td>'+(r.pitch==null?'—':(r.melody?Math.round(r.pitch)+' cents from the reference':Math.round(r.pitch)+' cents off the nearest note'))+'</td><td>'+(r.timing==null?'—':Math.round(r.timing)+' ms')+'</td><td>'+(r.clippedPercent==null?'—':(+r.clippedPercent).toFixed(2)+' %')+'</td><td>'+esc(r.reason)+'</td></tr>').join('');
  await dialog('Why suggested?','<p>'+(rk.winner?name(rk.winner)+' is suggested for '+esc(part?part.name:'this range')+'. ':'No clear favourite: the best takes are within 3 points. ')+'The check scores each take on its own: steady pitch (or closeness to the reference take), clean level against the background, no clipping and, with a reference, timing. It is a hint; your ears and your stars decide.</p><div class="sg-why-table"><table><tr><th>Take</th><th>Score</th><th>Pitch</th><th>Timing</th><th>Clipping</th><th>Note</th></tr>'+rows+'</table></div>',[['ok','Close']]);}
 // 0.34.2: Manual cleanup for one take (from Edit, or Clean up here with a preselected stretch).
-function openCleanup(trackId,regionId,takeId,opt){const t=C.track(W(),trackId),r=t?.regions.find(x=>x.id===regionId),a=r?.takes.find(x=>x.id===takeId);if(!a)return false;
-   stopPlay();
-   Studio.openSongCleanup({...a,channels:W().sources[a.source].channels,rate:W().rate},r,(channels,name,settings)=>edit(w=>{
-     addCleanupTake(w,trackId,regionId,takeId,channels,name,settings);
-   },'Cleanup saved as a new take. Undo restores the previous choice.'),opt);
-   return true;
+function openCleanup(trackId,regionId,takeId,opt={}){
+ const w=W(),t=C.track(w,trackId),r=t?.regions.find(x=>x.id===regionId),take=r?.takes.find(x=>x.id===takeId);
+ if(!take)return false;
+ const source=w.sources[take.source],span=C.takeSpan(w,take),lo=Math.max(r.start,span[0]/w.rate),hi=Math.min(r.end,span[1]/w.rate);
+ if(hi-lo<2/w.rate){message('This take has no editable audio inside the recording range.',true);return false;}
+ const at=current(),explicit=Number.isFinite(opt.a)&&Number.isFinite(opt.b)?[opt.a,opt.b]:w.range;
+ let a=explicit?Math.max(lo,explicit[0]):NaN,b=explicit?Math.min(hi,explicit[1]):NaN;
+ const tooLong=b-a>30;
+ if(!(b-a>=2/w.rate)||tooLong){
+  const min=tooLong?a:lo,max=tooLong?b:hi;
+  const point=tooLong&&(at<min||at>max)?(min+max)/2:C.clamp(at,min,max);
+  a=Math.max(min,Math.min(max-1,point-.5));b=Math.min(max,a+1);
+ }
+ stopPlay();
+ Studio.openSongCleanup({...take,channels:source.channels,rate:w.rate},r,(channels,name,settings)=>{
+  const currentTake=C.track(W(),trackId)?.regions.find(x=>x.id===regionId)?.takes.find(x=>x.id===takeId);
+  if(W().uid!==w.uid||!currentTake||W().sources[currentTake.source]!==source)throw Error('This take changed. Close cleanup and reopen it on the current recording.');
+  const ok=edit(project=>addCleanupTake(project,trackId,regionId,takeId,channels,name,settings),'Cleanup kept as a new take. Song Undo restores the previous choice.');
+  if(!ok)throw Error(busy()?window.lockReason?.()||'The studio is busy.':$('sgStatus').textContent||'Could not store the new take.');
+  return true;
+ },{...opt,a,b,lo,hi,message:tooLong?'Your selection exceeds 30 seconds. A short passage is selected for this local edit.':opt.message});
+ return true;
 }
 function addCleanupTake(w,trackId,regionId,takeId,channels,name,settings){
  const region=C.track(w,trackId)?.regions.find(x=>x.id===regionId),a=region?.takes.find(x=>x.id===takeId);
@@ -722,13 +745,17 @@ function cleanupHere(opt={}){
  const rg=Number.isFinite(opt.at)?null:W().range,mid=rg?(rg[0]+rg[1])/2:at;
  const hits=t.regions.filter(x=>mid>=x.start&&mid<x.end).reverse();
  const audition=UI.play?.override;
- const r=hits.find(x=>x.id===audition?.regionId)||hits.find(x=>x.selected)||hits[0];
- if(!r){message('No recording under the playhead on '+t.name+'. Move the playhead onto a recording, or right-click the recording, then try again.',true);return false;}
- const takeId=audition?.regionId===r.id?audition.takeId:r.selected;
+ const recent=recentRecording();
+ const ending=!rg&&!hits.length&&t.regions.filter(x=>Math.abs(x.end-at)<=1/W().rate).reverse();
+ const r=hits.find(x=>x.id===audition?.regionId)||hits.find(x=>x.selected)||hits[0]||
+   (ending&&(ending.find(x=>x===recent?.region)||ending.find(x=>x.selected)||ending[0]));
+ if(!r){message(rg?'The selection crosses a gap. Select a short passage inside one recording on '+t.name+'.':'No recording under the playhead on '+t.name+'. Move the playhead onto a recording, or right-click the recording, then try again.',true);return false;}
+ const takeId=audition?.regionId===r.id?audition.takeId:ending&&r===recent?.region?recent.take.id:r.selected;
  const a=r.takes.find(x=>x.id===takeId)||r.takes[0];if(!a)return false;
  W().activeTrack=t.id;
- const sel=rg?[Math.max(r.start,rg[0]),Math.min(r.end,rg[1])]:[Math.max(r.start,at-.5),Math.min(r.end,at+.5)];
- return openCleanup(t.id,r.id,a.id,{a:sel[0],b:sel[1],message:(rg?'Your timeline selection':'About one second around '+clock(at))+' is selected. Drag on the waveform to adjust it, then compare Original selection, My edit and Hear removed. Keep as new take saves it; Close returns to where you were.',onClose:()=>{W().cursor=C.clamp(back,0,900);render();}});
+ const start=Math.max(r.start,Math.min(r.end-1,at-.5));
+ const sel=rg?[Math.max(r.start,rg[0]),Math.min(r.end,rg[1])]:[start,Math.min(r.end,start+1)];
+ return openCleanup(t.id,r.id,a.id,{a:sel[0],b:sel[1],message:'Passage selected. Compare Before and After. Hear removed plays the difference.',onClose:()=>{W().cursor=C.clamp(back,0,900);render();}});
 }
 // ---- 0.23.0 take editor (non-destructive: trim, gain, fades, timing) -----------
 async function takeEditor(regionId,takeId){if(busy())return;const r=T().regions.find(x=>x.id===regionId),a=r?.takes.find(x=>x.id===takeId);if(!a)return;const n=W().sources[a.source].channels[0].length/W().rate;

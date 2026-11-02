@@ -1,15 +1,9 @@
-Playbook Vocal Studio 0.32.2 · Manual cleanup · Separate sound
-Run from the extracted folder with python -m http.server 8000. Open http://localhost:8000.
-In Song & Vocals, record or import a take. Open Edit and choose Manual cleanup · Separate sound.
-Drag across a breath, or try Find next possible breath and verify by ear.
-Start at 6 dB reduction and 10 ms edge fade. Listen with the words before and after.
-For a gust underneath a word try Rumble under voice, 0–100 Hz, 4 dB reduction.
-Inspect selected sound shows a spectrogram. Drag a rectangle to set time and frequency.
-Use Original selection, My edit and Hear removed to check the result at the same monitor gain.
-Loop cleanup preview repeats the region. Stop before selecting another region.
-Keep as new take creates an editable copy and stores the settings with the take.
-Export edited selection saves an individual note/phrase. Export removed sound saves the difference.
-Local spectral edits handle selections up to 30 seconds. They cannot isolate two sources sharing the same time and frequency perfectly.
-For whole-track cleanup use POLISH > CLEAN, learn a quiet room sample and audition removed noise.
-Pitch correction and approved Snap presets live in the existing note editor. Use the existing EQ, dynamics and Finish & check for final polish.
-Autosave keeps the original recording once and saves only the edited stretch of each cleanup take.
+MANUAL CLEANUP · Playbook Vocal Studio 0.36.1 beta
+
+On Song & vocals, tap the breath on the timeline and choose Clean up here. You can also press N, use a right-click or long press, or open Edit on the take and choose Manual cleanup. A short timeline selection is respected. At the end of a take you can open its final second. Use Select sound to mark audio, and Move view to scroll it.
+
+Start with Reduce a breath. Drag across the breath or type Start and End. Find next possible breath suggests a location to verify by ear. Try the 6 dB starting point. Compare Before and After with the same backing setting. The surrounding words are included in both previews so you can hear whether the next consonant survives. Hear removed plays only the selected difference without the backing. Loop repeats the preview passage.
+
+Keep as new take stores the edit and returns you to the song. Your source recording stays available. Song Undo restores the previous choice. Close leaves the edit uncommitted. Stop also cancels preparation. The action row stays visible. If a selection exceeds the local 30-second limit, shorten it or use Select one second.
+
+For a low gust under a word, choose Rumble under voice. Advanced contains frequency limits, edge fade, the spectrum and separate WAV exports for the edited or removed selection. The starting rumble settings are 0–100 Hz and 4 dB. For steady room noise across a whole vocal, go to POLISH → CLEAN.

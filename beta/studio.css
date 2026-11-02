@@ -150,3 +150,47 @@ body.rc-started:not(.rc-helpopen) .rcfoot h3{margin:0}
 .rch.comp .rcs{white-space:normal;line-height:1.15;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .song-cleanup #veTake,.song-cleanup #veChoose,.song-cleanup .stgrid>.stbox:not(:first-child),.song-cleanup .stdet,.song-cleanup .sthint{display:none}
 .song-cleanup .stgrid{grid-template-columns:1fr}
+
+/* Only the body scrolls. Preview feedback, Stop, Close and Keep stay within reach. */
+#vocalEditor .stdialog{display:flex;flex-direction:column;overflow:hidden;max-height:calc(100dvh - 32px)}
+#vocalEditor .stdialog>header{flex:none;position:static;margin:0}
+#vocalEditor .sc-body{min-height:0;overflow:auto;overscroll-behavior:contain;padding-right:3px}
+#vocalEditor .sc-hint{color:var(--rcm);margin:4px 0 7px}
+#vocalEditor .sc-controls{display:grid;gap:8px;justify-items:start}
+#vocalEditor .sc-controls details{width:100%}
+#vocalEditor #sepAdvanced>summary{cursor:pointer;font-weight:700;padding:7px 0}
+#vocalEditor #sepAdvanced>small{display:block}
+#vocalEditor .sc-footer{flex:none;background:var(--rcp);border-top:1px solid var(--rcl);padding:7px 0 0;margin-top:5px}
+#vocalEditor .sc-options,#vocalEditor .sc-actions{display:flex;flex-wrap:wrap;align-items:center;gap:5px 10px}
+#vocalEditor #scRange{font:600 12px var(--body);color:var(--rcacc)}
+#vocalEditor .sc-footer .ststatus{margin:4px 0;min-height:1.2em;max-height:3em;overflow:auto}
+#vocalEditor .sc-actions button{min-height:40px}
+#vocalEditor #sepKeep{margin-left:auto}
+#vocalEditor.song-cleanup #vePlay{display:none}
+#vocalEditor.song-cleanup .sc-body{max-height:65dvh}
+@media(max-width:720px){
+ #vocalEditor .stdialog{max-height:calc(100dvh - 8px)}
+ #vocalEditor .sc-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}
+ #vocalEditor .sc-actions button{white-space:normal;min-height:44px;padding:4px}
+ #vocalEditor #sepKeep{grid-column:span 2;margin:0}
+ #vocalEditor .sc-options strong{width:100%}
+ #vocalEditor .sc-options label{min-height:32px}
+ #vocalEditor .sc-options{gap:2px 10px}
+}
+#vocalEditor #scUseSecond[hidden]{display:none}
+#vocalEditor .sc-modebar{display:flex;align-items:center;justify-content:space-between;column-gap:8px}
+#vocalEditor #veSelectionTools{margin:3px 0}
+#vocalEditor #veSelectionTools>summary{cursor:pointer;color:var(--rcm);font-weight:600;padding:6px 2px}
+#vocalEditor.song-cleanup .stcanvas{height:clamp(100px,21dvh,175px)}
+#vocalEditor .sc-footer .ststatus{line-height:1.25;max-height:3.75em}
+@media(max-width:720px){
+ #vocalEditor.song-cleanup .stdialog>header{flex-wrap:nowrap}
+ #vocalEditor.song-cleanup .stdialog>header h2{flex:1 1 0}
+ #vocalEditor .sc-modebar #veMode{flex:none;font-size:12px}
+ #vocalEditor #veSelectionTools>summary{min-height:40px;box-sizing:border-box;padding-block:9px}
+ #vocalEditor .stnav .stzoomg{flex-wrap:wrap}
+}
+@media(max-width:720px){
+ #vocalEditor.song-cleanup .stdialog>header h2{white-space:normal;line-height:1.15;max-height:3.45em}
+ #vocalEditor #sepDb{min-height:44px}
+}

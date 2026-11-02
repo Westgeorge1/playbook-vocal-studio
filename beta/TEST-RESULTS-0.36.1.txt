@@ -1,0 +1,30 @@
+Playbook Vocal Studio 0.36.1 beta
+All 1063 checks across 25 Chromium/Playwright suites passed.
+
+cleaning             31 checks passed
+cleanup              18 checks passed
+coach                45 checks passed
+delete               61 checks passed
+editors              74 checks passed
+guide-undo           12 checks passed
+laptop               34 checks passed
+layout               61 checks passed
+manual-cleanup       48 checks passed
+navigation           134 checks passed
+phrase-guide         35 checks passed
+playback             4 checks passed
+recording            38 checks passed
+regressions          21 checks passed
+restore              56 checks passed
+storage              10 checks passed
+timeline-move        41 checks passed
+transport            51 checks passed
+tuning               44 checks passed
+tuning-plus          32 checks passed
+upgrade              13 checks passed
+ux                   66 checks passed
+windows              48 checks passed
+workflow             45 checks passed
+workspace-editor     41 checks passed
+
+Manual cleanup was tested in Chromium with synthetic stereo audio at 390x844 and 1280x600. Coverage includes both entry points, exact end-of-take selection, adjacent recordings, short defaults, oversized selection recovery, a real 30-second worker job, stale replies after Stop/Close, aligned backing and vocal sample comparisons, removed-sound solo, saving the new take and Undo. An additional 360px screen check verified the basic waveform and buttons. Owner-device performance and listening remain physical-device checks.

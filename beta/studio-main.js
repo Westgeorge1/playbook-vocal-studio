@@ -146,8 +146,8 @@ const songSeconds = () => S.original ? S.original.length / S.rate : 0;
 
 // ---------------------------------------------------------------- engine (worker)
 // 0.17.2: the app and the audio engine have separate version numbers
-var APP_VERSION="0.36.0",ENGINE_VERSION="0.12.1";
-const worker = new Worker("worker.js?v=0.36.0");
+var APP_VERSION="0.36.1",ENGINE_VERSION="0.12.1";
+const worker = new Worker("worker.js?v=0.36.1");
 let reqId = 0, engineFailure = null; const pending = {};
 var ENGINE_WAIT_MS = 120000;
 worker.onmessage = ({ data: m }) => {
@@ -610,7 +610,7 @@ async function startPlayback(at, target="mix") {
     const t0=ctx.currentTime+.03;
     outputMeter=ctx.createAnalyser();outputMeter.fftSize=1024;outputSamples=new Float32Array(outputMeter.fftSize);outputMeter.connect(ctx.destination);
     const play=(buffer,gain,isBeat=false)=>{
-      const offset=at+(isBeat?(loop?.beatOffset||0):0);
+      const offset=at+(isBeat&&!loop?.backingClip?(loop?.beatOffset||0):0);
       // A source started at its exact duration emits no samples. Skip shorter tracks at this position.
       if(!buffer.length||offset>=buffer.duration)return;
       if(!Number.isFinite(gain)||gain<0)throw new Error("This preview has an invalid level. Choose Play original vocal.");
@@ -619,8 +619,8 @@ async function startPlayback(at, target="mix") {
       if(loop?.oneShot)src.start(t0,offset,Math.min(loop.end-at,buffer.duration-offset));else src.start(t0,offset);sources.push(src);playbackNodes.push(g);if(isBeat)beatGains.push(g);
     };
     if(clip?.chs?.[0]?.length)play(bufferOf(clip.chs,loop?.rate||S.rate),clip.gain*(typeof dawVocalGain==="function"?dawVocalGain():1));
-    const backing=target==="beat"||loop?.phrase?S.beat:beatBuffer();
-    if(backing&&(target==="beat"||(target!=="vocal"&&$("beatOn").checked&&(S.mode!=="removed"||loop?.phrase)&&!(loop&&loop.noBeat))))play(backing,S.beatLevel*(typeof dawBeatGain==="function"?dawBeatGain():1),true);
+    const backing=loop?.backingClip||(target==="beat"||loop?.phrase?S.beat:beatBuffer());
+    if(backing&&(target==="beat"||(target!=="vocal"&&($("beatOn").checked||loop?.backingClip)&&(S.mode!=="removed"||loop?.phrase)&&!(loop&&loop.noBeat))))play(backing,S.beatLevel*(typeof dawBeatGain==="function"?dawBeatGain():1),true);
     if(!sources.length)throw new Error("No playable audio here. Load a vocal or backing track first.");
     startTime=t0;startPos=at;position=at;playing=true;playPending=false;
     const mode={before:"Original vocal",cleaned:"Cleaned vocal",after:"Tuned vocal",final:"Final vocal",removed:"Removed noise only"}[S.mode];
@@ -1764,7 +1764,7 @@ async function saveProject(opts) {
   const base = safeName(S.song?.title||(phraseOnly?phraseWorkspace().title:S.name)), srcName = base + " - phone source.wav", src = wavFloat(phraseWorkspaceAudio||S.audio[5]||S.main, phraseOnly?(S.song?.rate||phraseWorkspace().rate):S.rate), files = [{ name: srcName, data: src }];
   const takes = S.takes.slice(1).map((t, i) => { const name = base + " - take " + (i + 1) + ".wav", data = wavFloat(S.takeChannels[i+1]||t, S.rate); files.push({ name, data }); return { file: name, bytes: data.length, trim: 0, pad: 0 }; });
   const g = S.guide || {}, P = { ...S.P, chMixFit: S.mix.fit ? 1 : 0, chMixOver: S.mix.over, chMixRoom: S.mix.room };
-  const root = { format: "Playbook Vocal Studio", version: 9, savedBy: "Playbook Vocal Studio 0.36.0 (phone DAW)",
+  const root = { format: "Playbook Vocal Studio", version: 9, savedBy: "Playbook Vocal Studio 0.36.1 (phone DAW)",
     smartGuide: { enabled: !!S.guidePrefs.enabled, concern: S.guidePrefs.concern || 0, goal: S.guidePrefs.goal, bpm: S.guidePrefs.bpm, tempoSync: !!S.guidePrefs.sync, locked: g.locked || [], dismissed: g.dismissed || {} },
     performance: S.st?.edits||{breaths:[],timing:[],comp:[]}, notePerformance: S.st?.edits||{breaths:[],timing:[],comp:[]}, alternateTakes: takes,
     source: srcName, sourceBytes: src.length, trim: 0, pad: 0, take: false };
@@ -1779,7 +1779,7 @@ async function saveProject(opts) {
   if(!compat&&S.main&&S.song){const lt=S.song.tracks.find(t=>t.id===S.song.polishTrack),pc=lt?.polish?.session?.pcm,cur=S.audio[5]||[S.main];if(lt&&Array.isArray(pc)&&SongCore.polishValid(S.song,lt)&&SongCore.samePcm(pc,cur)){const f=files.find(f=>f.name===srcName);if(f)files.splice(files.indexOf(f),1);root.source=null;root.sourceLane=lt.id;delete root.sourceBytes;}}
   root.backupKind=compat?"compatibility":"modern";
   files.unshift({ name: base + ".pbv", data: new TextEncoder().encode(JSON.stringify(root, null, 1)) });
-  files.push({ name: "READ-ME.txt", data: new TextEncoder().encode((compat?"Playbook Vocal Studio song project, COMPATIBILITY backup (saved on the phone, 0.36.0). It also contains copies for older versions (0.18.3 parts).":"Playbook Vocal Studio song project (saved on the phone, 0.36.0). Modern backup: open it in Playbook Vocal Studio 0.31.4 or newer. Older versions need a Compatibility backup (Export song > Compatibility backup).")+"\r\n\r\nOn the laptop: extract this ZIP into its own folder, keep the files together, then use Open project in the Windows app or FL Studio plugin (0.9.8 or newer) and choose " + base + ".pbv.\r\nOpen multitrack projects in Playbook Vocal Studio 0.31.4 or newer to retain separate tracks, sections, attempts, per-track POLISH and phrase-volume moves (0.24 and earlier may not restore 0.25 POLISH preferences). Older apps open only the last POLISH vocal and will lose the multitrack data if you save over this project. Keep this original ZIP.\r\nOn the phone: SONG PROJECT > Open a song project, then pick this ZIP.\r\n") });
+  files.push({ name: "READ-ME.txt", data: new TextEncoder().encode((compat?"Playbook Vocal Studio song project, COMPATIBILITY backup (saved on the phone, 0.36.1). It also contains copies for older versions (0.18.3 parts).":"Playbook Vocal Studio song project (saved on the phone, 0.36.1). Modern backup: open it in Playbook Vocal Studio 0.31.4 or newer. Older versions need a Compatibility backup (Export song > Compatibility backup).")+"\r\n\r\nOn the laptop: extract this ZIP into its own folder, keep the files together, then use Open project in the Windows app or FL Studio plugin (0.9.8 or newer) and choose " + base + ".pbv.\r\nOpen multitrack projects in Playbook Vocal Studio 0.31.4 or newer to retain separate tracks, sections, attempts, per-track POLISH and phrase-volume moves (0.24 and earlier may not restore 0.25 POLISH preferences). Older apps open only the last POLISH vocal and will lose the multitrack data if you save over this project. Keep this original ZIP.\r\nOn the phone: SONG PROJECT > Open a song project, then pick this ZIP.\r\n") });
   let data;try{data=zip(files);}catch(err){return done(false,"failed","Couldn't save: the project could not be prepared ("+(err&&err.message||"unknown problem")+").");}
   try { const file=base+(compat?" - song project (compatibility).zip":" - song project.zip");const result=await saveDownload(file,data);const info=file+". Use Open project to keep editing. "+whereSaved();const r=done(true,result==="Saved"?"saved":"requested",result+" · "+info);toast(result,info); return r; }
   catch (err) { return err && err.code === "declined" ? done(false,"cancelled","Not saved.") : done(false,"failed","Couldn't save: " + (err && err.message || "unknown problem") + "."); }
@@ -2359,7 +2359,7 @@ function phraseAdjust(id,field,value){if(phraseBusy())return;const p=selectedPhr
 function phraseSafeGain(channels){let peak=0;for(const c of channels)for(const x of c)peak=Math.max(peak,Math.abs(x));return peak>.891251?.891251/peak:1;}
 async function phraseListen(id){if(phraseBusy())return;try{const w=phraseWorkspace(),p=selectedPhrase();let channels,start=0,end,rate=w.rate,gain=1;if(id){const t=p?.takes.find(t=>t.id===id);if(!t)return;const excerpt=PhraseCore.audition(t,p);channels=excerpt;start=p.start;end=channels[0].length/rate;gain=PhraseCore.matchGains(p)[id]||phraseSafeGain(channels);}else{channels=PhraseCore.compose(w);end=channels[0].length/rate;gain=phraseSafeGain(channels);start=0;}if(!end)throw new Error('No audio in this phrase.');endLoop();loop={phrase:true,chs:channels,rate,gain,start:0,end,noBeat:!$('phraseCompareBeat').checked,beatOffset:start,oneShot:true};const ok=await startPlayback(0);phraseMessage(ok?(id?'Playing attempt at a matched level':'Playing assembled vocal')+($('phraseCompareBeat').checked&&S.beat?' with backing.':'.'):'Audio could not start. '+$('playbackStatus').textContent);}catch(e){phraseMessage(e.message);}}
 function phraseFailWorker(error){if(phraseWorker)phraseWorker.terminate();phraseWorker=null;for(const j of phraseJobs.values()){clearTimeout(j.timer);j.reject(new Error(error));}phraseJobs.clear();}
-function phraseWorkerRequest(t,p){return new Promise((resolve,reject)=>{if(!phraseWorker){phraseWorker=new Worker('phrase-worker.js?v=0.36.0');phraseWorker.onmessage=({data:m})=>{const j=phraseJobs.get(m.id);if(!j)return;clearTimeout(j.timer);phraseJobs.delete(m.id);m.error?j.reject(new Error(m.error)):j.resolve(m.profile);};phraseWorker.onerror=e=>phraseFailWorker(e.message||'Take analysis stopped. Retry analysis.');phraseWorker.onmessageerror=()=>phraseFailWorker('Take analysis returned unreadable data.');}const id=++phraseSerial,channels=t.channels.map(c=>c.slice());phraseJobs.set(id,{resolve,reject,timer:setTimeout(()=>phraseFailWorker('Take analysis timed out. Your recording is kept; retry analysis.'),120000)});try{phraseWorker.postMessage({id,take:{...t,channels,profile:null},phrase:{start:p.start,end:p.end}},channels.map(c=>c.buffer));}catch(e){const j=phraseJobs.get(id);clearTimeout(j.timer);phraseJobs.delete(id);reject(e);}});}
+function phraseWorkerRequest(t,p){return new Promise((resolve,reject)=>{if(!phraseWorker){phraseWorker=new Worker('phrase-worker.js?v=0.36.1');phraseWorker.onmessage=({data:m})=>{const j=phraseJobs.get(m.id);if(!j)return;clearTimeout(j.timer);phraseJobs.delete(m.id);m.error?j.reject(new Error(m.error)):j.resolve(m.profile);};phraseWorker.onerror=e=>phraseFailWorker(e.message||'Take analysis stopped. Retry analysis.');phraseWorker.onmessageerror=()=>phraseFailWorker('Take analysis returned unreadable data.');}const id=++phraseSerial,channels=t.channels.map(c=>c.slice());phraseJobs.set(id,{resolve,reject,timer:setTimeout(()=>phraseFailWorker('Take analysis timed out. Your recording is kept; retry analysis.'),120000)});try{phraseWorker.postMessage({id,take:{...t,channels,profile:null},phrase:{start:p.start,end:p.end}},channels.map(c=>c.buffer));}catch(e){const j=phraseJobs.get(id);clearTimeout(j.timer);phraseJobs.delete(id);reject(e);}});}
 function phraseAnalyze(t,p){const token={};t.analysisToken=token;t.profile=null;t.analysisError=null;phraseJobQueue=phraseJobQueue.then(async()=>{if(t.analysisToken!==token||!S.phrases?.phrases.includes(p)||!p.takes.includes(t))return;try{const profile=await phraseWorkerRequest(t,p);if(t.analysisToken===token){t.profile=profile;t.profileKey=phraseProfileKey(t,p);}}catch(e){if(t.analysisToken===token)t.analysisError=e.message;}finally{if(t.analysisToken===token){delete t.analysisToken;syncPhraseUI();persist();}}});return phraseJobQueue;}
 // 0.18.3 (review 06): a check result belongs to one part span and take position; Undo / Redo / trim / split that change them run it again
 function phraseProfileKey(t,p){return [p.start,p.end,t.origin,t.offsetMs||0,t.channels[0]?.length||0].join(',');}

@@ -1,4 +1,6 @@
-PLAYBOOK VOCAL STUDIO 0.36.0 BETA
+PLAYBOOK VOCAL STUDIO 0.36.1 BETA
+
+Manual cleanup: open Clean up here, mark the breath, compare Before and After with backing, then Hear removed alone. Keep as new take preserves your original. Stop cancels preparation.
 
 After recording, use Hear this take to replay the line with the current mix. Record another take records the same range. Use in song chooses a complete alternate. For breath, pitch, harmony or take help, open Guide → Guide this vocal. Finish & check labels the backing choice beside the WAV download and also offers an editable project backup.
 

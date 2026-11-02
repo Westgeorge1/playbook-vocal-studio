@@ -1,6 +1,8 @@
-# Playbook Vocal Studio 0.36.0 beta
+# Playbook Vocal Studio 0.36.1 beta
 
-[Open the 0.36.0 beta](https://westgeorge1.github.io/playbook-vocal-studio/beta/) · [Open the 0.32.3 main studio](https://westgeorge1.github.io/playbook-vocal-studio/)
+[Open the 0.36.1 beta](https://westgeorge1.github.io/playbook-vocal-studio/beta/) · [Open the 0.32.3 main studio](https://westgeorge1.github.io/playbook-vocal-studio/)
+
+0.36.1 updates Manual cleanup with short selection defaults, matched Before/After backing, a pinned action row, and cancellable background processing. [Read the cleanup changes](CHANGES-0.36.1.md).
 
 0.36.0 adds immediate take replay and retakes, concern-based Smart Guide review with scoped Undo, and explicit export and backup choices. [Read the workflow changes](CHANGES-0.36.0.md).
 

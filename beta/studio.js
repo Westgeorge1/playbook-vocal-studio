@@ -18,48 +18,114 @@ const modal=document.createElement('section');modal.id='vocalEditor';modal.class
 modal.setAttribute('role','dialog');modal.setAttribute('aria-modal','true');modal.setAttribute('aria-labelledby','veTitle');
 modal.innerHTML=`<div class="stdialog">
 <header><h2 id="veTitle">Edit take</h2><select id="veTake" aria-label="Take to edit"></select><button id="veChoose" class="stgreen">✓ Choose</button><button id="veClose" aria-label="Close the editor">Close ✕</button></header>
-<p class="sthint">Drag across the waveform to select. Level, silence and fades make a <b>new take</b>; the original stays in the list. Part changes (trim, split, move) keep every recording — one Undo puts them back.</p>
-<canvas id="veCanvas" class="stcanvas" tabindex="0" aria-label="Backing and take waveforms. Drag to select; use the Start and End fields for exact times."></canvas>
-<div class="strow stnav"><button id="vePlay">▶ Play selection</button><button id="veStop" aria-label="Stop">■</button><label class="stchk"><input id="veBeat" type="checkbox" checked> with backing</label><span class="stgap"></span><span class="stzoomg"><button id="veOut" aria-label="Zoom out" title="Zoom out">−</button><button id="veIn" aria-label="Zoom in" title="Zoom in">+</button><button id="veFit">Part</button><button id="veFull">Whole take</button><button id="veMode" aria-pressed="false" title="Hand: drag to scroll instead of selecting" aria-label="Hand (drag to scroll)">✋</button></span></div>
+<div class="sc-body"><p class="sthint">Drag across the waveform to select. Level, silence and fades make a <b>new take</b>; the original stays in the list. Part changes (trim, split, move) keep every recording — one Undo puts them back.</p>
+<div class="sc-modebar"><p id="scInstruction" class="sc-hint"></p><button id="veMode" aria-pressed="false" title="Switch between selecting a sound and moving the view">Move view</button></div><canvas id="veCanvas" class="stcanvas" tabindex="0" aria-label="Backing and take waveforms. Drag to select; use the Start and End fields for exact times."></canvas>
+<details id="veSelectionTools" open><summary>Selection times and zoom</summary><div class="strow stnav"><button id="vePlay">▶ Play selection</button><span class="stgap"></span><span class="stzoomg"><button id="veOut" aria-label="Zoom out" title="Zoom out">−</button><button id="veIn" aria-label="Zoom in" title="Zoom in">+</button><button id="veFit">Part</button><button id="veFull">Whole take</button></span></div>
 <div class="strow stpan"><input id="vePan" type="range" min="0" max="1" step="0.001" aria-label="Scroll the take"><output id="veView"></output></div>
-<div class="strow"><label>Start <input id="veA" type="number" step="0.001" aria-label="Selection start in song seconds"> s</label><label>End <input id="veB" type="number" step="0.001" aria-label="Selection end in song seconds"> s</label><button id="veSelectPart">Select whole part</button></div>
+<div class="strow"><label>Start <input id="veA" type="number" step="0.001" aria-label="Selection start in song seconds"> s</label><label>End <input id="veB" type="number" step="0.001" aria-label="Selection end in song seconds"> s</label><button id="veSelectPart">Select whole part</button></div></details>
 <div class="stgrid">
- <div class="stbox"><h3>MANUAL CLEANUP · Separate sound</h3><p>Drag across one breath or note above. Choose a sound, adjust the controls and listen before keeping it.</p>
- <button id="sepFind">Find next possible breath</button><label><input id="sepLoop" type="checkbox"> Loop cleanup preview</label><button id="sepInspect">Inspect selected sound</button><canvas id="sepMap" width="360" height="128" hidden style="width:100%;height:128px;touch-action:none" aria-label="Spectrogram. Drag a rectangle to select time and frequencies."></canvas><small>Drag across the spectrum to select a time and frequency range. Brighter areas carry more energy. Bass is at the bottom.</small>
- <label>Sound <select id="sepMode"><option>Breath between words</option><option>Rumble under voice</option><option>Frequency band</option></select></label>
- <div class="strow"><label>Low Hz <input id="sepLow" type="number" value="0" min="0"></label><label>High Hz <input id="sepHigh" type="number" value="100" min="1"></label></div>
+ <div class="stbox sc-controls"><h3>Clean the selected sound</h3>
+ <label>Sound <select id="sepMode"><option value="Breath between words">Reduce a breath</option><option>Rumble under voice</option><option>Frequency band</option></select></label>
+ <button id="sepFind">Find next possible breath</button>
  <label>Reduction <input id="sepDb" type="range" min="0" max="36" step=".5" value="6"><output id="sepValue">6 dB</output></label>
+ <details id="sepAdvanced"><summary>Advanced</summary>
+ <p>Fine-tune a frequency band or export the selection separately.</p>
+ <div class="strow"><label>Low Hz <input id="sepLow" type="number" value="0" min="0"></label><label>High Hz <input id="sepHigh" type="number" value="100" min="1"></label></div>
  <label>Edge fade (ms) <input id="sepFade" type="number" min="0" max="100" value="10"></label>
- <div class="strow"><button id="sepOriginal">Original selection</button><button id="sepEdited">My edit</button><button id="sepRemoved">Hear removed</button><button id="sepKeep">Keep as new take</button><button id="sepClip">Export edited selection</button><button id="sepStem">Export removed sound</button></div></div>
+ <button id="sepInspect">Inspect selected sound</button><canvas id="sepMap" width="360" height="128" hidden style="width:100%;height:128px;touch-action:none" aria-label="Spectrogram. Drag a rectangle to select time and frequencies."></canvas><small>Drag a rectangle on the spectrum, or use Start, End, Low Hz and High Hz.</small>
+ <div class="strow"><button id="sepClip">Export edited selection</button><button id="sepStem">Export removed sound</button></div></details></div>
  <div class="stbox"><h3>SELECTED AUDIO → new take</h3><div class="strow"><label>Level <input id="veGain" type="number" value="-3" min="-24" max="24" step="0.5" aria-label="Level change in dB"> dB</label><button id="veApplyGain">Apply level</button></div><div class="strow"><button id="veSilence">Silence</button><button id="veFadeIn">Fade in</button><button id="veFadeOut">Fade out</button></div></div>
  <div class="stbox"><h3>PART</h3><div class="strow"><button id="veTrim" title="Make the part start and end at the selection. Nothing is deleted from the takes.">Trim part to selection</button><button id="veSplit" title="Split the part at the selection start into two parts">Split at start</button></div><div class="strow"><label>Move part to <input id="veMoveTo" type="number" min="0" max="899.5" step="0.01" aria-label="New part start in seconds"> s</label><button id="veMove">Move</button></div></div>
  <div class="stbox"><h3>TIMING · HISTORY</h3><div class="strow"><button id="veEarlier" title="Move this take 10 ms earlier">◀ 10 ms</button><output id="veOffset">0 ms</output><button id="veLater" title="Move this take 10 ms later">10 ms ▶</button></div><div class="strow"><button id="veUndo">↶ Undo</button><button id="veRedo">↷ Redo</button><button id="veDownload" title="Download the whole take as a WAV file">Download WAV</button></div></div>
 </div>
 <details class="stbox stdet"><summary>Why was this take suggested?</summary><div id="veAnalysis" class="stanalysis"></div><button id="veAnalyze">Check again</button></details>
-<p id="veStatus" class="ststatus" role="status" aria-live="polite"></p></div>`;
+</div><footer class="sc-footer"><div class="sc-options"><strong id="scRange"></strong><button id="scUseSecond" type="button" hidden>Select one second</button><label><input id="veBeat" type="checkbox" checked> With backing</label><label><input id="sepLoop" type="checkbox"> Loop</label></div>
+ <p id="veStatus" class="ststatus" role="status" aria-live="polite"></p><div class="sc-actions"><button id="sepOriginal">Before</button><button id="sepEdited">After</button><button id="sepRemoved" title="Solo the removed sound without backing">Hear removed</button><button id="veStop" aria-label="Stop preview or cancel preparation">■ Stop</button><button id="sepKeep" class="stgreen">Keep as new take</button></div></footer></div>`;
 document.body.append(modal);
 // ---------------------------------------------------------------- Recovered audio panel
 const recovery=document.createElement('section');recovery.id='recoveryModal';recovery.className='stmodal';recovery.hidden=true;recovery.setAttribute('role','dialog');recovery.setAttribute('aria-modal','true');recovery.setAttribute('aria-labelledby','recoveryTitle');
 recovery.innerHTML='<div class="stdialog stsmall"><header><h2 id="recoveryTitle">Recovered audio</h2><button id="recoveryClose">Close ✕</button></header><p class="sthint">Microphone audio that could not be placed as a take (for example the mic stopped, or a loop pass was not finished). It is kept in autosave and in Back up project. Download each file and check it before you remove it.</p><div id="recoveryList"></div></div>';
 document.body.append(recovery);
 
-let songCleanup=null;
+let songCleanup=null,cleanupSerial=0,cleanupJob=null,previewActive=false;
+function cancelCleanupJob(){
+ cleanupSerial++;previewActive=false;
+ if(cleanupJob)cleanupJob.cancel();
+}
+function work(data,buffers){
+ return new Promise((resolve,reject)=>{
+  const worker=new Worker('cleanup-worker.js?v=0.36.1');
+  let timer;
+  const finish=(fn,value)=>{clearTimeout(timer);worker.terminate();if(cleanupJob===job)cleanupJob=null;fn(value);};
+  const job={kind:data.kind,cancel:()=>finish(reject,new Error('Cleanup cancelled.'))};
+  cleanupJob=job;
+  worker.onmessage=({data:r})=>r.error?finish(reject,new Error(r.error)):finish(resolve,r.value);
+  worker.onerror=e=>finish(reject,new Error(e.message||'Cleanup preparation failed. Please try again.'));
+  worker.onmessageerror=()=>finish(reject,new Error('The cleanup result could not be read. Please try again.'));
+  timer=setTimeout(()=>finish(reject,new Error('Cleanup timed out. Select a shorter passage or try again.')),45000);
+  try{worker.postMessage(data,buffers);}catch(e){finish(reject,e);}
+ });
+}
+function setHand(on){
+ E.hand=on;el('veMode').setAttribute('aria-pressed',String(on));el('veMode').textContent=on?'Select sound':'Move view';
+ el('veMode').setAttribute('aria-label',on?'Select sound instead of moving the view':'Move view instead of selecting a sound');
+ el('veCanvas').style.cursor=on?'grab':'crosshair';
+ el('scInstruction').textContent=on?'Move view is on. Drag to scroll.':'Drag across the sound, or enter its times below.';
+}
+function resetCleanup(){
+ setHand(false);pointers.clear();pinch=null;E.drag=null;press=null;mapRange=null;
+ el('veSelectionTools').open=!songCleanup;el('sepAdvanced').open=false;el('sepMap').hidden=true;el('sepMode').selectedIndex=0;el('sepFade').value=10;el('sepLoop').checked=false;
+ el('veBeat').checked=!!S.beat&&el('beatOn').checked;el('veBeat').disabled=!S.beat;updateBand();
+ modal.querySelector('.sc-body').scrollTop=0;modal.querySelector('.stdialog').scrollTop=0;
+}
+function selectionIssue(){
+ const seconds=E.b-E.a,{t}=find();
+ if(!t||seconds<=0||!Number.isFinite(seconds))return 'Select a sound on the waveform.';
+ if(seconds>30+1e-8)return 'Shorten the selection to 30 seconds or less.';
+ if(songCleanup&&(E.a<songCleanup.lo-.00001||E.b>songCleanup.hi+.00001))return 'Select audio inside this take.';
+ try{VocalEdit.range(t,E.a,E.b);}catch(e){return e.message;}
+ return '';
+}
+function studioBlock(){
+ if(!busy())return '';
+ return typeof lockReason==='function'?lockReason()||'The studio is busy.':'The studio is busy.';
+}
+function syncCleanupControls(){
+ if(modal.hidden)return;
+ const issue=selectionIssue(),blocked=studioBlock(),pending=!!cleanupJob;
+ const note=(E.b-E.a).toFixed(2)+' s selected · '+(issue||blocked||'30 s maximum');
+ if(el('scRange').textContent!==note)el('scRange').textContent=note;
+ el('scUseSecond').hidden=!issue;
+ for(const id of ['sepOriginal','sepEdited','sepRemoved','sepKeep','sepClip','sepStem','sepInspect']){
+  const disabled=!!(issue||blocked||pending);if(el(id).disabled!==disabled)el(id).disabled=disabled;
+ }
+ el('sepFind').disabled=!!blocked||pending;
+ if(previewActive&&!playing&&!playPending){previewActive=false;message('Preview finished. Compare again or keep the edit as a new take.');}
+}
+function usable(){
+ const reason=selectionIssue()||studioBlock();if(!reason)return true;
+ message(reason);syncCleanupControls();return false;
+}
+function inputChanged(){if(cleanupJob||previewActive||playPending){stop();message('Changed. Preview the new settings.');}syncCleanupControls();}
+
 // 0.34.2: opt.a/opt.b preselect a stretch (Clean up here); opt.onClose runs after the window closes.
 function openSongCleanup(t,p,save,opt={}){
   stop();songCleanup={t,p,save,onClose:opt.onClose};modal.classList.add('song-cleanup');
   E.lastFocus=document.activeElement;E.pid=p.id;E.tid=t.id;
   el('veTitle').textContent='Manual cleanup · '+t.name;el('sepMap').hidden=true;
   modal.hidden=false;document.body.classList.add('st-open');
-  const a=Number.isFinite(opt.a)?Math.max(p.start,Math.min(p.end,opt.a)):p.start,b=Number.isFinite(opt.b)?Math.max(a,Math.min(p.end,opt.b)):p.end;
-  selection(a,b);if(a>p.start||b<p.end)setView(Math.max(p.start-.2,a-1.2),Math.max(2.4,b-a+2.4));else setView(p.start-.2,p.end-p.start+.4);
-  message(opt.message||'Select a breath or note. Keep as new take returns to the song.');el('veClose').focus();
+  resetCleanup();
+  songCleanup.lo=opt.lo??p.start;songCleanup.hi=opt.hi??p.end;
+  const a=clamp(opt.a??p.start,songCleanup.lo,songCleanup.hi),b=clamp(opt.b??a+1,a,songCleanup.hi);
+  selection(a,b);setView(Math.max(songCleanup.lo,a-1.2),Math.max(2.4,b-a+2.4));
+  message(opt.message||'Listen to Before and After. Keep the edit if the following word still sounds natural.');el('veClose').focus();
 }
 function find(){if(songCleanup)return songCleanup;const w=phraseWorkspace(),p=w.phrases.find(p=>p.id===E.pid),t=p?.takes.find(t=>t.id===E.tid);return {w,p,t};}
 function message(s){el('veStatus').textContent=s;}
-function stop(){if(loop)endLoop();stopPlayback();RC.auditioning=false;RC.savedPos=null;}
+function stop(){cancelCleanupJob();if(loop)endLoop();stopPlayback();RC.auditioning=false;RC.savedPos=null;}
 function bounds(){const {p,t}=find();if(!t)return [0,1];const o=PhraseCore.origin(t);return [Math.max(0,Math.min(p.start,o)),Math.max(p.end,o+t.channels[0].length/t.rate,.5)];}
 function setView(start,seconds){const [a,b]=bounds();E.seconds=clamp(seconds,.05,Math.max(.05,b-a));E.start=clamp(start,a,b-E.seconds);draw();}
-function selection(a,b){E.a=Math.min(a,b);E.b=Math.max(a,b);el('veA').value=E.a.toFixed(3);el('veB').value=E.b.toFixed(3);draw();}
+function selection(a,b){if(a!==E.a||b!==E.b){if(!modal.hidden&&(cleanupJob||previewActive||loop||playPending)){stop();message('Selection changed. Compare Before and After.');}if(mapRange){mapRange=null;el('sepMap').hidden=true;}}E.a=Math.min(a,b);E.b=Math.max(a,b);el('veA').value=E.a.toFixed(3);el('veB').value=E.b.toFixed(3);draw();syncCleanupControls();}
 function refresh(keepSelection){el("sepMap").hidden=true;let {p,t}=find();if(!p){p=selectedPhrase();E.pid=p?.id;}if(!p){closeEditor();return;}
   if(!t){t=p.takes.find(x=>x.id===p.selected)||p.takes.at(-1);E.tid=t?.id;}if(!t){closeEditor();return;}
   el('veTitle').textContent='Edit · '+p.name;
@@ -76,8 +142,22 @@ function openEditor(id){if(busy()){toast('Not right now','Stop recording first, 
   const p=w.phrases.find(p=>p.takes.some(t=>t.id===id))||selectedPhrase(),t=p?.takes.find(t=>t.id===id)||p?.takes.find(t=>t.id===p.selected)||p?.takes.at(-1);
   if(!t){toast('No take yet','Record or import a take first, then press Edit on it.');return;}
   stop();el('rcLaneMenu').hidden=true;E.lastFocus=document.activeElement;E.pid=p.id;E.tid=t.id;RC.aud=t.id;if(w.selected!==p.id)phraseSelect(p.id);
-  modal.hidden=false;document.body.classList.add('st-open');message('The original recordings are always kept.');refresh(false);el('veClose').focus();}
-function closeEditor(){const done=songCleanup?.onClose;stop();songCleanup=null;if(done)setTimeout(done,0);modal.classList.remove("song-cleanup");modal.hidden=true;E.drag=null;document.body.classList.remove('st-open');RC.sig='';RC.dirty=true;const fid=E.lastFocus?.closest?.('.rctake')?.dataset.id,back=late=>{if(!modal.hidden)return;const ae=document.activeElement;if(late&&ae&&ae!==document.body&&ae.isConnected)return;const q=id=>id&&[...document.querySelectorAll('#rcTakes .rctake')].find(r=>r.dataset.id===id)?.querySelector('[data-act=edit]');const t=(E.lastFocus?.isConnected&&E.lastFocus)||q(fid)||q(E.tid)||el('rcBig');if(t&&document.activeElement!==t)t.focus();};back();setTimeout(()=>back(1),80);setTimeout(()=>back(1),300);}
+  modal.hidden=false;resetCleanup();document.body.classList.add('st-open');message('The original recordings are always kept.');refresh(false);el('veClose').focus();}
+function closeEditor(){
+ const wasSong=!!songCleanup,done=songCleanup?.onClose,takeId=E.tid,focus=E.lastFocus;
+ stop();songCleanup=null;modal.classList.remove('song-cleanup');modal.hidden=true;E.drag=null;
+ document.body.classList.remove('st-open');RC.sig='';RC.dirty=true;if(done)done();
+ const fid=focus?.closest?.('.rctake')?.dataset.id;
+ const returnFocus=late=>{
+  if(!modal.hidden)return;
+  const current=document.activeElement;if(late&&current&&current!==document.body&&current.isConnected)return;
+  const old=id=>id&&[...document.querySelectorAll('#rcTakes .rctake')].find(r=>r.dataset.id===id)?.querySelector('[data-act=edit]');
+  const songEdit=[...document.querySelectorAll('#sgTakes [data-edit]')].find(b=>b.dataset.edit===takeId);
+  const button=focus?.isConnected&&focus!==document.body?focus:wasSong?(songEdit||el('sgCleanHere')):(old(fid)||old(takeId)||el('rcBig'));
+  if(button&&current!==button)button.focus({preventScroll:true});
+ };
+ returnFocus();setTimeout(()=>returnFocus(true),80);setTimeout(()=>returnFocus(true),300);
+}
 function commit(next,label){if(busy())return false;stop();phraseBackup();S.phrases=next;phraseChanged(label+' Undo puts it back.');RC.aud=E.tid;RC.sig='';RC.dirty=true;if(window.DAW)DAW.dirty=true;phraseAnalyzeMissing();persist();refresh(true);message(label+' Undo puts it back.');return true;}
 const KIND={gain:'level','silence':'silence','fade-in':'fade in','fade-out':'fade out'};
 function applyEdit(kind){if(busy())return;try{const {w,p,t}=find();if(!t)return;
@@ -109,7 +189,7 @@ function draw(){if(modal.hidden)return;const {p,t}=find();if(!t)return;const c=e
   if(playing&&loop&&loop.oneShot&&!loop.rcComp){const tt=(loop.beatOffset||0)+D_play();const x=X(tt);if(x>=0&&x<=w){g.fillStyle='#fff';g.fillRect(x,0,1,h);}}
   const [a,b]=bounds(),pan=el('vePan');pan.min=a;pan.max=Math.max(a,b-E.seconds);pan.value=E.start;pan.disabled=b-a<=E.seconds+.001;el('veView').textContent=E.start.toFixed(2)+'–'+(E.start+E.seconds).toFixed(2)+' s';}
 function D_play(){try{return window.DAW?.playheadTime?DAW.playheadTime():0;}catch(e){return 0;}}
-el('veClose').onclick=closeEditor;el('veTake').onchange=()=>{stop();E.tid=el('veTake').value;RC.aud=E.tid;refresh(true);};el('vePlay').onclick=preview;el('veStop').onclick=stop;
+el('veClose').onclick=closeEditor;el('veTake').onchange=()=>{stop();E.tid=el('veTake').value;RC.aud=E.tid;refresh(true);};el('vePlay').onclick=preview;el('veStop').onclick=()=>{stop();message('Stopped. The original take is unchanged.');syncCleanupControls();};
 el('veDownload').onclick=async()=>{const {t}=find();if(!t)return;try{const r=await saveDownload(safeName(t.name)+'.wav',new Blob([wavFloat(t.channels,t.rate)],{type:'audio/wav'}));message((r||'Downloaded')+' — the whole take, every sample.');}catch(e){message('Download failed: '+e.message);}};
 function updateBand(){
   const mode=el('sepMode').selectedIndex;
@@ -119,28 +199,26 @@ function updateBand(){
   el('sepDb').value=mode===1?4:6;
   el('sepDb').oninput();
 }
-el('sepDb').oninput=()=>el('sepValue').textContent=num('sepDb')+' dB';
-el('sepMode').onchange=updateBand;updateBand();
+el('sepDb').oninput=()=>{el('sepValue').textContent=num('sepDb')+' dB';inputChanged();};
+el('sepMode').onchange=()=>{updateBand();if(el('sepMode').selectedIndex!==0)el('sepAdvanced').open=true;};
+for(const id of ['sepLow','sepHigh','sepFade','sepLoop','veBeat'])el(id).addEventListener('input',inputChanged);
+updateBand();
 const map=el('sepMap');
 let mapRange=null,press=null;
 function hzAt(y,rate){return 30*(Math.pow(1+rate/60,1-y)-1);}
-el('sepInspect').onclick=()=>{
-  try{
-    const {t}=find(),[a,b]=VocalEdit.range(t,E.a,E.b),ctx=map.getContext('2d');
-    mapRange={t,a,b};map.hidden=false;
-    const image=ctx.createImageData(map.width,map.height),n=1024;
-    for(let x=0;x<map.width;x++){
-      const center=Math.floor(a+(b-a)*x/map.width),re=new Float64Array(n),im=new Float64Array(n);
-      for(let j=0;j<n;j++)re[j]=(t.channels[0][center+j-n/2]||0)*(.5-.5*Math.cos(2*Math.PI*j/n));
-      NoiseCore.fft(re,im);
-      for(let y=0;y<map.height;y++){
-        const k=Math.round(hzAt(y/map.height,t.rate)*n/t.rate);
-        const v=clamp((20*Math.log10(Math.hypot(re[k],im[k])/n+1e-9)+95)/75,0,1),pos=4*(y*map.width+x);
-        image.data.set([18+200*v*v,24+205*v,38+130*v,255],pos);
-      }
-    }
-    ctx.putImageData(image,0,0);
-  }catch(e){message(e.message);}
+function samplesFor(ch,a,b,pad){
+ const first=Math.max(0,a-pad);return {samples:ch.slice(first,Math.min(ch.length,b+pad)),offset:a-first};
+}
+el('sepInspect').onclick=async()=>{
+ if(!usable())return;
+ stop();const token=cleanupSerial;
+ try{
+  const {t}=find(),[a,b]=VocalEdit.range(t,E.a,E.b),data=samplesFor(t.channels[0],a,b,512);
+  message('Preparing the spectrum…');const job=work({kind:'inspect',...data,count:b-a,rate:t.rate,width:map.width,height:map.height},[data.samples.buffer]);syncCleanupControls();
+  const pixels=await job;if(token!==cleanupSerial||modal.hidden)return;
+  mapRange={t,a,b};map.hidden=false;
+  map.getContext('2d').putImageData(new ImageData(pixels,map.width,map.height),0,0);message('Spectrum ready. Drag a rectangle, or enter the frequency limits.');
+ }catch(e){if(token===cleanupSerial)message(e.message);}finally{syncCleanupControls();}
 };
 function mapPoint(e){
   const r=map.getBoundingClientRect();return [clamp((e.clientX-r.left)/r.width,0,1),clamp((e.clientY-r.top)/r.height,0,1)];
@@ -159,62 +237,94 @@ map.onpointerup=e=>{
   el('sepHigh').value=Math.ceil(hzAt(Math.min(start[1],end[1]),t.rate));
   message('Frequency selection ready. Listen to My edit or Hear removed.');
 };
-el('sepFind').onclick=()=>{
-  try{
-    const {t}=find(),src=t.channels[0],hop=Math.round(t.rate*.02),origin=PhraseCore.origin(t);
-    let run=0;
-    const from=Math.max(0,Math.round(((E.b-E.a>2?E.a:E.b)-origin)*t.rate));
-    for(let pos=from;pos+hop<=src.length;pos+=hop){
-      let power=0,cross=0;
-      for(let i=pos+1;i<pos+hop;i++){power+=src[i]**2;if(src[i]*src[i-1]<0)cross++;}
-      const rms=Math.sqrt(power/hop),noisy=rms>.0008&&rms<.13&&cross/hop>.022;
-      if(noisy){run++;continue;}
-      if(run>=4&&run<=65){
-        const a=origin+(pos-hop*run)/t.rate,b=origin+pos/t.rate;
-        selection(a,b);setView(a-.35,Math.max(1.2,b-a+.7));
-        message('Possible breath. Play Original selection to check for consonants before editing.');return;
-      }
-      run=0;
-    }
-    message('No further candidate found. Drag across a breath to select it manually.');
-  }catch(e){message(e.message);}
+el('sepFind').onclick=async()=>{
+ const blocked=studioBlock();if(blocked){message(blocked);return;}
+ stop();const token=cleanupSerial;
+ try{
+  const {t}=find(),src=t.channels[0],origin=PhraseCore.origin(t);
+  const lo=songCleanup?Math.max(0,Math.round((songCleanup.lo-origin)*t.rate)):0;
+  const hi=songCleanup?Math.min(src.length,Math.round((songCleanup.hi-origin)*t.rate)):src.length;
+  const samples=src.slice(lo,hi),from=Math.max(0,Math.round(((E.b-E.a>2?E.a:E.b)-origin)*t.rate)-lo);
+  message('Looking for a possible breath…');
+  const job=work({kind:'find',samples,rate:t.rate,from},[samples.buffer]);syncCleanupControls();
+  const match=await job;if(token!==cleanupSerial||modal.hidden)return;
+  if(!match){message('No candidate found. Select the breath you hear on the waveform.');return;}
+  const a=origin+(lo+match[0])/t.rate,b=origin+(lo+match[1])/t.rate;
+  selection(a,b);setView(a-.35,Math.max(1.2,b-a+.7));
+  message('Possible breath. Compare Before and After and listen for the next consonant.');
+ }catch(e){if(token===cleanupSerial)message(e.message);}finally{syncCleanupControls();}
 };
 el('sepOriginal').onclick=()=>separate('original');
+function backingForPreview(start,duration){
+ if(!el('veBeat').checked||!S.beat)return null;
+ const beat=S.beat,rate=beat.sampleRate,first=Math.round(start*rate),n=Math.max(1,Math.round(duration*rate));
+ const clip=audioCtx().createBuffer(beat.numberOfChannels,n,rate);
+ for(let c=0;c<clip.numberOfChannels;c++){
+  const data=beat.getChannelData(c),lo=Math.max(0,first),hi=Math.min(data.length,first+n);
+  if(hi>lo)clip.getChannelData(c).set(data.subarray(lo,hi),lo-first);
+ }
+ return clip;
+}
 async function separate(action){
-  if(busy())return;
-  try{
-    stop();
-    const {w,p,t}=find(),[a,b]=VocalEdit.range(t,E.a,E.b);
-    const full=el('sepMode').selectedIndex===0;
-    const settings={low:full?0:num('sepLow'),high:full?t.rate/2:num('sepHigh'),db:num('sepDb'),fade:num('sepFade')};
-    const delta=action==='original'?null:t.channels.map(src=>VocalSeparation.removed(src,a,b,t.rate,settings));
-    const residual=action==='removed'||action==='stem';
-    const channels=!delta?t.channels.map(src=>src.slice(a,b)):residual?delta:delta.map((d,c)=>d.map((v,i)=>t.channels[c][a+i]-v));
-    if(action==='keep'){
-      if(songCleanup){
-        const name=el('sepMode').value+' −'+settings.db+'dB';
-        const fullChannels=t.channels.map((src,c)=>{const copy=src.slice();copy.set(channels[c],a);return copy;});
-        if(songCleanup.save(fullChannels,name,{...settings,start:E.a,end:E.b})){closeEditor();}else message('Could not add take. Check available song storage.');
-        return;
-      }
-      if(p.takes.length>=32)throw Error('This part already has 32 takes.');
-      const next=PhraseCore.clone(w),part=next.phrases.find(q=>q.id===p.id);
-      const note=el('sepMode').value+' '+E.a.toFixed(3)+'–'+E.b.toFixed(3)+'s −'+settings.db+'dB '+settings.low+'–'+Math.round(settings.high)+'Hz '+settings.fade+'ms';
-      const take={...t,id:'t'+next.nextId++,name:note,channels:t.channels.map((src,c)=>{const copy=src.slice();copy.set(channels[c],a);return copy;}),profile:null,analysisError:null,analysisToken:undefined,sourceTake:t.sourceTake||t.id};
-      srcDerive(phraseSource(take),phraseSource(t));take.cleanup={...settings,start:E.a,end:E.b};
-      part.takes.push(take);if(part.selected===t.id)part.selected=take.id;
-      PhraseCore.validate(next);E.tid=take.id;commit(next,'Saved '+note);return;
-    }
-    if(action==='clip'||action==='stem'){
-      await saveDownload(safeName(t.name)+'-'+action+'.wav',new Blob([wavFloat(channels,t.rate)],{type:'audio/wav'}));return;
-    }
-    loop={phrase:true,chs:channels,rate:t.rate,gain:10**((t.gainDb||0)/20),start:0,end:(b-a)/t.rate,noBeat:true,beatOffset:PhraseCore.origin(t)+a/t.rate,oneShot:!el('sepLoop').checked};
-    message(await startPlayback(0)?'Playing '+(residual?'removed sound':action==='original'?'original vocal':'edited vocal'):'Audio could not start.');
-  }catch(e){message(e.message);}
+ if(!usable())return;
+ stop();const token=cleanupSerial;
+ try{
+  const {w,p,t}=find(),[a,b]=VocalEdit.range(t,E.a,E.b),origin=PhraseCore.origin(t);
+  const full=el('sepMode').selectedIndex===0;
+  const settings={low:full?0:num('sepLow'),high:full?t.rate/2:num('sepHigh'),db:num('sepDb'),fade:num('sepFade')};
+  let delta=null;
+  if(action!=='original'){
+   const first=Math.max(0,a-2048),last=Math.min(t.channels[0].length,b+2048);
+   const slices=t.channels.map(ch=>ch.slice(first,last));
+   message(action==='keep'?'Preparing the new take…':'Preparing cleanup…');
+   const job=work({kind:'separate',channels:slices,offset:a-first,count:b-a,rate:t.rate,settings},slices.map(x=>x.buffer));
+   syncCleanupControls();delta=await job;
+   if(token!==cleanupSerial||modal.hidden)return;
+   const blocked=studioBlock();if(blocked)throw Error(blocked);
+  }
+  const residual=action==='removed'||action==='stem';
+  const edited=delta&&!residual?delta.map((d,c)=>d.map((v,i)=>t.channels[c][a+i]-v)):null;
+  if(action==='keep'){
+   const channels=t.channels.map((src,c)=>{const copy=src.slice();copy.set(edited[c],a);return copy;});
+   if(songCleanup){
+    const name=el('sepMode').value+' −'+settings.db+'dB';
+    if(songCleanup.save(channels,name,{...settings,start:E.a,end:E.b}))closeEditor();
+    else message('Could not keep the new take. The original is still available.');
+    return;
+   }
+   if(p.takes.length>=32)throw Error('This part already has 32 takes.');
+   const next=PhraseCore.clone(w),part=next.phrases.find(q=>q.id===p.id);
+   const note=el('sepMode').value+' '+E.a.toFixed(3)+'–'+E.b.toFixed(3)+'s −'+settings.db+'dB '+settings.low+'–'+Math.round(settings.high)+'Hz '+settings.fade+'ms';
+   const take={...t,id:'t'+next.nextId++,name:note,channels,profile:null,analysisError:null,analysisToken:undefined,sourceTake:t.sourceTake||t.id};
+   srcDerive(phraseSource(take),phraseSource(t));take.cleanup={...settings,start:E.a,end:E.b};
+   part.takes.push(take);if(part.selected===t.id)part.selected=take.id;
+   PhraseCore.validate(next);E.tid=take.id;commit(next,'Saved '+note);return;
+  }
+  if(action==='clip'||action==='stem'){
+   const result=await saveDownload(safeName(t.name)+'-'+action+'.wav',new Blob([wavFloat(action==='stem'?delta:edited,t.rate)],{type:'audio/wav'}));
+   if(token===cleanupSerial)message(result+' · selected audio.');return;
+  }
+  const pad=Math.round(.5*t.rate),lo=songCleanup?Math.max(0,Math.round((songCleanup.lo-origin)*t.rate)):0,hi=songCleanup?Math.min(t.channels[0].length,Math.round((songCleanup.hi-origin)*t.rate)):t.channels[0].length;
+  const left=residual?a:Math.max(lo,a-pad),right=residual?b:Math.min(hi,b+pad);
+  const chs=residual?delta:t.channels.map((ch,c)=>{const clip=ch.slice(left,right);if(edited)clip.set(edited[c],a-left);return clip;});
+  const at=origin+left/t.rate,duration=chs[0].length/t.rate,backingClip=residual?null:backingForPreview(at,duration);
+  loop={phrase:true,chs,rate:t.rate,gain:10**((t.gainDb||0)/20),start:0,end:duration,noBeat:!backingClip,backingClip,beatOffset:at,oneShot:!el('sepLoop').checked};
+  message('Starting preview…');
+  const ok=await startPlayback(0);if(token!==cleanupSerial||modal.hidden)return;
+  previewActive=ok;message(ok?'Playing '+(residual?'removed sound solo':(action==='original'?'Before':'After')+(backingClip?' with backing.':' · vocal only.')):'Audio could not start. Try again.');
+ }catch(e){if(token===cleanupSerial)message(e.message);}finally{syncCleanupControls();}
 }
 for(const [id,action] of Object.entries({sepEdited:'edited',sepRemoved:'removed',sepKeep:'keep',sepClip:'clip',sepStem:'stem'}))el(id).onclick=()=>separate(action);
 el('veChoose').onclick=()=>{const {p,t}=find();if(!t||busy())return;if(p.selected===t.id){message(t.name+' is already chosen.');return;}phraseSelect(p.id);phraseChoose(t.id);RC.sig='';refresh(true);message(t.name+' chosen for '+p.name+'.');};
 for(const id of ['veA','veB'])el(id).onchange=()=>{const a=num('veA'),b=num('veB');if(!Number.isFinite(a)||!Number.isFinite(b)||b<=a){message('End must be later than Start.');el('veA').value=E.a.toFixed(3);el('veB').value=E.b.toFixed(3);return;}selection(a,b);};
+el('scUseSecond').onclick=()=>{
+ const {t,p}=find();if(!t)return;
+ const origin=PhraseCore.origin(t),lo=songCleanup?.lo??Math.max(p.start,origin),hi=songCleanup?.hi??Math.min(p.end,origin+t.channels[0].length/t.rate);
+ if(hi-lo<2/t.rate){message('There is no recorded audio inside this part.');return;}
+ const cursor=songCleanup?SongStudio.state().position:NaN,center=cursor>=lo&&cursor<=hi?cursor:(E.a+E.b)/2;
+ const a=Math.max(lo,Math.min(hi-1,center-.5)),b=Math.min(hi,a+1);
+ selection(a,b);setView(a-.5,Math.max(2.4,b-a+2.4));message('Short passage selected. Compare Before and After.');
+};
 el('veSelectPart').onclick=()=>{const {p}=find();if(p)selection(p.start,p.end);};
 el('veApplyGain').onclick=()=>applyEdit('gain');el('veSilence').onclick=()=>applyEdit('silence');el('veFadeIn').onclick=()=>applyEdit('fade-in');el('veFadeOut').onclick=()=>applyEdit('fade-out');
 el('veTrim').onclick=()=>partEdit('trim',{start:E.a,end:E.b});el('veSplit').onclick=()=>partEdit('split',{at:E.a});el('veMove').onclick=()=>partEdit('move',{start:num('veMoveTo')});
@@ -224,7 +334,7 @@ el('veAnalyze').onclick=()=>{const {p,t}=find();if(!t||busy())return;phraseAnaly
 const zoom=f=>{const c=(E.a+E.b)/2;setView(c-E.seconds/f/2,E.seconds/f);};
 el('veIn').onclick=()=>zoom(2);el('veOut').onclick=()=>zoom(.5);el('veFit').onclick=()=>{const {p}=find();setView(p.start-.25,p.end-p.start+.5);};el('veFull').onclick=()=>{const [a,b]=bounds();setView(a,b-a);};
 el('vePan').oninput=()=>setView(num('vePan'),E.seconds);
-el('veMode').onclick=()=>{E.hand=!E.hand;el('veMode').setAttribute('aria-pressed',E.hand);el('veCanvas').style.cursor=E.hand?'grab':'crosshair';};
+el('veMode').onclick=()=>setHand(!E.hand);
 const pointers=new Map();let pinch=null;const canvas=el('veCanvas');
 canvas.onpointerdown=e=>{if(e.button>0)return;try{canvas.setPointerCapture(e.pointerId);}catch(_){}pointers.set(e.pointerId,e.clientX);
   if(pointers.size===2){const [a,b]=[...pointers.values()];pinch={distance:Math.abs(b-a),seconds:E.seconds,start:E.start,center:(a+b)/2};E.drag=null;return;}
@@ -299,7 +409,7 @@ el('recoveryList').onclick=async e=>{const b=e.target.closest('button');if(!b)re
 
 function sync(){const files=Recovery.list(),b=el('rcRecovery');if(b.hidden===!!files.length)b.hidden=!files.length;el('rcRecoveryN').textContent=files.length;
   if(!recovery.hidden){const lk=busy(),html=files.map(f=>'<div class="strecitem"><div><b>'+esc(f.name)+'</b><small>'+esc(f.reason||'')+' · '+((f.blob?.size||0)/1048576).toFixed(1)+' MB</small></div><button data-download="'+esc(f.id)+'">Download</button><button data-remove="'+esc(f.id)+'"'+(lk?' disabled':'')+'>Remove…</button></div>').join('')||'<p class="sthint">Nothing to recover.</p>';if(html!==recoveryHTML){recoveryHTML=html;el('recoveryList').innerHTML=html;}}
-  if(!modal.hidden){analysis();if(playing)draw();}
+  if(!modal.hidden){syncCleanupControls();if(!songCleanup)analysis();if(playing)draw();}
   if(!menu.hidden&&menuKind&&document.activeElement?.id!=='rcmBeatLevel'&&!menu.contains(document.activeElement)){renderMenu();}}
 
 // ---------------------------------------------------------------- dialog keys: Esc closes, Tab stays inside, Ctrl+Z/Y = editor undo/redo
@@ -308,8 +418,8 @@ window.addEventListener('keydown',e=>{const m=!modal.hidden?modal:!recovery.hidd
   if(e.key==='Escape'){e.preventDefault();e.stopImmediatePropagation();m===modal?closeEditor():closeRecovery();return;}
   if(e.key==='Tab'){const items=[...m.querySelectorAll('button:not(:disabled),input:not(:disabled),select:not(:disabled),summary,canvas[tabindex]')].filter(x=>x.getClientRects().length&&(x.tagName==='SUMMARY'||!x.closest('details:not([open])')));const a=items[0],b=items.at(-1);
     if(!m.contains(document.activeElement)){e.preventDefault();a?.focus();}else if(e.shiftKey&&document.activeElement===a){e.preventDefault();b.focus();}else if(!e.shiftKey&&document.activeElement===b){e.preventDefault();a.focus();}e.stopImmediatePropagation();return;}
-  if(m===modal&&(e.ctrlKey||e.metaKey)&&['z','y'].includes(e.key.toLowerCase())&&!/^(INPUT|SELECT)$/.test(e.target.tagName)){e.preventDefault();el(e.key.toLowerCase()==='y'||e.shiftKey?'veRedo':'veUndo').click();}
-  if(m===modal&&e.target===canvas){if(e.key===' '){e.preventDefault();playing?stop():preview();}if(e.key==='+'||e.key==='=')zoom(2);if(e.key==='-')zoom(.5);if(e.key==='ArrowLeft')setView(E.start-E.seconds*.25,E.seconds);if(e.key==='ArrowRight')setView(E.start+E.seconds*.25,E.seconds);}
+  if(m===modal&&!songCleanup&&(e.ctrlKey||e.metaKey)&&['z','y'].includes(e.key.toLowerCase())&&!/^(INPUT|SELECT)$/.test(e.target.tagName)){e.preventDefault();el(e.key.toLowerCase()==='y'||e.shiftKey?'veRedo':'veUndo').click();}
+  if(m===modal&&e.target===canvas){if(e.key===' '){e.preventDefault();playing||cleanupJob?el('veStop').click():songCleanup?separate('original'):preview();}if(e.key==='+'||e.key==='=')zoom(2);if(e.key==='-')zoom(.5);if(e.key==='ArrowLeft')setView(E.start-E.seconds*.25,E.seconds);if(e.key==='ArrowRight')setView(E.start+E.seconds*.25,E.seconds);}
   e.stopImmediatePropagation();},true);
 modal.addEventListener('pointerdown',e=>{if(e.target===modal)closeEditor();});recovery.addEventListener('pointerdown',e=>{if(e.target===recovery)closeRecovery();});
 window.Studio={openSongCleanup,edit:openEditor,close:closeEditor,sync,removeBacking,undoRemoveBacking,laneMenu,importVocal,playVocal,clearVocal,undoClear,openRecovery,closeRecovery,
