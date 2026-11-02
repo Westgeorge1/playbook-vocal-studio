@@ -54,7 +54,7 @@ function cancelCleanupJob(){
 }
 function work(data,buffers){
  return new Promise((resolve,reject)=>{
-  const worker=new Worker('cleanup-worker.js?v=0.36.1');
+  const worker=new Worker('cleanup-worker.js?v=0.36.2');
   let timer;
   const finish=(fn,value)=>{clearTimeout(timer);worker.terminate();if(cleanupJob===job)cleanupJob=null;fn(value);};
   const job={kind:data.kind,cancel:()=>finish(reject,new Error('Cleanup cancelled.'))};

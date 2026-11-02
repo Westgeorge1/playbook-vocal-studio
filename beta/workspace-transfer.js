@@ -2,7 +2,7 @@
 (function(){
 'use strict';
 const query=new URLSearchParams(location.search),requested=query.get('workspace')||'record';let token=query.get('handoff');
-const studioURL=()=>new URL('./?v=0.36.1',location.href).href;
+const studioURL=()=>new URL('./?v=0.36.2',location.href).href;
 const standby=location.pathname.endsWith('/workspace-standby.html');
 if(standby){
  let child=null,returning=false,reopening=false,lastSeen=0;

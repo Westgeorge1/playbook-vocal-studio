@@ -251,7 +251,7 @@ function install(){
   '<div id="coachAdvice" class="coach-advice" aria-live="polite"></div>'+
   '<div id="coachOutlook" class="coach-outlook"></div>'+
   '<details id="coachHow" class="coach-how"><summary></summary><div></div></details>'+
-  '<div class="coach-explain"><label class="switch"><input type="checkbox" id="coachExplain"> Explain controls: hover (or tap) any control and the guide says what it does</label><p id="coachExplainOut" class="note"></p></div>'+
+  '<div class="coach-explain"><label class="switch"><input type="checkbox" id="coachExplain"> Explain controls: show a tip when you hover or tap. Taps still operate the controls.</label><p id="coachExplainOut" class="note"></p></div>'+
   '<details class="coach-log"><summary>What you just did</summary><ol id="coachLog"></ol></details>';
  top.after(panel);
  const guided=document.createElement('button');guided.id='guideThisVocal';guided.className='btn';guided.textContent='Guide this vocal';guided.title='Review one phrase, compare takes and hear changes before keeping them.';guided.onclick=()=>window.PhraseGuide.open();panel.prepend(guided);
@@ -312,15 +312,20 @@ function notify(){
  clearTimeout(toastTimer);if(fresh.level!=='warn')toastTimer=setTimeout(()=>{t.hidden=true;},14000);
 }
 /* ------------------------------------------------------------------ explain mode */
-let tipFor=null;
+let tipFor=null,touchTipTimer;
 function showTip(el,text,x,y){const t=$('coachTip');if(!t||!text){hideTip();return;}t.textContent=text;t.hidden=false;const w=Math.min(340,innerWidth-16);t.style.maxWidth=w+'px';const r=t.getBoundingClientRect();t.style.left=Math.max(8,Math.min(innerWidth-r.width-8,x+12))+'px';t.style.top=Math.max(8,Math.min(innerHeight-r.height-8,y+16))+'px';const o=$('coachExplainOut');if(o)o.textContent=text;tipFor=el;}
-function hideTip(){const t=$('coachTip');if(t)t.hidden=true;tipFor=null;}
+function hideTip(){clearTimeout(touchTipTimer);const t=$('coachTip');if(t)t.hidden=true;tipFor=null;}
 function explainHandlers(doc,offset){
  doc.addEventListener('pointerover',e=>{if(!explain||e.pointerType==='touch')return;const el=e.target.closest?.('button,select,input,label,[role=slider],canvas,summary');if(!el||el===tipFor||el.closest('#coachTip,#coachToast'))return;const o=offset();showTip(el,explainFor(el),e.clientX+o.x,e.clientY+o.y);},true);
  doc.addEventListener('pointerout',e=>{if(explain&&e.target===tipFor)hideTip();},true);
- // Touch: in Explain mode a tap explains instead of pressing (switch Explain off to work again).
- doc.addEventListener('click',e=>{if(!explain||!lastTouch||e.target.closest?.('#guideSheet,#coachToast,#coachBtn,#guideBtn,#phraseGuide,#vocalEditor.song-cleanup,#sgCleanHere'))return;const el=e.target.closest?.('button,select,input,label,[role=slider],canvas,summary');if(!el)return;e.preventDefault();e.stopImmediatePropagation();const o=offset();showTip(el,explainFor(el)||'No explanation for this control yet.',e.clientX+o.x,e.clientY+o.y);},true);
- doc.addEventListener('pointerdown',e=>{lastTouch=e.pointerType==='touch';},true);
+ // Observe the touch without cancelling its click or the user gesture that opens the mic.
+ doc.addEventListener('click',e=>{
+  if(!explain||!e.isTrusted||!lastTouch||e.target.closest?.('#guideSheet,#coachToast,#coachBtn,#guideBtn,#phraseGuide,#vocalEditor.song-cleanup,#sgCleanHere'))return;
+  const el=e.target.closest?.('button,select,input,label,[role=slider],canvas,summary');if(!el)return;
+  const o=offset();showTip(el,explainFor(el),e.clientX+o.x,e.clientY+o.y);
+  clearTimeout(touchTipTimer);touchTipTimer=setTimeout(hideTip,2200);
+ },{capture:true,passive:true});
+ doc.addEventListener('pointerdown',e=>{lastTouch=e.pointerType==='touch';hideTip();},true);
 }
 let lastTouch=false;
 /* ------------------------------------------------------------------ note editor frame */

@@ -11,6 +11,7 @@ host.innerHTML=`
 <div class="sg-row sg-top"><label><span class="sr-only">Song title</span><input id="songTitle" maxlength="100" aria-label="Song title" value="My song"></label><div class="sg-filebar"><button id="sgSave" title="Back up the editable project with its takes and guide decisions">Back up project</button><button id="sgOpen">Open project</button><button id="sgExport" title="Export song audio to listen or share">Export audio</button><button id="sgNew">New song</button><button id="sgHelp" class="sg-link" aria-haspopup="dialog">Help</button></div></div>
 <div class="sg-transport" aria-label="Recording and playback">
  <button id="sgShowControls" hidden>Options ↑</button><button id="sgHome" aria-label="Go to song start" title="Return to the beginning of the song">|◀</button><button id="sgPlay" title="Play or pause the current mix at the playhead">▶ Play</button><button id="sgStop" title="Stop playback, keep a recording, or cancel microphone setup">■ Stop</button><button id="sgRecord">● Record</button><button id="sgJumpVocal" title="Show the selected vocal waveform">Show vocal ↓</button><button id="sgQuickFix" title="Record only the selected word or phrase">Fix phrase</button><button id="sgCleanHere" title="Clean up here (N): opens Manual cleanup at the spot you are hearing, with about one second selected. Right-click a recording to clean up that spot.">Clean up here</button><output id="sgClock" class="sg-clock">0:00.0</output><small id="sgRoom" class="sg-room" title="Recording room left in this song (vocal audio limit 256 MB)"></small><small id="sgReady" class="sg-room sg-ready" title="POLISH readiness of every vocal lane"></small><output id="sgBarBeat" class="sg-barbeat" aria-label="Bar and beat" title="Bar | beat">1 | 1</output><button id="sgTempo" class="sg-tempo" title="Tempo and time signature (opens Recording settings)">75 BPM · 4/4</button>
+ <small id="sgMicWait" role="status" hidden>Allow microphone access if prompted. Tap Stop to cancel.</small>
  <div id="sgRecent" hidden aria-label="Latest recorded take"><strong id="sgRecentLabel" role="status"></strong><button type="button" id="sgHearRecent" title="Hear this recorded take dry with the current mix, then return to the editing position">▶ Hear this take</button><button type="button" id="sgRetryRecent" title="Record the same line again and keep earlier takes">Record another take</button><button id="sgUseRecent" type="button" hidden>Use in song</button></div>
  <details class="sg-record-helpers"><summary>Recording helpers</summary><span class="sg-rtools" aria-label="Recording helpers"><label class="sg-count" title="While recording, show the note you are singing and how far it is from the song key. Never changes the recording."><input id="sgPitchOn" type="checkbox"> Pitch guide</label><button id="sgClick" aria-pressed="false" title="Metronome click on/off (C). Heard only in your headphones, never recorded.">♩ Click</button><label class="sg-count">Count-in <select id="sgCountIn" aria-label="Count-in bars"><option value="0">Off</option><option value="1">1 bar</option><option value="2">2 bars</option></select></label><button id="sgMonitor" aria-pressed="false" title="HEAR ME: hear your microphone while recording. Use headphones.">🎧 HEAR ME</button><span class="sg-seg" role="group" aria-label="Backing while you play and record" title="With backing: you hear the backing while you play and record. Vocals only: the click, your vocals and yourself. Never part of the recording."><button id="sgWith" aria-pressed="true">With backing</button><button id="sgWithout" aria-pressed="false">Vocals only</button></span></span></details>
  <span class="sg-spacer"></span><span id="sgArmed">Recording track: Lead vocal</span><span id="sgPitch" class="sg-pitch" hidden aria-live="off"><canvas id="sgPitchCanvas" width="220" height="30" aria-hidden="true"></canvas><span id="sgPitchText" role="status"></span></span><button id="sgCheckMic" type="button" aria-label="Check my mic" title="Check my mic without recording">Check mic <meter id="sgMeter" min="0" max="1" value="0" aria-label="Microphone level"></meter><span id="sgClip"></span></button>
@@ -244,12 +245,12 @@ $('sgRetryRecent').onclick=()=>{
 // The click and every lane play on a separate output graph; nothing but the
 // microphone reaches the capture worklet, so click/monitor/other lanes never enter PCM.
 const captureModules=new WeakMap();
-let micRequest=0;
-function beginMicSetup(){recentTake=null;UI.opening=true;S.songWorking=true;return ++micRequest;}
+let micRequest=null,permissionSetup=null;
+function beginMicSetup(){recentTake=null;UI.opening=true;S.songWorking=true;micRequest=new AbortController();return micRequest;}
 function ownsMicSetup(request){return UI.opening&&request===micRequest;}
 function cancelMicSetup(){
  if(!UI.opening)return;
- micRequest++;UI.opening=false;S.songWorking=false;
+ micRequest.abort();micRequest=null;UI.opening=false;S.songWorking=false;
  if(UI.play?.forRecording)stopPlay(false);
  window.StudioBrowse?.cancelRecording();render();message('Microphone setup cancelled.');
 }
@@ -262,20 +263,57 @@ function barLen(){return beatLen()*prefs().meter;}
 // 0.31.4 hotfix: the browser's own wording ("Permission denied") looked like Record did nothing; say what to do.
 function micError(e){const n=e&&e.name||'';
  if(n==='NotAllowedError'||n==='SecurityError'||n==='PermissionDeniedError')return Error('Record needs your microphone, and the browser is blocking it for this page. Click the lock or settings icon left of the web address, set Microphone to Allow, reload the page, then press Record again. (Inside the GitHub app or another app, open the link in Chrome or Safari instead.)');
+ if(n==='NotSupportedError')return Error('This browser view could not open the microphone. Open this beta link directly in your phone browser and tap Record. If it still fails, check that the browser app has microphone access in your phone settings.');
  if(n==='NotFoundError'||n==='OverconstrainedError'||n==='DevicesNotFoundError')return Error('No microphone was found. Plug in or switch on your microphone or headset, then press Record again.');
  if(n==='NotReadableError'||n==='AbortError'||n==='TrackStartError')return Error('The microphone is busy or could not start. Close other apps or tabs that use it (calls, recorders, FL Studio), then press Record again.');
  return e;}
+// Some phone permission sheets briefly hide the page. Keep this request cancellable
+// and the microphone muted until the studio is back in the foreground.
+async function waitForMicForeground(stream,signal){
+ if(signal.aborted)throw Error('Microphone setup cancelled.');
+ if(!document.hidden)return;
+ const tracks=stream.getAudioTracks().filter(t=>t.enabled);
+ for(const t of tracks)t.enabled=false;
+ await new Promise((resolve,reject)=>{
+  const finish=err=>{clearTimeout(timer);document.removeEventListener('visibilitychange',visible);signal.removeEventListener('abort',cancel);err?reject(err):resolve();};
+  const visible=()=>{if(!document.hidden)finish();};
+  const cancel=()=>finish(Error('Microphone setup cancelled.'));
+  const timer=setTimeout(()=>finish(Error('The studio stayed in the background. Return to the studio and tap Record again.')),5000);
+  document.addEventListener('visibilitychange',visible);signal.addEventListener('abort',cancel,{once:true});
+ });
+ for(const t of tracks)t.enabled=true;
+}
+async function acquireMic(request,prepare){
+ const {signal}=request;let stream;
+ const release=()=>{for(const t of stream?.getTracks()||[])t.stop();};
+ signal.addEventListener('abort',release);
+ try{
+  if(!navigator.mediaDevices?.getUserMedia)throw Error('Microphone recording is not available in this view. Open the studio link directly in Chrome or Safari.');
+  // Start audio and ask for permission in the original tap, before a worklet download.
+  const audio=resumeAudio();
+  const input=requestSongMic().then(async s=>{
+   stream=s;if(signal.aborted){release();throw Error('Microphone setup cancelled.');}
+   await waitForMicForeground(s,signal);
+  });
+  const [ctx]=await Promise.all([audio,input]);
+  await waitForMicForeground(stream,signal);
+  if(signal.aborted)throw Error('Microphone setup cancelled.');
+  if(prepare)await prepare(ctx);
+  if(signal.aborted||document.hidden)throw Error('Return to the studio and tap Record again.');
+  return {ctx,stream};
+ }catch(e){request.abort();throw e;}finally{signal.removeEventListener('abort',release);}
+}
 async function openMic(request){
- if(!navigator.mediaDevices?.getUserMedia)throw Error('Microphone recording is not available in this view. Open the link directly in Chrome or Safari (not inside the GitHub app or another app).');
- const ctx=await resumeAudio();if(!ctx.audioWorklet)throw Error('This browser needs AudioWorklet support. Use a current Chrome, Edge or Safari browser.');
- if(!ownsMicSetup(request))return null;
- if(!captureModules.has(ctx)){
-  const module=ctx.audioWorklet.addModule('song-capture-worklet.js?v=0.27.0').catch(e=>{captureModules.delete(ctx);throw e;});
-  captureModules.set(ctx,module);
- }
- await captureModules.get(ctx);
- if(!ownsMicSetup(request))return null;
- return {ctx,stream:await requestSongMic()};
+ permissionSetup=request;
+ try{return await acquireMic(request,async ctx=>{
+  if(permissionSetup===request)permissionSetup=null;
+  if(!ctx.audioWorklet)throw Error('This browser needs AudioWorklet support. Use a current Chrome, Edge or Safari browser.');
+  if(!captureModules.has(ctx)){
+   const module=ctx.audioWorklet.addModule('song-capture-worklet.js?v=0.27.0').catch(e=>{captureModules.delete(ctx);throw e;});
+   captureModules.set(ctx,module);
+  }
+  await captureModules.get(ctx);
+ });}finally{if(permissionSetup===request)permissionSetup=null;}
 }
 async function requestSongMic(){
  if(!navigator.mediaDevices?.getUserMedia)throw Error('Open the studio in a browser that supports microphones.');
@@ -288,15 +326,17 @@ $('sgCheckMic').onclick=async()=>{
  stopPlay();
  const done=dialog('Check my mic','<p>Sing the loudest line. This test measures your input without recording or playing it through the speakers.</p><meter id="sgTestMeter" min="0" max="1" value="0" aria-label="Test microphone level"></meter><p id="sgTestNote" role="status">Opening microphone…</p><label>Recording mic gain (dB) <input id="sgTestGain" type="number" min="-24" max="18" step="1"></label>',[['timing','My recording sounds late'],['close','Done']]);
  const meter=$('sgTestMeter'),note=$('sgTestNote'),input=$('sgTestGain');
+ const request=new AbortController();
  let stream,source,analyser,frame=0,closed=false;
  const release=()=>{cancelAnimationFrame(frame);source?.disconnect();analyser?.disconnect();for(const t of stream?.getTracks()||[])t.stop();};
- const hide=()=>{if(document.hidden&&modal.open)finishDialog('close');};
+ const leave=()=>{if(modal.open)finishDialog('close');};
+ const hide=()=>{if(document.hidden&&stream)leave();};
+ window.addEventListener('pagehide',leave);
  document.addEventListener('visibilitychange',hide);
  input.value=UI.micGainDb;input.oninput=()=>{if(!Number.isFinite(input.valueAsNumber)||!input.validity.valid)return;$('sgMicGain').value=input.value;$('sgMicGain').dispatchEvent(new Event('input'));};
  (async()=>{
   try{
-   const ctx=await resumeAudio();if(closed)return;
-   stream=await requestSongMic();if(closed){release();return;}
+   const mic=await acquireMic(request);stream=mic.stream;const ctx=mic.ctx;if(closed){release();return;}
    source=ctx.createMediaStreamSource(stream);analyser=ctx.createAnalyser();analyser.fftSize=1024;source.connect(analyser);
    const samples=new Float32Array(analyser.fftSize);
    const tick=()=>{
@@ -309,7 +349,7 @@ $('sgCheckMic').onclick=async()=>{
    tick();
   }catch(e){release();if(!closed)note.textContent=e.message;}
  })();
- const choice=await done;closed=true;document.removeEventListener('visibilitychange',hide);release();
+ const choice=await done;closed=true;request.abort();window.removeEventListener('pagehide',leave);document.removeEventListener('visibilitychange',hide);release();
  if(choice.action==='timing')$('sgCalibration').click();
 };
 function pitchGuideOn(){try{return localStorage.getItem('pvs.pitchGuide')!=='off';}catch(_){return true;}}
@@ -457,7 +497,7 @@ async function exportAudio(opts={}){if(busy())return;window.SongPolish?.capture(
 async function auditionMono(id){const w=W(),t=C.track(w,id);if(!t)return;const a=Math.max(0,Math.min(w.cursor||0,C.trackEnd(t)-1)),b=Math.min(C.trackEnd(t),a+8),ch=C.renderTrack(w,t,{start:a,end:b}),m=ch.length>1?window.SongPolish.monoOf(ch):ch[0];const ctx=new AudioContext({sampleRate:w.rate}),buf=ctx.createBuffer(1,m.length,w.rate);buf.copyToChannel(m,0);const src=ctx.createBufferSource();src.buffer=buf;src.connect(ctx.destination);message('Playing 8 s of '+t.name+' in mono from '+clock(a)+'.');await new Promise(res=>{src.onended=res;src.start();setTimeout(res,(b-a)*1000+500);});try{ctx.close();}catch(e){}}
 async function polish(id){return window.SongPolish?.open(typeof id==='string'?id:W().activeTrack);}
 
-function renderTransport(){const c=UI.capture,locked=busy();if(!c){$('sgMeter').value=0;$('sgClip').textContent='';}$('sgRecord').textContent=c?(c.stopping?(c.cancelled?'Cancelling…':'Keeping take…'):c.started?'■ Stop & keep':'■ Stop (mic starting…)'):UI.opening?'Cancel setup':'● Record';$('sgRecord').classList.toggle('recording',!!c);{const w=!c&&!UI.opening&&locked;$('sgRecord').disabled=false;$('sgRecord').classList.toggle('sg-wait',w);$('sgRecord').removeAttribute('aria-disabled');$('sgRecord').title=w?(window.lockReason?.()||'Please wait'):c?'Stop recording and keep this take (R)':UI.opening?'Cancel microphone setup':'Record (R)';}const playLabel=UI.play?'Pause':pendingPlay?'Cancel play':'Play';
+function renderTransport(){const c=UI.capture,locked=busy();$('sgMicWait').hidden=!UI.opening;if(!c){$('sgMeter').value=0;$('sgClip').textContent='';}$('sgRecord').textContent=c?(c.stopping?(c.cancelled?'Cancelling…':'Keeping take…'):c.started?'■ Stop & keep':'■ Stop (mic starting…)'):UI.opening?'Cancel setup':'● Record';$('sgRecord').classList.toggle('recording',!!c);{const w=!c&&!UI.opening&&locked;$('sgRecord').disabled=false;$('sgRecord').classList.toggle('sg-wait',w);$('sgRecord').removeAttribute('aria-disabled');$('sgRecord').title=w?(window.lockReason?.()||'Please wait'):c?'Stop recording and keep this take (R)':UI.opening?'Cancel microphone setup':'Record (R)';}const playLabel=UI.play?'Pause':pendingPlay?'Cancel play':'Play';
  const caption=(UI.play?'❚❚ ':pendingPlay?'× ':'▶ ')+playLabel;
  const playDisabled=locked||(!UI.play&&!pendingPlay&&!hasPlaybackAudio());
  $('sgPlay').textContent=caption;$('sgPlay').disabled=playDisabled;
@@ -629,7 +669,7 @@ $('sgTakes').onclick=async e=>{const b=e.target.closest('button');if(!b)return;i
 };
 $('sgQuickFix').onclick=()=>$('sgFix').click();$('sgCleanHere').onclick=()=>cleanupHere();$('sgRemoveRange').onclick=async()=>{const r=R();if(!r||busy())return;const d=await dialog('Delete this recording range?', '<p>This removes its '+r.takes.length+' attempts from this track. Audio underneath becomes audible again. Other tracks are unchanged. Undo restores the range during this session.</p>',[['cancel','Keep range'],['ok','Delete range']]);if(d.action==='ok')edit(w=>{const tr=C.track(w);tr.regions=tr.regions.filter(x=>x.id!==r.id);w.selectedRegion=null;w.range=null;cleanEmptyTrack(w,tr);},'Recording range removed. Undo restores it.');};$('sgRecord').onclick=()=>record();$('sgFix').onclick=()=>{UI.repeat=$('sgRepeat').checked;record(true,UI.repeat);};$('sgStop').onclick=()=>stopAll();$('sgPlay').onclick=togglePlay;$('sgHome').onclick=()=>{stopPlay(false);W().cursor=0;draw();renderTransport();};
 $('sgStartRecord').onclick=()=>record(false);$('sgStartImport').onclick=()=>$('sgImport').click();$('sgStartOpen').onclick=()=>$('sgOpen').click();$('sgStartBacking').onclick=()=>{if(!busy()){stopPlay();$('fileBeat').click();}};
-$('sgHelp').onclick=$('sgStartHelp').onclick=()=>dialog('How Song & Vocals works','<ol class="sg-helplist"><li><b>Record</b> (R) records the armed vocal track from the playhead until you press Stop. Press R while the song plays to punch in; R again punches out.</li><li><b>Sections</b> (+ Add section) name the sections of your song. Select one, then <b>● Record section</b>; Next section ▶ moves on. Each take is kept; Choose the best one, rate takes with stars, and see the suggestion with <b>Why suggested?</b>.</li><li><b>Stop at section end</b> (off by default) stops the recording at the end of the section. When it is off, keep singing; the section grows to fit.</li><li><b>Fix a word or phrase</b>: drag over it on its lane, then ● Fix selected phrase. ⟲ Loop records the selection over and over; each pass is an attempt.</li><li><b>Edit</b> on a take trims it, changes its level, adds fades or moves its timing. Nothing is cut from the recording; Undo puts it back.</li><li><b>+ Add vocal track</b> for harmonies or doubles. Older versions (0.18.3) open only the Lead vocal and its sections.</li><li><b>With backing / Vocals only</b> chooses whether you hear the backing while you play and record. ♩ Click, count-in and 🎧 HEAR ME are only in your headphones and are never recorded.</li><li>Then <b>Polish</b> each vocal and <b>Export audio</b>.</li></ol><p>Shortcuts: R record · Space play/stop · Home start · C click · L loop · Esc cancel.</p>',[['ok','Close']]);
+$('sgHelp').onclick=$('sgStartHelp').onclick=()=>dialog('How Song & Vocals works','<p>Playbook Vocal Studio '+esc(APP_VERSION)+' beta</p><ol class="sg-helplist"><li><b>Record</b> (R) records the armed vocal track from the playhead until you press Stop. Press R while the song plays to punch in; R again punches out.</li><li><b>Sections</b> (+ Add section) name the sections of your song. Select one, then <b>● Record section</b>; Next section ▶ moves on. Each take is kept; Choose the best one, rate takes with stars, and see the suggestion with <b>Why suggested?</b>.</li><li><b>Stop at section end</b> (off by default) stops the recording at the end of the section. When it is off, keep singing; the section grows to fit.</li><li><b>Fix a word or phrase</b>: drag over it on its lane, then ● Fix selected phrase. ⟲ Loop records the selection over and over; each pass is an attempt.</li><li><b>Edit</b> on a take trims it, changes its level, adds fades or moves its timing. Nothing is cut from the recording; Undo puts it back.</li><li><b>+ Add vocal track</b> for harmonies or doubles. Older versions (0.18.3) open only the Lead vocal and its sections.</li><li><b>With backing / Vocals only</b> chooses whether you hear the backing while you play and record. ♩ Click, count-in and 🎧 HEAR ME are only in your headphones and are never recorded.</li><li>Then <b>Polish</b> each vocal and <b>Export audio</b>.</li></ol><p>Shortcuts: R record · Space play/stop · Home start · C click · L loop · Esc cancel.</p>',[['ok','Close']]);
 function setBacking(on){const ok=PVSRec.setRecordBacking(on);if(ok!==false){W().recBacking=!!on;durable();}if(ok===false){UI.renderKey='';render();message(on&&!S.beat?'No backing loaded yet: load one on the INSTRUMENTAL lane (or the start card), then choose With.':'Stop the recording first, then change With backing / Vocals only.',true);return;}syncLiveMix();UI.renderKey='';render();message(on?'With backing: you hear the backing while you play and record.':'Vocals only: you hear only the click, your vocals and yourself.');}
 $('sgWith').onclick=()=>setBacking(true);$('sgWithout').onclick=()=>setBacking(false);
 $('sgPrevPart').onclick=()=>gotoPart(-1);$('sgNextPart').onclick=()=>gotoPart(1);$('sgRecordPart').onclick=()=>recordPart();$('sgRedoTake').onclick=redoLastTake;$('sgDeleteUnchosen').onclick=deleteUnchosen;$('sgStopAtEnd').onchange=e=>{if(busy()){e.target.checked=prefs().stopAtEnd;return;}setPref('stopAtEnd',e.target.checked,e.target.checked?'Stop at section end on: recording stops by itself at the end of the section.':'Stop at section end off: recording runs until you press Stop; the section grows to fit.');};
@@ -850,7 +890,7 @@ function needsApply(){return window.SongPolish?SongPolish.needsApply():false;}
 window.SongStudio={addCleanupTake,cleanupHere,view:()=>({start:UI.start,span:UI.span}),undoMarker:()=>UI.undo.at(-1),undoCount:()=>UI.undo.length,commitMove,moveDialog,renderExportMix,setPolishPref,setTrackMono,commitSetting,auditionMono,getHistorySnapshots:()=>[...UI.undo,...UI.redo],keyChosen,syncKey:()=>{try{syncPolishKey();}catch(e){}},dialog,edit,notify:message,show,reset,restore:restoreSong,pack,unpack,needsApply,hasWork,record,stopRecording,play,stopPlay,importAudio,save,exportAudio,polish,render,setRange,history,selectTrack:focusTrack,fit,debug:()=>({clicks:UI.lastClicks.slice(),capture:UI.lastCapture,loop:UI.lastLoop,monitor:UI.monitor,monitorGain:UI.capture?.mon?.gain.value??null,punch:!!UI.capture?.punch}),state:()=>({recording:!!UI.capture?.started,starting:!!UI.capture&&!UI.capture.started,opening:UI.opening,playing:!!UI.play,busy:UI.busy,start:UI.start,span:UI.span,position:current(),activeTrack:W().activeTrack}),locked:()=>!!(UI.capture||UI.opening||UI.busy||window.QualityStudio?.locked()),openProject,snapshot:()=>S.song?C.clone(S.song):null};
 // Capture before the legacy hotkeys. Their listeners also explicitly skip this screen.
 document.addEventListener('keydown',e=>{if(!UI.shown||modal.open||document.querySelector('dialog[open]')||document.querySelector('.stmodal:not([hidden]),.modal:not([hidden]),#pvsChoice:not([hidden])'))return;const typing=e.target.isContentEditable||/INPUT|SELECT|TEXTAREA/.test(e.target.tagName);if(typing)return;const k=e.key.toLowerCase();if((e.ctrlKey||e.metaKey)&&['s','z','y'].includes(k)){e.preventDefault();e.stopImmediatePropagation();if(k==='s')save();else history(k==='y'||e.shiftKey?1:-1);return;}if(e.ctrlKey||e.metaKey||e.altKey||e.repeat)return;if(k==='escape'&&window.WorkWindows?.state().open)return;if(k==='n'&&!UI.capture&&!UI.opening){e.preventDefault();e.stopImmediatePropagation();cleanupHere();return;}if(k==='r'||k===' '||k==='home'||k==='c'||k==='l'||k==='escape'){if(k==='escape'&&!UI.capture&&!UI.opening&&!UI.play&&!pendingPlay)return;e.preventDefault();e.stopImmediatePropagation();if(k==='r')record();else if(k===' '){UI.capture||UI.opening?stopAll():togglePlay();}else if(k==='c')toggleClick();else if(k==='l')toggleLoop();else if(k==='escape'){if(UI.capture)stopRecording('',{cancel:true});else if(UI.opening)stopRecording();else{stopPlay();render();}}else $('sgHome').click();}},true);
-document.addEventListener('visibilitychange',()=>{if(document.hidden&&(UI.capture||UI.opening))stopRecording('Recording stopped because the app went into the background.');});
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&(UI.capture||(UI.opening&&permissionSetup!==micRequest)))stopRecording('Recording stopped because the app went into the background.');});
 window.addEventListener('pagehide',()=>{if(UI.capture||UI.opening)stopRecording('Page closing.');writeJournal();});
 document.addEventListener('visibilitychange',()=>{if(document.hidden)writeJournal();});
 // 0.21.0: the full autosave (all audio) is an IndexedDB write that a closing page can

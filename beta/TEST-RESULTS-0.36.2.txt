@@ -1,0 +1,17 @@
+Playbook Vocal Studio beta 0.36.2
+Phone recording and related regression checks.
+
+phone                36 passed
+transport            51 passed
+recording            38 passed
+manual-cleanup       48 passed
+coach                45 passed
+workflow             45 passed
+regressions          21 passed
+navigation           134 passed
+laptop               34 passed
+windows              48 passed
+
+500 checks passed across 10 suites.
+
+Chromium emulated 360 and 412 CSS-pixel-wide phone screens. The phone suite uses a browser-provided test microphone, real capture worklet, audible saved PCM, both recording buttons and timeline playback. Delayed permission and page visibility are simulated. A separate fresh session tests the native microphone request without wrapping it. Physical phones and their OS permission screens require owner-device testing.

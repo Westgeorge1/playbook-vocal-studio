@@ -29,3 +29,5 @@ The 0.35.1 transport suite checks real Web Audio capture and the rendered speake
 The 0.36.0 workflow and guide-undo suites exercise take replay, alternative performances, microphone checks, concern routing, native Undo, actual WAV samples, and reopening an exported project in a fresh browser context. Physical microphone and listening tests remain separate.
 
 The 0.36.1 manual-cleanup suite exercises the two entry points, blocked and oversized selections, focus and gesture state, actual backing offsets, looping, context, stereo PCM, saving, Undo, and late worker responses after Stop or Escape. PVS_CLEANUP_URL can point it at the served beta.
+
+The 0.36.2 phone suite checks real taps with Explain saved on, a test microphone routed through the studio capture worklet, delayed permission, denied permission, page visibility, cancellation, saved audio and playback. Run tests-0.36.2/phone.cjs. PVS_PHONE_URL selects a served build. Phone views and permission timing are emulated in Chromium.

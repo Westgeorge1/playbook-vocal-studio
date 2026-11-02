@@ -1,4 +1,6 @@
-PLAYBOOK VOCAL STUDIO 0.36.1 BETA
+PLAYBOOK VOCAL STUDIO 0.36.2 BETA
+
+On a phone, open the /beta/ link in your browser. Tap Record and allow microphone access if prompted. Explain controls can stay on. Tap Stop & keep, then Hear this take.
 
 Manual cleanup: open Clean up here, mark the breath, compare Before and After with backing, then Hear removed alone. Keep as new take preserves your original. Stop cancels preparation.
 

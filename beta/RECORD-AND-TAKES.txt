@@ -70,3 +70,5 @@ USEFUL DETAILS
 - WAV exports use 32-bit float audio. Effect tails are retained in processed audio.
 - Projects with these features require version 0.20.0 or newer. Older apps cannot
   restore all lanes and settings. Keep the original ZIP if trying an older app.
+
+Phone recording (0.36.2): Explain tips allow normal taps. Allow microphone access if prompted and return to the studio. Stop & keep saves your take; Hear this take plays it. If the permission sheet stays over the page after you grant access, return to the studio and tap Record again.
