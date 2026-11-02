@@ -1,5 +1,5 @@
 Playbook Vocal Studio 0.35.1 beta
-All 956 checks across 22 Chromium/Playwright suites passed on the final source tree.
+All 958 checks across 22 Chromium/Playwright suites passed. After the final transport help-text change, the transport, recording, Smart Guide, phrase-guide, navigation and windows suites ran again.
 
 cleaning             31 checks passed
 cleanup              18 checks passed
@@ -16,7 +16,7 @@ regressions          21 checks passed
 restore              56 checks passed
 storage              10 checks passed
 timeline-move        41 checks passed
-transport            49 checks passed
+transport            51 checks passed
 tuning               44 checks passed
 tuning-plus          32 checks passed
 upgrade              13 checks passed

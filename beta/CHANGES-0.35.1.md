@@ -8,7 +8,7 @@ If a device interrupts the audio clock, the studio pauses playback at its last p
 
 ## Timeline Play
 
-The top Play and all waveform Play buttons follow the same transport. While the audio device is waking, every Play button shows Cancel play and Stop is available. Pressing a second button cancels the pending start. Once playback begins, Pause holds the playhead. At the end, Play starts again from the beginning. Play becomes available for a selected vocal, enabled backing, or the metronome.
+The top Play and all waveform Play buttons follow the same transport. While the audio device is waking, every Play button shows Cancel play and Stop is available. Pressing a second button cancels the pending start. Once playback begins, Pause holds the playhead. At the end, Play starts again from the beginning. Play becomes available for a selected vocal, enabled backing, or the metronome. The top buttons explain their own actions, including when only backing or the metronome is playing.
 
 Background take analysis updates its results without recreating identical waveforms or their Play buttons. A tap, held press, or keyboard focus can stay on that lane during the refresh.
 

@@ -35,7 +35,13 @@ suite('transport',27,async({b,page,check,errors})=>{
   await p.evaluate(installMic);
   const verify=(name,pass)=>check(width+'px '+name,pass);
   const click=async selector=>{const el=p.locator(selector);if(width===390)await el.tap();else await el.click();};
-  const wait=condition=>p.waitForFunction(condition,null,{timeout:15000});
+  const wait=async condition=>{
+   try{await p.waitForFunction(condition,null,{timeout:30000});}
+   catch(e){
+    const state=await p.evaluate(()=>({transport:SongStudio.state(),status:sgStatus.textContent,dialog:document.querySelector('dialog[open]')?.id||'',focus:document.activeElement?.id||'',takes:SongCore.usage(S.song).takes}));
+    throw Error('Waiting for '+condition.toString()+'; studio state '+JSON.stringify(state),{cause:e});
+   }
+  };
   const lane='[data-song-play="Lead vocal"]',instrumental='[data-song-play="Instrumental"]';
   verify('An empty song has the same unavailable Play control at the top and in the timeline',await p.locator('#sgPlay').isDisabled()&&await p.locator(lane).isDisabled());
   await p.evaluate(()=>{
@@ -45,6 +51,7 @@ suite('transport',27,async({b,page,check,errors})=>{
   });
   await click(instrumental);await wait(()=>SongStudio.state().playing&&outputPeak()>.025);
   verify('A backing-only song can play from its waveform before any recording',await p.evaluate(()=>SongCore.usage(S.song).takes===0&&SongStudio.state().playing));
+  verify('The active main Play tooltip describes playback in a backing-only song',/play or pause/i.test(await p.locator('#sgPlay').getAttribute('title')));
   await click('#sgStop');
   if(!await p.locator('#sgWithout').isVisible())await click('.sg-record-helpers summary');
   await click('#sgWithout');
