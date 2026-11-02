@@ -58,7 +58,7 @@ function recordProblem(text){
  dialog('Recording could not start','<p>'+esc(text)+'</p><details><summary>Details for troubleshooting</summary><p>These details contain no recordings. Include them when reporting a problem.</p><textarea readonly rows="8" aria-label="Recording troubleshooting details">'+esc(JSON.stringify(details,null,2))+'</textarea></details>',[['close','Close']]);
 }
 function clock(t){t=Math.max(0,t);return Math.floor(t/60)+':'+(t%60).toFixed(1).padStart(4,'0');}
-function current(){const p=UI.play;if(!p)return W().cursor;const t=audioCtx().currentTime;return p.map?p.map(Math.max(t,p.when)):p.start+Math.max(0,t-p.when);}
+function current(){const p=UI.play;if(!p)return W().cursor;const t=p.ctx.currentTime;return p.map?p.map(Math.max(t,p.when)):p.start+Math.max(0,t-p.when);}
 function backup(){UI.undo.push(C.clone(W()));if(UI.undo.length>30)UI.undo.shift();UI.redo=[];}
 function trimHistory(){const bytes=()=>{const buffers=new Set();for(const w of [W(),...UI.undo,...UI.redo]){for(const s of Object.values(w.sources))for(const c of s.channels)buffers.add(c.buffer);for(const t of w.tracks)if(t.polish)for(const ch of [t.polish.channels,t.polish.session?.pcm,...(t.polish.session?.takes||[])])for(const c of ch||[])buffers.add(c.buffer);}return [...buffers].reduce((n,b)=>n+b.byteLength,0);};while(bytes()>256*1024*1024&&(UI.undo.length>1||UI.redo.length)){if(UI.undo.length>1)UI.undo.shift();else UI.redo.shift();}}
 function changed(text){window.SongPolish?.releaseDeleted();trimHistory();W().revision++;S.isSample=false;C.gc(W());persist();writeJournal();UI.renderKey='';render();window.StudioBrowse?.sync();if(text)message(text);}
@@ -107,8 +107,12 @@ function fit(){setView(0,Math.max(10,C.duration(W())+.5,S.beat?.duration||0));}
 
 // Playback sources share the same AudioContext start time. No microphone nodes
 // connect to this output graph. The recording track is masked only in the fix.
-let playbackRequest=0;
-function stopPlay(keepPosition=true){playbackRequest++;const p=UI.play;if(!p)return;if(UI.capture?.punch&&UI.capture.playback===p&&!UI.capture.stopping)stopRecording('Playback stopped.');if(keepPosition)W().cursor=C.clamp(p.loop?p.loop.a:current(),0,900);UI.play=null;clearTimeout(p.timer);stopClicks(p);for(const n of p.nodes){try{n.stop();}catch(e){}try{n.disconnect();}catch(e){}}renderTransport();}
+let playbackRequest=0,pendingPlay=0;
+function hasPlaybackAudio(){
+ return !!(($('beatOn').checked&&S.beat)||prefs().click||W().tracks.some(t=>t.regions.some(r=>r.selected)));
+}
+function stopPlay(keepPosition=true){playbackRequest++;const wasPending=!!pendingPlay;pendingPlay=0;
+ const p=UI.play;if(!p){if(wasPending)renderTransport();return;}if(UI.capture?.punch&&UI.capture.playback===p&&!UI.capture.stopping)stopRecording('Playback stopped.');if(keepPosition)W().cursor=C.clamp(p.loop?p.loop.a:current(),0,900);UI.play=null;clearTimeout(p.timer);p.ctx.removeEventListener('statechange',p.onAudioState);stopClicks(p);for(const n of p.nodes){try{n.stop();}catch(e){}try{n.disconnect();}catch(e){}}renderTransport();}
 function syncLiveMix(){const p=UI.play;if(!p)return;const w=W(),now=audioCtx().currentTime,solo=w.tracks.some(t=>t.solo);p.master?.gain.setTargetAtTime(Math.pow(10,w.masterDb/20),now,.02);for(const v of p.voices||[]){const t=C.track(w,v.id);if(!t)continue;const pan=C.panGains(v.nc,t.pan),gain=t.mute||(solo&&!t.solo)||(UI.capture?.punch&&UI.capture.trackId===v.id)?0:Math.pow(10,t.gainDb/20);v.left.gain.setTargetAtTime(gain*pan[0],now,.02);v.right.gain.setTargetAtTime(gain*pan[1],now,.02);}if(p.click)p.click.gain.setTargetAtTime(prefs().clickVol,now,.02);if(p.backing)p.backing.gain.setTargetAtTime($('beatOn').checked?(S.beatLevel??.8):0,now,.02);}
 // 0.23.0 click/metronome: a look-ahead scheduler on the PLAYBACK graph only (its own
 // gain straight to the speakers). Segments map song time to AudioContext time, so the
@@ -116,7 +120,15 @@ function syncLiveMix(){const p=UI.play;if(!p)return;const w=W(),now=audioCtx().c
 const clickCache=new WeakMap();
 function clickBuffers(ctx){let c=clickCache.get(ctx);if(c)return c;const make=(f,amp)=>{const n=Math.round(ctx.sampleRate*.035),b=ctx.createBuffer(1,n,ctx.sampleRate),d=b.getChannelData(0);for(let i=0;i<n;i++)d[i]=amp*Math.sin(2*Math.PI*f*i/ctx.sampleRate)*Math.exp(-i/(ctx.sampleRate*.006));return b;};c={hi:make(1760,.9),lo:make(1175,.6)};clickCache.set(ctx,c);return c;}
 function segment(p,k){if(!p.loop)return k===0?{c0:p.when,s0:p.start,s1:p.end}:null;const L=p.loop;if(k===0)return {c0:p.when,s0:L.a-L.lead,s1:L.a};return {c0:p.when+L.lead+(k-1)*L.len,s0:L.a,s1:L.a+L.len};}
-function startClicks(p,countTo){const ctx=audioCtx();p.click=ctx.createGain();p.click.gain.value=prefs().clickVol;p.click.connect(ctx.destination);p.nodes.push(p.click);p.countTo=countTo;p.ck={k:0,beat:null};p.clickLog=[];UI.lastClicks=p.clickLog;const tick=()=>{if(UI.play!==p)return;scheduleClicks(p);p.clickTimer=setTimeout(tick,40);};tick();}
+function startClicks(p,countTo){const ctx=p.ctx;
+ p.onAudioState=()=>{
+  if(UI.play!==p||ctx.state==='running')return;
+  const reason='Audio was interrupted.';
+  if(UI.capture){stopRecording(reason);stopPlay();return;}
+  stopPlay();render();message(reason+' Tap Play to resume.');
+ };
+ ctx.addEventListener('statechange',p.onAudioState);
+ p.click=ctx.createGain();p.click.gain.value=prefs().clickVol;p.click.connect(ctx.destination);p.nodes.push(p.click);p.countTo=countTo;p.ck={k:0,beat:null};p.clickLog=[];UI.lastClicks=p.clickLog;const tick=()=>{if(UI.play!==p)return;scheduleClicks(p);p.clickTimer=setTimeout(tick,40);};tick();}
 function scheduleClicks(p){const ctx=audioCtx(),now=ctx.currentTime,horizon=now+.3,bs=beatLen(),pr=prefs(),buf=clickBuffers(ctx);
  for(let guard=0;guard<512;guard++){const seg=segment(p,p.ck.k);if(!seg)return;if(p.ck.beat==null)p.ck.beat=Math.ceil(seg.s0/bs-1e-9);const s=p.ck.beat*bs;if(s>=seg.s1-1e-9||s>=900){p.ck.k++;p.ck.beat=null;continue;}const at=seg.c0+(s-seg.s0);if(at>horizon)return;p.ck.beat++;
   const counting=p.countTo!=null&&p.ck.k===0&&s<p.countTo-1e-9;if(at<now-.005||!(pr.click||counting))continue;const accent=((Math.round(s/bs)%pr.meter)+pr.meter)%pr.meter===0,src=ctx.createBufferSource();src.buffer=accent?buf.hi:buf.lo;src.connect(p.click);src.start(at);p.clickLog.push({at,s,accent,countIn:counting});if(p.clickLog.length>4000)p.clickLog.splice(0,2000);}}
@@ -124,11 +136,13 @@ function stopClicks(p){clearTimeout(p.clickTimer);p.clickTimer=0;}
 // Gapless loop playback over [a,b): one pre-roll (lead-in / count-in) then the same
 // range repeats sample-accurately via looping buffer sources. The armed lane is
 // silent inside the range; other lanes and the backing play every pass.
-async function playLoop(a,b,lead,excludeTrack,countTo){
+async function playLoop(a,b,lead,excludeTrack,countTo,setup){
  stopPlay(false);if(loop)endLoop();stopPlayback();
- const w=W(),ctx=await resumeAudio(),master=ctx.createGain();master.connect(ctx.destination);
+ const w=W(),request=playbackRequest,ctx=await resumeAudio();
+ if(!ownsMicSetup(setup)||playbackRequest!==request||W()!==w)return false;
+ const master=ctx.createGain();master.connect(ctx.destination);
  const len=(Math.round(b*w.rate)-Math.round(a*w.rate))/w.rate,from=a-lead,to=a+len;
- const p={start:from,end:Infinity,when:0,nodes:[master],voices:[],timer:null,forRecording:true,master,loop:{a,b:to,lead,len}};
+ const p={ctx,start:from,end:Infinity,when:0,nodes:[master],voices:[],timer:null,forRecording:true,master,loop:{a,b:to,lead,len}};
  p.map=t=>{const x=t-p.when;return x<lead?from+x:a+((x-lead)%len);};
  const queued=[];
  for(const t of w.tracks){if(!t.regions.some(r=>r.selected))continue;const channels=C.renderVoice(w,t,{start:from,end:to,exclude:t.id===excludeTrack?[a,to]:null}),src=ctx.createBufferSource(),split=ctx.createChannelSplitter(channels.length),left=ctx.createGain(),right=ctx.createGain(),merge=ctx.createChannelMerger(2);
@@ -137,14 +151,19 @@ async function playLoop(a,b,lead,excludeTrack,countTo){
   const src=ctx.createBufferSource(),gain=ctx.createGain();src.buffer=buf;src.loop=true;src.loopStart=lead;src.loopEnd=lead+len;src.connect(gain).connect(master);p.backing=gain;p.nodes.push(src,gain);queued.push(()=>src.start(p.when));}
  p.when=ctx.currentTime+.25;UI.play=p;syncLiveMix();for(const s of queued)s();startClicks(p,countTo);renderTransport();return p;
 }
-async function play(start=W().cursor,{end=null,override=null,excludeTrack=null,excludeRange=null,forRecording=false,countTo=null}={}){
+async function play(start=W().cursor,{end=null,override=null,excludeTrack=null,excludeRange=null,forRecording=false,countTo=null,setup=null}={}){
  if(!forRecording&&busy())return false;stopPlay(false);if(loop)endLoop();stopPlayback();
  const w=W(),dur=Math.min(910,Math.max(C.duration(w),$('beatOn').checked?(S.beat?.duration||0):0));if(end==null)end=dur;
  if(start>=end-.04)start=0;if(end-start<.04)return false;
- const request=playbackRequest,ctx=await resumeAudio();
- if(playbackRequest!==request||W()!==w)return false;
+ const request=playbackRequest;
+ if(!forRecording){pendingPlay=request;renderTransport();}
+ let ctx;
+ try{ctx=await resumeAudio();}
+ catch(e){if(playbackRequest!==request)return false;throw e;}
+ finally{if(pendingPlay===request){pendingPlay=0;renderTransport();}}
+ if(playbackRequest!==request||W()!==w||(setup!==null&&!ownsMicSetup(setup)))return false;
  const master=ctx.createGain();master.connect(ctx.destination);
- const p={start,end,when:0,nodes:[master],voices:[],timer:null,forRecording,master,override};
+ const p={ctx,start,end,when:0,nodes:[master],voices:[],timer:null,forRecording,master,override};
  const queued=[],offset=Math.max(0,-start);
  for(const t of w.tracks){if(!t.regions.some(r=>r.selected||(override?.regionId===r.id&&override.takeId)))continue;const trackEnd=Math.min(end,Math.max(C.trackEnd(t),C.polishValid(w,t)&&!t.polish.bypass?t.polish.channels[0].length/w.rate:0));if(trackEnd<=Math.max(0,start))continue;
   const channels=C.renderVoice(w,t,{start:Math.max(0,start),end:trackEnd,override,exclude:t.id===excludeTrack?excludeRange:null}),src=ctx.createBufferSource(),split=ctx.createChannelSplitter(channels.length),left=ctx.createGain(),right=ctx.createGain(),merge=ctx.createChannelMerger(2);src.buffer=bufferOf(channels,w.rate);src.connect(split);split.connect(left,0);split.connect(right,channels.length>1?1:0);left.connect(merge,0,0);right.connect(merge,0,1);merge.connect(master);p.voices.push({id:t.id,nc:channels.length,left,right});p.nodes.push(src,split,left,right,merge);queued.push(()=>src.start(p.when+offset));
@@ -156,7 +175,9 @@ async function play(start=W().cursor,{end=null,override=null,excludeTrack=null,e
  if(!forRecording)p.timer=setTimeout(()=>{if(UI.play===p){W().cursor=C.clamp(end,0,900);stopPlay(false);render();}},(end-start+.3)*1000);
  renderTransport();return p;
 }
-async function togglePlay(){if(UI.capture||UI.opening||busy())return;if(UI.play){stopPlay();render();return;}try{await play();}catch(e){message('Playback could not start: '+e.message,true);}}
+async function togglePlay(){if(UI.capture||UI.opening||busy())return;if(UI.play||pendingPlay){const started=!!UI.play;stopPlay();render();message(started?'Paused at '+clock(W().cursor)+'.':'Playback cancelled.');return;}
+ if(!hasPlaybackAudio()){message('Record or import a vocal, enable the backing, or turn on Click to play.');return;}
+ try{const playback=await play();if(playback)message('Playing the song from '+clock(playback.start)+'.');}catch(e){message('Playback could not start: '+e.message,true);}}
 async function audition(regionId,takeId){if(busy())return;const r=T().regions.find(r=>r.id===regionId);if(!r)return;const begin=Math.max(0,r.start-W().lead),end=Math.min(900,r.end+.7);await play(begin,{end,override:{regionId:r.id,takeId}});message('Listening to this attempt dry, alongside the other processed vocals. Choose it when you are happy with it, then update POLISH for this track.');}
 
 // Microphone capture uses sample-frame gates, with flushed final blocks. A stop,
@@ -168,7 +189,16 @@ async function audition(regionId,takeId){if(busy())return;const r=T().regions.fi
 //                        \-> HEAR ME gain -> speakers/headphones
 // The click and every lane play on a separate output graph; nothing but the
 // microphone reaches the capture worklet, so click/monitor/other lanes never enter PCM.
-let workletContext=null;
+const captureModules=new WeakMap();
+let micRequest=0;
+function beginMicSetup(){UI.opening=true;S.songWorking=true;return ++micRequest;}
+function ownsMicSetup(request){return UI.opening&&request===micRequest;}
+function cancelMicSetup(){
+ if(!UI.opening)return;
+ micRequest++;UI.opening=false;S.songWorking=false;
+ if(UI.play?.forRecording)stopPlay(false);
+ window.StudioBrowse?.cancelRecording();render();message('Microphone setup cancelled.');
+}
 const songAt=(p,t)=>p.map?p.map(t):p.start+(t-p.when);
 const ctxAt=(p,s)=>p.when+(s-p.start);
 function bpm(){return C.clamp(+$('bpm').value||75,50,200);}
@@ -181,10 +211,16 @@ function micError(e){const n=e&&e.name||'';
  if(n==='NotFoundError'||n==='OverconstrainedError'||n==='DevicesNotFoundError')return Error('No microphone was found. Plug in or switch on your microphone or headset, then press Record again.');
  if(n==='NotReadableError'||n==='AbortError'||n==='TrackStartError')return Error('The microphone is busy or could not start. Close other apps or tabs that use it (calls, recorders, FL Studio), then press Record again.');
  return e;}
-async function openMic(){
+async function openMic(request){
  if(!navigator.mediaDevices?.getUserMedia)throw Error('Microphone recording is not available in this view. Open the link directly in Chrome or Safari (not inside the GitHub app or another app).');
  const ctx=await resumeAudio();if(!ctx.audioWorklet)throw Error('This browser needs AudioWorklet support. Use a current Chrome, Edge or Safari browser.');
- if(workletContext!==ctx){await ctx.audioWorklet.addModule('song-capture-worklet.js?v=0.27.0');workletContext=ctx;}
+ if(!ownsMicSetup(request))return null;
+ if(!captureModules.has(ctx)){
+  const module=ctx.audioWorklet.addModule('song-capture-worklet.js?v=0.27.0').catch(e=>{captureModules.delete(ctx);throw e;});
+  captureModules.set(ctx,module);
+ }
+ await captureModules.get(ctx);
+ if(!ownsMicSetup(request))return null;
  if(window.pvsRecPrepare)pvsRecPrepare();let stream;try{stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});}catch(e){throw micError(e);}return {ctx,stream};
 }
 function pitchGuideOn(){try{return localStorage.getItem('pvs.pitchGuide')!=='off';}catch(_){return true;}}
@@ -203,7 +239,7 @@ function wire(c){const ctx=c.ctx;
 function unwire(c){try{window.LivePitch?.detach();}catch(_){}for(const tr of c.stream?.getTracks()||[]){tr.onended=null;tr.stop();}for(const n of [c.src,c.gain,c.node,c.keep,c.mon])try{n?.disconnect();}catch(e){}}
 function captureBase(w,t,extra){return {w,trackId:t.id,regionId:null,handle:.15,bounded:false,repeat:false,chunks:[],frames:0,peak:0,clipped:false,finished:false,stopping:false,reason:'',resolve:null,timer:null,...extra};}
 async function record(bounded=false,repeat=false){
- if(UI.capture){await stopRecording();return;}if(UI.opening){UI.cancelOpen=true;return;}
+ if(UI.capture){await stopRecording();return;}if(UI.opening){cancelMicSetup();return;}
  if(!bounded&&UI.play&&!UI.play.forRecording&&!UI.busy&&!sessionLocked())return punchIn();
  if(busy()){recordProblem(window.lockReason?.()||'Please wait: another task is still running.');return;}
  const partId=UI.pendingPart||null;UI.pendingPart=null;
@@ -211,21 +247,24 @@ async function record(bounded=false,repeat=false){
  const loopMode=bounded&&UI.loop;
  let a=range?range[0]:C.clamp(current(),0,899.96),b=range?range[1]:null,r=range?C.findRange(t,...range):null;
  const u=C.usage(w);if(u.takes>=C.LIMITS.takes||(r&&r.takes.length>=32)){message('Take limit reached. Back up the project and remove unused attempts.',true);return;}
- stopPlay();if(loop)endLoop();stopPlayback();UI.opening=true;UI.cancelOpen=false;S.songWorking=true;render();message('Opening microphone for '+t.name+'…');
+ stopPlay();if(loop)endLoop();stopPlayback();const setup=beginMicSetup();render();message('Opening microphone for '+t.name+'…');
  let stream,c=null;
  try{
-  const m=await openMic();stream=m.stream;const ctx=m.ctx;
-  if(UI.cancelOpen){throw Error('Recording cancelled before it started.');}
+  const m=await openMic(setup);if(!m)return;stream=m.stream;const ctx=m.ctx;
+  if(!ownsMicSetup(setup))throw Error('Microphone setup cancelled.');
   const room=Math.floor((C.LIMITS.bytes-u.bytes)/(w.rate*4))-.5,available=Math.min(C.LIMITS.recordSeconds,900-a,room);
   if(available<.1)throw Error('No room for another take. Back up and remove unused attempts.');
   if(range&&!loopMode&&b-a>available)throw Error('Not enough room for this entire range. Back up and remove unused attempts, or select a shorter range.');
   const pr=prefs(),latency=C.clamp(+$('sgLatency').value||0,0,800)/1000,lead=pr.countIn?C.countInWindow(a,pr.countIn,bpm(),pr.meter).lead:w.lead;
   if(loopMode){
-   const playback=await playLoop(a,b,lead,t.id,pr.countIn?a:null),rate=ctx.sampleRate,first=Math.round((playback.when+lead+latency)*rate),last=first+Math.round(available*rate);
+   const playback=await playLoop(a,b,lead,t.id,pr.countIn?a:null,setup);
+   if(!playback||!ownsMicSetup(setup))throw Error('Microphone setup cancelled.');
+   const rate=ctx.sampleRate,first=Math.round((playback.when+lead+latency)*rate),last=first+Math.round(available*rate);
    c=captureBase(w,t,{regionId:r?.id||null,a,b,origin:a,handle:0,bounded:true,loop:{len:playback.loop.len,rate:w.rate},rate,first,last,latency,stream,ctx,playback});
   }else{
    b=b??a+available;const start=Math.max(-20,a-lead);
-   const playback=await play(start,{end:Math.min(900,b+.9),excludeTrack:t.id,excludeRange:[a,b],forRecording:true,countTo:pr.countIn?a:null});
+   const playback=await play(start,{end:Math.min(900,b+.9),excludeTrack:t.id,excludeRange:[a,b],forRecording:true,countTo:pr.countIn?a:null,setup});
+   if(!playback||!ownsMicSetup(setup))throw Error('Microphone setup cancelled.');
    const handle=.15,origin=a-handle,rate=ctx.sampleRate,first=Math.round((playback.when+origin-start+latency)*rate),last=Math.round((playback.when+b+handle-start+latency)*rate);
    c=captureBase(w,t,{regionId:r?.id||null,a,b,origin,handle,bounded,repeat,rate,first,last,latency,stream,ctx,playback});
   }
@@ -233,16 +272,17 @@ async function record(bounded=false,repeat=false){
   c.timer=setTimeout(()=>stopRecording('Recording reached its time or storage limit.'),((c.last-c.first)/c.rate+lead+2)*1000);
   UI.capture=c;UI.opening=false;render();
   message(loopMode?'Loop recording '+clock(a)+'–'+clock(b)+' on '+t.name+'. Sing every pass; each pass becomes an attempt. Press Stop when you are done.':(a>Math.max(-20,a-lead)?(pr.countIn?'Count-in: '+pr.countIn+' bar'+(pr.countIn>1?'s':'')+', then sing. ':'Listen to the lead-in, then sing. '):'')+'Recording '+t.name+(range?' from '+clock(a)+' to '+clock(b)+'.':' until you press Stop.'));
- }catch(e){if(c)unwire(c);else for(const tr of stream?.getTracks()||[])tr.stop();UI.opening=false;S.songWorking=false;stopPlay(false);render();if(UI.cancelOpen)message(e.message);else recordProblem(e.message);window.StudioBrowse?.cancelRecording();}
+ }catch(e){if(c)unwire(c);else for(const tr of stream?.getTracks()||[])tr.stop();if(!ownsMicSetup(setup))return;UI.opening=false;S.songWorking=false;stopPlay(false);render();recordProblem(e.message);window.StudioBrowse?.cancelRecording();}
 }
 // Punch-in on the fly: the song is already playing; R starts a capture on the armed
 // lane at the current position without restarting playback; R again punches out.
 async function punchIn(){
  const p=UI.play,w=W(),t=T(),u=C.usage(w);if(u.takes>=C.LIMITS.takes){message('Take limit reached. Back up the project and remove unused attempts.',true);return;}
- UI.opening=true;UI.cancelOpen=false;S.songWorking=true;renderTransport();message('Punch-in on '+t.name+': opening the microphone…');
+ const setup=beginMicSetup();renderTransport();message('Punch-in on '+t.name+': opening the microphone…');
  let stream,c=null;
  try{
-  const m=await openMic();stream=m.stream;const ctx=m.ctx;if(UI.cancelOpen||UI.play!==p)throw Error('Punch-in cancelled.');
+  const m=await openMic(setup);if(!m)return;stream=m.stream;const ctx=m.ctx;
+  if(!ownsMicSetup(setup)||UI.play!==p)throw Error('Punch-in cancelled.');
   const latency=C.clamp(+$('sgLatency').value||0,0,800)/1000,rate=ctx.sampleRate,a=C.clamp(songAt(p,ctx.currentTime+.05),0,899.9);
   const room=Math.floor((C.LIMITS.bytes-u.bytes)/(w.rate*4))-.5,b=Math.min(p.end,900,a+Math.min(C.LIMITS.recordSeconds,room));
   if(b-a<.2)throw Error('Too close to the end of the song to punch in.');
@@ -251,18 +291,18 @@ async function punchIn(){
   const v=p.voices.find(v=>v.id===t.id),at=Math.max(ctx.currentTime,ctxAt(p,a));if(v)for(const g of [v.left,v.right]){g.gain.cancelScheduledValues(at);g.gain.setTargetAtTime(0,at,.005);}
   c.timer=setTimeout(()=>stopRecording('Recording reached its time or storage limit.'),(b-a+2)*1000);
   render();message('Punched in at '+clock(a)+' on '+t.name+'. Press R to punch out; the song keeps playing.');
- }catch(e){if(c)unwire(c);else for(const tr of stream?.getTracks()||[])tr.stop();UI.capture=null;UI.opening=false;S.songWorking=false;render();if(UI.cancelOpen)message(e.message);else recordProblem(e.message);window.StudioBrowse?.cancelRecording();}
+ }catch(e){if(c)unwire(c);else for(const tr of stream?.getTracks()||[])tr.stop();if(!ownsMicSetup(setup))return;UI.capture=null;UI.opening=false;S.songWorking=false;render();recordProblem(e.message);window.StudioBrowse?.cancelRecording();}
 }
 async function stopRecording(reason='',{cancel=false}={}){
  UI.repeat=false;$('sgRepeat').checked=false;
- if(UI.opening){UI.cancelOpen=true;message('Cancelling microphone setup…');return;}
+ if(UI.opening){cancelMicSetup();return;}
  const c=UI.capture;if(!c||c.stopping)return c?.promise;c.stopping=true;c.reason=reason;c.cancelled=cancel;
  if(!c.bounded)c.stopEnd=C.clamp(current(),c.a,c.b);
  const stopAt=Math.min(c.last,Math.max(c.first,Math.round((c.ctx.currentTime+c.latency+c.handle)*c.rate)));
  c.node.port.postMessage({stopAt});c.last=stopAt;
  // Suspended/disconnected processors may not acknowledge. Retain received frames.
  c.fallback=setTimeout(()=>finishCapture(c,c.chunks.at(-1)?.frame+c.chunks.at(-1)?.data.length||c.first),Math.max(300,(stopAt/c.rate-c.ctx.currentTime)*1000+300));
- message(cancel?'Cancelling the recording…':'Keeping the recording…');return c.promise;
+ renderTransport();message(cancel?'Cancelling the recording…':'Keeping the recording…');return c.promise;
 }
 async function finishCapture(c,last){
  if(c.finished)return;c.finished=true;clearTimeout(c.timer);clearTimeout(c.fallback);if(!c.punch||c.cancelled)stopPlay(false);unwire(c);
@@ -324,15 +364,18 @@ async function exportAudio(opts={}){if(busy())return;window.SongPolish?.capture(
 async function auditionMono(id){const w=W(),t=C.track(w,id);if(!t)return;const a=Math.max(0,Math.min(w.cursor||0,C.trackEnd(t)-1)),b=Math.min(C.trackEnd(t),a+8),ch=C.renderTrack(w,t,{start:a,end:b}),m=ch.length>1?window.SongPolish.monoOf(ch):ch[0];const ctx=new AudioContext({sampleRate:w.rate}),buf=ctx.createBuffer(1,m.length,w.rate);buf.copyToChannel(m,0);const src=ctx.createBufferSource();src.buffer=buf;src.connect(ctx.destination);message('Playing 8 s of '+t.name+' in mono from '+clock(a)+'.');await new Promise(res=>{src.onended=res;src.start();setTimeout(res,(b-a)*1000+500);});try{ctx.close();}catch(e){}}
 async function polish(id){return window.SongPolish?.open(typeof id==='string'?id:W().activeTrack);}
 
-function renderTransport(){const c=UI.capture,locked=busy();if(!c){$('sgMeter').value=0;$('sgClip').textContent='';}$('sgRecord').textContent=c?(c.started?'■ Stop & keep':'■ Stop (mic starting…)'):UI.opening?'Cancel setup':'● Record';$('sgRecord').classList.toggle('recording',!!c);{const w=!c&&!UI.opening&&locked;$('sgRecord').disabled=false;$('sgRecord').classList.toggle('sg-wait',w);$('sgRecord').removeAttribute('aria-disabled');$('sgRecord').title=w?(window.lockReason?.()||'Please wait'):'Record (R)';}$('sgPlay').textContent=UI.play?'❚❚ Pause':'▶ Play';$('sgPlay').disabled=locked;
+function renderTransport(){const c=UI.capture,locked=busy();if(!c){$('sgMeter').value=0;$('sgClip').textContent='';}$('sgRecord').textContent=c?(c.stopping?(c.cancelled?'Cancelling…':'Keeping take…'):c.started?'■ Stop & keep':'■ Stop (mic starting…)'):UI.opening?'Cancel setup':'● Record';$('sgRecord').classList.toggle('recording',!!c);{const w=!c&&!UI.opening&&locked;$('sgRecord').disabled=false;$('sgRecord').classList.toggle('sg-wait',w);$('sgRecord').removeAttribute('aria-disabled');$('sgRecord').title=w?(window.lockReason?.()||'Please wait'):c?'Stop recording and keep this take (R)':UI.opening?'Cancel microphone setup':'Record (R)';}const playLabel=UI.play?'Pause':pendingPlay?'Cancel play':'Play';
+ const caption=(UI.play?'❚❚ ':pendingPlay?'× ':'▶ ')+playLabel;
+ const playDisabled=locked||(!UI.play&&!pendingPlay&&!hasPlaybackAudio());
+ $('sgPlay').textContent=caption;$('sgPlay').disabled=playDisabled;
  for(const button of $('sgTimeline').querySelectorAll('[data-song-play]')){
-  const label=UI.play?'Pause':'Play';
-  if(button.dataset.transport!==label){button.dataset.transport=label;button.textContent=UI.play?'❚❚ Pause':'▶ Play';button.setAttribute('aria-label',label+' song from '+button.dataset.songPlay+' lane');}
-  button.disabled=locked||(!UI.play&&!S.beat&&!W().tracks.some(t=>t.regions.some(r=>r.selected)));
+  if(button.dataset.transport!==playLabel){button.dataset.transport=playLabel;button.textContent=caption;button.setAttribute('aria-label',playLabel+' song from '+button.dataset.songPlay+' lane');}
+  button.disabled=playDisabled;
  }
- $('sgStop').disabled=!(c||UI.opening||UI.play);$('sgHome').disabled=locked;$('sgArmed').textContent=c&&current()<c.a?'Get ready · '+(c.a-current()).toFixed(1)+' s · '+T().name:'Recording track: '+(T()?.name||'Lead vocal');$('sgClock').textContent=clock(current());renderGrid();
+ $('sgStop').disabled=!(c||UI.opening||UI.play||pendingPlay);$('sgHome').disabled=locked;$('sgArmed').textContent=c&&current()<c.a?'Get ready · '+(c.a-current()).toFixed(1)+' s · '+T().name:'Recording track: '+(T()?.name||'Lead vocal');$('sgClock').textContent=clock(current());renderGrid();
  $('rcUndo').disabled=locked||!UI.undo.length;$('rcRedo').disabled=locked||!UI.redo.length;
 }
+let lastTimelineMarkup='';
 function render(){if(!UI.shown){polishStatus();return;}if(UI.drag){draw();return;}const w=W(),t=T(),r=R(),lk=busy();
  if(document.activeElement!==$('songTitle'))$('songTitle').value=w.title;
  for(const [id,value] of [['sgLead',w.lead],['sgFade',w.fadeMs],['sgMaster',w.masterDb],['sgA',w.range?.[0]?.toFixed(3)||''],['sgB',w.range?.[1]?.toFixed(3)||'']])if(document.activeElement!==$(id)&&(!['sgA','sgB'].includes(id)||!['sgA','sgB'].includes(document.activeElement?.id)))$(id).value=value;
@@ -346,11 +389,15 @@ function render(){if(!UI.shown){polishStatus();return;}if(UI.drag){draw();return
   $('sgTakesTitle').textContent=t.name+' — attempts';
   $('sgTakes').innerHTML=takeListHtml(w,t,r,lk);
   const disabled=lk?' disabled':'';
-  const focusWave=document.activeElement?.closest?.('#sgTimeline canvas')?.dataset.wave;
   const lanePlay=name=>'<button class="sg-mini sg-lane-play" type="button" data-song-play="'+esc(name)+'" title="Play or pause the song from the playhead with the current mix">▶ Play</button>';
-  $('sgTimeline').innerHTML='<div class="sg-lane sg-ruler"><div class="sg-lane-head">SONG TIME</div><canvas class="sg-wave" data-wave="ruler" aria-label="Song time ruler"></canvas></div><div class="sg-lane '+(!S.beat?'sg-empty-backing':'')+'"><div class="sg-lane-head"><strong>INSTRUMENTAL</strong><span class="sg-help">'+esc(S.beat?S.beatName:'Optional backing music')+'</span><div class="sg-row"><button class="sg-mini" id="sgLoadBeat"'+disabled+'>'+(S.beat?'Replace…':'Load backing')+'</button>'+(S.beat?'<button class="sg-mini" id="sgRemoveBeat"'+disabled+'>Remove</button>':Studio.state().removed?'<button class="sg-mini" id="sgUndoBeat"'+disabled+'>Undo remove</button>':'')+'</div><label><input id="sgBackingOn" type="checkbox" '+($('beatOn').checked?'checked':'')+disabled+'> Hear backing</label>'+(S.beat?'<label>Level <input id="sgBackingLevel" type="range" min="0" max="100" value="'+Math.round((S.beatLevel??.8)*100)+'"'+disabled+'></label>':'')+'</div>'+lanePlay('Instrumental')+'<canvas class="sg-wave" data-wave="beat" tabindex="0" aria-label="Instrumental waveform. Click to move the playhead."></canvas></div>'+w.tracks.map(t=>'<div class="sg-lane '+(t.id===w.activeTrack?'active':'')+'"><div class="sg-lane-head"><div class="sg-row"><button class="sg-track-name" data-track="'+t.id+'" aria-pressed="'+(t.id===w.activeTrack)+'"'+disabled+'>'+esc(t.name)+(t.id===w.activeTrack?' ●':'')+'</button><button class="sg-mini" data-track-menu="'+t.id+'" aria-label="Settings for '+esc(t.name)+'"'+disabled+'>⋯</button></div><div class="sg-row sg-delete-controls"><button class="sg-mini sg-danger" data-clear-track="'+t.id+'" aria-label="Clear recordings from '+esc(t.name)+'"'+(lk||!t.regions.length?' disabled':'')+'>Clear recordings</button><button class="sg-mini sg-danger" data-delete-track="'+t.id+'" aria-label="Delete track '+esc(t.name)+'"'+disabled+'>Delete track</button></div><div class="sg-row"><button class="sg-mini" data-polish="'+t.id+'"'+(lk||!t.regions.some(r=>r.selected)?' disabled':'')+'>Polish</button><span class="sg-polish-state">'+(t.polish?.bypass?'Dry':C.polishValid(w,t)?(C.keyStale(w,t)?'Key update needed':'Polished'):t.polish?'Update needed':'Not polished')+'</span></div><div class="sg-row"><button class="sg-mini" data-mute="'+t.id+'" aria-pressed="'+t.mute+'"'+disabled+'>Mute</button><button class="sg-mini" data-solo="'+t.id+'" aria-pressed="'+t.solo+'"'+disabled+'>Solo</button></div><label>Level <input data-level="'+t.id+'" type="range" min="-36" max="12" step="1" value="'+t.gainDb+'" aria-label="'+esc(t.name)+' volume in dB"'+disabled+'><span>'+Math.round(t.gainDb)+' dB</span></label><label>Pan <input data-pan="'+t.id+'" type="range" min="-1" max="1" step="0.1" value="'+t.pan+'" aria-label="'+esc(t.name)+' left right position"'+disabled+'><span>'+(t.pan===0?'Centre':Math.round(Math.abs(t.pan)*100)+(t.pan<0?'L':'R'))+'</span></label></div>'+lanePlay(t.name)+'<canvas class="sg-wave" data-wave="'+t.id+'" tabindex="0" aria-label="'+esc(t.name)+' waveform. Drag to select a phrase. Use the Start and End fields for keyboard selection."></canvas></div>').join('');
-  if(focusWave)$('sgTimeline').querySelector('canvas[data-wave="'+focusWave+'"]')?.focus({preventScroll:true});
-  $('sgLoadBeat').onclick=()=>{if(!busy()){stopPlay();$('fileBeat').click();}};if($('sgRemoveBeat'))$('sgRemoveBeat').onclick=async()=>{stopPlay();await Studio.removeBacking();UI.renderKey='';render();message('Backing removed. Your vocals stay in place. Undo remove brings it back.');};if($('sgUndoBeat'))$('sgUndoBeat').onclick=()=>{Studio.undoRemoveBacking();UI.renderKey='';render();message('Backing restored.');};$('sgBackingOn').onchange=e=>{if(busy())return;if(PVSRec.setRecordBacking(e.target.checked)!==false){W().recBacking=!!e.target.checked;durable();};syncLiveMix();UI.renderKey='';render();};if($('sgBackingLevel'))$('sgBackingLevel').oninput=e=>{$('beatLevel').value=e.target.value;$('beatLevel').dispatchEvent(new Event('input'));syncLiveMix();};
+  const timelineMarkup='<div class="sg-lane sg-ruler"><div class="sg-lane-head">SONG TIME</div><canvas class="sg-wave" data-wave="ruler" aria-label="Song time ruler"></canvas></div><div class="sg-lane '+(!S.beat?'sg-empty-backing':'')+'"><div class="sg-lane-head"><strong>INSTRUMENTAL</strong><span class="sg-help">'+esc(S.beat?S.beatName:'Optional backing music')+'</span><div class="sg-row"><button class="sg-mini" id="sgLoadBeat"'+disabled+'>'+(S.beat?'Replace…':'Load backing')+'</button>'+(S.beat?'<button class="sg-mini" id="sgRemoveBeat"'+disabled+'>Remove</button>':Studio.state().removed?'<button class="sg-mini" id="sgUndoBeat"'+disabled+'>Undo remove</button>':'')+'</div><label><input id="sgBackingOn" type="checkbox" '+($('beatOn').checked?'checked':'')+disabled+'> Hear backing</label>'+(S.beat?'<label>Level <input id="sgBackingLevel" type="range" min="0" max="100" value="'+Math.round((S.beatLevel??.8)*100)+'"'+disabled+'></label>':'')+'</div>'+lanePlay('Instrumental')+'<canvas class="sg-wave" data-wave="beat" tabindex="0" aria-label="Instrumental waveform. Click to move the playhead."></canvas></div>'+w.tracks.map(t=>'<div class="sg-lane '+(t.id===w.activeTrack?'active':'')+'"><div class="sg-lane-head"><div class="sg-row"><button class="sg-track-name" data-track="'+t.id+'" aria-pressed="'+(t.id===w.activeTrack)+'"'+disabled+'>'+esc(t.name)+(t.id===w.activeTrack?' ●':'')+'</button><button class="sg-mini" data-track-menu="'+t.id+'" aria-label="Settings for '+esc(t.name)+'"'+disabled+'>⋯</button></div><div class="sg-row sg-delete-controls"><button class="sg-mini sg-danger" data-clear-track="'+t.id+'" aria-label="Clear recordings from '+esc(t.name)+'"'+(lk||!t.regions.length?' disabled':'')+'>Clear recordings</button><button class="sg-mini sg-danger" data-delete-track="'+t.id+'" aria-label="Delete track '+esc(t.name)+'"'+disabled+'>Delete track</button></div><div class="sg-row"><button class="sg-mini" data-polish="'+t.id+'"'+(lk||!t.regions.some(r=>r.selected)?' disabled':'')+'>Polish</button><span class="sg-polish-state">'+(t.polish?.bypass?'Dry':C.polishValid(w,t)?(C.keyStale(w,t)?'Key update needed':'Polished'):t.polish?'Update needed':'Not polished')+'</span></div><div class="sg-row"><button class="sg-mini" data-mute="'+t.id+'" aria-pressed="'+t.mute+'"'+disabled+'>Mute</button><button class="sg-mini" data-solo="'+t.id+'" aria-pressed="'+t.solo+'"'+disabled+'>Solo</button></div><label>Level <input data-level="'+t.id+'" type="range" min="-36" max="12" step="1" value="'+t.gainDb+'" aria-label="'+esc(t.name)+' volume in dB"'+disabled+'><span>'+Math.round(t.gainDb)+' dB</span></label><label>Pan <input data-pan="'+t.id+'" type="range" min="-1" max="1" step="0.1" value="'+t.pan+'" aria-label="'+esc(t.name)+' left right position"'+disabled+'><span>'+(t.pan===0?'Centre':Math.round(Math.abs(t.pan)*100)+(t.pan<0?'L':'R'))+'</span></label></div>'+lanePlay(t.name)+'<canvas class="sg-wave" data-wave="'+t.id+'" tabindex="0" aria-label="'+esc(t.name)+' waveform. Drag to select a phrase. Use the Start and End fields for keyboard selection."></canvas></div>').join('');
+  // Preserve the waveform and its controls while take analysis refreshes other panels.
+  if(timelineMarkup!==lastTimelineMarkup){
+   const focusWave=document.activeElement?.closest?.('#sgTimeline canvas')?.dataset.wave;
+   lastTimelineMarkup=timelineMarkup;$('sgTimeline').innerHTML=timelineMarkup;
+   if(focusWave)$('sgTimeline').querySelector('canvas[data-wave="'+focusWave+'"]')?.focus({preventScroll:true});
+   $('sgLoadBeat').onclick=()=>{if(!busy()){stopPlay();$('fileBeat').click();}};if($('sgRemoveBeat'))$('sgRemoveBeat').onclick=async()=>{stopPlay();await Studio.removeBacking();UI.renderKey='';render();message('Backing removed. Your vocals stay in place. Undo remove brings it back.');};if($('sgUndoBeat'))$('sgUndoBeat').onclick=()=>{Studio.undoRemoveBacking();UI.renderKey='';render();message('Backing restored.');};$('sgBackingOn').onchange=e=>{if(busy())return;if(PVSRec.setRecordBacking(e.target.checked)!==false){W().recBacking=!!e.target.checked;durable();};syncLiveMix();UI.renderKey='';render();};if($('sgBackingLevel'))$('sgBackingLevel').oninput=e=>{$('beatLevel').value=e.target.value;$('beatLevel').dispatchEvent(new Event('input'));syncLiveMix();};
+  }
  }
  const rd=C.readiness(w);$('sgReady').textContent=rd.total?'POLISH: '+rd.ready+' of '+rd.total+' vocals ready'+(rd.todo?' · '+rd.todo+' to do':'')+(rd.blocked?' · '+rd.blocked+' need your choice':''):'';$('sgReady').title=rd.lanes.map(l=>l.name+': '+l.text).join('\n')||'No chosen vocals yet';$('sgReady').classList.toggle('low',!!rd.blocked);
  const u=C.usage(w),room=C.roomSeconds(w);$('sgRoom').textContent='Room: '+(room>=60?Math.floor(room/60)+' min '+String(Math.floor(room%60)).padStart(2,'0')+' s':Math.floor(room)+' s')+' of recording';$('sgRoom').classList.toggle('low',room<120);$('sgCapacity').textContent=w.tracks.length+' / 8 tracks · '+u.takes+' / 128 takes · '+(u.bytes/1048576).toFixed(1)+' / 256 MB of vocal sources (room for about '+Math.floor(room/60)+' min more mono recording). Undo keeps earlier audio in memory until you close this session.';
@@ -613,7 +660,7 @@ function toggleClick(){setPref('click',!prefs().click,prefs().click?'Click off.'
 function toggleLoop(){if(busy())return;setPref('loopRec',!prefs().loopRec,prefs().loopRec?'Loop recording off. Fix records the selection once.':'Loop recording on: Fix records the selection again and again without gaps. Each pass becomes an attempt. Press Stop when you are done.');}
 async function toggleMonitor(){if(!UI.monitor&&!UI.monitorOk){const d=await dialog('HEAR ME — use headphones','<p>HEAR ME plays your microphone back to you while you record, mixed with the song.</p><p><b>Use headphones.</b> Through speakers the microphone picks the sound up again and you will hear feedback. What you hear is never written into the take or onto other tracks.</p>',[['cancel','Cancel'],['ok','I am using headphones']]);if(d.action!=='ok')return;UI.monitorOk=true;}
  UI.monitor=!UI.monitor;const c=UI.capture;if(c?.mon)c.mon.gain.setTargetAtTime(UI.monitor?UI.monitorVol:0,c.ctx.currentTime,.01);renderTransport();message(UI.monitor?'HEAR ME on: you hear your microphone while recording (headphones only).':'HEAR ME off.');}
-async function stopAll(){if(UI.capture?.punch){await stopRecording();stopPlay();render();return;}if(UI.capture||UI.opening)return stopRecording();stopPlay();render();}
+async function stopAll(){if(UI.capture?.punch){await stopRecording();stopPlay();render();return;}if(UI.capture)return stopRecording();if(UI.opening)cancelMicSetup();stopPlay();render();}
 function renderGrid(){const t=current(),pr=prefs(),c=UI.capture;$('sgBarBeat').textContent=c&&t<c.a&&pr.countIn?'count-in':(t<0?'–':(({bar,beat})=>bar+' | '+beat)(C.barBeat(t,bpm(),pr.meter)));$('sgTempo').textContent=bpm()+' BPM · '+pr.meter+'/4 · '+keyName();
  $('sgClick').setAttribute('aria-pressed',pr.click);$('sgMonitor').setAttribute('aria-pressed',UI.monitor);$('sgLoop').setAttribute('aria-pressed',pr.loopRec);$('sgLoop').textContent='⟲ Loop: '+(pr.loopRec?'On':'Off');
  for(const [id,v] of [['sgCountIn',pr.countIn],['sgTimeSig',pr.meter],['sgBpm',bpm()],['sgClickVol',Math.round(pr.clickVol*100)],['sgMonitorVol',Math.round(UI.monitorVol*100)],['sgKey',songKey().key],['sgScale',songKey().scale]])if(document.activeElement!==$(id))$(id).value=String(v);$('sgSnap').checked=pr.snap;}
@@ -664,9 +711,9 @@ async function unpack(root,files){if(!root.songStudio)return null;if(![1,2].incl
 function needsApply(){return window.SongPolish?SongPolish.needsApply():false;}
 window.SongStudio={addCleanupTake,cleanupHere,view:()=>({start:UI.start,span:UI.span}),undoCount:()=>UI.undo.length,commitMove,moveDialog,renderExportMix,setPolishPref,setTrackMono,commitSetting,auditionMono,getHistorySnapshots:()=>[...UI.undo,...UI.redo],keyChosen,syncKey:()=>{try{syncPolishKey();}catch(e){}},dialog,edit,notify:message,show,reset,restore:restoreSong,pack,unpack,needsApply,hasWork,record,stopRecording,play,stopPlay,importAudio,save,exportAudio,polish,render,setRange,history,selectTrack:focusTrack,fit,debug:()=>({clicks:UI.lastClicks.slice(),capture:UI.lastCapture,loop:UI.lastLoop,monitor:UI.monitor,monitorGain:UI.capture?.mon?.gain.value??null,punch:!!UI.capture?.punch}),state:()=>({recording:!!UI.capture?.started,starting:!!UI.capture&&!UI.capture.started,opening:UI.opening,playing:!!UI.play,busy:UI.busy,start:UI.start,span:UI.span,position:current(),activeTrack:W().activeTrack}),locked:()=>!!(UI.capture||UI.opening||UI.busy||window.QualityStudio?.locked()),openProject,snapshot:()=>S.song?C.clone(S.song):null};
 // Capture before the legacy hotkeys. Their listeners also explicitly skip this screen.
-document.addEventListener('keydown',e=>{if(!UI.shown||modal.open||document.querySelector('dialog[open]')||document.querySelector('.stmodal:not([hidden]),.modal:not([hidden]),#pvsChoice:not([hidden])'))return;const typing=e.target.isContentEditable||/INPUT|SELECT|TEXTAREA/.test(e.target.tagName);if(typing)return;const k=e.key.toLowerCase();if((e.ctrlKey||e.metaKey)&&['s','z','y'].includes(k)){e.preventDefault();e.stopImmediatePropagation();if(k==='s')save();else history(k==='y'||e.shiftKey?1:-1);return;}if(e.ctrlKey||e.metaKey||e.altKey||e.repeat)return;if(k==='escape'&&window.WorkWindows?.state().open)return;if(k==='n'&&!UI.capture&&!UI.opening){e.preventDefault();e.stopImmediatePropagation();cleanupHere();return;}if(k==='r'||k===' '||k==='home'||k==='c'||k==='l'||k==='escape'){if(k==='escape'&&!UI.capture&&!UI.opening&&!UI.play)return;e.preventDefault();e.stopImmediatePropagation();if(k==='r')record();else if(k===' '){UI.capture||UI.opening?stopAll():togglePlay();}else if(k==='c')toggleClick();else if(k==='l')toggleLoop();else if(k==='escape'){if(UI.capture)stopRecording('',{cancel:true});else if(UI.opening)stopRecording();else{stopPlay();render();}}else $('sgHome').click();}},true);
+document.addEventListener('keydown',e=>{if(!UI.shown||modal.open||document.querySelector('dialog[open]')||document.querySelector('.stmodal:not([hidden]),.modal:not([hidden]),#pvsChoice:not([hidden])'))return;const typing=e.target.isContentEditable||/INPUT|SELECT|TEXTAREA/.test(e.target.tagName);if(typing)return;const k=e.key.toLowerCase();if((e.ctrlKey||e.metaKey)&&['s','z','y'].includes(k)){e.preventDefault();e.stopImmediatePropagation();if(k==='s')save();else history(k==='y'||e.shiftKey?1:-1);return;}if(e.ctrlKey||e.metaKey||e.altKey||e.repeat)return;if(k==='escape'&&window.WorkWindows?.state().open)return;if(k==='n'&&!UI.capture&&!UI.opening){e.preventDefault();e.stopImmediatePropagation();cleanupHere();return;}if(k==='r'||k===' '||k==='home'||k==='c'||k==='l'||k==='escape'){if(k==='escape'&&!UI.capture&&!UI.opening&&!UI.play&&!pendingPlay)return;e.preventDefault();e.stopImmediatePropagation();if(k==='r')record();else if(k===' '){UI.capture||UI.opening?stopAll():togglePlay();}else if(k==='c')toggleClick();else if(k==='l')toggleLoop();else if(k==='escape'){if(UI.capture)stopRecording('',{cancel:true});else if(UI.opening)stopRecording();else{stopPlay();render();}}else $('sgHome').click();}},true);
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&(UI.capture||UI.opening))stopRecording('Recording stopped because the app went into the background.');});
-window.addEventListener('pagehide',()=>{if(UI.capture)stopRecording('Page closing.');writeJournal();});
+window.addEventListener('pagehide',()=>{if(UI.capture||UI.opening)stopRecording('Page closing.');writeJournal();});
 document.addEventListener('visibilitychange',()=>{if(document.hidden)writeJournal();});
 // 0.21.0: the full autosave (all audio) is an IndexedDB write that a closing page can
 // abort. The song's arrangement (choices, mutes, levels, sections, settings) is also

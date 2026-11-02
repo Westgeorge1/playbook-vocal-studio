@@ -1,6 +1,8 @@
-# Playbook Vocal Studio 0.35.0 beta
+# Playbook Vocal Studio 0.35.1 beta
 
-[Open the 0.35.0 beta](https://westgeorge1.github.io/playbook-vocal-studio/beta/) · [Open the 0.32.3 main studio](https://westgeorge1.github.io/playbook-vocal-studio/)
+[Open the 0.35.1 beta](https://westgeorge1.github.io/playbook-vocal-studio/beta/) · [Open the 0.32.3 main studio](https://westgeorge1.github.io/playbook-vocal-studio/)
+
+0.35.1 fixes microphone cancellation, Play startup, and interrupted recording and playback on the Song & vocals timeline. [Read the transport review](CHANGES-0.35.1.md).
 
 0.35.0 adds Play/Pause on each waveform and guided phrase review. Open **✦ Guide → Guide this vocal**, choose a passage, then compare, keep, or leave it. [Read the 0.35.0 release notes](CHANGES-0.35.0.md).
 

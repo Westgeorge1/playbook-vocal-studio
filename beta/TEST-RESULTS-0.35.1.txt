@@ -1,0 +1,27 @@
+Playbook Vocal Studio 0.35.1 beta
+All 956 checks across 22 Chromium/Playwright suites passed on the final source tree.
+
+cleaning             31 checks passed
+cleanup              18 checks passed
+coach                45 checks passed
+delete               61 checks passed
+editors              74 checks passed
+laptop               34 checks passed
+layout               61 checks passed
+navigation           134 checks passed
+phrase-guide         35 checks passed
+playback             4 checks passed
+recording            38 checks passed
+regressions          21 checks passed
+restore              56 checks passed
+storage              10 checks passed
+timeline-move        41 checks passed
+transport            49 checks passed
+tuning               44 checks passed
+tuning-plus          32 checks passed
+upgrade              13 checks passed
+ux                   66 checks passed
+windows              48 checks passed
+workspace-editor     41 checks passed
+
+Transport tests ran on 1280x600 desktop and 390x844 touch viewports. They used a synthetic microphone and Web Audio output meter to verify capture, pause, resume, punch-in and out, late permission, delayed audio startup, natural end, audio interruptions, backing-only playback, stable timeline controls, and autosave reopening. The recording and workspace suites also exercised denied or disconnected microphones, docked and expanded windows, and project recovery with simulated devices. Physical device microphones, Bluetooth latency and real vocal listening were outside this run.

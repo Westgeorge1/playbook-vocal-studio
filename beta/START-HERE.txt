@@ -1,6 +1,8 @@
-PLAYBOOK VOCAL STUDIO 0.35.0 BETA
+PLAYBOOK VOCAL STUDIO 0.35.1 BETA
 
-Timeline playback: press Play on the vocal waveform to start the song at the playhead. Press Pause on any lane to stop there. The same Mute, Solo and backing controls apply.
+Record: tap Record, sing, then tap Stop & keep. If a microphone prompt is still open, Cancel setup or Stop frees the timeline immediately. A late microphone response from a cancelled attempt does not start recording.
+
+Playback: press Play on the vocal waveform to start the song at the playhead. Press Pause on any lane to stop there. The same Mute, Solo and backing controls apply.
 
 Phrase coaching: open Guide, then Guide this vocal. Pick a passage on your take, compare it with another take or processing stage, and listen to one change before choosing Keep, Try less or Leave it.
 
