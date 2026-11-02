@@ -176,3 +176,7 @@ body.pvs-simple.pvs-legacy-cleaner .ux-classic-only[data-ux-use="cleaner"]{displ
  body.ux-034 #trackPolishBar #polishTrackStatus{max-width:104px}
  body.ux-034 #trackPolishBar #polishReady{max-width:112px}
 }
+body.ux-034 #songStudio .sg-transport>#sgCheckMic{display:inline-flex;align-items:center;gap:3px;padding:2px 4px;min-width:0}
+@media(min-width:900px) and (max-width:1399px), (min-width:900px) and (max-height:760px){
+ body.ux-034 #songStudio .sg-transport #sgCheckMic #sgMeter{width:52px}
+}

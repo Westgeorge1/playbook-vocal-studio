@@ -25,3 +25,5 @@ Results include a log per suite and summary.json. Historical pitch hashes are re
 The 0.35.0 phrase-guide suite exercises the visible timeline Play/Pause controls, per-take guided decisions, matched and blind auditions, original-preserving edits, song Undo and reopen, isolated tone and tuning previews, persisted changes, and phone touch input. tests-0.35.0/recording checks the new version.
 
 The 0.35.1 transport suite checks real Web Audio capture and the rendered speaker signal on 1280×600 and 390×844 layouts. It forces late microphone responses, slow audio startup, cancelled punch-ins, and interrupted recording. To exercise a served beta in a fresh test browser, set PVS_TRANSPORT_URL to its HTTPS URL when running tests-0.35.1/transport.cjs. The microphone is synthetic in both cases.
+
+The 0.36.0 workflow and guide-undo suites exercise take replay, alternative performances, microphone checks, concern routing, native Undo, actual WAV samples, and reopening an exported project in a fresh browser context. Physical microphone and listening tests remain separate.

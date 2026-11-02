@@ -8,11 +8,12 @@ const W=()=>S.song||(S.song=C.empty(S.rate||48000)),T=()=>C.track(W()),R=()=>C.r
 const UI={start:0,span:30,section:null,drag:null,undo:[],redo:[],play:null,capture:null,opening:false,busy:false,shown:RC.step==='rc',renderKey:'',micGainDb:0,repeat:false,revision:0,monitor:false,monitorOk:false,monitorVol:C.clamp(+(localStorage.getItem('pvs.monitorVol')??.8),0,1),lastClicks:[],lastCapture:null,lastLoop:null,get loop(){return C.prefs(W()).loopRec;}};
 const host=document.createElement('section');host.id='songStudio';host.setAttribute('aria-label','Song recording studio');host.hidden=!UI.shown;
 host.innerHTML=`
-<div class="sg-row sg-top"><label><span class="sr-only">Song title</span><input id="songTitle" maxlength="100" aria-label="Song title" value="My song"></label><div class="sg-filebar"><button id="sgSave">Back up project</button><button id="sgOpen">Open project</button><button id="sgExport">Export audio</button><button id="sgNew">New song</button><button id="sgHelp" class="sg-link" aria-haspopup="dialog">Help</button></div></div>
+<div class="sg-row sg-top"><label><span class="sr-only">Song title</span><input id="songTitle" maxlength="100" aria-label="Song title" value="My song"></label><div class="sg-filebar"><button id="sgSave" title="Back up the editable project with its takes and guide decisions">Back up project</button><button id="sgOpen">Open project</button><button id="sgExport" title="Export song audio to listen or share">Export audio</button><button id="sgNew">New song</button><button id="sgHelp" class="sg-link" aria-haspopup="dialog">Help</button></div></div>
 <div class="sg-transport" aria-label="Recording and playback">
  <button id="sgShowControls" hidden>Options ↑</button><button id="sgHome" aria-label="Go to song start" title="Return to the beginning of the song">|◀</button><button id="sgPlay" title="Play or pause the current mix at the playhead">▶ Play</button><button id="sgStop" title="Stop playback, keep a recording, or cancel microphone setup">■ Stop</button><button id="sgRecord">● Record</button><button id="sgJumpVocal" title="Show the selected vocal waveform">Show vocal ↓</button><button id="sgQuickFix" title="Record only the selected word or phrase">Fix phrase</button><button id="sgCleanHere" title="Clean up here (N): opens Manual cleanup at the spot you are hearing, with about one second selected. Right-click a recording to clean up that spot.">Clean up here</button><output id="sgClock" class="sg-clock">0:00.0</output><small id="sgRoom" class="sg-room" title="Recording room left in this song (vocal audio limit 256 MB)"></small><small id="sgReady" class="sg-room sg-ready" title="POLISH readiness of every vocal lane"></small><output id="sgBarBeat" class="sg-barbeat" aria-label="Bar and beat" title="Bar | beat">1 | 1</output><button id="sgTempo" class="sg-tempo" title="Tempo and time signature (opens Recording settings)">75 BPM · 4/4</button>
+ <div id="sgRecent" hidden aria-label="Latest recorded take"><strong id="sgRecentLabel" role="status"></strong><button type="button" id="sgHearRecent" title="Hear this recorded take dry with the current mix, then return to the editing position">▶ Hear this take</button><button type="button" id="sgRetryRecent" title="Record the same line again and keep earlier takes">Record another take</button><button id="sgUseRecent" type="button" hidden>Use in song</button></div>
  <details class="sg-record-helpers"><summary>Recording helpers</summary><span class="sg-rtools" aria-label="Recording helpers"><label class="sg-count" title="While recording, show the note you are singing and how far it is from the song key. Never changes the recording."><input id="sgPitchOn" type="checkbox"> Pitch guide</label><button id="sgClick" aria-pressed="false" title="Metronome click on/off (C). Heard only in your headphones, never recorded.">♩ Click</button><label class="sg-count">Count-in <select id="sgCountIn" aria-label="Count-in bars"><option value="0">Off</option><option value="1">1 bar</option><option value="2">2 bars</option></select></label><button id="sgMonitor" aria-pressed="false" title="HEAR ME: hear your microphone while recording. Use headphones.">🎧 HEAR ME</button><span class="sg-seg" role="group" aria-label="Backing while you play and record" title="With backing: you hear the backing while you play and record. Vocals only: the click, your vocals and yourself. Never part of the recording."><button id="sgWith" aria-pressed="true">With backing</button><button id="sgWithout" aria-pressed="false">Vocals only</button></span></span></details>
- <span class="sg-spacer"></span><span id="sgArmed">Recording track: Lead vocal</span><span id="sgPitch" class="sg-pitch" hidden aria-live="off"><canvas id="sgPitchCanvas" width="220" height="30" aria-hidden="true"></canvas><span id="sgPitchText" role="status"></span></span><label>Mic <meter id="sgMeter" min="0" max="1" value="0" aria-label="Microphone level"></meter><span id="sgClip"></span></label>
+ <span class="sg-spacer"></span><span id="sgArmed">Recording track: Lead vocal</span><span id="sgPitch" class="sg-pitch" hidden aria-live="off"><canvas id="sgPitchCanvas" width="220" height="30" aria-hidden="true"></canvas><span id="sgPitchText" role="status"></span></span><button id="sgCheckMic" type="button" aria-label="Check my mic" title="Check my mic without recording">Check mic <meter id="sgMeter" min="0" max="1" value="0" aria-label="Microphone level"></meter><span id="sgClip"></span></button>
 </div>
 <p id="sgStatus" class="sg-status" role="status" aria-live="polite">Record your song, then drag over a word or phrase to fix it.</p>
 <div id="sgStart" class="sg-start" hidden><h2>Start your song</h2><div class="sg-row"><button id="sgStartRecord" class="sg-rec">● Record a vocal</button><button id="sgStartImport">Import a vocal</button><button id="sgStartOpen">Open a project</button><button id="sgStartBacking">+ Add backing</button></div><p class="sg-help">Everything else is one click away: <button class="sg-link" id="sgStartHelp">Help</button></p></div>
@@ -112,7 +113,7 @@ function hasPlaybackAudio(){
  return !!(($('beatOn').checked&&S.beat)||prefs().click||W().tracks.some(t=>t.regions.some(r=>r.selected)));
 }
 function stopPlay(keepPosition=true){playbackRequest++;const wasPending=!!pendingPlay;pendingPlay=0;
- const p=UI.play;if(!p){if(wasPending)renderTransport();return;}if(UI.capture?.punch&&UI.capture.playback===p&&!UI.capture.stopping)stopRecording('Playback stopped.');if(keepPosition)W().cursor=C.clamp(p.loop?p.loop.a:current(),0,900);UI.play=null;clearTimeout(p.timer);p.ctx.removeEventListener('statechange',p.onAudioState);stopClicks(p);for(const n of p.nodes){try{n.stop();}catch(e){}try{n.disconnect();}catch(e){}}renderTransport();}
+ const p=UI.play;if(!p){if(wasPending)renderTransport();return;}if(UI.capture?.punch&&UI.capture.playback===p&&!UI.capture.stopping)stopRecording('Playback stopped.');if(keepPosition&&!p.holdCursor)W().cursor=C.clamp(p.loop?p.loop.a:current(),0,900);UI.play=null;clearTimeout(p.timer);p.ctx.removeEventListener('statechange',p.onAudioState);stopClicks(p);for(const n of p.nodes){try{n.stop();}catch(e){}try{n.disconnect();}catch(e){}}renderTransport();}
 function syncLiveMix(){const p=UI.play;if(!p)return;const w=W(),now=audioCtx().currentTime,solo=w.tracks.some(t=>t.solo);p.master?.gain.setTargetAtTime(Math.pow(10,w.masterDb/20),now,.02);for(const v of p.voices||[]){const t=C.track(w,v.id);if(!t)continue;const pan=C.panGains(v.nc,t.pan),gain=t.mute||(solo&&!t.solo)||(UI.capture?.punch&&UI.capture.trackId===v.id)?0:Math.pow(10,t.gainDb/20);v.left.gain.setTargetAtTime(gain*pan[0],now,.02);v.right.gain.setTargetAtTime(gain*pan[1],now,.02);}if(p.click)p.click.gain.setTargetAtTime(prefs().clickVol,now,.02);if(p.backing)p.backing.gain.setTargetAtTime($('beatOn').checked?(S.beatLevel??.8):0,now,.02);}
 // 0.23.0 click/metronome: a look-ahead scheduler on the PLAYBACK graph only (its own
 // gain straight to the speakers). Segments map song time to AudioContext time, so the
@@ -151,7 +152,7 @@ async function playLoop(a,b,lead,excludeTrack,countTo,setup){
   const src=ctx.createBufferSource(),gain=ctx.createGain();src.buffer=buf;src.loop=true;src.loopStart=lead;src.loopEnd=lead+len;src.connect(gain).connect(master);p.backing=gain;p.nodes.push(src,gain);queued.push(()=>src.start(p.when));}
  p.when=ctx.currentTime+.25;UI.play=p;syncLiveMix();for(const s of queued)s();startClicks(p,countTo);renderTransport();return p;
 }
-async function play(start=W().cursor,{end=null,override=null,excludeTrack=null,excludeRange=null,forRecording=false,countTo=null,setup=null}={}){
+async function play(start=W().cursor,{end=null,override=null,excludeTrack=null,excludeRange=null,forRecording=false,countTo=null,setup=null,holdCursor=false}={}){
  if(!forRecording&&busy())return false;stopPlay(false);if(loop)endLoop();stopPlayback();
  const w=W(),dur=Math.min(910,Math.max(C.duration(w),$('beatOn').checked?(S.beat?.duration||0):0));if(end==null)end=dur;
  if(start>=end-.04)start=0;if(end-start<.04)return false;
@@ -163,22 +164,75 @@ async function play(start=W().cursor,{end=null,override=null,excludeTrack=null,e
  finally{if(pendingPlay===request){pendingPlay=0;renderTransport();}}
  if(playbackRequest!==request||W()!==w||(setup!==null&&!ownsMicSetup(setup)))return false;
  const master=ctx.createGain();master.connect(ctx.destination);
- const p={ctx,start,end,when:0,nodes:[master],voices:[],timer:null,forRecording,master,override};
+ const p={ctx,start,end,when:0,nodes:[master],voices:[],timer:null,forRecording,master,override,holdCursor};
  const queued=[],offset=Math.max(0,-start);
- for(const t of w.tracks){if(!t.regions.some(r=>r.selected||(override?.regionId===r.id&&override.takeId)))continue;const trackEnd=Math.min(end,Math.max(C.trackEnd(t),C.polishValid(w,t)&&!t.polish.bypass?t.polish.channels[0].length/w.rate:0));if(trackEnd<=Math.max(0,start))continue;
+ for(const t of w.tracks){if(!t.regions.some(r=>r.selected||(override?.regionId===r.id&&override.takeId)))continue;const trackEnd=Math.min(end,Math.max(C.trackEnd(t),override?t.regions.find(r=>r.id===override.regionId)?.end||0:0,C.polishValid(w,t)&&!t.polish.bypass?t.polish.channels[0].length/w.rate:0));if(trackEnd<=Math.max(0,start))continue;
   const channels=C.renderVoice(w,t,{start:Math.max(0,start),end:trackEnd,override,exclude:t.id===excludeTrack?excludeRange:null}),src=ctx.createBufferSource(),split=ctx.createChannelSplitter(channels.length),left=ctx.createGain(),right=ctx.createGain(),merge=ctx.createChannelMerger(2);src.buffer=bufferOf(channels,w.rate);src.connect(split);split.connect(left,0);split.connect(right,channels.length>1?1:0);left.connect(merge,0,0);right.connect(merge,0,1);merge.connect(master);p.voices.push({id:t.id,nc:channels.length,left,right});p.nodes.push(src,split,left,right,merge);queued.push(()=>src.start(p.when+offset));
  }
  if(S.beat){const src=ctx.createBufferSource(),gain=ctx.createGain();src.buffer=S.beat;src.connect(gain).connect(master);p.backing=gain;p.nodes.push(src,gain);const from=Math.max(0,start),seconds=Math.min(end-from,S.beat.duration-from);if(seconds>0)queued.push(()=>src.start(p.when+offset,from,seconds));}
  // Allocate/render first, schedule second: long-song rendering must never make
  // a scheduled microphone gate expire before the capture node is connected.
  p.when=ctx.currentTime+.25;UI.play=p;syncLiveMix();for(const schedule of queued)schedule();startClicks(p,countTo);
- if(!forRecording)p.timer=setTimeout(()=>{if(UI.play===p){W().cursor=C.clamp(end,0,900);stopPlay(false);render();}},(end-start+.3)*1000);
+ if(!forRecording)p.timer=setTimeout(()=>{if(UI.play===p){if(!p.holdCursor)W().cursor=C.clamp(end,0,900);stopPlay(false);render();}},(end-start+.3)*1000);
  renderTransport();return p;
 }
 async function togglePlay(){if(UI.capture||UI.opening||busy())return;if(UI.play||pendingPlay){const started=!!UI.play;stopPlay();render();message(started?'Paused at '+clock(W().cursor)+'.':'Playback cancelled.');return;}
  if(!hasPlaybackAudio()){message('Record or import a vocal, enable the backing, or turn on Click to play.');return;}
  try{const playback=await play();if(playback)message('Playback started at '+clock(playback.start)+'.');}catch(e){message('Playback could not start: '+e.message,true);}}
-async function audition(regionId,takeId){if(busy())return;const r=T().regions.find(r=>r.id===regionId);if(!r)return;const begin=Math.max(0,r.start-W().lead),end=Math.min(900,r.end+.7);await play(begin,{end,override:{regionId:r.id,takeId}});message('Listening to this attempt dry, alongside the other processed vocals. Choose it when you are happy with it, then update POLISH for this track.');}
+async function audition(regionId,takeId,holdCursor=false){
+ if(busy())return;
+ const t=T(),r=t.regions.find(r=>r.id===regionId),take=r?.takes.find(x=>x.id===takeId);
+ if(!take)return;
+ if(t.mute||(W().tracks.some(l=>l.solo)&&!t.solo)){message('Unmute this vocal or include it in the solo mix to hear the take.',true);return;}
+ const span=C.takeSpan(W(),take),begin=Math.max(0,r.start-W().lead);
+ const end=Math.min(900,r.end+.7,span[1]/W().rate+.7);
+ try{
+  const started=await play(begin,{end,override:{regionId:r.id,takeId},holdCursor});
+  if(started)message('Hearing '+take.name+' dry with the current mix. The chosen take stays in the song.');
+ }catch(e){message('Take playback could not start: '+e.message,true);}
+}
+let recentTake=null;
+function rememberRecording(w,trackId,region,take,reason){
+ recentTake={song:w.uid,trackId,region:region.id,take:take.id,source:take.source,review:!!reason};
+}
+function recentRecording(){
+ if(!recentTake||recentTake.song!==W().uid||recentTake.trackId!==W().activeTrack)return null;
+ const track=T(),region=track.regions.find(r=>r.id===recentTake.region);
+ const take=region?.takes.find(t=>t.id===recentTake.take&&t.source===recentTake.source);
+ if(!take){recentTake=null;return null;}
+ return {track,region,take};
+}
+function renderRecent(locked){
+ const data=recentRecording(),box=$('sgRecent');
+ box.hidden=!data||!!UI.capture||UI.opening;
+ if(box.hidden)return;
+ const {track,region,take}=data,complete=C.covers(W(),take,region);
+ const status=!complete?'Incomplete · hear captured audio':region.selected===take.id?'Used in song'+(recentTake.review?' · check the ending':''):recentTake.review?'Kept for review · check the ending':'Alternate take';
+ const label=track.name+' · '+take.name+' · '+status;
+ if($('sgRecentLabel').textContent!==label)$('sgRecentLabel').textContent=label;
+ const caption=UI.play?.holdCursor?'■ Stop take':'▶ Hear this take';
+ if($('sgHearRecent').textContent!==caption)$('sgHearRecent').textContent=caption;
+ $('sgHearRecent').disabled=locked;$('sgRetryRecent').disabled=locked;
+ $('sgUseRecent').hidden=!complete||region.selected===take.id;$('sgUseRecent').disabled=locked;
+}
+$('sgHearRecent').onclick=()=>{
+ if(UI.play?.holdCursor||pendingPlay){stopPlay();render();return;}
+ const data=recentRecording();if(data){if(UI.play)stopPlay();audition(data.region.id,data.take.id,true);}
+};
+function useTake(region,takeId){
+ const section=partOf(region);
+ edit(w=>{
+  const track=C.track(w),r=track.regions.find(x=>x.id===region.id);
+  if(section)C.choosePart(w,track,section,takeId);else C.choose(w,r,takeId);
+ },'Take chosen'+(section?' for '+section.name:'')+'. Earlier takes remain available.');
+}
+$('sgUseRecent').onclick=()=>{
+ const data=recentRecording();if(data&&!busy()&&C.covers(W(),data.take,data.region))useTake(data.region,data.take.id);
+};
+$('sgRetryRecent').onclick=()=>{
+ const data=recentRecording();if(!data||busy())return;
+ stopPlay();if(setRange(data.region.start,data.region.end))record(true,false,data.region.id);
+};
 
 // Microphone capture uses sample-frame gates, with flushed final blocks. A stop,
 // device loss, hidden tab or AudioContext interruption keeps captured samples.
@@ -191,7 +245,7 @@ async function audition(regionId,takeId){if(busy())return;const r=T().regions.fi
 // microphone reaches the capture worklet, so click/monitor/other lanes never enter PCM.
 const captureModules=new WeakMap();
 let micRequest=0;
-function beginMicSetup(){UI.opening=true;S.songWorking=true;return ++micRequest;}
+function beginMicSetup(){recentTake=null;UI.opening=true;S.songWorking=true;return ++micRequest;}
 function ownsMicSetup(request){return UI.opening&&request===micRequest;}
 function cancelMicSetup(){
  if(!UI.opening)return;
@@ -221,8 +275,43 @@ async function openMic(request){
  }
  await captureModules.get(ctx);
  if(!ownsMicSetup(request))return null;
- if(window.pvsRecPrepare)pvsRecPrepare();let stream;try{stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});}catch(e){throw micError(e);}return {ctx,stream};
+ return {ctx,stream:await requestSongMic()};
 }
+async function requestSongMic(){
+ if(!navigator.mediaDevices?.getUserMedia)throw Error('Open the studio in a browser that supports microphones.');
+ if(window.pvsRecPrepare)pvsRecPrepare();
+ try{return await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});}
+ catch(e){throw micError(e);}
+}
+$('sgCheckMic').onclick=async()=>{
+ if(busy()||modal.open)return;
+ stopPlay();
+ const done=dialog('Check my mic','<p>Sing the loudest line. This test measures your input without recording or playing it through the speakers.</p><meter id="sgTestMeter" min="0" max="1" value="0" aria-label="Test microphone level"></meter><p id="sgTestNote" role="status">Opening microphone…</p><label>Recording mic gain (dB) <input id="sgTestGain" type="number" min="-24" max="18" step="1"></label>',[['timing','My recording sounds late'],['close','Done']]);
+ const meter=$('sgTestMeter'),note=$('sgTestNote'),input=$('sgTestGain');
+ let stream,source,analyser,frame=0,closed=false;
+ const release=()=>{cancelAnimationFrame(frame);source?.disconnect();analyser?.disconnect();for(const t of stream?.getTracks()||[])t.stop();};
+ const hide=()=>{if(document.hidden&&modal.open)finishDialog('close');};
+ document.addEventListener('visibilitychange',hide);
+ input.value=UI.micGainDb;input.oninput=()=>{if(!Number.isFinite(input.valueAsNumber)||!input.validity.valid)return;$('sgMicGain').value=input.value;$('sgMicGain').dispatchEvent(new Event('input'));};
+ (async()=>{
+  try{
+   const ctx=await resumeAudio();if(closed)return;
+   stream=await requestSongMic();if(closed){release();return;}
+   source=ctx.createMediaStreamSource(stream);analyser=ctx.createAnalyser();analyser.fftSize=1024;source.connect(analyser);
+   const samples=new Float32Array(analyser.fftSize);
+   const tick=()=>{
+    analyser.getFloatTimeDomainData(samples);let peak=0;for(const v of samples)peak=Math.max(peak,Math.abs(v));
+    peak*=Math.pow(10,UI.micGainDb/20);meter.value=Math.min(1,peak);
+    const text=peak>=.999?'Input clipped. Lower recording mic gain.':peak>.01?'Mic signal detected.':'Waiting for a signal. Sing close to the microphone.';
+    if(note.textContent!==text)note.textContent=text;frame=requestAnimationFrame(tick);
+   };
+   for(const t of stream.getTracks())t.onended=()=>{release();note.textContent='Microphone disconnected. Close the check and reconnect it.';};
+   tick();
+  }catch(e){release();if(!closed)note.textContent=e.message;}
+ })();
+ const choice=await done;closed=true;document.removeEventListener('visibilitychange',hide);release();
+ if(choice.action==='timing')$('sgCalibration').click();
+};
 function pitchGuideOn(){try{return localStorage.getItem('pvs.pitchGuide')!=='off';}catch(_){return true;}}
 function wire(c){const ctx=c.ctx;
  c.src=ctx.createMediaStreamSource(c.stream);c.gain=ctx.createGain();c.gain.gain.value=Math.pow(10,UI.micGainDb/20);
@@ -238,14 +327,16 @@ function wire(c){const ctx=c.ctx;
 }
 function unwire(c){try{window.LivePitch?.detach();}catch(_){}for(const tr of c.stream?.getTracks()||[]){tr.onended=null;tr.stop();}for(const n of [c.src,c.gain,c.node,c.keep,c.mon])try{n?.disconnect();}catch(e){}}
 function captureBase(w,t,extra){return {w,trackId:t.id,regionId:null,handle:.15,bounded:false,repeat:false,chunks:[],frames:0,peak:0,clipped:false,finished:false,stopping:false,reason:'',resolve:null,timer:null,...extra};}
-async function record(bounded=false,repeat=false){
+async function record(bounded=false,repeat=false,exactRegion=null){
  if(UI.capture){await stopRecording();return;}if(UI.opening){cancelMicSetup();return;}
+ if(UI.play?.holdCursor)stopPlay();
  if(!bounded&&UI.play&&!UI.play.forRecording&&!UI.busy&&!sessionLocked())return punchIn();
  if(busy()){recordProblem(window.lockReason?.()||'Please wait: another task is still running.');return;}
  const partId=UI.pendingPart||null;UI.pendingPart=null;
  const w=W(),t=T(),range=bounded?w.range?.slice():null;if(bounded&&!range){message('Select the word or phrase first.',true);return;}
- const loopMode=bounded&&UI.loop;
- let a=range?range[0]:C.clamp(current(),0,899.96),b=range?range[1]:null,r=range?C.findRange(t,...range):null;
+ const loopMode=bounded&&UI.loop&&!exactRegion;
+ let a=range?range[0]:C.clamp(current(),0,899.96),b=range?range[1]:null,r=range?(exactRegion?t.regions.find(r=>r.id===exactRegion):C.findRange(t,...range)):null;
+ if(exactRegion&&(!r||r.start!==a||r.end!==b))return;
  const u=C.usage(w);if(u.takes>=C.LIMITS.takes||(r&&r.takes.length>=32)){message('Take limit reached. Back up the project and remove unused attempts.',true);return;}
  stopPlay();if(loop)endLoop();stopPlayback();const setup=beginMicSetup();render();message('Opening microphone for '+t.name+'…');
  let stream,c=null;
@@ -321,7 +412,8 @@ async function finishCapture(c,last){
   if(sec){added.region.name=sec.name;const pt=C.partTakes(next,C.track(next,c.trackId),sec);if(!c.reason&&C.covers(next,added.take,added.region)&&(!pt.some(x=>x.region.selected)||UI.autoChoose))C.choosePart(next,C.track(next,c.trackId),sec,added.take.id);UI.section=sec.id;}
   if(c.punch)added.region.fadeMs=Math.max(5,next.fadeMs);
   C.validate(next);UI.undo.push(C.clone(base));if(UI.undo.length>30)UI.undo.shift();UI.redo=[];S.song=next;if(!c.punch)W().cursor=sec?sec.start:c.bounded?c.a:added.region.end;if(c.bounded)W().range=[c.a,c.b];W().selectedRegion=added.region.id;
-  message((c.reason?c.reason+' ':'')+added.take.name+' kept on '+C.track(W(),c.trackId).name+'. '+(sec?(grew?'The section grew to '+clock(pEnd)+' to fit your take. ':'')+(added.region.selected===added.take.id?'It is chosen for '+sec.name+'. ':'Listen, then Choose the best take for '+sec.name+'. ')+'Next section ▶ moves on.':c.punch?'Punch-in '+clock(added.region.start)+'–'+clock(added.region.end)+' replaces that stretch with short fades. “Keep earlier audio” puts the old section back.':!complete?'This attempt ended early; it is kept for listening but cannot replace the whole selected range.':c.bounded||c.reason?'Listen, then Choose. Your earlier vocal stays until you choose.':'It is now playing in the song. Select a phrase to fix it.')+(c.clipped?' Input clipped: lower Mic gain and record again.':''),!!c.reason||c.clipped);
+  rememberRecording(next,c.trackId,added.region,added.take,c.reason);
+  message((c.reason?c.reason+' ':'')+added.take.name+' kept on '+C.track(W(),c.trackId).name+'. '+(sec?(grew?'The section grew to '+clock(pEnd)+' to fit your take. ':'')+(added.region.selected===added.take.id?'It is chosen for '+sec.name+'. ':'Listen, then Choose the best take for '+sec.name+'. ')+'Next section ▶ moves on.':c.punch?'Punch-in '+clock(added.region.start)+'–'+clock(added.region.end)+' replaces that stretch with short fades. “Keep earlier audio” puts the old section back.':!complete?'This attempt ended early; it is kept for listening but cannot replace the whole selected range.':c.bounded||c.reason?'Listen, then Choose. Your earlier vocal stays until you choose.':'Used in song. Select a phrase to fix it.')+(c.clipped?' Input clipped: lower Mic gain and record again.':''),!!c.reason||c.clipped);
   changed();
   const again=c.repeat&&!c.stopping&&!c.reason&&complete;
   if(again){UI.busy=false;S.songWorking=false;setTimeout(()=>{if(UI.repeat)record(true,true);},100);}
@@ -334,11 +426,12 @@ async function finishCapture(c,last){
 // Gapless loop: the capture is continuous; pass k is samples [k*len,(k+1)*len).
 async function finishLoop(c,pcm){
  const w=S.song===c.w?c.w:W(),[ch]=await phraseResample([pcm],c.rate,w.rate),len=Math.round(c.b*w.rate)-Math.round(c.a*w.rate),passes=C.loopPasses(ch.length,len);
- const next=C.clone(w);let regionId=c.regionId,kept=0,full=0,region=null;const room=32-(regionId?C.track(next,c.trackId).regions.find(r=>r.id===regionId)?.takes.length||0:0);
- for(const [lo,hi] of passes){if(hi-lo<Math.min(len,Math.round(.25*w.rate))||kept>=room)continue;const added=C.addTake(next,{trackId:c.trackId,regionId,start:c.a,end:c.b,channels:q16([ch.slice(lo,hi)]),origin:c.a,kind:'fix'});regionId=added.region.id;region=added.region;kept++;if(hi-lo===len)full++;}
+ const next=C.clone(w);let regionId=c.regionId,kept=0,full=0,region=null,lastTake=null;const room=32-(regionId?C.track(next,c.trackId).regions.find(r=>r.id===regionId)?.takes.length||0:0);
+ for(const [lo,hi] of passes){if(hi-lo<Math.min(len,Math.round(.25*w.rate))||kept>=room)continue;const added=C.addTake(next,{trackId:c.trackId,regionId,start:c.a,end:c.b,channels:q16([ch.slice(lo,hi)]),origin:c.a,kind:'fix'});regionId=added.region.id;region=added.region;lastTake=added.take;kept++;if(hi-lo===len)full++;}
  UI.lastLoop={passes:passes.length,kept,full,len,total:ch.length,bounds:passes};
  if(!kept){message('Stopped before a whole loop pass was sung. Your existing recordings are unchanged.');return;}
  C.validate(next);UI.undo.push(C.clone(w));if(UI.undo.length>30)UI.undo.shift();UI.redo=[];S.song=next;W().cursor=c.a;W().range=[c.a,c.b];W().selectedRegion=region.id;
+ rememberRecording(next,c.trackId,region,lastTake,c.reason);
  message((c.reason?c.reason+' ':'')+kept+' loop pass'+(kept>1?'es':'')+' kept as attempts ('+full+' complete) on '+C.track(W(),c.trackId).name+'. Listen, then Choose the best one.'+(c.clipped?' Input clipped: lower Mic gain and record again.':''),!!c.reason||c.clipped);
  changed();
 }
@@ -372,6 +465,7 @@ function renderTransport(){const c=UI.capture,locked=busy();if(!c){$('sgMeter').
   if(button.dataset.transport!==playLabel){button.dataset.transport=playLabel;button.textContent=caption;button.setAttribute('aria-label',playLabel+' song from '+button.dataset.songPlay+' lane');}
   button.disabled=playDisabled;
  }
+ renderRecent(locked);$('sgCheckMic').disabled=locked;
  $('sgStop').disabled=!(c||UI.opening||UI.play||pendingPlay);$('sgHome').disabled=locked;$('sgArmed').textContent=c&&current()<c.a?'Get ready · '+(c.a-current()).toFixed(1)+' s · '+T().name:'Recording track: '+(T()?.name||'Lead vocal');$('sgClock').textContent=clock(current());renderGrid();
  $('rcUndo').disabled=locked||!UI.undo.length;$('rcRedo').disabled=locked||!UI.redo.length;
 }
@@ -519,7 +613,7 @@ $('sgTimeline').addEventListener('change',e=>{for(const [key,field] of [['level'
 $('sgSections').onclick=e=>{const b=e.target.closest('[data-section]');if(!b||busy())return;stopPlay();const s=W().sections.find(s=>s.id===b.dataset.section);UI.section=s.id;W().cursor=s.start;W().range=null;setView(s.start,Math.max(8,s.end-s.start+1));render();persist();};
 $('sgRegion').onchange=()=>{if(busy())return;stopPlay();W().selectedRegion=$('sgRegion').value||null;const r=R();if(r){W().range=[r.start,r.end];W().cursor=r.start;}render();};
 $('sgTakes').onclick=async e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.why){whySuggested(b.dataset.why);return;}const r=b.dataset.region?T().regions.find(x=>x.id===b.dataset.region):R();if(!r||busy())return;if(b.dataset.rate){const a=r.takes.find(a=>a.id===b.dataset.take),v=+b.dataset.rate;edit(w=>{const x=C.track(w).regions.find(x=>x.id===r.id).takes.find(x=>x.id===a.id);x.rating=x.rating===v?0:v;},v+' star'+(v>1?'s':'')+' for '+a.name+'.',true);return;}if(b.dataset.deleteTake){await deleteRecording(T().id,r.id,b.dataset.deleteTake);return;}if(b.dataset.edit){takeEditor(r.id,b.dataset.edit);return;}if(b.dataset.listen){try{await audition(r.id,b.dataset.listen);}catch(e){message(e.message,true);}return;}
- if(b.dataset.choose){const sec=partOf(r);edit(w=>{const tr=C.track(w),rr=tr.regions.find(x=>x.id===r.id);if(sec)C.choosePart(w,tr,w.sections.find(x=>x.id===sec.id),b.dataset.choose);else C.choose(w,rr,b.dataset.choose);},'Take chosen'+(sec?' for '+sec.name:'')+'. The rest of this track and every other track stay unchanged.');}
+ if(b.dataset.choose)useTake(r,b.dataset.choose);
  if(b.dataset.original)edit(w=>C.choose(w,r,null),'Earlier audio restored for this phrase. All attempts are still here.');
  if(b.dataset.takeMenu){const a=r.takes.find(a=>a.id===b.dataset.takeMenu),d=await dialog('Take settings','<label>Name <input name="name" value="'+esc(a.name)+'" maxlength="100"></label><label>Timing (milliseconds) <input name="offset" type="number" min="-500" max="500" step="1" value="'+a.offsetMs+'"></label><p>Negative moves the take earlier. A shifted take must still cover the selected range before it can be chosen. Trim, level and fades are in <b>Edit</b>.</p>',[['cancel','Cancel'],['ref',refOf(r)===a.id?'Clear reference':'Use as reference'],['remove','Remove attempt…'],['ok','Save']]);if(d.action==='ref'){toggleReference(r.id,a.id);return;}
   if(d.action==='ok')edit(w=>{const rr=C.track(w).regions.find(x=>x.id===r.id),x=rr.takes.find(x=>x.id===a.id);x.name=C.label(d.values.name,'Take');x.offsetMs=C.clamp(Math.round(+d.values.offset||0),-500,500);if(rr.selected===x.id&&!C.covers(w,x,rr))rr.selected=null;},'Take updated. Listen to check the timing.');
@@ -574,11 +668,28 @@ function takeListHtml(w,t,r,lk){const {part,list}=shownTakes(w,t,r);if(!list.len
   return '<div class="sg-take '+(chosen?'chosen':'')+'" data-take-row="'+a.id+'"><strong>'+esc(a.name)+(chosen?' · Chosen':'')+(chosen?(()=>{const i=t.regions.indexOf(rr),over=t.regions.filter((x,j)=>j>i&&x.selected&&x.start<rr.end&&x.end>rr.start);return over.length?'</strong><small class="sg-chosen-note">Used outside '+over.slice(0,3).map(x=>clock(Math.max(x.start,rr.start))+'–'+clock(Math.min(x.end,rr.end))).join(', ')+(over.length>3?' and more':'')+': a correction on top plays there.</small><strong>':'';})():'')+(rk.winner===a.id?' <span class="sg-suggest">Suggested</span>':'')+(rr.reference===a.id?' <span class="sg-ref" title="The check compares the other takes with this one for melody and timing">Reference</span>':'')+'</strong><small>'+clock(len)+(cov?'':' · Incomplete')+ed+(row&&row.eligible?' · check '+Math.round(row.score):a.analysisError?' · check failed':!row||row.reason==='Waiting for analysis'?' · checking…':'')+'</small><span class="sg-stars" role="group" aria-label="Your rating for '+esc(a.name)+'">'+[1,2,3,4,5].map(i=>'<button class="sg-star'+(i<=(a.rating||0)?' on':'')+'" data-region="'+rr.id+'" data-take="'+a.id+'" data-rate="'+i+'" aria-pressed="'+(i<=(a.rating||0))+'" aria-label="'+i+' star'+(i>1?'s':'')+'"'+dis+'>★</button>').join('')+'</span><div class="sg-row"><button data-region="'+rr.id+'" data-listen="'+a.id+'"'+dis+'>▶ Listen</button><button data-region="'+rr.id+'" data-choose="'+a.id+'" aria-pressed="'+chosen+'"'+(lk||!cov?' disabled':'')+'>'+(chosen?'✓ Chosen':'Choose')+'</button><button data-region="'+rr.id+'" data-edit="'+a.id+'"'+dis+'>Edit</button><button class="sg-danger" data-region="'+rr.id+'" data-delete-take="'+a.id+'" aria-label="Delete recording '+esc(a.name)+'"'+dis+'>Delete recording</button><button data-region="'+rr.id+'" data-take-menu="'+a.id+'" aria-label="Rename or remove '+esc(a.name)+'"'+dis+'>⋯</button></div></div>';}).join('')
   +(rk.winner||rk.tied?'<button class="sg-why" data-why="'+(part?'part':'region')+'">Why suggested?</button>':'')+((!part&&r&&(r.kind==='fix'||r.kind==='punch'))?'<button data-original="1"'+dis+'>Keep earlier audio</button>':'');}
 const analysis={queue:Promise.resolve(),pending:new Set()};
+function refreshTakeAnalysis(){
+ if(!UI.shown){UI.renderKey='';return;}
+ const box=$('sgTakes'),updated=document.createElement('div');
+ updated.innerHTML=takeListHtml(W(),T(),R(),busy());
+ for(const row of updated.querySelectorAll('[data-take-row]')){
+  const current=box.querySelector('[data-take-row="'+row.dataset.takeRow+'"]');
+  if(!current)continue;
+  // Only the score, recommendation and status change when background analysis finishes.
+  for(const part of row.querySelectorAll(':scope > strong,:scope > small')){
+   const peers=[...row.children].filter(el=>el.tagName===part.tagName);
+   const live=[...current.children].filter(el=>el.tagName===part.tagName)[peers.indexOf(part)];
+   if(live&&live.innerHTML!==part.innerHTML)live.replaceChildren(...part.childNodes);
+  }
+ }
+ const why=updated.querySelector('[data-why]'),old=box.querySelector('[data-why]');
+ if(why&&!old)box.append(why);else if(!why)old?.remove();
+}
 function queueAnalysis(list){if(typeof phraseWorkerRequest!=='function')return;for(const {region:r,take:a} of list){const key=profileKey(r,a);if(a.profileKey===key||a.profileKey==='legacy'&&a.profile||analysis.pending.has(a.id+key))continue;analysis.pending.add(a.id+key);
  analysis.queue=analysis.queue.then(async()=>{const w=W(),tr=w.tracks.find(t=>t.regions.some(x=>x.id===r.id)),rr=tr?.regions.find(x=>x.id===r.id),aa=rr?.takes.find(x=>x.id===a.id);if(!aa||profileKey(rr,aa)!==key){analysis.pending.delete(a.id+key);return;}
   try{const au=C.takeAudio(w,aa);const profile=await phraseWorkerRequest({...au,id:aa.id},{start:rr.start,end:rr.end});const now=W().tracks.flatMap(t=>t.regions).find(x=>x.id===r.id)?.takes.find(x=>x.id===a.id);if(now&&profileKey(rr,now)===key){now.profile=profile;now.profileKey=key;delete now.analysisError;}}
   catch(e){const now=W().tracks.flatMap(t=>t.regions).find(x=>x.id===r.id)?.takes.find(x=>x.id===a.id);if(now){now.analysisError=e.message;now.profileKey=key;now.profile=null;}}
-  finally{analysis.pending.delete(a.id+key);UI.renderKey='';render();persist();}});}}
+  finally{analysis.pending.delete(a.id+key);refreshTakeAnalysis();persist();}});}}
 async function whySuggested(){const {part,list}=shownTakes(W(),T(),R()),rk=rankRegionTakes(list),name=a=>esc(list.find(x=>x.take.id===a)?.take.name||a);
  const rows=rk.rows.map(r=>'<tr><th>'+name(r.id)+(rk.winner===r.id?' ★':'')+'</th><td>'+(r.eligible?Math.round(r.score):'—')+'</td><td>'+(r.pitch==null?'—':(r.melody?Math.round(r.pitch)+' cents from the reference':Math.round(r.pitch)+' cents off the nearest note'))+'</td><td>'+(r.timing==null?'—':Math.round(r.timing)+' ms')+'</td><td>'+(r.clippedPercent==null?'—':(+r.clippedPercent).toFixed(2)+' %')+'</td><td>'+esc(r.reason)+'</td></tr>').join('');
  await dialog('Why suggested?','<p>'+(rk.winner?name(rk.winner)+' is suggested for '+esc(part?part.name:'this range')+'. ':'No clear favourite: the best takes are within 3 points. ')+'The check scores each take on its own: steady pitch (or closeness to the reference take), clean level against the background, no clipping and, with a reference, timing. It is a hint; your ears and your stars decide.</p><div class="sg-why-table"><table><tr><th>Take</th><th>Score</th><th>Pitch</th><th>Timing</th><th>Clipping</th><th>Note</th></tr>'+rows+'</table></div>',[['ok','Close']]);}
@@ -690,8 +801,8 @@ $('sgBpm').onchange=()=>{const v=C.clamp(Math.round(+$('sgBpm').value||75),50,20
 $('sgTempo').onclick=()=>{const d=host.querySelector('.sg-settings');d.open=true;$('sgBpm').focus();};
 function polishStatus(){polishNotice.hidden=true;window.SongPolish?.render();}
 function show(s){if(window.SongPolish&&!SongPolish.beforeShow(s))return false;if(UI.capture||UI.opening){message('Stop recording before changing screens.',true);return false;}stopPlay();UI.shown=s==='rc';host.hidden=!UI.shown;document.body.classList.add('song-studio');document.body.classList.toggle('sg-onsong',UI.shown);$('rcView').hidden=true;if(UI.shown){$('rcExport').textContent='Export audio';render();}polishStatus();return true;}
-function reset(){if(S.songApplying)return;window.SongPolish?.detach();S.song=null;UI.undo=[];UI.redo=[];UI.section=null;UI.renderKey='';}
-function restoreSong(last){if(S.songApplying)return;if(last.song){C.validate(last.song);S.song=C.normalizeSigs(C.clone(last.song));if(!S.song.uid)S.song.uid=Math.random().toString(36).slice(2)+Date.now().toString(36);
+function reset(){if(S.songApplying)return;recentTake=null;window.SongPolish?.detach();S.song=null;UI.undo=[];UI.redo=[];UI.section=null;UI.renderKey='';}
+function restoreSong(last){if(S.songApplying)return;recentTake=null;if(last.song){C.validate(last.song);S.song=C.normalizeSigs(C.clone(last.song));if(!S.song.uid)S.song.uid=Math.random().toString(36).slice(2)+Date.now().toString(36);
  if(last.pcm?.length&&!Object.keys(S.song.sources).length&&S.song.tracks.every(t=>!t.regions.length&&!t.polish)&&!last.phrases?.phrases?.length&&!last.phrases?.base){
   const w=S.song;w.rate=last.rate;w.activeTrack=w.tracks[0].id;
   const a=C.addTake(w,{trackId:w.activeTrack,start:0,end:Math.min(C.LIMITS.seconds,last.pcm[0].length/last.rate),channels:last.pcm,rate:last.rate,name:'Recovered original vocal',kind:'legacy-base',choose:true});a.region.fadeMs=0;
@@ -709,7 +820,7 @@ async function pack(root,files){const w=S.song;if(!w)return;C.validate(w);window
 }
 async function unpack(root,files){if(!root.songStudio)return null;if(![1,2].includes(root.songStudioVersion)||root.songStudio.v!==1)throw Error('This song needs a newer Song Studio version.');const w=structuredClone(root.songStudio);let bytes=0;const entries=Object.entries(w.sources||{});if(entries.length>C.LIMITS.takes+8)throw Error('Too many vocal sources.');for(const [id,s] of entries){const file=files.get(baseName(s.file).toLowerCase());if(!file)throw Error('Missing vocal source: '+s.file);bytes+=file.data.length;if(bytes>C.LIMITS.bytes+1024*1024)throw Error('The project exceeds the vocal source limit.');const decoded=await decodeBytes(file.data,s.file);C.checkAudio(decoded.channels,decoded.rate);if(decoded.rate!==w.rate)throw Error('The saved source sample rate does not match the song.');w.sources[id]={rate:decoded.rate,channels:decoded.channels};}if(window.SongPolish)await SongPolish.unpack(w,files);C.validate(w);return w;}
 function needsApply(){return window.SongPolish?SongPolish.needsApply():false;}
-window.SongStudio={addCleanupTake,cleanupHere,view:()=>({start:UI.start,span:UI.span}),undoCount:()=>UI.undo.length,commitMove,moveDialog,renderExportMix,setPolishPref,setTrackMono,commitSetting,auditionMono,getHistorySnapshots:()=>[...UI.undo,...UI.redo],keyChosen,syncKey:()=>{try{syncPolishKey();}catch(e){}},dialog,edit,notify:message,show,reset,restore:restoreSong,pack,unpack,needsApply,hasWork,record,stopRecording,play,stopPlay,importAudio,save,exportAudio,polish,render,setRange,history,selectTrack:focusTrack,fit,debug:()=>({clicks:UI.lastClicks.slice(),capture:UI.lastCapture,loop:UI.lastLoop,monitor:UI.monitor,monitorGain:UI.capture?.mon?.gain.value??null,punch:!!UI.capture?.punch}),state:()=>({recording:!!UI.capture?.started,starting:!!UI.capture&&!UI.capture.started,opening:UI.opening,playing:!!UI.play,busy:UI.busy,start:UI.start,span:UI.span,position:current(),activeTrack:W().activeTrack}),locked:()=>!!(UI.capture||UI.opening||UI.busy||window.QualityStudio?.locked()),openProject,snapshot:()=>S.song?C.clone(S.song):null};
+window.SongStudio={addCleanupTake,cleanupHere,view:()=>({start:UI.start,span:UI.span}),undoMarker:()=>UI.undo.at(-1),undoCount:()=>UI.undo.length,commitMove,moveDialog,renderExportMix,setPolishPref,setTrackMono,commitSetting,auditionMono,getHistorySnapshots:()=>[...UI.undo,...UI.redo],keyChosen,syncKey:()=>{try{syncPolishKey();}catch(e){}},dialog,edit,notify:message,show,reset,restore:restoreSong,pack,unpack,needsApply,hasWork,record,stopRecording,play,stopPlay,importAudio,save,exportAudio,polish,render,setRange,history,selectTrack:focusTrack,fit,debug:()=>({clicks:UI.lastClicks.slice(),capture:UI.lastCapture,loop:UI.lastLoop,monitor:UI.monitor,monitorGain:UI.capture?.mon?.gain.value??null,punch:!!UI.capture?.punch}),state:()=>({recording:!!UI.capture?.started,starting:!!UI.capture&&!UI.capture.started,opening:UI.opening,playing:!!UI.play,busy:UI.busy,start:UI.start,span:UI.span,position:current(),activeTrack:W().activeTrack}),locked:()=>!!(UI.capture||UI.opening||UI.busy||window.QualityStudio?.locked()),openProject,snapshot:()=>S.song?C.clone(S.song):null};
 // Capture before the legacy hotkeys. Their listeners also explicitly skip this screen.
 document.addEventListener('keydown',e=>{if(!UI.shown||modal.open||document.querySelector('dialog[open]')||document.querySelector('.stmodal:not([hidden]),.modal:not([hidden]),#pvsChoice:not([hidden])'))return;const typing=e.target.isContentEditable||/INPUT|SELECT|TEXTAREA/.test(e.target.tagName);if(typing)return;const k=e.key.toLowerCase();if((e.ctrlKey||e.metaKey)&&['s','z','y'].includes(k)){e.preventDefault();e.stopImmediatePropagation();if(k==='s')save();else history(k==='y'||e.shiftKey?1:-1);return;}if(e.ctrlKey||e.metaKey||e.altKey||e.repeat)return;if(k==='escape'&&window.WorkWindows?.state().open)return;if(k==='n'&&!UI.capture&&!UI.opening){e.preventDefault();e.stopImmediatePropagation();cleanupHere();return;}if(k==='r'||k===' '||k==='home'||k==='c'||k==='l'||k==='escape'){if(k==='escape'&&!UI.capture&&!UI.opening&&!UI.play&&!pendingPlay)return;e.preventDefault();e.stopImmediatePropagation();if(k==='r')record();else if(k===' '){UI.capture||UI.opening?stopAll():togglePlay();}else if(k==='c')toggleClick();else if(k==='l')toggleLoop();else if(k==='escape'){if(UI.capture)stopRecording('',{cancel:true});else if(UI.opening)stopRecording();else{stopPlay();render();}}else $('sgHome').click();}},true);
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&(UI.capture||UI.opening))stopRecording('Recording stopped because the app went into the background.');});

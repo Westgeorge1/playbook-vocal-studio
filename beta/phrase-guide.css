@@ -20,3 +20,5 @@
 #pgTools,#pgPlayers{display:grid;gap:8px}
 #pgMessage{color:#f5d69b}
 @media(max-width:600px){#phraseGuide{width:calc(100vw - 8px);max-height:96dvh}#phraseGuide .pg-body{padding:10px 12px 16px}#phraseGuide button,#phraseGuide select,#phraseGuide input:not([type=checkbox]){min-height:44px}}
+
+#phraseGuide .pg-question{font-weight:700}#phraseGuide .pg-scope{border-left:3px solid #8bd1b4;padding:.4em .7em;background:#19313a}

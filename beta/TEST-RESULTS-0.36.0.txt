@@ -1,0 +1,29 @@
+Playbook Vocal Studio 0.36.0 beta
+All 1015 checks across 24 Chromium/Playwright suites passed.
+
+cleaning             31 checks passed
+cleanup              18 checks passed
+coach                45 checks passed
+delete               61 checks passed
+editors              74 checks passed
+guide-undo           12 checks passed
+laptop               34 checks passed
+layout               61 checks passed
+navigation           134 checks passed
+phrase-guide         35 checks passed
+playback             4 checks passed
+recording            38 checks passed
+regressions          21 checks passed
+restore              56 checks passed
+storage              10 checks passed
+timeline-move        41 checks passed
+transport            51 checks passed
+tuning               44 checks passed
+tuning-plus          32 checks passed
+upgrade              13 checks passed
+ux                   66 checks passed
+windows              48 checks passed
+workflow             45 checks passed
+workspace-editor     41 checks passed
+
+New coverage uses synthetic microphone audio, 390x844 and 1280x600 layouts, real WAV downloads and editable project ZIP reopening in a fresh browser. It verifies immediate replay, retaking the identical recording range, original take preservation, interrupted alternatives, temporary microphone checks, Guide routing, undo guards for all three edit histories, and explicit backing inclusion. Existing approved PCM reference comparisons and regression suites also passed. Physical microphone, Bluetooth and moderated testing with singers remain device and usability checks.

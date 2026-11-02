@@ -549,10 +549,10 @@ html.empty-editor [inert]{opacity:.58}
   <p class="foot">Everything runs on your device; your audio is never uploaded.</p>
 </div>
 
-<script src="project-storage.js?v=0.35.1"></script>
-<script src="note-editor-safety.js?v=0.35.1"></script>
-<script src="natural-tuning.js?v=0.35.1"></script>
-<script src="chord-core.js?v=0.35.1"></script>
+<script src="project-storage.js?v=0.36.0"></script>
+<script src="note-editor-safety.js?v=0.36.0"></script>
+<script src="natural-tuning.js?v=0.36.0"></script>
+<script src="chord-core.js?v=0.36.0"></script>
 <script>
 (() => {
 "use strict";
@@ -3031,6 +3031,8 @@ window.PlaybookNoteEditor={
   const x=inside.find(x=>autoReview(S.notes[x.i],x.i)||corrOf(S.notes[x.i])>=50)||inside[0];
   if(x)selectOnly(x.i);S.playhead=x?x.s.oa:a;S.view.t0=Math.max(0,a-.25);refreshAll();
  },
+ undoMarker(){return Hist.undo.at(-1);},
+ undoIfCurrent(marker){if(!marker||Hist.undo.at(-1)!==marker||S.busy)return false;undo();return true;},
  approvedPreset(kind,preview=false){return !!applyVocalPreset(kind,{quiet:preview,noHist:preview});},
  reviewNext(){const i=S.notes.findIndex((n,i)=>autoReview(n,i)&&i>S.sel),j=i>=0?i:S.notes.findIndex(autoReview);if(j<0)return;selectOnly(j);S.playhead=span(S.notes[j]).oa;S.view.t0=Math.max(0,S.playhead-.3);changed();},
  state:bridgeState,
@@ -3188,6 +3190,6 @@ try { tuningPlusUI(); } catch (e) { console.warn("Tuning additions could not sta
 })();
 })();
 </script>
-<script src="note-editor-ux.js?v=0.35.1"></script>
+<script src="note-editor-ux.js?v=0.36.0"></script>
 
 </html>

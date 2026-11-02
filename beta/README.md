@@ -1,6 +1,8 @@
-# Playbook Vocal Studio 0.35.1 beta
+# Playbook Vocal Studio 0.36.0 beta
 
-[Open the 0.35.1 beta](https://westgeorge1.github.io/playbook-vocal-studio/beta/) · [Open the 0.32.3 main studio](https://westgeorge1.github.io/playbook-vocal-studio/)
+[Open the 0.36.0 beta](https://westgeorge1.github.io/playbook-vocal-studio/beta/) · [Open the 0.32.3 main studio](https://westgeorge1.github.io/playbook-vocal-studio/)
+
+0.36.0 adds immediate take replay and retakes, concern-based Smart Guide review with scoped Undo, and explicit export and backup choices. [Read the workflow changes](CHANGES-0.36.0.md).
 
 0.35.1 fixes microphone cancellation, Play startup, and interrupted recording and playback on the Song & vocals timeline. [Read the transport review](CHANGES-0.35.1.md).
 

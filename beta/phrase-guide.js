@@ -7,8 +7,9 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const clock=t=>Math.floor(t/60)+':'+(t%60).toFixed(2).padStart(5,'0');
 const dialog=document.createElement('dialog');dialog.id='phraseGuide';dialog.setAttribute('aria-labelledby','pgTitle');
 document.body.append(dialog);
-const modes={take:'Compare takes',stage:'Find the cause',breath:'Reduce a breath',tune:'Check tuning',tone:'Adjust vocal tone',mix:'Balance the mix'};
+const modes={listen:'I want to hear this passage',breath:'My breath covers the next word',tune:'One word sounds off pitch',harmony:'The harmony hides my lead',mix:'A word gets lost in the mix',take:'I want to compare two takes',tone:'The vocal sounds harsh or dull',stage:'I want to find where the problem starts'};
 const advice={
+ listen:'Hear the selected passage with the current song mix, then choose what you want to check.', 
  take:'Listen to the same line with the riddim. Which take has the clearest ending, the right timing and the delivery you want?',
  stage:'Switch between the same passage at matched loudness. Where do you first hear the problem?',
  breath:'Hear what would be removed. If there is a consonant or a piece of the next word, shorten the selection or try less. Compare again with the song.',
@@ -17,7 +18,7 @@ const advice={
  mix:'Listen for the last word against the arrangement. Try a small lift on this phrase or a dip on a separate harmony lane. Only the selected time range changes.'
 };
 let project,trackId,cues=[],cue,mode,preview,serial=0,audioSerial=0,source=null,busy=false,returnTo;
-let committing=false,chainJob=null;
+let committing=false,chainJob=null,intent=null,lastChange=null,manualCue=false;
 const beatCache=new WeakMap();
 const cache=new WeakMap();
 function recording(w,c){
@@ -103,11 +104,30 @@ function stopAudio(){
  if(source){source.onended=null;try{source.stop();source.disconnect();}catch(_){}source=null;}
 }
 function invalidate(){serial++;stopAudio();chainJob?.cancel();chainJob=null;preview=null;busy=false;}
-function close(){if(committing)return;invalidate();if(dialog.open)dialog.close();project=null;cue=null;cues=[];returnTo?.focus?.({preventScroll:true});}
+function close(){if(committing)return;lastChange=null;invalidate();if(dialog.open)dialog.close();project=null;cue=null;cues=[];returnTo?.focus?.({preventScroll:true});}
 dialog.addEventListener('cancel',e=>{e.preventDefault();close();});
 function say(text){if($('pgMessage'))$('pgMessage').textContent=text;}
 function available(){if(!project||S.song!==project)throw Error('The song changed. Reopen the guide.');if(sessionLocked()||SongStudio.locked())throw Error('Wait for recording or processing to finish.');}
-function choose(c){if(committing)return;invalidate();cue=c;mode=c?.kind==='breath'?'breath':c?.label==='Review note'?'tune':['Check quiet phrase','Check vocal balance'].includes(c?.label)?'mix':'take';render();}
+function choose(c){
+ if(committing)return;invalidate();cue=c;
+ const suggested=!c?'listen':c.kind==='breath'?'breath':c.label==='Review note'?'tune':
+  ['Check quiet phrase','Check vocal balance'].includes(c.label)?'mix':
+  recording(project,c).region.takes.length>1?'take':'listen';
+ mode=intent==='harmony'?'mix':intent||suggested;render();
+}
+function overlap(c){
+ return project.tracks.find(t=>t.id!==trackId&&!t.mute&&(!project.tracks.some(x=>x.solo)||t.solo)&&t.regions.some(r=>r.selected&&r.start<c.b&&r.end>c.a));
+}
+function setConcern(value){
+ const custom=$('pgA').value!==cue.a.toFixed(3)||$('pgB').value!==cue.b.toFixed(3);
+ const match=c=>value==='breath'?c.kind==='breath':value==='tune'?c.label==='Review note':
+  value==='harmony'?!!overlap(c):value==='take'?recording(project,c).region.takes.length>1:false;
+ intent=value;mode=value==='harmony'?'mix':value;
+ const candidates=cues.filter(match).sort((x,y)=>Number(y.region===cue.region)-Number(x.region===cue.region)||Math.abs(x.a-cue.a)-Math.abs(y.a-cue.a));
+ const next=!custom&&!manualCue&&cue.kind!=='selection'&&!match(cue)&&candidates[0];
+ if(next){choose(next);return;}
+ invalidate();tools();say('');
+}
 function reload(key){
  const t=C.track(project,trackId);cues=t?scan(project,t):[];
  const c=cues.find(x=>x.key===key&&x.region===cue?.region)||cues.find(x=>x.kind==='selection'&&!decision(x))||
@@ -117,7 +137,7 @@ function reload(key){
 function open(){
  if(SongStudio.locked()||sessionLocked()){SongStudio.notify('Wait for recording or processing to finish, then open Guide this vocal.');return;}
  if(dialog.open)return;
- invalidate();project=S.song;returnTo=document.activeElement;SongStudio.stopPlay();stopPlayback();NoteTuner.stopAudition();
+ invalidate();intent=null;manualCue=false;project=S.song;returnTo=document.activeElement;SongStudio.stopPlay();stopPlayback();NoteTuner.stopAudition();
  trackId=(RC.step==='polish'&&SongPolish.state().binding?.id)||project?.activeTrack;
  dialog.showModal();reload();
 }
@@ -129,35 +149,33 @@ function render(){
  const body=$('pgBody');
  if(!project){body.textContent='Record or import a vocal on Song & vocals, then open the guide.';return;}
  body.innerHTML='<label>Vocal track<select id="pgTrack">'+selectOptions(project.tracks.map(t=>[t.id,t.name]),trackId)+'</select></label>';
- $('pgTrack').onchange=()=>{trackId=$('pgTrack').value;reload();};
+ $('pgTrack').onchange=()=>{trackId=$('pgTrack').value;intent=null;manualCue=false;reload();};
  if(!cue){body.insertAdjacentHTML('beforeend','<p>Record or import a take on this vocal track to start a phrase review.</p>');return;}
  const {take,region}=recording(project,cue),review=decision(cue);
  const section=project.sections.find(s=>s.start<=cue.a&&s.end>cue.a);
  const reviewed=cues.filter(c=>decision(c)).length;
- body.insertAdjacentHTML('beforeend','<label>Passage<select id="pgCue">'+selectOptions(cues.map((c,i)=>[String(i),clock(c.a)+' · '+c.label+(decision(c)?' ✓':'')]),String(cues.indexOf(cue)))+'</select></label>'+
+ body.insertAdjacentHTML('beforeend','<label class="pg-question">What would you like to check?<select id="pgMode">'+selectOptions(Object.entries(modes),intent||mode)+'</select></label><label>Passage<select id="pgCue">'+selectOptions(cues.map((c,i)=>[String(i),clock(c.a)+' · '+c.label+(decision(c)?' ✓':'')]),String(cues.indexOf(cue)))+'</select></label>'+
  '<p class="pg-location">'+esc([section?.name,region.name,take.name].filter(Boolean).join(' · '))+'</p>'+
  '<div class="pg-focus"><strong>'+esc(cue.label)+'</strong><span>'+esc(cue.reason)+'</span></div>'+
  '<div class="pg-range"><label>Start (s)<input id="pgA" type="number" step=".01" value="'+cue.a.toFixed(3)+'"></label><label>End (s)<input id="pgB" type="number" step=".01" value="'+cue.b.toFixed(3)+'"></label><label class="pg-loop"><input type="checkbox" id="pgLoop" checked> Loop</label></div>'+
- '<label>What to review<select id="pgMode">'+selectOptions(Object.entries(modes),mode)+'</select></label>'+
- '<p class="pg-listen" id="pgAdvice">'+esc(advice[mode])+'</p><div id="pgTools"></div><p id="pgMessage" role="status"></p>'+
+ '<p class="pg-note" id="pgConcernNote" hidden></p><p class="pg-listen" id="pgAdvice">'+esc(advice[mode])+'</p><div id="pgTools"></div><p id="pgMessage" role="status"></p>'+
  '<div class="pg-actions"><button id="pgLeave">Leave it</button><button id="pgNext">Next unreviewed</button><button id="pgStop">■ Stop</button><button id="pgUndo" title="Undo the last song edit (take choice, cleanup, phrase volume or review decision)">Undo song edit</button></div>'+
  '<p id="pgProgress">'+reviewed+' of '+cues.length+' passages reviewed on this track.'+(review?' This passage: '+esc(review.label)+'.':'')+'</p>'+
  '<details id="pgHistory"><summary>Saved decisions for this take ('+decisions(take).length+')</summary><ol>'+decisions(take).map(d=>'<li>'+clock(C.origin(take)+d.start)+'–'+clock(C.origin(take)+d.end)+' · '+esc(d.label)+'</li>').join('')+'</ol></details>');
- $('pgCue').onchange=()=>choose(cues[+$('pgCue').value]);
- $('pgMode').onchange=()=>{mode=$('pgMode').value;invalidate();tools();say('');};
+ $('pgCue').onchange=()=>{manualCue=true;choose(cues[+$('pgCue').value]);};
+ $('pgMode').onchange=()=>setConcern($('pgMode').value);
  for(const id of ['pgA','pgB'])$(id).oninput=()=>{invalidate();tools();say('Range changed. Prepare the comparison again.');};
  $('pgLoop').onchange=()=>{if(source)source.loop=$('pgLoop').checked;};
  $('pgStop').onclick=stopAudio;
- $('pgUndo').disabled=!SongStudio.undoCount();
- $('pgUndo').onclick=()=>run(()=>{
-  available();if(committing)return;const key=cue.key;invalidate();
-  SongStudio.history(-1);project=S.song;if(!C.track(project,trackId))trackId=project.activeTrack;
-  reload(key);say('Song edit undone. Tuning presets have their own Undo in the note editor.');
- });
+ const undo=$('pgUndo'),receipt=lastChange;
+ undo.textContent=receipt?.song===project?receipt.caption:'Undo guide change';
+ undo.title='Reverse the latest guide decision when it is still the most recent edit.';
+ undo.disabled=!canReverse(receipt);
+ undo.onclick=()=>run(()=>reverse(receipt));
  $('pgLeave').onclick=()=>run(()=>leave());
  $('pgNext').onclick=()=>{
   const i=cues.indexOf(cue),next=[...cues.slice(i+1),...cues.slice(0,i)].find(c=>!decision(c));
-  if(next)choose(next);else say('No other unreviewed passages on this track. Listen to the whole song and open Finish & check when ready.');
+  if(next){manualCue=true;choose(next);}else say('No other unreviewed passages on this track. Listen to the whole song and open Finish & check when ready.');
  };
  tools();
 }
@@ -172,7 +190,10 @@ function tools(){
  $('pgAdvice').textContent=advice[mode];
  const el=$('pgTools');if(!el)return;
  const {region,track,take}=recording(project,cue);
- if(mode==='take'&&region.takes.length<2){el.innerHTML='<p>There is one take here. Listen to its timing and delivery with the song, or record another attempt to compare.</p><button id="pgSingle">▶ Hear phrase</button>'; $('pgSingle').onclick=()=>run(async()=>{const {a,b}=range();await hear(await mix(project,a,b,{regionId:region.id,takeId:take.id}),1);});return;}
+ const note=$('pgConcernNote');
+ note.hidden=!(intent==='breath'&&cue.kind!=='breath'&&!cues.some(c=>c.kind==='breath'&&c.take===cue.take&&c.a<cue.b&&c.b>cue.a));
+ if(!note.hidden)note.textContent='No breath was detected in this passage. Listen and set the start and end around the breath you hear.';
+ if(mode==='listen'||(mode==='take'&&region.takes.length<2)){el.innerHTML='<p>'+(mode==='listen'?'Listen for the words and delivery over the backing.':'There is one take here. Record another take of the same line to compare performances.')+'</p><button id="pgSingle">▶ Hear phrase</button>'; $('pgSingle').onclick=()=>run(async()=>{const {a,b}=range();const override=mode==='listen'&&region.selected===take.id?null:{regionId:region.id,takeId:take.id};await hear(await mix(project,a,b,override),1);});return;}
  if((['stage','tune','tone'].includes(mode))&&region.selected!==take.id){
   el.innerHTML='<p>Choose this take in Song &amp; vocals before comparing its processed stages.</p>';return;
  }
@@ -182,7 +203,7 @@ function tools(){
    if(!ok||S.song!==song)return;
    for(let i=0;sessionLocked()&&!NoteTuner.failed()&&!NoiseCleaner.failed()&&i<600;i++)await new Promise(r=>setTimeout(r,200));
    if(sessionLocked()||S.song!==song){SongStudio.notify('POLISH is still processing. Open Guide this vocal again when ready.');return;}
-   open();trackId=id;reload(key);mode=action;$('pgMode').value=action;tools();
+   open();trackId=id;intent=action;reload(key);mode=action;$('pgMode').value=action;tools();
   });return;
  }
  let config='';
@@ -192,18 +213,21 @@ function tools(){
   config='<label>What do you hear?<select id="pgTone">'+selectOptions([['harsh','Harsh edge · soften HIGH-MID'],['dull','Words sound dull · lift HIGH-MID'],['ess','Sharp S or T · increase de-essing']])+'</select></label>';
  }
  if(mode==='mix'){
-  const harmonies=project.tracks.filter(t=>t.id!==trackId&&t.regions.some(r=>r.selected));
-  config='<label>Preview one change<select id="pgBalance">'+selectOptions([['lead','Lift this vocal phrase'],...harmonies.map(t=>[t.id,'Lower '+t.name+' during this phrase'])])+'</select></label>';
+  const harmonies=project.tracks.filter(t=>t.id!==trackId&&t.regions.some(r=>r.selected&&r.start<cue.b&&r.end>cue.a));
+  config='<label>Preview one change<select id="pgBalance">'+selectOptions([['lead','Lift this vocal phrase'],...harmonies.map(t=>[t.id,'Lower '+t.name+' during this phrase'])],intent==='harmony'?overlap(cue)?.id:'lead')+'</select></label>';
+  if(intent==='harmony'&&!overlap(cue))config='<p>No audible overlapping vocal here. Choose another passage, or compare a small lead lift.</p>'+config;
  }
  if(mode==='tune'&&!NoteTuner.enabled()){el.innerHTML='<p>This vocal uses the original tuner. Switch to the note editor in TUNE to compare the approved presets.</p>';return;}
+ if(mode==='tune')config+='<button id="pgOpenNotes">Open these notes</button>';
  el.innerHTML=config+'<button class="pg-primary" id="pgPrepare">Prepare '+(mode==='stage'?'four stages':'comparison')+'</button><div id="pgPlayers"></div>';
  $('pgPrepare').onclick=()=>run(()=>prepare(false));
+ if($('pgOpenNotes'))$('pgOpenNotes').onclick=()=>run(()=>{const {a,b}=range();return openNotes(a,b);});
  for(const id of ['pgOther','pgBalance','pgTone'])if($(id))$(id).onchange=()=>{invalidate();$('pgPlayers').textContent='';say('Prepare the new comparison.');};
 }
 function leave(){
  if(committing)return;available();const {a,b}=range(),c=cue;
  if(!SongStudio.edit(w=>remember(recording(w,c).take,c,'Left as heard',a,b),'Phrase left as heard. Song Undo restores the decision.'))throw Error('Could not save the decision.');
- reload(c.key);say('Left as heard. Your audio is unchanged.');
+ rememberUndo('song');reload(c.key);say('Left as heard. Your audio is unchanged.');
 }
 async function hear(channels,gain=1){
  stopAudio();const token=audioSerial;const ctx=await resumeAudio();
@@ -336,6 +360,14 @@ async function prepare(less){
 function players(p){
  const box=$('pgPlayers');box.innerHTML='<div class="pg-audio"></div>';
  const row=box.firstElementChild;
+ const scope=document.createElement('p');scope.className='pg-scope';scope.id='pgScope';
+ const track=recording(project,cue).track;
+ scope.textContent=p.kind==='stage'?'Listening only. Comparing stages does not change the song.':
+  p.kind==='take'?'Choosing uses this take throughout its recording range. Both takes stay available.':
+  (p.kind==='tone'||p.kind==='tune')?'Preview '+clock(p.a)+'–'+clock(p.b)+'. Keeping changes the whole '+track.name+' vocal.':
+  p.kind==='breath'?'Keep a new take with only '+clock(p.a)+'–'+clock(p.b)+' reduced. The original is kept.':
+  'Keep '+p.label+' from '+clock(p.a)+' to '+clock(p.b)+'.';
+ box.prepend(scope);
  function button(label,fn,id){const b=document.createElement('button');b.textContent=label;if(id)b.id=id;b.onclick=()=>run(fn);row.append(b);return b;}
  p.clips.forEach((clip,i)=>button('▶ '+p.labels[i],()=>{if(!isCurrent(p.identity))throw Error('The song changed. Prepare a new comparison.');return hear(clip,p.gains[i]);},'pgHear'+i));
  if(p.removed)button('▶ Hear removed (solo)',()=>{if(!isCurrent(p.identity))throw Error('Prepare a fresh comparison.');return hear(p.removed);},'pgRemoved');
@@ -361,7 +393,7 @@ function players(p){
  }
  if(p.kind==='tune')button('Open notes in this phrase',()=>openNotes(p.a,p.b),'pgNotes');
  if(['breath','tune','tone','mix'].includes(p.kind)&&!p.less)button('Try less',()=>prepare(true),'pgLess');
- button(p.kind==='tune'?'Keep preset on whole vocal':p.kind==='tone'?'Keep tone on whole vocal':p.kind==='take'?'Choose challenger':'Keep change',()=>keep(p),'pgKeep');
+ button(p.kind==='tune'?'Keep preset on whole vocal':p.kind==='tone'?'Keep tone on whole vocal':p.kind==='take'?'Use alternate take in song':'Keep phrase change',()=>keep(p),'pgKeep');
 }
 async function openNotes(a,b){
  close();$('guideSheet').hidden=true;showPage('tune');WorkWindows.open('notes');
@@ -372,14 +404,14 @@ function route(stage){
   close();$('guideSheet').hidden=true;showPage('clean');PvsCoach.open();return;
  }
  if(stage==='raw'||stage==='clean'||stage==='tune'){
-  mode=stage==='raw'?'take':stage==='clean'?'breath':'tune';invalidate();$('pgMode').value=mode;$('pgAdvice').textContent=advice[mode];tools();say(stage==='clean'?'For a breath, review only its range. For noise across the track, use POLISH → CLEAN.':'Listen to this phrase before choosing a change.');return;
+  mode=stage==='raw'?'take':stage==='clean'?'breath':'tune';intent=mode;invalidate();$('pgMode').value=mode;$('pgAdvice').textContent=advice[mode];tools();say(stage==='clean'?'For a breath, review only its range. For noise across the track, use POLISH → CLEAN.':'Listen to this phrase before choosing a change.');return;
  }
- mode='tone';invalidate();$('pgMode').value=mode;tools();say('Preview a small change to the chain on this passage.');
+ mode='tone';intent=mode;invalidate();$('pgMode').value=mode;tools();say('Preview a small change to the chain on this passage.');
 }
 async function keep(p){
  if(committing)return;
  available();if(busy||preview!==p||!isCurrent(p.identity))throw Error('Prepare the comparison again before keeping it.');
- const c=cue;stopAudio();committing=true;
+ const c=cue;let nativeUndo=null;stopAudio();committing=true;
  const controls=[...dialog.querySelectorAll('button,input,select')].map(el=>[el,el.disabled]);
  controls.forEach(([el])=>el.disabled=true);
  try{
@@ -389,6 +421,7 @@ async function keep(p){
   if(p.kind==='tune'){
    const e=await NoteTuner.editor();if(preview!==p||!isCurrent(p.identity))throw Error('Prepare the tuning comparison again.');
    if(!e.approvedPreset(p.preset))return;
+   const marker=e.undoMarker();nativeUndo={valid:()=>e.undoMarker()===marker&&!!marker,apply:()=>e.undoIfCurrent(marker)};
   }else{
    if(S.P[p.param]!==p.prior)throw Error('The chain changed. Prepare the comparison again.');
    chainEdited=true;undoable([['set',p.param,p.value]],0);
@@ -403,9 +436,39 @@ async function keep(p){
   if(id!==take.id){const next=region.takes.find(x=>x.id===id);if(p.kind==='breath')next.coachDecisions=decisions(take).slice();else remember(next,c,p.label,p.a,p.b);}
  },p.kind==='tune'?'Tuning kept. Undo the preset in the note editor.':p.kind==='tone'?'Tone kept. Use POLISH Undo to restore the chain.':'Phrase change kept. Song Undo restores the previous choice.');
  if(!ok)throw Error('The change could not be saved. Check song storage or wait for processing.');
+ if(p.kind==='tone'){
+  const generation=engineGeneration;
+  nativeUndo={valid:()=>generation===engineGeneration&&S.P[p.param]===p.value&&!$('undoBtn').disabled,apply:()=>{$('undoBtn').click();return true;},verify:()=>S.P[p.param]===p.prior};
+ }
+ rememberUndo(p.kind==='tune'?'tune':p.kind==='tone'?'tone':'song',nativeUndo);
  committing=false;
- if(dialog.open){reload(c.key);say(p.kind==='tune'?'Preset kept for this vocal. Note-editor Undo restores the previous tuning.':p.kind==='tone'?'Tone kept for this vocal. POLISH Undo restores the previous chain.':'Kept: '+p.label+'. Your decision is saved with the take.');}
+ if(dialog.open){reload(c.key);say(p.kind==='tune'?'Preset kept on the whole '+recording(project,c).track.name+' vocal. Note-editor Undo restores the previous tuning.':p.kind==='tone'?'Tone kept on the whole '+recording(project,c).track.name+' vocal. POLISH Undo restores the previous chain.':'Kept '+p.label+' for '+(p.kind==='take'?'the recording range':clock(p.a)+'–'+clock(p.b))+'. Song Undo restores the previous choice.');}
  }finally{committing=false;controls.forEach(([el,disabled])=>{if(el.isConnected)el.disabled=disabled;});}
+}
+function rememberUndo(kind,native=null){
+ lastChange={kind,native,song:project,revision:project.revision,track:trackId,marker:SongStudio.undoMarker(),
+  caption:kind==='tune'?'Undo whole-vocal tuning':kind==='tone'?'Undo whole-vocal tone':'Undo this song edit'};
+}
+function canReverse(r){
+ return !!r&&r.song===S.song&&r.song===project&&r.track===trackId&&r.revision===project.revision&&!!r.marker&&r.marker===SongStudio.undoMarker()&&
+  (!r.native||(bound(C.track(project,trackId))&&r.native.valid()));
+}
+async function reverse(r){
+ available();if(committing)return;
+ if(!canReverse(r)){render();say('A newer edit or a different vocal is active. Review Undo in the original editor.');return;}
+ const key=cue.key;invalidate();committing=true;
+ const controls=[...dialog.querySelectorAll('button,input,select')].map(el=>[el,el.disabled]);
+ controls.forEach(([el])=>el.disabled=true);say('Restoring the previous edit…');
+ try{
+  if(r.native){
+   if(!r.native.apply())throw Error('The editor history changed. Review Undo in the original editor.');
+   await new Promise(resolve=>setTimeout(resolve,100));
+   for(let i=0;sessionLocked()&&!NoteTuner.failed()&&!NoiseCleaner.failed()&&i<600;i++)await new Promise(resolve=>setTimeout(resolve,200));
+   if(sessionLocked()||NoteTuner.failed()||NoiseCleaner.failed()||(r.native.verify&&!r.native.verify()))throw Error('Check the result in the original editor. Its Undo could not be confirmed.');
+  }
+  if(r.marker!==SongStudio.undoMarker()||S.song!==r.song||r.revision!==S.song.revision)throw Error('The song changed. Review the saved decision before undoing another edit.');
+  SongStudio.history(-1);project=S.song;lastChange=null;committing=false;reload(key);say('Undone. The previous '+(r.kind==='tune'?'tuning':r.kind==='tone'?'tone':'song choice')+' and review decision are restored.');
+ }finally{committing=false;controls.forEach(([el,disabled])=>{if(el.isConnected)el.disabled=disabled;});if($('pgUndo'))$('pgUndo').disabled=!canReverse(lastChange);}
 }
 function nextStep(){
  const w=S.song,t=w&&C.track(w,RC.step==='polish'?(SongPolish.state().binding?.id||w.activeTrack):w.activeTrack);

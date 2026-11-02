@@ -1,4 +1,6 @@
-PLAYBOOK VOCAL STUDIO 0.35.1 BETA
+PLAYBOOK VOCAL STUDIO 0.36.0 BETA
+
+After recording, use Hear this take to replay the line with the current mix. Record another take records the same range. Use in song chooses a complete alternate. For breath, pitch, harmony or take help, open Guide → Guide this vocal. Finish & check labels the backing choice beside the WAV download and also offers an editable project backup.
 
 Record: tap Record, sing, then tap Stop & keep. If a microphone prompt is still open, Cancel setup or Stop frees the timeline immediately. A late microphone response from a cancelled attempt does not start recording.
 
