@@ -113,20 +113,32 @@ suite('coach-0.34.2',19,async({page,check})=>{
  check('Touch: Explain can be turned off from the reopened Guide',!(await q.locator('#coachExplain').isChecked()));
  await q.locator('#guideClose').tap();
  await q.evaluate(()=>{S.song.cursor=1;SongStudio.render();});
+ await q.evaluate(()=>{
+  window.__touchDiagnostic=[];
+  const state=(kind,e)=>{const c=document.querySelector('#sgTimeline .sg-lane.active canvas.sg-wave');const r=c?.getBoundingClientRect();const item={kind,at:performance.now(),eventTime:e?.timeStamp,type:e?.pointerType,id:e?.pointerId,x:e?.clientX,y:e?.clientY,target:e?.target?.id||e?.target?.tagName,scrollY,range:S.song.range||null,cleanup:Studio.state().open,hand:sgHand.checked,move:sgMove.checked,rect:r?{x:r.x,y:r.y,width:r.width,height:r.height}:null};if(__touchDiagnostic.length<240)__touchDiagnostic.push(item);};
+  for(const type of ['pointerdown','pointermove','pointerup','pointercancel','lostpointercapture'])document.addEventListener(type,e=>{state(type,e);queueMicrotask(()=>state(type+':after',e));},true);
+  let n=0;const timer=setInterval(()=>{state('sample');if(++n>=160)clearInterval(timer);},50);
+ });
  const mobileLane=q.locator('#sgTimeline .sg-lane.active canvas.sg-wave');
  await mobileLane.scrollIntoViewIfNeeded();
  const rect=await mobileLane.boundingBox(),mobileView=await q.evaluate(()=>SongStudio.view());
  const pressPoint={x:rect.x+rect.width*(8-mobileView.start)/mobileView.span,y:rect.y+rect.height/2};
  const touch=await q.context().newCDPSession(q);
+ const touchCalls=[];const originalTouchSend=touch.send.bind(touch);touch.send=async(method,params)=>{const call={method,type:params?.type,start:Date.now()};touchCalls.push(call);try{return await originalTouchSend(method,params);}finally{call.end=Date.now();}};
+
  try{
   await touch.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[pressPoint]});
   await q.waitForTimeout(850);
   await touch.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
   const held=await q.evaluate(()=>Studio.state());
   check('Touch: holding a recording opens cleanup at that spot',held.open&&Math.abs((held.a+held.b)/2-8)<.25);
-  await q.locator('#veClose').tap();await q.waitForTimeout(150);
+  await q.locator('#veClose').tap();await q.waitForFunction(()=>!Studio.state().open&&Math.abs(S.song.cursor-1)<.001,null,{timeout:30000});
   check('Touch: closing cleanup restores the previous playhead',await q.evaluate(()=>Math.abs(S.song.cursor-1)<.001));
   await mobileLane.scrollIntoViewIfNeeded();
+  // Closing cleanup can move the timeline. Wait for its visible rectangle to
+  // settle across animation frames before choosing a native touch path.
+  await q.waitForFunction(()=>{const c=document.querySelector('#sgTimeline .sg-lane.active canvas.sg-wave'),r=c?.getBoundingClientRect();if(!r)return false;
+   const key=[r.x,r.y,r.width,r.height].join(',');const previous=window.__touchLayout;window.__touchLayout={key,stable:previous?.key===key?previous.stable+1:0};return __touchLayout.stable>=2&&!Studio.state().open;},null,{polling:'raf',timeout:30000});
   // A tall, user-resized lane can extend beyond the viewport. Drag through
   // visible waveform pixels, just as a finger must, including after a sheet closes.
   const {start,end,dy}=await mobileLane.evaluate(c=>{const r=c.getBoundingClientRect(),start=r.x+r.width*.25,end=r.x+r.width*.45;
@@ -137,10 +149,16 @@ suite('coach-0.34.2',19,async({page,check})=>{
   console.log('Verified touch path',start,end,dy);
   await touch.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:start,y:dy}]});
   await touch.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:end,y:dy}]});
-  await q.waitForTimeout(750);
+  // Keep the drag down beyond the app's hold threshold, while waiting for the
+  // selected-range state itself. The final assertion remains unchanged.
+  await q.waitForFunction(()=>{const down=[...(__touchDiagnostic||[])].reverse().find(e=>e.kind==='pointerdown');return down&&performance.now()-down.at>=750&&!Studio.state().open&&S.song.range?.[1]>S.song.range?.[0];},null,{timeout:30000});
   await touch.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
   check('Touch: dragging selects a range without opening cleanup',await q.evaluate(()=>!Studio.state().open&&S.song.range?.[1]>S.song.range?.[0]));
- }finally{await touch.detach();}
+ }finally{
+   const observed=await q.evaluate(()=>({cleanup:Studio.state(),range:S.song.range||null,events:window.__touchDiagnostic||[]}));
+   if(process.env.PVS_TEST_OUT)require('node:fs').writeFileSync(require('node:path').join(process.env.PVS_TEST_OUT,'touch-diagnostic.json'),JSON.stringify({calls:touchCalls,observed},null,2));
+   await touch.detach();
+ }
 
 
  // The selected take is silent. The alternative contains a stereo word at 4–5 s in song time.

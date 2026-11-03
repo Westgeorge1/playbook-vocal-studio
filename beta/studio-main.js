@@ -146,8 +146,8 @@ const songSeconds = () => S.original ? S.original.length / S.rate : 0;
 
 // ---------------------------------------------------------------- engine (worker)
 // 0.17.2: the app and the audio engine have separate version numbers
-var APP_VERSION="0.36.8",ENGINE_VERSION="0.12.1";
-const worker = new Worker("worker.js?v=0.36.8");
+var APP_VERSION="0.36.9",ENGINE_VERSION="0.12.1";
+const worker = new Worker("worker.js?v=0.36.9");
 let reqId = 0, engineFailure = null; const pending = {};
 var ENGINE_WAIT_MS = 120000;
 let engineSeconds=0;
