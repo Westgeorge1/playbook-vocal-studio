@@ -38,12 +38,19 @@ The full runner defaults to serial execution. On a host with sufficient memory, 
 
 For the 0.36.4 long-lane acceptance case, use the same Chromium and Playwright environment as the standard suites. Set PVS_TEST_OUT to an empty existing results directory and run `node tests-0.36.4/long-polish.cjs` after the standard suites finish. It needs several minutes and enough memory for the complete song and its full-length vocal effects. The output includes PCM and downloaded WAV fingerprints, timings, and two screenshots. Set PVS_KEEP_EXPORT=1 to also keep the synthetic mix WAV in the results directory.
 
-## 0.36.5 repair qualification
+## 0.36.6 combined candidate qualification
 
-The current runner has 30 suites, including tests-audit/storage-faults, transport-layout and transport-permission. Recording and phone wrappers require version 0.36.5. Run the complete suite three consecutive times against the same frozen ZIP; retain every invocation, summary and failure. Do not count reruns as replacing earlier failures.
+The current runner has 30 suites, including tests-audit/storage-faults, transport-layout and transport-permission. Recording and phone wrappers require version 0.36.6. Run the complete suite three consecutive times against the same frozen ZIP; retain every invocation, summary and failure. Do not count reruns as replacing earlier failures.
 
 For targeted driver-latency checks, PVS_REPLAY_OBSERVER_DELAY_MS=2200 delays replay observation and PVS_R_DRIVER_DELAY_MS=10000 delays the positive R-key driver. Browser-side observers still require actual output/capture, and the existing 30-second waits are unchanged. The separate permission regression uses a nine-second song and requires cancellation after natural end.
 
 Verify historical reference files against their pinned GitHub blobs. A similarly numbered owner archive may be a different variant; its version string alone is not enough.
 
 These automated checks and hashes do not certify musical quality. Human/professional listening and actual phone hardware acceptance remain outstanding until separately evidenced.
+
+
+The navigation assertion and its 60-second deadline are unchanged. Shared browser tests persist the original failure before optional bounded state capture (five seconds total, at most four open pages). Navigation also samples up to 180 metadata snapshots at 500 ms intervals and retains up to 80 network/worker events. These observations never retain PCM and do not retry an import. This improves diagnosis; it is not a claimed repair of the prior unexplained timeout.
+
+Before qualification, run `node tests-audit/failure-capture.cjs` with the same environment. Its child deliberately fails; the outer check succeeds only if the failed exit, original assertion and bounded state evidence are retained. This control is separate from the 30 product suites.
+
+Keep three full qualification runs consecutive, against one frozen archive, and preserve every failure. Stop before starting another full run if a run fails. Run the five-minute long-POLISH acceptance separately after standard qualification. A new package or code change starts a new candidate record; prior failures remain evidence.

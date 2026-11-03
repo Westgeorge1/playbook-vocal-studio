@@ -1,16 +1,14 @@
-# Playbook Vocal Studio 0.36.5 beta
+# Playbook Vocal Studio 0.36.6 beta candidate
 
-A repair build for saved-source recovery and recording controls. This beta does not certify release-quality sound.
+This candidate combines the saved-source protection, recording-toolbar stability fix and the cautious Smart Guide wording from the two different 0.36.5 packages. It is on hold pending full release qualification; it does not certify release-quality sound.
 
-[Open the beta studio](https://westgeorge1.github.io/playbook-vocal-studio/beta/) · [Source folder](https://github.com/Westgeorge1/playbook-vocal-studio/tree/main/beta)
+The audio algorithms, engine binaries, defaults and approved presets are unchanged. Missing-original recovery protects surviving saved recordings but cannot recreate lost bytes. Keep downloaded project backups.
 
-If a saved original is missing, recovery now pauses autosaving so a later session cannot overwrite the unresolved project or delete surviving sources. The recording toolbar defers its compact-layout update until an active press has finished, preventing a delayed scroll event from moving Record before the click completes.
+Extract this entire folder. On Windows run `py -m http.server 8000` inside it; otherwise use `python3 -m http.server 8000`. Open `http://localhost:8000/` and keep the terminal running. Use HTTPS for remote microphone access. Do not open index.html directly.
 
-The audio engine, cleaning/tuning algorithms, defaults and approved presets are unchanged from 0.36.4. These repairs cannot reconstruct recording bytes that were already lost. Keep downloaded project backups.
+[Release notes](CHANGES-0.36.6.md) · [Test setup](TESTING.md) · [GitHub repair PR](https://github.com/Westgeorge1/playbook-vocal-studio/pull/1)
 
-Extract this entire folder. On Windows, run `py -m http.server 8000` inside it; on other systems use `python3 -m http.server 8000`. Open `http://localhost:8000/` in a browser. Keep the terminal running. The online beta uses HTTPS for microphone access; opening index.html directly is not the supported workflow.
-
-See [release notes](CHANGES-0.36.5.md), [test setup](TESTING.md), and [audit regressions](tests-audit/README.md). The full runner has 30 suites and exits unsuccessfully if any suite fails. A companion validation report identifies the exact release ZIP and retains every attempted run; historical test files below describe their original versions.
+The runner contains 30 suites. The separate failure-capture control and long-POLISH acceptance are documented in TESTING.md. A companion validation report identifies the exact frozen candidate and its actual results. Historical reports apply only to their named builds.
 
 ## Previous release documentation
 

@@ -173,7 +173,7 @@ function outlook(){
  if(!polished())return null;const p=P(),m=M(),rows=[],r=(area,lvl,why)=>rows.push({area,lvl,why});
  // Recording: peaks of the processed input
  try{const ch=S.audio?.[0]||[S.main];let pk=0;for(const c of ch)for(let i=0;i<c.length;i+=7){const v=Math.abs(c[i]);if(v>pk)pk=v;}const d=dbf(pk);
-  r('Recording level',pk>=.999?2:d<-24?1:0,pk>=.999?'Clipped while recording: distortion stays. Re-record the loudest lines.':d<-24?'Recorded quietly (peaks '+d.toFixed(0)+' dBFS): noise rises when processed.':'Healthy recording level (peaks '+d.toFixed(0)+' dBFS).');}catch(_){}
+  r('Recording level',pk>=.999?1:d<-24?1:0,pk>=.999?'Peaks reach full scale. That can mean the recording clipped, or only that a compressed file (m4a, mp3) decodes slightly over the limit. Listen to the loudest lines: if you hear distortion, re-record them.':d<-24?'Recorded quietly (peaks '+d.toFixed(0)+' dBFS): noise rises when processed.':'Healthy recording level (peaks '+d.toFixed(0)+' dBFS).');}catch(_){}
  if(m?.gapValid)r('Background noise',m.gapContrast>=45?0:m.gapContrast>=30?1:2,'Background '+Math.round(m.gapContrast)+' dB below your voice'+(m.gapContrast>=45?'.':m.gapContrast>=30?': audible in quiet parts. Cleaning helps.':': clearly audible. Clean it; some may remain.'));
  const n=nc(),saf=n?.d.result?.safety;if(n?.s.on&&saf?.hasVoice)r('Cleaning safety',saf.voice<-1||saf.voiceRemoved>-15?2:saf.voiceRemoved>-22?1:0,saf.voice<-1||saf.voiceRemoved>-15?'Cleaning is touching your singing.':'Cleaning leaves your singing intact.');
  if(m)r('Even volume',m.wordSpread<=8?0:m.wordSpread<=14?1:2,'Loud vs quiet words: '+Math.round(m.wordSpread)+' dB.');
