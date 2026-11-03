@@ -43,14 +43,14 @@ const STEPS = {
   resetPreset: finishing => M._pv_reset_preset(finishing ? 1 : 0), resetSettings: () => M._pv_reset_settings(),
   notes: list => { put64(Float64Array.from(list.flat()), () => M._pv_notes_input(list.length)); if (!M._pv_notes_apply(list.length)) throw new Error('Saved note edits did not fit this recording.'); },
 };
-function snapshot(mask, extra) {
+function snapshot(mask, extra, onlyAudio) {
   const msg = { state: JSON.parse(text(M._pv_state())), guide: JSON.parse(text(M._pv_guide())), mask, audio: {} };
   const want = new Set(extra || []);
   if (mask & 1) { want.add(0); want.add(6); }
   if (mask & 2) { want.add(1); want.add(2); }
   if (mask & 8) { want.add(3); const fc = M._pv_frame_count(); msg.frames = floats(M._pv_frames(), fc); msg.after = floats(M._pv_after(), fc); }
   if (mask & 16) { want.add(4); msg.spectrum = [floats(M._pv_spectrum(0), 160), floats(M._pv_spectrum(1), 160)]; }
-  for (const w of want) msg.audio[w] = audio(w);
+  for (const w of want) if (!onlyAudio || onlyAudio.includes(w)) msg.audio[w] = audio(w);
   return msg;
 }
 function transfer(msg) { const t = []; for (const k in msg.audio) if (msg.audio[k]) for (const a of msg.audio[k]) t.push(a.buffer); return t; }
@@ -66,7 +66,7 @@ onmessage = async ({ data: m }) => {
       putInput(m);
       if(!m.keep && m.importKind!=null)M._pv_import_kind(m.importKind);
       const mask = check(M._pv_load(m.rate, m.keep === 2 ? 2 : m.keep ? 1 : 0, m.detectKey ? 1 : 0));
-      reply(snapshot(mask, [5, 100]));
+      reply(snapshot(mask, [5, 100], m.onlyAudio));
     } else if (m.type === 'take') {
       putInput(m);
       const index = check(M._pv_take_add(m.rate));
@@ -75,7 +75,7 @@ onmessage = async ({ data: m }) => {
     } else if (m.type === 'run') {
       for (const [name, ...args] of m.steps || []) STEPS[name](...args);
       const mask = m.update ? check(M._pv_update()) : 0;
-      reply(snapshot(mask, m.want));
+      reply(snapshot(mask, m.want, m.onlyAudio));
     } else if (m.type === 'preview') {
       const ok = check(M._pv_guide_preview());
       reply(snapshot(0, ok ? [7, 8] : []));

@@ -30,7 +30,7 @@ async function errorVisible(p){return p.evaluate(()=>{const d=document.getElemen
  browser=await chromium.launch({executablePath:process.env.PVS_CHROME,args:['--no-sandbox','--disable-dev-shm-usage']});
  for(const width of [390,980]){
   const {ctx,p}=await page(width),tag=width+'px';
-  check(tag+' version',await p.evaluate(()=>APP_VERSION==='0.36.3'));
+  check(tag+' version',await p.evaluate(expected=>APP_VERSION===expected,process.env.PVS_EXPECT_VERSION||'0.36.3'));
   const before=await p.evaluate(()=>JSON.stringify(SongStudio.snapshot()));
   await p.evaluate(()=>{NoteTuner.begin({v:1,mode:'note',editor:null});NoiseCleaner.mutate({mode:'studio'});});await p.waitForTimeout(650);
   check(tag+' empty tuner settings do not block recording',await p.evaluate(()=>!S.dirty&&!NoteTuner.pending()&&!sessionLocked()));
@@ -40,7 +40,7 @@ async function errorVisible(p){return p.evaluate(()=>{const d=document.getElemen
   check(tag+' blocked Record remains accessible',await p.locator('#sgRecord').getAttribute('aria-disabled')!=='true');
   check(tag+' blocked reason visible above toolbar',await errorVisible(p));
   check(tag+' dialog explains actual blocker',(await p.locator('#songDialog').innerText()).includes('Still processing'));
-  const details=JSON.parse(await p.locator('#songDialog textarea').inputValue());check(tag+' diagnostic identifies busy engine',details.engineBusy===true&&details.version==='0.36.3');
+  const details=JSON.parse(await p.locator('#songDialog textarea').inputValue());check(tag+' diagnostic identifies busy engine',details.engineBusy===true&&details.version===(process.env.PVS_EXPECT_VERSION||'0.36.3'));
   check(tag+' blocked Record never requests microphone',await p.evaluate(()=>micRequests===0));
   check(tag+' blocked Record keeps genuine lock',await p.evaluate(()=>S.busy&&sessionLocked()));
   if(out){fs.mkdirSync(out,{recursive:true});await p.screenshot({path:path.join(out,'record-blocked-'+width+'.png')});}

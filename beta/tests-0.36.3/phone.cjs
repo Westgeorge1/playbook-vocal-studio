@@ -30,7 +30,7 @@ async function run(width,url){
    throw Error('Waiting for '+fn+' '+JSON.stringify(state),{cause:err});
   }},tap=sel=>p.locator(sel).tap(),test=(name,ok)=>check(width+'px '+name,ok);
   await wait(()=>window.PvsCoach&&window.SongStudio&&!S.loading&&!sessionLocked());
-  test('current beta and persisted Explain mode loaded',await p.evaluate(()=>APP_VERSION==='0.36.3'&&coachExplain.checked));
+  test('current beta and persisted Explain mode loaded',await p.evaluate(expected=>APP_VERSION===expected&&coachExplain.checked,process.env.PVS_EXPECT_VERSION||'0.36.3'));
   await tap('#sgHelp');await p.locator('#songDialog[open]').waitFor();
   test('Help opens on the first touch with Explain on',await p.locator('#sgDialogTitle').innerText()==='How Song & Vocals works');
   await tap('#songDialog [data-action=ok]');test('dialog Close also operates on touch',!await p.locator('#songDialog').isVisible());

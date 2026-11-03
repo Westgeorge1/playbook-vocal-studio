@@ -6,7 +6,7 @@
 'use strict';
 const C=SongCore,$=id=>document.getElementById(id),copy=x=>structuredClone(x);
 const MAX_BYTES=C.ENGINE.bytes; // project-file sanity limit for ONE saved lane's POLISH audio
-let lastRefusal=null,binding=null,switching=false,lastError='',allowStep=false;
+let lastRefusal=null,binding=null,switching=false,lastError='',allowStep=false,openingName='',openingStage='',openingText='',openingAt=0;
 const bar=document.createElement('div');bar.id='trackPolishBar';bar.hidden=true;
 bar.innerHTML='<label>Polishing <select id="polishTrack" aria-label="Vocal track to polish"></select></label><button id="polishSong" title="Plays every lane with the backing and the song mixer">▶ Whole song</button><button id="polishExportSong" title="Every export: the song, the vocal mix, stems, or only this vocal">Export song</button><button id="polishReturn">← Song & vocals</button><button id="polishWave">Edit waveform ↓</button><button id="polishControls">Sound controls ↓</button><label><input type="checkbox" id="polishBypass"> Use dry vocal</label><span id="polishTrackStatus" role="status" aria-live="polite"></span><button id="polishReviewNotes" hidden></button><span id="polishReady" class="sg-ready" aria-live="polite"></span><span id="polishPreview" class="sg-preview-chip" aria-live="polite">Preview: this vocal</span><p><b>This vocal:</b> Clean, Tune, edits and effects change only this track; ▶ Play and Mix below play only this vocal with its fitted backing. <b>Whole song:</b> ▶ Whole song and Export song play or export all lanes with the song mixer.</p>';
 $('rcSteps').append(bar);
@@ -44,6 +44,9 @@ function detach(){binding=null;lastError='';}
 function releaseDeleted(){
  const w=W(),t=binding&&C.track(w,binding.id);
  if(!S.main||switching||S.songApplying||!w||(binding?t?.regions.length:w.tracks.some(t=>t.regions.length)))return;
+ clearLiveEditor();
+}
+function clearLiveEditor(){
  detach();endLoop();stopPlayback();NoteTuner.begin(null,false);clearTimeout(fitTimer);clearTimeout(sheetTimer);
  Object.assign(S,{name:'',st:null,guide:null,notes:[],audio:{},takes:[],takeChannels:[],main:null,original:null,cleaned:null,removed:null,tuned:null,final:null,comped:null,frames:null,after:null,ovRaw:null,ovClean:null,ovComp:null,ovTakes:{},specBefore:null,specAfter:null,prevCur:null,prevSug:null,custom:null,detail:null,fitBeat:null,fitInfo:null,selected:-1,loadedNotice:'',loadError:''});
  S.edit.sel=null;S.edit.src=null;S.edit.chosen=-1;S.edit.view={start:0,secs:0};
@@ -51,6 +54,18 @@ function releaseDeleted(){
 }
 function needsApply(){return !!(W()&&C.selectedCount(W())&&!bindingMatches(W(),T()));}
 function notify(text,error=false){SongStudio.notify(text,error);$('polishTrackStatus').textContent=text;if(error)setStatus(text,'warn');}
+function openingClock(){
+ if(!switching||!openingName||!openingStage)return;
+ const seconds=Math.floor((performance.now()-openingAt)/1000);
+ const text='Opening '+openingName+' in POLISH · '+openingStage+(seconds?' · '+seconds+' s elapsed':'');
+ if(text!==openingText){openingText=text;$('sgPolishProgress').textContent=text;}
+}
+function progress(stage){
+ if(!switching||!openingName)return;
+ openingStage=stage.startsWith('Cleaning with Voice focus')&&NoiseCleaner.active()?'Preparing the original vocal':stage.replace(/\.{3}$/,'');
+ openingClock();$('sgPolishProgress').hidden=false;$('sgSaveState').hidden=true;
+ notify(openingText);
+}
 // 0.23: which stretches of a vocal really changed since it was polished (compares the saved signature rows).
 function changedRanges(w,t,oldSig,oldPcm){
  // 0.24: compare the audio the vocal was polished from with the audio now chosen, sample by sample.
@@ -100,8 +115,9 @@ async function open(id=W()?.activeTrack){
   SongStudio.setTrackMono(t.id,true,t.name+': POLISH will use a mono version (your choice). The stereo original is kept.');pl=C.polishPlan(w,t);}
  if(!pl.ok){lastRefusal={id,ms:performance.now()-t0,reason:pl.reason};notify('Not opened: '+pl.reason+' The vocal you are editing is unchanged. Your recordings are kept.',true);return false;}
  SongStudio.stopPlay();endLoop();stopPlayback();capture();
- const sig=C.trackSignature(w,t),old=t.polish,valid=C.polishValid(w,t);
- if(bindingMatches(w,t)&&valid){setMode('final');allowStep=true;RC.go('polish');window.SongStudio?.syncKey?.();allowStep=false;render();return true;}
+ const sig=C.trackSignature(w,t),old=t.polish,valid=C.polishValid(w,t),laneKey=C.wantedKey(w,t);
+ const restoreLane=session=>restoreSession({...session,P:{...session.P,...laneKey},name:w.title+' — '+t.name});
+ if(bindingMatches(w,t)&&valid&&S.P.key===laneKey.key&&S.P.scale===laneKey.scale){setMode('final');allowStep=true;RC.go('polish');window.SongStudio?.syncKey?.();allowStep=false;render();return true;}
  let plan=null;const rebuildSaved=old?.recoveryMissing&&old.sourceSig===sig&&Array.isArray(old.session?.pcm)&&old.session.pcm.length===pl.inputChannels;const modeChange=old&&old.sourceSig===sig&&old.session?.pcm?.length!==pl.inputChannels&&!old.recoveryMissing;
  if(old&&!valid&&!modeChange&&!rebuildSaved){
   plan=planKeep(w,t,old);const c=(n,s)=>n+' '+s+(n===1?'':'s'),pl=plan;
@@ -110,16 +126,16 @@ async function open(id=W()?.activeTrack){
   if(answer.action!=='ok')return false;
  }
  const previous=binding?{...binding}:null,previousSession=snapshot();
- switching=true;S.songApplying=true;lastError='';render();notify('Opening '+t.name+' in POLISH…');
+ openingName=t.name;openingText='Opening '+t.name+' in POLISH…';openingAt=performance.now();switching=true;S.songApplying=true;lastError='';SongStudio.render();render();progress('Starting');
  try{
-  if(valid||rebuildSaved){await restoreSession({...old.session,name:w.title+' — '+t.name});}
+  if(valid||rebuildSaved){await restoreLane(old.session);}
   else{
    let pcm=C.renderTrack(w,t,{end:C.trackEnd(t)});
    if(pl.mono)pcm=[monoOf(pcm)]; // explicit, user-chosen conversion (track setting); originals untouched
-   if(modeChange){const takes=(old.session.takes||[]).map(ch=>pl.mono&&ch.length===2?[monoOf(ch)]:ch);await restoreSession({...old.session,name:w.title+' — '+t.name,rate:w.rate,pcm,takes});}
-   else if(old){await restoreSession({...old.session,name:w.title+' — '+t.name,rate:w.rate,pcm,takes:[],notes:[],edits:{breaths:plan?plan.breaths.keep:[],timing:plan?plan.timing.keep:[],comp:[]},guide:{...old.session.guide,locked:[],dismissed:{}}});
+   if(modeChange){const takes=(old.session.takes||[]).map(ch=>pl.mono&&ch.length===2?[monoOf(ch)]:ch);await restoreLane({...old.session,rate:w.rate,pcm,takes});}
+   else if(old){await restoreLane({...old.session,rate:w.rate,pcm,takes:[],notes:[],edits:{breaths:plan?plan.breaths.keep:[],timing:plan?plan.timing.keep:[],comp:[]},guide:{...old.session.guide,locked:[],dismissed:{}}});
    if(plan&&plan.notes.keep.length&&S.st?.notes){const keep=plan.notes.keep.map(a=>a.slice(0,13)),fresh=S.st.notes.map(a=>Array.from(a).slice(0,13)).filter(a=>!keep.some(k=>a[0]<k[1]&&a[1]>k[0])),merged=[...fresh,...keep].sort((a,b)=>a[0]-b[0]);try{const rr=await engine({type:'run',steps:[['notes',merged]],update:true});absorb(rr);}catch(e){notify('Your note edits outside the change could not be kept; notes were found again.',true);}}}
-   else {S.guidePrefs={enabled:true,concern:0,goal:0,bpm:S.guidePrefs.bpm||75,sync:false};S.mix={fit:true,over:1,room:.5};chainEdited=false;S.match=true;await openVocal(pcm,w.rate,w.title+' — '+t.name,false,0);}
+   else {S.guidePrefs={enabled:true,concern:0,goal:0,bpm:S.guidePrefs.bpm||75,sync:false};S.mix={fit:true,over:1,room:.5};chainEdited=false;S.match=true;await openVocal(pcm,w.rate,w.title+' — '+t.name,false,0,laneKey);}
   }
   if(S.rate!==w.rate)throw Error('The processor changed the sample rate. This track has not replaced the song audio.');
   acceptPolish(w,t,{v:1,sourceSig:sig,rate:w.rate,session:snapshot(),channels:S.final});if(w.activeTrack!==id){w.activeTrack=id;w.selectedRegion=null;w.range=null;}binding={id,sourceSig:sig,inputChannels:pl.inputChannels};S.song=w;
@@ -128,9 +144,22 @@ async function open(id=W()?.activeTrack){
   notify(t.name+' is ready. Its processing is saved automatically.');return true;
  }catch(e){
   binding=null;S.song=w;
-  if(previous&&previousSession){try{await restoreSession(previousSession);binding=previous;}catch(restoreError){lastError='Previous editor could not reopen: '+restoreError.message;}}
-  notify('Could not open POLISH: '+e.message+(C.trackEnd(t)>120?' This is a long vocal lane. Back up the project and polish a shorter passage on its own track before retrying.':''),true);return false;
- }finally{S.songApplying=false;switching=false;allowStep=false;if(binding?.id===id&&RC.step==='polish')window.SongStudio?.syncKey?.();persist();SongStudio.render();render();}
+  let recovery='';
+  if(previousSession){
+   try{await restoreSession(previousSession);binding=previous;}
+   catch(restoreError){
+    recovery=' The previous editor could not reopen: '+restoreError.message+'. Autosave is paused to protect the saved project.';
+    S.restorePaused=true;S.restoreNote=recovery.trim();
+   }
+  }
+  if(!previousSession||recovery){
+   // Only the incomplete live editor is discarded. Song takes and committed lane
+   // renders belong to w and remain available for recording, playback or retry.
+   cancelPersist();clearTimeout(changeTimer);pendingSteps=[];S.dirty=false;clearLiveEditor();
+  }
+  S.song=w;
+  notify('Could not open POLISH: '+e.message+recovery+(C.trackEnd(t)>120?' This is a long vocal lane. Back up the project and polish a shorter passage on its own track before retrying.':''),true);return false;
+ }finally{S.songApplying=false;switching=false;openingName='';openingStage='';openingText='';$('sgPolishProgress').hidden=true;$('sgSaveState').hidden=false;allowStep=false;if(binding?.id===id&&RC.step==='polish')window.SongStudio?.syncKey?.();persist();SongStudio.render();render();}
 }
 function beforeShow(screen){
  if(allowStep)return true;
@@ -154,14 +183,14 @@ function restored(last){
  render();
 }
 function render(){
- bar.hidden=RC.step!=='polish';if(bar.hidden)return;
+ openingClock();bar.hidden=RC.step!=='polish';if(bar.hidden)return;
  const w=W(),tracks=w?.tracks.filter(t=>t.regions.some(r=>r.selected))||[],selected=binding?.id||w?.activeTrack||'',items=tracks.map(t=>[t.id,t.name]);
  const key=JSON.stringify(items);if($('polishTrack').dataset.key!==key){$('polishTrack').dataset.key=key;$('polishTrack').replaceChildren(...items.map(([id,name])=>{const o=document.createElement('option');o.value=id;o.textContent=name;return o;}));}
  const count=(NoteTuner.enabled()?NoteTuner.notes():S.notes).filter(n=>n.review).length;$('polishReviewNotes').hidden=!count;$('polishReviewNotes').textContent=count+' uncertain note'+(count===1?'':'s')+' · Review';$('polishReviewNotes').disabled=switching||sessionLocked();
  $('polishTrack').value=selected;const locked=switching||sessionLocked();for(const id of ['polishTrack','polishSong','polishExportSong','polishReturn','polishBypass'])$(id).disabled=locked;
  $('polishBypass').checked=!!T()?.polish?.bypass;$('polishSong').textContent=SongStudio.state().playing?'■ Stop whole song':'▶ Whole song';if($('polishPreview'))$('polishPreview').textContent=SongStudio.state().playing?'Preview: whole song (all lanes)':'Preview: this vocal';
  const rd=C.readiness(w);$('polishReady').textContent='Whole song: '+rd.ready+' of '+rd.total+' vocals ready'+(rd.todo?' · '+rd.todo+' to polish':'')+(rd.blocked?' · '+rd.blocked+' cannot be processed as is':'');$('polishReady').title=rd.lanes.map(l=>l.name+': '+l.text).join('\n');
- $('polishTrackStatus').textContent=(!binding&&!S.main)?'No vocal selected for processing.':lastError||(switching?'Opening vocal…':needsApply()?'Recording or input mode changed — reopen this vocal to update POLISH.':T()?.polish?.bypass?'Dry vocal is used in the song. Your POLISH settings are kept.':T()?.polishMono?'POLISH uses a mono version of this stereo vocal (your choice in track settings). The stereo original is kept.':'This vocal’s processing is saved in your song.');
+ $('polishTrackStatus').textContent=switching?openingText:(!binding&&!S.main)?'No vocal selected for processing.':lastError||(needsApply()?'Recording or input mode changed — reopen this vocal to update POLISH.':T()?.polish?.bypass?'Dry vocal is used in the song. Your POLISH settings are kept.':T()?.polishMono?'POLISH uses a mono version of this stereo vocal (your choice in track settings). The stereo original is kept.':'This vocal’s processing is saved in your song.');
 }
 function assertExport(tracks){const bad=tracks.filter(t=>t.polish&&!t.polish.bypass&&t.polish.channels&&!C.pcmFinite(t.polish.channels));if(bad.length)throw Error('The processed audio of '+bad.map(t=>t.name).join(', ')+' is invalid. Open it in POLISH to process it again, or select Use dry vocal.');const stale=tracks.filter(t=>t.polish&&!t.polish.bypass&&!C.polishValid(W(),t));if(stale.length)throw Error('Update POLISH for '+stale.map(t=>t.name).join(', ')+' before exporting, or select Use dry vocal for that track.');const keyLag=tracks.filter(t=>C.polishValid(W(),t)&&C.keyStale(W(),t));if(keyLag.length)throw Error('The song key changed. Update POLISH for '+keyLag.map(t=>t.name).join(', ')+' (open it in POLISH; notes and effects are kept), or set that track to keep its own key.');if(lastError)throw Error(lastError);}
 async function pack(meta,files){
@@ -194,7 +223,7 @@ $('polishExportSong').onclick=()=>{capture();const id=T()?.id;RC.go('rc');SongSt
 $('polishSong').onclick=async()=>{if(SongStudio.state().playing){SongStudio.stopPlay();render();return;}capture();try{await SongStudio.play(0);}catch(e){notify(e.message,true);}render();};
 $('polishBypass').onchange=()=>{const t=T();if(!t?.polish)return;const bypass=$('polishBypass').checked;SongStudio.setPolishPref(t.id,{bypass},bypass?'Dry vocal enabled. Processing settings are kept.':'Processed vocal enabled.');render();};
 for(const b of document.querySelectorAll('.savebtn'))b.textContent='EXPORT THIS VOCAL ▾';
-window.SongPolish={followMove,open,capture,detach,releaseDeleted,restored,beforeShow,render,pack,unpack,needsApply,assertExport,snapshot,acceptPolish,monoOf,state:()=>({binding:binding?{...binding}:null,switching,error:lastError,refusal:lastRefusal})};
+window.SongPolish={followMove,open,progress,capture,detach,releaseDeleted,restored,beforeShow,render,pack,unpack,needsApply,assertExport,snapshot,acceptPolish,monoOf,state:()=>({binding:binding?{...binding}:null,switching,error:lastError,refusal:lastRefusal})};
 if(S.song&&S.main)restored({song:S.song});
 setInterval(render,400);
 })();

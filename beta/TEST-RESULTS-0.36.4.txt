@@ -1,0 +1,58 @@
+Playbook Vocal Studio beta 0.36.4
+
+Final complete run: node run-tests.cjs
+26/26 suites passed; 0 skipped.
+1124 reported checks passed across those suites.
+Node.js with Playwright Chromium; PVS_TEST_JOBS=2. See TESTING.md for reference sources and environment variables.
+
+tests-0.32.4/navigation                PASS (35.8 s)
+tests-0.32.4/storage                   PASS (5.9 s)
+tests-0.32.5/layout                    PASS (24.4 s)
+tests-0.33.0/timeline-move             PASS (70.1 s)
+tests-0.33.0/cleaning                  PASS (115.4 s)
+tests-0.33.0/tuning-plus               PASS (49 s)
+tests-0.33.1/regressions               PASS (127.3 s)
+tests-0.34.0/ux                        PASS (65.4 s)
+tests-0.34.1/laptop                    PASS (64.5 s)
+tests-0.34.2/coach                     PASS (61.4 s)
+tests-0.35.0/phrase-guide              PASS (32.7 s)
+tests-0.32.3/cleanup                   PASS (42.3 s)
+tests-0.32.0/editors                   PASS (30.4 s)
+tests-0.32.0/tuning                    PASS (354.1 s)
+tests-0.32.0/workspace-editor          PASS (132.1 s)
+tests-0.32.3/windows                   PASS (30.1 s)
+tests-0.36.4/recording                 PASS (15.8 s)
+tests-0.36.4/phone                     PASS (24.1 s)
+tests-0.36.1/manual-cleanup            PASS (15.1 s)
+tests-0.36.0/workflow                  PASS (40.4 s)
+tests-0.36.0/guide-undo                PASS (24.1 s)
+tests-0.35.1/transport                 PASS (31.7 s)
+tests-0.32.3/restore                   PASS (122.2 s)
+tests-0.31.11/delete                   PASS (32.3 s)
+tests-0.32.3/playback                  PASS (35.6 s)
+tests-0.32.3/upgrade                   PASS (20.4 s)
+
+Approved presets: independent same-browser comparison with 0.32.3
+PASS X/Y/Z played three distinct tuned audio buffers from Cleaned input
+PASS identical tuned and final PCM versus the reference none {"rate":44100,"tuned":[[659085,"387609cd5dc0c34bf0dac6e84cab77d90539a70c75295a1a3fc5e1830471a9a4"]],"final":[[986160,"d8f653022595b504ecfde76588e36ab6f8738a77bcf6ea4d3833e75dd863dcdb"],[986160,"f4204559c899921d249fa5548422b955bb0db8d445df26adb8b4ad449308b3b2"]]}
+PASS identical tuned and final PCM versus the reference presetSnapSmooth {"rate":44100,"tuned":[[659085,"d70971c26fc089f98f51d14bf2a2bbae9876153013a350848b218e92c78d5769"]],"final":[[986160,"77e3a2d6f1eeae81b5454727fa06824a69705f920dbd52afb79e763d4bafc318"],[986160,"a0fccfebf4c59e041a7854b609bd2f8b0a84d0dd4222f47a8e1394ae25fa24cd"]]}
+PASS identical tuned and final PCM versus the reference presetCenterSmooth {"rate":44100,"tuned":[[659085,"a17a7d72af002bad95125faca1885fca2c6ebc48ce2cf5a068a3672fdbdcda7a"]],"final":[[986160,"c874504c8eeede042af20d14e8c439b3dfd03625035ec091894801ab6d7e0332"],[986160,"2b7c2f2404428cfc2c69f43211b4d90c5268e7d4a31294cdda98a1ab03d79c1c"]]}
+
+Five-minute song acceptance (run separately):
+PASS The song contains 300 seconds, four lanes and 40 takes
+PASS Live status is visible beside the footer button at 1280 × 600
+PASS The ready message leaves the song controls unlocked
+PASS POLISH stored a valid full-length stereo result on the selected mono lane
+PASS The original 40 takes stayed in place
+PASS The song showed cleaning, note detection and effects progress
+PASS The song downloads as a full-length vocal mix at the original sample rate
+PASS No JavaScript errors
+POLISH ready: 314.0 seconds; largest UI timer gap: 2394 ms.
+Preserved 40 takes across 4 lanes. Export: 13557075 stereo frames at 44100 Hz.
+Export SHA-256: ed2a983da065ea3fcb33f6d5d0d07be864e7808e015ab35d0e7817c2569ac965
+Final PCM and WAV matched the earlier complete five-minute reference run exactly.
+
+Earlier verification history:
+A previous complete run passed 24/26: tuning timed out waiting for Undo, and the phone run exited before completing its assertions. The phone rerun passed 40/40; the tuning rerun passed, including Undo. No application-code change was made in response to those two intermittent failures. The final complete run above passed every suite.
+
+Scope: microphone signals, phone sizes and permission transitions were simulated. Actual Samsung microphone routing, Bluetooth latency and subjective listening still require physical-device checks. Long processing still takes several minutes. Stereo POLISH retains its documented 8,000,000-frame input limit.

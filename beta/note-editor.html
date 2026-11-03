@@ -2267,17 +2267,23 @@ async function riddimTuning(){
 /* Choose how the reference is set. Notes you have already snapped or edited move with the reference, so they
    stay on the new keys; untouched notes are re-tuned by automatic tuning as usual. */
 let refToken = 0;
-async function setRefMode(mode, { hist = true, carry = true } = {}){
+async function setRefMode(mode, { hist = true, carry = true, quietHost = false } = {}){
   const tok = ++refToken; let hz = S.ref, drift = null;
   if (mode === "standard") hz = 440;
   else if (mode === "auto" || mode === "riddim"){ const t = await riddimTuning(); if (tok !== refToken) return false; hz = t ? t.hz : (mode === "riddim" ? S.ref : 440); }
   else if (mode === "singing" || mode === "singingDrift"){ const e = singingEstimate(); hz = e ? e.hz : 440; if (e && mode === "singingDrift") drift = e.drift; }
-  if (hist) pushHist();
-  const before = carry ? S.notes.map(nt => (nt.shift || nt.man) ? refOff() + noteOff(nt) : null) : null;
-  S.refMode = mode; S.refDrift = drift; S.driftFrames = null;
-  setRef(hz, false);
-  if (before) S.notes.forEach((nt, i) => { if (before[i] !== null) nt.shift += refOff() + noteOff(nt) - before[i]; });
-  refUI(); changed(); return true;
+  // A host render already includes this reference change. Suppress its echo
+  // only during the synchronous commit, never while a reference is being read.
+  const previousMute=hostMute;
+  if(quietHost)hostMute=true;
+  try{
+    if (hist) pushHist();
+    const before = carry ? S.notes.map(nt => (nt.shift || nt.man) ? refOff() + noteOff(nt) : null) : null;
+    S.refMode = mode; S.refDrift = drift; S.driftFrames = null;
+    setRef(hz, false);
+    if (before) S.notes.forEach((nt, i) => { if (before[i] !== null) nt.shift += refOff() + noteOff(nt) - before[i]; });
+    refUI(); changed(); return true;
+  }finally{hostMute=previousMute;}
 }
 $("refMode").onchange = e => { const m = e.target.value; if (m === "manual"){ pushHist(); S.refMode = "manual"; S.refDrift = null; S.driftFrames = null; refUI(); updateRefWarn(); changed(); $("refHz").focus(); return; } setRefMode(m); };
 $("refUse440").onclick = () => setRefMode("standard");
@@ -2754,7 +2760,7 @@ async function handleFile(f){
 }
 
 /* ---------- riddim ---------- */
-function setRiddim(name, bytes, buf){
+function setRiddim(name, bytes, buf, quietHost=false){
   const sr = buf.sampleRate, ch = buf.numberOfChannels, hop = Math.round(sr*0.01), nE = Math.floor(buf.length/hop), env = new Float32Array(nE);
   const chans = []; for (let c = 0; c < ch; c++) chans.push(buf.getChannelData(c));
   let mx = 1e-9;
@@ -2762,8 +2768,9 @@ function setRiddim(name, bytes, buf){
   for (let k = 0; k < nE; k++) env[k] /= mx;
   S.riddim = { name, bytes, buf, abuf:null, env };
   riddimUI();
-  if (S.refMode === "auto" && S.orig) setRefMode("auto", { hist:false });
+  const ready=S.refMode === "auto" && S.orig ? setRefMode("auto", {hist:false,quietHost}) : null;
   if (S.playing) startPlayback(curPos());
+  return ready;
 }
 function riddimAB(){
   const r = S.riddim; if (!r || !S.ctx) return null;
@@ -3048,7 +3055,14 @@ window.PlaybookNoteEditor={
  onChange(fn){hostChanged=fn;},
  onPlay(fn){hostPlay=fn;},
  dispose(){stop();clearTimeout(bgT);++bgGen;clearTimeout(saveT);hostChanged=null;if(S.ctx)S.ctx.close().catch(()=>{});},
- backing(channels,sr){hostMute=true;try{if(channels)setRiddim("Song backing",new ArrayBuffer(0),fakeBuffer(channels,sr));else{S.riddim=null;riddimUI();if(S.refMode==="auto"&&S.orig)setRefMode("auto",{hist:false});}}finally{hostMute=false;}},
+ backing(channels,sr,quietHost=false){
+  const previousMute=hostMute;hostMute=true;
+  try{
+   if(channels)return setRiddim("Song backing",new ArrayBuffer(0),fakeBuffer(channels,sr),quietHost);
+   S.riddim=null;riddimUI();
+   if(S.refMode==="auto"&&S.orig)return setRefMode("auto",{hist:false,quietHost});
+  }finally{hostMute=previousMute;}
+ },
  stop,
  clear(){hostMute=true;try{stop();S.orig=null;S.sourceChannels=null;S.tunedChannels=null;S.notes=[];resetRenders();}finally{hostMute=false;}},
  embedded:EMBED,

@@ -35,3 +35,5 @@ The 0.36.2 phone suite checks real taps with Explain saved on, a test microphone
 0.36.3 adds checks to the existing 26 suites: Natural/Classic phrase previews, stale decisions, shared singing measurements, saved room filter handling, stereo protection, AI alignment, cleaning history, and crash recovery followed by offline reopening.
 
 The full runner defaults to serial execution. On a host with sufficient memory, PVS_TEST_JOBS=2 runs two suites at a time with disjoint server ports. summary.json records each suite, exit status and duration. A failed suite never silently skips the remaining suites.
+
+For the 0.36.4 long-lane acceptance case, use the same Chromium and Playwright environment as the standard suites. Set PVS_TEST_OUT to an empty existing results directory and run `node tests-0.36.4/long-polish.cjs` after the standard suites finish. It needs several minutes and enough memory for the complete song and its full-length vocal effects. The output includes PCM and downloaded WAV fingerprints, timings, and two screenshots. Set PVS_KEEP_EXPORT=1 to also keep the synthetic mix WAV in the results directory.

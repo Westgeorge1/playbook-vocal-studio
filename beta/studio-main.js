@@ -146,16 +146,40 @@ const songSeconds = () => S.original ? S.original.length / S.rate : 0;
 
 // ---------------------------------------------------------------- engine (worker)
 // 0.17.2: the app and the audio engine have separate version numbers
-var APP_VERSION="0.36.3",ENGINE_VERSION="0.12.1";
-const worker = new Worker("worker.js?v=0.36.3");
+var APP_VERSION="0.36.4",ENGINE_VERSION="0.12.1";
+const worker = new Worker("worker.js?v=0.36.4");
 let reqId = 0, engineFailure = null; const pending = {};
 var ENGINE_WAIT_MS = 120000;
+let engineSeconds=0;
+// Only the first outstanding request runs. A native phase on a long recording
+// can exceed the short-input idle interval without reporting another stage.
+function audioInputSeconds(m,previous){
+  if(m.type==='clear')return 0;
+  if(m.type!=='open')return previous;
+  const input=m.channels?.[0]||m.samples;
+  return input?.length&&m.rate>0?input.length/m.rate:0;
+}
+function armAudioDeadline(p,fail){
+  if(!p)return;
+  clearTimeout(p.timer);
+  if(!p.activeAt)p.activeAt=Date.now();
+  const idle=Math.max(ENGINE_WAIT_MS,Math.min(360000,Math.ceil(p.seconds*1000)));
+  const remaining=600000-(Date.now()-p.activeAt);
+  const reason=remaining<=idle?'The audio processor reached its ten-minute limit.':'The audio processor reported no new stage for '+Math.round(idle/1000)+' seconds.';
+  p.timer=setTimeout(()=>fail(reason),Math.max(0,Math.min(idle,remaining)));
+}
+function watchEngine(){
+  armAudioDeadline(Object.values(pending)[0],reason=>failEngine(reason+' Reload to retry POLISH. Your saved project is kept.'));
+}
 worker.onmessage = ({ data: m }) => {
   if(engineFailure)return; // A timed-out worker must never apply a late result.
   if (m.type === "ready") $("engineInfo").textContent = "App version: "+APP_VERSION+" · Audio engine version: "+ENGINE_VERSION+" (WebAssembly, the same audio code as the Windows app, with Voice focus).";
-  else if (m.type === "stage") setStatus(m.text, "busy");
+  else if (m.type === "stage") { watchEngine();setStatus(m.text, "busy");window.SongPolish?.progress(m.text); }
   else if (m.type === "error") failEngine(m.message);
-  else if (m.type === "done") { const p = pending[m.id]; delete pending[m.id]; if (p) { clearTimeout(p.timer); if (m.error) p.reject(new Error(m.error)); else p.resolve(m); } }
+  else if (m.type === "done") {
+    const p=pending[m.id],wasActive=p&&p===Object.values(pending)[0];delete pending[m.id];
+    if(p){clearTimeout(p.timer);if(wasActive)watchEngine();if(m.error)p.reject(new Error(m.error));else p.resolve(m);}
+  }
 };
 function failEngine(message) {
   engineFailure = new Error(message); worker.terminate(); for (const id of Object.keys(pending)) { clearTimeout(pending[id].timer); pending[id].reject(engineFailure); delete pending[id]; }
@@ -166,9 +190,10 @@ worker.onmessageerror = () => failEngine("The audio engine could not return your
 function engineRaw(msg, transfer) { return new Promise((resolve, reject) => {
   if (engineFailure) return reject(engineFailure);
   msg.id = ++reqId;
-  const timer=setTimeout(()=>failEngine('The audio processor did not respond within two minutes. Reload to retry POLISH. Your saved project is kept.'),ENGINE_WAIT_MS);
-  pending[msg.id] = { resolve, reject, timer, type:msg.type, update:!!msg.update, started:Date.now() };
-  try { worker.postMessage(msg, transfer || []); } catch (err) { clearTimeout(timer);delete pending[msg.id];reject(err); }
+  const idle=!Object.keys(pending).length;engineSeconds=audioInputSeconds(msg,engineSeconds);
+  pending[msg.id] = { resolve, reject, timer:null, seconds:engineSeconds, type:msg.type, update:!!msg.update, started:Date.now() };
+  if(idle)watchEngine();
+  try { worker.postMessage(msg, transfer || []); } catch (err) { clearTimeout(pending[msg.id].timer);delete pending[msg.id];if(idle)watchEngine();reject(err); }
 }); }
 // Only mutations can supersede a Guide Undo. Background meter and analysis reads do not.
 let engineGeneration=0;
@@ -285,7 +310,7 @@ function toMono(ab) { const n = ab.length, out = new Float32Array(n); for (let c
 function guidePrefSteps() { const g = S.guidePrefs; return [["guidePrefs", g.enabled, g.goal, g.bpm, g.sync], ["guideConcern", g.concern || 0]]; }
 S.guidePrefs = { enabled: true, concern: 0, goal: 0, bpm: 75, sync: false };
 S.mix = { fit: true, over: 1, room: 0.5 }; S.fitBeat = null; S.fitInfo = null;
-function openVocal(samples, rate, name, isSample, importKind=0) {
+function openVocal(samples, rate, name, isSample, importKind=0, laneKey=null) {
   const inputChannels=asChannels(samples);if(inputChannels.length===2&&inputChannels[0].length>SongCore.ENGINE.stereoFrames)throw Error("This stereo vocal exceeds the supported POLISH limit of "+(SongCore.ENGINE.stereoFrames/rate).toFixed(1)+" seconds at this sample rate. Use a shorter stereo section or explicitly choose a mono version in the track settings. The original recordings are kept.");
   NoteTuner.begin(null,!importKind,name);
   prepareSongChange(); S.loading = "Processing " + name + "…"; S.loadError = ""; renderOpen();
@@ -293,11 +318,11 @@ function openVocal(samples, rate, name, isSample, importKind=0) {
     stopPlayback(); setBusy(true);
     try {
       const channels=asChannels(samples).map(c=>c.slice());
-      let r = await engine({ type: "open", channels, rate, keep: false, importKind, detectKey: !importKind }, channels.map(c=>c.buffer));
+      let r = await engine({ type: "open", channels, rate, keep: false, importKind, laneKey, initialCleaning: !importKind, detectKey: !importKind }, channels.map(c=>c.buffer));
       Object.assign(S, { name, isSample, selected: -1, takes: [], takeChannels: [], audio: {}, prevCur: null, prevSug: null, fitBeat:null });
       S.edit.sel = null; S.edit.chosen = -1; S.edit.src = null; S.edit.take = 1; S.edit.view = { start: 0, secs: 0 }; S.ovTakes = {};
       absorb(r);
-      if (!importKind) { r = await engine({type:"run", steps:FinishPolicy.steps(FinishPolicy.cleaning(S.st.report)), update:true}); absorb(r); }
+      if (!importKind && !r.initialCleaningApplied) { r = await engine({type:"run", steps:FinishPolicy.steps(FinishPolicy.cleaning(S.st.report)), update:true}); absorb(r); }
       r = await engine({ type: "run", steps: guidePrefSteps(), update: false }); absorb(r);
       fitPitch(); view.start = S.notes.length ? Math.max(0, S.notes[0].start - 0.5) : 0; view.secs = Math.min(12, Math.max(3, songSeconds()));
       if(typeof phraseReset==="function"&&!S.phraseApplying)phraseReset();
@@ -1764,7 +1789,7 @@ async function saveProject(opts) {
   const base = safeName(S.song?.title||(phraseOnly?phraseWorkspace().title:S.name)), srcName = base + " - phone source.wav", src = wavFloat(phraseWorkspaceAudio||S.audio[5]||S.main, phraseOnly?(S.song?.rate||phraseWorkspace().rate):S.rate), files = [{ name: srcName, data: src }];
   const takes = S.takes.slice(1).map((t, i) => { const name = base + " - take " + (i + 1) + ".wav", data = wavFloat(S.takeChannels[i+1]||t, S.rate); files.push({ name, data }); return { file: name, bytes: data.length, trim: 0, pad: 0 }; });
   const g = S.guide || {}, P = { ...S.P, chMixFit: S.mix.fit ? 1 : 0, chMixOver: S.mix.over, chMixRoom: S.mix.room };
-  const root = { format: "Playbook Vocal Studio", version: 9, savedBy: "Playbook Vocal Studio 0.36.3 (phone DAW)",
+  const root = { format: "Playbook Vocal Studio", version: 9, savedBy: "Playbook Vocal Studio "+APP_VERSION+" (phone DAW)",
     smartGuide: { enabled: !!S.guidePrefs.enabled, concern: S.guidePrefs.concern || 0, goal: S.guidePrefs.goal, bpm: S.guidePrefs.bpm, tempoSync: !!S.guidePrefs.sync, locked: g.locked || [], dismissed: g.dismissed || {} },
     performance: S.st?.edits||{breaths:[],timing:[],comp:[]}, notePerformance: S.st?.edits||{breaths:[],timing:[],comp:[]}, alternateTakes: takes,
     source: srcName, sourceBytes: src.length, trim: 0, pad: 0, take: false };
@@ -1779,7 +1804,7 @@ async function saveProject(opts) {
   if(!compat&&S.main&&S.song){const lt=S.song.tracks.find(t=>t.id===S.song.polishTrack),pc=lt?.polish?.session?.pcm,cur=S.audio[5]||[S.main];if(lt&&Array.isArray(pc)&&SongCore.polishValid(S.song,lt)&&SongCore.samePcm(pc,cur)){const f=files.find(f=>f.name===srcName);if(f)files.splice(files.indexOf(f),1);root.source=null;root.sourceLane=lt.id;delete root.sourceBytes;}}
   root.backupKind=compat?"compatibility":"modern";
   files.unshift({ name: base + ".pbv", data: new TextEncoder().encode(JSON.stringify(root, null, 1)) });
-  files.push({ name: "READ-ME.txt", data: new TextEncoder().encode((compat?"Playbook Vocal Studio song project, COMPATIBILITY backup (saved on the phone, 0.36.3). It also contains copies for older versions (0.18.3 parts).":"Playbook Vocal Studio song project (saved on the phone, 0.36.3). Modern backup: open it in Playbook Vocal Studio 0.31.4 or newer. Older versions need a Compatibility backup (Export song > Compatibility backup).")+"\r\n\r\nOn the laptop: extract this ZIP into its own folder, keep the files together, then use Open project in the Windows app or FL Studio plugin (0.9.8 or newer) and choose " + base + ".pbv.\r\nOpen multitrack projects in Playbook Vocal Studio 0.31.4 or newer to retain separate tracks, sections, attempts, per-track POLISH and phrase-volume moves (0.24 and earlier may not restore 0.25 POLISH preferences). Older apps open only the last POLISH vocal and will lose the multitrack data if you save over this project. Keep this original ZIP.\r\nOn the phone: SONG PROJECT > Open a song project, then pick this ZIP.\r\n") });
+  files.push({ name: "READ-ME.txt", data: new TextEncoder().encode((compat?"Playbook Vocal Studio song project, COMPATIBILITY backup (saved on the phone, "+APP_VERSION+"). It also contains copies for older versions (0.18.3 parts).":"Playbook Vocal Studio song project (saved on the phone, "+APP_VERSION+"). Modern backup: open it in Playbook Vocal Studio 0.31.4 or newer. Older versions need a Compatibility backup (Export song > Compatibility backup).")+"\r\n\r\nOn the laptop: extract this ZIP into its own folder, keep the files together, then use Open project in the Windows app or FL Studio plugin (0.9.8 or newer) and choose " + base + ".pbv.\r\nOpen multitrack projects in Playbook Vocal Studio 0.31.4 or newer to retain separate tracks, sections, attempts, per-track POLISH and phrase-volume moves (0.24 and earlier may not restore 0.25 POLISH preferences). Older apps open only the last POLISH vocal and will lose the multitrack data if you save over this project. Keep this original ZIP.\r\nOn the phone: SONG PROJECT > Open a song project, then pick this ZIP.\r\n") });
   let data;try{data=zip(files);}catch(err){return done(false,"failed","Couldn't save: the project could not be prepared ("+(err&&err.message||"unknown problem")+").");}
   try { const file=base+(compat?" - song project (compatibility).zip":" - song project.zip");const result=await saveDownload(file,data);const info=file+". Use Open project to keep editing. "+whereSaved();const r=done(true,result==="Saved"?"saved":"requested",result+" · "+info);toast(result,info); return r; }
   catch (err) { return err && err.code === "declined" ? done(false,"cancelled","Not saved.") : done(false,"failed","Couldn't save: " + (err && err.message || "unknown problem") + "."); }

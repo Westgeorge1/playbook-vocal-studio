@@ -1,5 +1,5 @@
 /* 0.30: reversible Studio Spectral stage before the Playbook Note Editor.
- * Native worker bytes and the native cleaner's chosen parameters stay intact. */
+ * The native cleaner's chosen parameters are retained for Classic projects. */
 (function(){'use strict';
 const $=id=>document.getElementById(id),clone=x=>structuredClone(x);
 let cfg={...NoiseCore.defaults(),mode:'original'},client=null,seq=0,generation=0,jobs=new Map(),bypassed=false,busy=false,error='',notice='',cache=null,baseline=null,sourceAudio=null,rate=48000,undo=[],redo=[];
@@ -33,9 +33,16 @@ async function dispatch(msg,transfer,raw){
    // 0.31.4 adoption (R13): undo our bypass before opening, so the engine reports the singer's own Clean setting.
    // Otherwise a restore (settings first, then open) read back the bypassed 0 and lost a saved Clean = on.
    if(bypassed){await raw({type:'run',steps:[['set','cleanOn',cfg.legacyOn]],update:false});bypassed=false;}
-   const opened=await raw(msg,transfer);cfg.legacyOn=opened.state.params.cleanOn;
-   const r=await raw({type:'run',steps:[['set','cleanOn',0]],update:true,want:[0,1,2,3,4,5,6,100]});bypassed=true;
-   return finish(wrap({...r,mask:(r.mask||0)|(opened.mask||0),audio:{...opened.audio,...r.audio}}));
+   // This first native pass establishes the input, key, notes and guide. Its PCM
+   // will be replaced by the bypass render below, so leave those arrays in the worker.
+   const opened=await raw({...msg,onlyAudio:[]},transfer);
+   const initial=msg.initialCleaning?FinishPolicy.cleaning(opened.state.report):null;
+   cfg.legacyOn=initial?initial.cleanOn:opened.state.params.cleanOn;
+   const steps=initial?FinishPolicy.steps(initial):[];
+   if(msg.laneKey)steps.push(['set','key',msg.laneKey.key],['set','scale',msg.laneKey.scale]);
+   steps.push(['set','cleanOn',0]);
+   const r=await raw({type:'run',steps,update:true,want:[0,1,2,5,6,100],onlyAudio:[0,1,2,5,6,100]});bypassed=true;
+   return finish(wrap({...r,mask:(r.mask||0)|(opened.mask||0),initialCleaningApplied:!!initial,analysisKey:msg.laneKey?{key:opened.state.params.key,scale:opened.state.params.scale}:null}));
   }
   if(msg.type==='custom'){
    const r=await raw(msg,transfer);if(msg.mask&1){const c=await render(r.audio[9]);r.audio[9]=c.channels;}return r;
@@ -48,6 +55,7 @@ async function finish(r){if(!r.audio?.[1])return r;busy=true;ui();rate=r.state.r
  // Store a bounded identity, never a second copy of the vocal.
  const id=rate+':'+SongCore.hashPcm([Float32Array.from(source,c=>c.charCodeAt(0))]);
  if(cfg.source&&cfg.source!==id){cfg.profile=null;notice='The source or timing changed. The previous noise profile was cleared; check the new sample.';undo=[];redo=[];}cfg.source=id;
+ window.SongPolish?.progress('Checking Studio Spectral noise removal');
  const result=await render(baseline);if(!cfg.profile&&result.profile){cfg.profile=result.profile;notice=result.report.reason;}
  cache={key:rate+':'+SongCore.hashPcm(baseline)+':'+JSON.stringify(cfg)+(window.CleanPlus?.cacheTag?.(cfg)||''),result};error='';
  const removed=result.removed||baseline.map(c=>new Float32Array(c.length));return {...r,mask:(r.mask||0)|2,audio:{...r.audio,1:result.channels,2:removed}};

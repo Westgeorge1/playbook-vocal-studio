@@ -15,8 +15,12 @@ async function setup(width){
  await ctx.addInitScript(()=>{
   const Native=window.Worker;window.nativeJobs=[];window.nativeStopped=0;let count=0;
   window.Worker=class extends Native{
-   constructor(url,...rest){super(url,...rest);this.main=/^worker\.js/.test(String(url))&&count++===0;}
-   postMessage(m,t){if(this.main){window.nativeJobs.push({type:m.type,update:!!m.update});if(localStorage.testStall==='1'&&m.type==='run'&&m.update){window.heldWorker=this;window.heldMessage=m;return;}}return super.postMessage(m,t);}
+   constructor(url,...rest){super(url,...rest);this.native=/^worker\.js/.test(String(url));this.main=this.native&&count++===0;}
+   postMessage(m,t){
+    if(this.native&&!this.main&&Number(localStorage.testEffectsFail)>0&&m.type==='run'&&m.update){
+     localStorage.testEffectsFail=String(Number(localStorage.testEffectsFail)-1);setTimeout(()=>this.onerror?.({message:'Injected vocal-effects error'}),0);return;
+    }
+    if(this.main){window.nativeJobs.push({type:m.type,update:!!m.update});if(localStorage.testStall==='1'&&m.type==='run'&&m.update){window.heldWorker=this;window.heldMessage=m;return;}}return super.postMessage(m,t);}
    terminate(){if(this.main)window.nativeStopped++;return super.terminate();}
   };
   window.micRequests=0;navigator.mediaDevices.getUserMedia=async()=>{
@@ -103,5 +107,58 @@ async function record(p){await p.evaluate(()=>{S.song.lead=0;RC.go('rc');SongStu
  await p.evaluate(async()=>persistNow());check('new recording cannot replace protected old project',old===await p.evaluate(async()=>JSON.stringify(await restore())));
  if(out){fs.mkdirSync(out,{recursive:true});await p.screenshot({path:path.join(out,'restore-timeout.png')});}
  await ctx.close();}
+ // A slow worker may remain healthy across several idle intervals. A queued
+ // request receives a fresh interval only after it becomes the active request.
+ {const {ctx,p}=await setup(390);
+  await p.evaluate(()=>{
+   const w=S.song=SongCore.empty(44100);w.key=3;w.scale=2;
+   const signal=Float32Array.from({length:44100},(_,i)=>.12*Math.sin(2*Math.PI*207*i/44100));
+   SongCore.addTake(w,{channels:[signal],rate:44100,start:0,end:1,choose:true});SongStudio.render();
+  });
+  const signature=await p.evaluate(()=>{localStorage.testEffectsFail='1';return SongCore.trackSignature(S.song,S.song.tracks[0]);});
+  await p.locator('#sgPolish').tap();await p.waitForFunction(()=>sgStatus.textContent.includes('Injected vocal-effects error')&&!SongPolish.state().switching);
+  check('A failed first effects render releases the song and keeps the original take',await p.evaluate(sig=>!sessionLocked()&&!sgPolish.disabled&&SongCore.usage(S.song).takes===1&&SongCore.trackSignature(S.song,S.song.tracks[0])===sig,signature));
+  await p.locator('#sgPolish').tap();await p.waitForFunction(()=>RC.step==='polish'&&!SongPolish.state().switching);
+  check('The requested song key is applied and Return is enabled when POLISH reports ready',await p.evaluate(()=>S.P.key===3&&S.P.scale===2&&!sessionLocked()&&!polishReturn.disabled));
+  await p.locator('#polishReturn').tap();await p.waitForFunction(()=>RC.step==='rc');
+  const prior=await p.evaluate(()=>{
+   const a=S.song.tracks[0],previous={id:a.id,final:SongCore.hashPcm(a.polish.channels)};
+   SongStudio.edit(w=>{const t=SongCore.addTrack(w,'Second vocal'),v=new Float32Array(44100).fill(.08);
+    SongCore.addTake(w,{trackId:t.id,channels:[v],rate:44100,start:0,end:1,choose:true});w.activeTrack=t.id;});
+   localStorage.testEffectsFail='1';return previous;
+  });
+  await p.locator('#sgPolish').tap();await p.waitForFunction(()=>sgStatus.textContent.includes('Injected vocal-effects error')&&!SongPolish.state().switching);
+  check('A failed lane switch restores the previous editor and keeps both takes',await p.evaluate(a=>{
+   const t=S.song.tracks[0];return !sessionLocked()&&SongPolish.state().binding?.id===a.id&&SongCore.hashPcm(S.final)===a.final&&SongCore.hashPcm(t.polish.channels)===a.final&&!S.song.tracks[1].polish&&SongCore.usage(S.song).takes===2;
+  },prior));
+  const results=await p.evaluate(async()=>{
+   const old=worker.postMessage,ids=[];worker.postMessage=m=>ids.push(m.id);ENGINE_WAIT_MS=2000;
+   try{
+    const started=performance.now(),first=engineRaw({type:'sheet'}),next=engineRaw({type:'sheet'});
+    const all=Promise.all([first,next]);
+    for(let i=0;i<4;i++){await new Promise(r=>setTimeout(r,700));worker.onmessage({data:{type:'stage',text:'Measuring this vocal…'}});}
+    worker.onmessage({data:{type:'done',id:ids[0],result:'first'}});await new Promise(r=>setTimeout(r,700));
+    worker.onmessage({data:{type:'done',id:ids[1],result:'next'}});
+    return {ms:performance.now()-started,results:(await all).map(x=>x.result),stopped:nativeStopped,pending:Object.keys(pending).length};
+   }finally{worker.postMessage=old;ENGINE_WAIT_MS=120000;}
+  });console.log('Worker progress probe',JSON.stringify(results));
+  check('Active stages extend the idle window; the next request retains its own deadline',results.ms>2000&&results.results.join(',')==='first,next'&&!results.stopped&&!results.pending);
+  const limits=await p.evaluate(()=>{
+   const native=window.setTimeout,scheduled=[];window.setTimeout=(f,ms)=>{scheduled.push(ms);return 0;};
+   try{
+    armAudioDeadline({seconds:7},()=>{});armAudioDeadline({seconds:300},()=>{});
+    armAudioDeadline({seconds:900},()=>{});armAudioDeadline({seconds:300,activeAt:Date.now()-599000},()=>{});
+    return scheduled;
+   }finally{window.setTimeout=native;}
+  });console.log('Idle and hard deadline probes (ms)',limits);
+  check('Short and long requests keep their idle and absolute time limits',limits[0]===120000&&limits[1]===300000&&limits[2]===360000&&limits[3]>0&&limits[3]<=1000);
+  const savedBeforeFailure=await p.evaluate(async()=>{await persistNow();localStorage.testEffectsFail='2';return JSON.stringify(await restore());});
+  await p.locator('#sgPolish').tap();await p.waitForFunction(()=>S.restorePaused&&!SongPolish.state().switching);
+  check('If rollback also fails, the saved lane stays intact and autosave is paused',await p.evaluate(a=>{
+   const t=S.song.tracks[0];return !sessionLocked()&&!S.main&&S.restoreNote.includes('Autosave is paused')&&SongCore.hashPcm(t.polish.channels)===a.final&&SongCore.usage(S.song).takes===2;
+  },prior));
+  check('The failed switch cannot overwrite the saved project',savedBeforeFailure===await p.evaluate(async()=>{await persistNow();return JSON.stringify(await restore());}));
+  await ctx.close();
+ }
  check('No page errors',errors.length===0);
 })().catch(e=>{console.error(e);process.exitCode=1;}).finally(async()=>{await browser?.close();server?.kill();if(out){fs.mkdirSync(out,{recursive:true});fs.writeFileSync(path.join(out,'restore-results.json'),JSON.stringify({rows,errors},null,2));}console.log(rows.filter(r=>r.pass).length+' checks passed');});

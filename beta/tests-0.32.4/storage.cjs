@@ -30,7 +30,7 @@ suite('storage',11,async({check,page})=>{
  check('Cancelling the removal preserves the old save',(await keys()).includes('last'));
  p.once('dialog',d=>d.accept());await p.locator('#storageRemoveLegacy').click();await p.waitForTimeout(250);
  const afterLegacy=await keys();check('Confirmed old-copy removal only removes unscoped project data',!afterLegacy.includes('last')&&!afterLegacy.includes('pcm:legacy-test')&&afterLegacy.includes('pvs@/|last')&&afterLegacy.includes('pvs@/a-different-location/|last'));
- const sibling=await p.context().newPage();await sibling.goto(p.url());await sibling.waitForFunction(()=>!S.loading&&S.phrases?.phrases[0]?.takes.length===2);
+ const sibling=await p.context().newPage();await sibling.goto(p.url(),{waitUntil:"domcontentloaded",timeout:60000});await sibling.waitForFunction(()=>!S.loading&&S.phrases?.phrases[0]?.takes.length===2);
  await p.locator('#storageVerified').check();p.once('dialog',d=>d.accept());await Promise.all([p.waitForEvent('load'),p.locator('#storageRemoveHere').click()]);await p.waitForFunction(()=>window.SongStudio&&!S.loading);
  const removed=await keys();check('Removing this location leaves the other location intact',!removed.includes('pvs@/|last')&&removed.includes('pvs@/a-different-location/|last'));
  const stale=await sibling.evaluate(async()=>{try{await persistNow();return S.restorePaused;}catch(e){return /removed/.test(e.message);}});

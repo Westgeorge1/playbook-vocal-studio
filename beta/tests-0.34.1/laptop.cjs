@@ -39,4 +39,5 @@ suite('laptop-0.34.1',18,async({page,check})=>{
   check(tag+': settings panel at least 290 px and timeline at least 150 px',q.insp>=290&&q.lanes>=150);
   await p.context().close();
  }
+ await require('../tests-0.36.4/backing-reference.cjs')(page,check);
 });

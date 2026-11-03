@@ -33,12 +33,13 @@ suite('transport',27,async({b,page,check,errors})=>{
   }else p=await page(width,height);
   await p.waitForFunction(()=>window.SongStudio&&!S.loading&&!sessionLocked());
   await p.evaluate(installMic);
+  await p.evaluate(()=>{window.transportTaps=[];for(const type of ['pointerdown','pointerup','click','focusin','scroll'])document.addEventListener(type,e=>{const r=sgRecord.getBoundingClientRect();transportTaps.push({type,target:e.target.id||e.target.tagName,x:e.clientX,y:e.clientY,record:[r.x,r.y,r.width,r.height],scroll:songStudio.scrollTop,playing:SongStudio.state().playing});if(transportTaps.length>30)transportTaps.shift();},true);});
   const verify=(name,pass)=>check(width+'px '+name,pass);
   const click=async selector=>{const el=p.locator(selector);if(width===390)await el.tap();else await el.click();};
   const wait=async condition=>{
    try{await p.waitForFunction(condition,null,{timeout:30000});}
    catch(e){
-    const state=await p.evaluate(()=>({transport:SongStudio.state(),status:sgStatus.textContent,dialog:document.querySelector('dialog[open]')?.id||'',focus:document.activeElement?.id||'',takes:SongCore.usage(S.song).takes}));
+    const state=await p.evaluate(()=>({transport:SongStudio.state(),status:sgStatus.textContent,dialog:document.querySelector('dialog[open]')?.id||'',focus:document.activeElement?.id||'',events:transportTaps,takes:SongCore.usage(S.song).takes}));
     throw Error('Waiting for '+condition.toString()+'; studio state '+JSON.stringify(state),{cause:e});
    }
   };
@@ -119,4 +120,5 @@ suite('transport',27,async({b,page,check,errors})=>{
   verify('The three recordings survive autosave and reopening',await p.evaluate(()=>SongCore.usage(S.song).takes===3));
   await p.context().close();
  }
+ await require('../tests-0.36.4/transport-first-click.cjs')({page,check});
 });
