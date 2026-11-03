@@ -30,9 +30,35 @@ host.innerHTML=`
 $('rcSteps').after(host);
 // Secondary recording helpers fold on phones; the recording transport stays reachable.
 host.querySelector('.sg-record-helpers').open=!matchMedia('(max-width:720px)').matches;
-host.addEventListener('scroll',()=>{const compact=host.scrollTop>150||(host.classList.contains('sg-scrolled')&&host.scrollTop>20);
+// A queued scroll callback can remove Options between pointer-down and click,
+// moving Record onto a different button. Keep this layout through click; do not
+// synthesize a click, capture the pointer, or turn a drag/cancel into recording.
+let transportPointer=null,transportLayoutFrame=0,transportLayoutTimer=0,transportAwaitingClick=false;
+function syncCompactTransport(){if(transportPointer!==null)return;const compact=host.scrollTop>150||(host.classList.contains('sg-scrolled')&&host.scrollTop>20);
  // Phones: entering the scrolled bar re-folds Recording helpers (its toggle stays in the bar) so lanes keep room.
- if(compact&&!host.classList.contains('sg-scrolled')&&matchMedia('(max-width:720px)').matches)host.querySelector('.sg-record-helpers').open=false;host.classList.toggle('sg-scrolled',compact);$('sgShowControls').hidden=!compact;},{passive:true});
+ if(compact&&!host.classList.contains('sg-scrolled')&&matchMedia('(max-width:720px)').matches)host.querySelector('.sg-record-helpers').open=false;host.classList.toggle('sg-scrolled',compact);$('sgShowControls').hidden=!compact;}
+host.addEventListener('scroll',syncCompactTransport,{passive:true});
+host.querySelector('.sg-transport').addEventListener('pointerdown',e=>{
+ if(!e.isPrimary||e.button!==0||!e.target.closest('button'))return;
+ cancelAnimationFrame(transportLayoutFrame);clearTimeout(transportLayoutTimer);transportPointer=e.pointerId;transportAwaitingClick=false;
+},{passive:true});
+function finishTransportLayout(){
+ clearTimeout(transportLayoutTimer);cancelAnimationFrame(transportLayoutFrame);
+ transportLayoutFrame=requestAnimationFrame(()=>{transportPointer=null;transportAwaitingClick=false;syncCompactTransport();});
+}
+function releaseTransportLayout(e){
+ if(transportPointer===null||(e.type!=='blur'&&e.pointerId!==transportPointer))return;
+ if(e.type==='pointerup'){
+  // Touch compatibility clicks may arrive after the next animation frame.
+  // Keep their hit target in place through click; release without a click too.
+  transportAwaitingClick=true;clearTimeout(transportLayoutTimer);
+  transportLayoutTimer=setTimeout(finishTransportLayout,500);
+ }else finishTransportLayout();
+}
+window.addEventListener('pointerup',releaseTransportLayout,{capture:true,passive:true});
+window.addEventListener('pointercancel',releaseTransportLayout,{capture:true,passive:true});
+window.addEventListener('blur',releaseTransportLayout);
+window.addEventListener('click',()=>{if(transportAwaitingClick)finishTransportLayout();},{capture:true,passive:true});
 // Sticky top bar: anything scrolled into view (keyboard focus, Show vocal, selection) lands below it, never under it.
 new ResizeObserver(()=>{host.style.scrollPaddingTop=(host.querySelector('.sg-transport').offsetHeight+8)+'px';}).observe(host.querySelector('.sg-transport'));
 $('sgShowControls').onclick=()=>{host.scrollTo({top:0,behavior:'instant'});$('sgRecord').focus({preventScroll:true});};

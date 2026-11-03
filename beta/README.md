@@ -1,6 +1,20 @@
+# Playbook Vocal Studio 0.36.8 beta candidate
+
+This candidate combines the saved-source protection, recording-toolbar stability fix and the cautious Smart Guide wording from the two different 0.36.5 packages. It is on hold pending full release qualification; it does not certify release-quality sound.
+
+The audio algorithms, engine binaries, defaults and approved presets are unchanged. Missing-original recovery protects surviving saved recordings but cannot recreate lost bytes. Keep downloaded project backups.
+
+Extract this entire folder. On Windows run `py -m http.server 8000` inside it; otherwise use `python3 -m http.server 8000`. Open `http://localhost:8000/` and keep the terminal running. Use HTTPS for remote microphone access. Do not open index.html directly.
+
+[Release notes](CHANGES-0.36.6.md) · [Test setup](TESTING.md) · [GitHub repair PR](https://github.com/Westgeorge1/playbook-vocal-studio/pull/1)
+
+The runner contains 30 suites. The separate failure-capture control and long-POLISH acceptance are documented in TESTING.md. A companion validation report identifies the exact frozen candidate and its actual results. Historical reports apply only to their named builds.
+
+## Previous release documentation
+
 # Playbook Vocal Studio 0.36.3 beta
 
-[Open the 0.36.3 beta](https://westgeorge1.github.io/playbook-vocal-studio/beta/) · [Open the 0.32.3 main studio](https://westgeorge1.github.io/playbook-vocal-studio/)
+[Open the 0.36.8 beta](https://westgeorge1.github.io/playbook-vocal-studio/beta/) · [Open the 0.32.3 main studio](https://westgeorge1.github.io/playbook-vocal-studio/)
 
 0.36.3 updates guided tuning, noise safety, offline setup and interrupted recording recovery. [Release notes](CHANGES-0.36.3.md).
 

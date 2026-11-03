@@ -146,8 +146,8 @@ const songSeconds = () => S.original ? S.original.length / S.rate : 0;
 
 // ---------------------------------------------------------------- engine (worker)
 // 0.17.2: the app and the audio engine have separate version numbers
-var APP_VERSION="0.36.4",ENGINE_VERSION="0.12.1";
-const worker = new Worker("worker.js?v=0.36.4");
+var APP_VERSION="0.36.8",ENGINE_VERSION="0.12.1";
+const worker = new Worker("worker.js?v=0.36.8");
 let reqId = 0, engineFailure = null; const pending = {};
 var ENGINE_WAIT_MS = 120000;
 let engineSeconds=0;
@@ -2147,7 +2147,7 @@ async function restore() {
    for(const [id,src] of Object.entries(last.song.sources||{})){
      const audio=await readSource(src);if(audio)sources[id]=audio;else missingSource=true;
    }
-   if(missingSource){warnings.push('Some saved original recordings are missing. Open your latest project backup to restore all tracks.');last.song=null;}
+   if(missingSource)throw Error('Some saved original recordings are missing. Open your latest project backup to restore all tracks.');
    else last.song={...last.song,tracks,sources,previousMix};
   }
   last.storageWarnings=warnings;restoreStage="opening the saved project";return last;

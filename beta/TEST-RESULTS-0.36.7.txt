@@ -1,0 +1,47 @@
+Playbook Vocal Studio beta 0.36.7
+
+Complete run: node run-tests.cjs (serial, Chromium/Playwright), 2026-11-03
+31/31 suites passed; 0 skipped. 1189 reported checks passed.
+This is one complete run, not the three consecutive runs in the qualification checklist.
+
+PASS tests-audit/storage-faults 5.5 s
+PASS tests-audit/transport-layout 5 s
+PASS tests-audit/transport-permission 12.2 s
+PASS tests-audit/transport-touch 9.1 s
+PASS tests-0.32.4/navigation 28.2 s
+PASS tests-0.32.4/storage 4.2 s
+PASS tests-0.32.5/layout 19.1 s
+PASS tests-0.33.0/timeline-move 62.7 s
+PASS tests-0.33.0/cleaning 82.2 s
+PASS tests-0.33.0/tuning-plus 37.9 s
+PASS tests-0.33.1/regressions 80.8 s
+PASS tests-0.34.0/ux 44 s
+PASS tests-0.34.1/laptop 44.3 s
+PASS tests-0.34.2/coach 49.9 s
+PASS tests-0.35.0/phrase-guide 25.4 s
+PASS tests-0.32.3/cleanup 41.3 s
+PASS tests-0.32.0/editors 21.2 s
+PASS tests-0.32.0/tuning 254 s
+PASS tests-0.32.0/workspace-editor 119.9 s
+PASS tests-0.32.3/windows 28.3 s
+PASS tests-0.36.7/recording 14.2 s
+PASS tests-0.36.7/phone 22.8 s
+PASS tests-0.36.7/storage-keep 6.1 s
+PASS tests-0.36.1/manual-cleanup 10.5 s
+PASS tests-0.36.0/workflow 32.6 s
+PASS tests-0.36.0/guide-undo 18.8 s
+PASS tests-0.35.1/transport 32.4 s
+PASS tests-0.32.3/restore 76.9 s
+PASS tests-0.31.11/delete 22.1 s
+PASS tests-0.32.3/playback 31.7 s
+PASS tests-0.32.3/upgrade 14.6 s
+
+Approved presets: independent same-browser comparison with 0.32.3
+PASS identical tuned and final PCM versus the reference none {"rate":44100,"tuned":[[65908
+PASS identical tuned and final PCM versus the reference presetSnapSmooth {"rate":44100,"tu
+PASS identical tuned and final PCM versus the reference presetCenterSmooth {"rate":44100,"
+
+Crash recovery (phone): Recovered draft lengths: [ 90112 ]
+ENGINE-SHA256.txt: all 7 locked engine files OK (unchanged).
+
+Not run here: tests-0.36.4/long-polish.cjs (five-minute song). The earlier one-off 0.36.6 phone recovery failure was not reproduced (24 independent attempts plus this run); its cause remains unconfirmed. Physical phones, Bluetooth and human listening are still owner checks.

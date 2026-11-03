@@ -17,7 +17,7 @@ async function monitorLevels(arr,rate){
    if(!ch?.[0]||ch[0].length<=30*rate||metrics.has(ch[0])){ms.push(measure(ch,rate));continue;}
    // Long loudness scans must not block the transport and progress display.
    // One measurement at a time bounds the additional worker buffers.
-   if(!worker)worker=new Worker('quality-worker.js?v=0.36.4');
+   if(!worker)worker=new Worker('quality-worker.js?v=0.36.8');
    const value=await new Promise((resolve,reject)=>{
     const job={seconds:ch[0].length/rate};
     const finish=(error,result)=>{clearTimeout(job.timer);if(error)reject(error);else resolve(result);};
@@ -35,7 +35,7 @@ async function monitorLevels(arr,rate){
 async function matched(arr,rate){const ms=await monitorLevels(arr,rate),levels=ms.map(m=>m?.lufs??m?.rms??-Infinity),finite=levels.filter((v,i)=>i!==3&&Number.isFinite(v)),target=finite.length?Math.min(...finite):0;const gains=ms.map((m,i)=>Number.isFinite(levels[i])?Math.pow(10,Math.max(-60,Math.min(24,target-levels[i]))/20):1),safe=ms.map(m=>m?Math.min(1,Math.pow(10,(-1-m.samplePeak)/20)):1);const cap=Math.min(1,...gains.map((g,i)=>safe[i]/g));return {gains:gains.map(g=>g*cap),safe};}
 class Client{
  constructor(){
-  this.n=0;this.seconds=0;this.jobs=new Map();this.w=new Worker('worker.js?v=0.36.4');
+  this.n=0;this.seconds=0;this.jobs=new Map();this.w=new Worker('worker.js?v=0.36.8');
   this.w.onmessage=({data:m})=>{
    if(m.type==='stage'){this.watch();window.SongPolish?.progress('Vocal effects · '+m.text);return;}
    if(m.type==='error'){this.fail(Error(m.message));return;}
@@ -59,7 +59,7 @@ class Client{
  }
  close(){this.fail(Error('Tuning track changed.'));}
 }
-async function editor(){if(api)return api;if(!iframe){iframe=document.createElement('iframe');iframe.id='noteEditorFrame';iframe.title='Playbook vocal note editor';iframe.src='note-editor.html?embed=1&v=0.36.4';$('newNotePanel').append(iframe);}
+async function editor(){if(api)return api;if(!iframe){iframe=document.createElement('iframe');iframe.id='noteEditorFrame';iframe.title='Playbook vocal note editor';iframe.src='note-editor.html?embed=1&v=0.36.8';$('newNotePanel').append(iframe);}
  const frame=iframe,start=performance.now();while(!frame.contentWindow?.PlaybookNoteEditor){if(iframe!==frame)throw Error("The editor view closed.");if(performance.now()-start>20000)throw Error('The note editor could not open. Switch to Original tuner and retry.');await new Promise(r=>setTimeout(r,30));}
  api=iframe.contentWindow.PlaybookNoteEditor;api.onChange(edited);api.onPlay(()=>{endLoop();stopPlayback();window.SongStudio?.stopPlay();});return api;
 }
@@ -110,7 +110,7 @@ async function decorate(r,msg){
   return {...r,state:st,noteEditor:true,mask:(r.mask||0)|24,audio:{...r.audio,3:cache.tuned,4:cache.final},spectrum:p.spectrum||r.spectrum};
  }catch(e){error=e.message;if(typeof S!=='undefined')S.dirty=true;throw e;}finally{processing=false;ui();}
 }
-async function alternate(ch,P,preset=null){if(cfg.editor?.channels===1&&ch.length===2&&SongCore.samePcm([ch[0]],[ch[1]]))ch=[ch[0]];const f=document.createElement('iframe');f.hidden=true;f.src='note-editor.html?embed=1&v=0.36.4';document.body.append(f);try{const start=performance.now();while(!f.contentWindow?.PlaybookNoteEditor){if(performance.now()-start>20000)throw Error('Alternate tuning preview could not open.');await new Promise(r=>setTimeout(r,30));}const e=f.contentWindow.PlaybookNoteEditor;await e.load(ch,cache.rate,{state:cfg.editor,key:P.key,scale:scales[P.scale]});
+async function alternate(ch,P,preset=null){if(cfg.editor?.channels===1&&ch.length===2&&SongCore.samePcm([ch[0]],[ch[1]]))ch=[ch[0]];const f=document.createElement('iframe');f.hidden=true;f.src='note-editor.html?embed=1&v=0.36.8';document.body.append(f);try{const start=performance.now();while(!f.contentWindow?.PlaybookNoteEditor){if(performance.now()-start>20000)throw Error('Alternate tuning preview could not open.');await new Promise(r=>setTimeout(r,30));}const e=f.contentWindow.PlaybookNoteEditor;await e.load(ch,cache.rate,{state:cfg.editor,key:P.key,scale:scales[P.scale]});
  if(preset){
   if(S.beat)await e.backing(toChannels(S.beat),S.beat.sampleRate,true);
   if(!e.guidePreset(preset,true))throw Error('No tunable notes are available on this vocal.');
