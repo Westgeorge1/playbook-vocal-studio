@@ -1,4 +1,4 @@
-# Playbook Vocal Studio 0.36.6 beta candidate
+# Playbook Vocal Studio 0.36.8 beta candidate
 
 This candidate combines the saved-source protection, recording-toolbar stability fix and the cautious Smart Guide wording from the two different 0.36.5 packages. It is on hold pending full release qualification; it does not certify release-quality sound.
 
@@ -14,7 +14,7 @@ The runner contains 30 suites. The separate failure-capture control and long-POL
 
 # Playbook Vocal Studio 0.36.3 beta
 
-[Open the 0.36.3 beta](https://westgeorge1.github.io/playbook-vocal-studio/beta/) · [Open the 0.32.3 main studio](https://westgeorge1.github.io/playbook-vocal-studio/)
+[Open the 0.36.8 beta](https://westgeorge1.github.io/playbook-vocal-studio/beta/) · [Open the 0.32.3 main studio](https://westgeorge1.github.io/playbook-vocal-studio/)
 
 0.36.3 updates guided tuning, noise safety, offline setup and interrupted recording recovery. [Release notes](CHANGES-0.36.3.md).
 

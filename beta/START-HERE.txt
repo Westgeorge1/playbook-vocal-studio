@@ -1,3 +1,7 @@
+PLAYBOOK VOCAL STUDIO 0.36.8 BETA
+
+The studio now asks your browser to keep your songs on this device, so a phone or laptop short on space does not clear them. Check Project storage: Keep songs on this device should say On. Keep backing up your projects. See CHANGES-0.36.8.md.
+
 PLAYBOOK VOCAL STUDIO 0.36.6 BETA CANDIDATE — HOLD
 
 This is a combined reliability candidate, not a qualified release.
