@@ -1,14 +1,14 @@
-# Playbook Vocal Studio 0.36.8 beta candidate
+# Playbook Vocal Studio 0.36.9 follow-up candidate
 
-This candidate combines the saved-source protection, recording-toolbar stability fix and the cautious Smart Guide wording from the two different 0.36.5 packages. It is on hold pending full release qualification; it does not certify release-quality sound.
+**Beta – qualification ongoing. This follow-up is not deployed.** The live beta remains the owner's frozen 0.36.8 build; the main studio remains 0.32.3.
 
-The audio algorithms, engine binaries, defaults and approved presets are unchanged. Missing-original recovery protects surviving saved recordings but cannot recreate lost bytes. Keep downloaded project backups.
+Recording deadlines now follow the audio clock. An independent five-second stall guard keeps received audio when the clock or microphone capture stops advancing. The normal Stop, cancelled recording and missing-acknowledgement recovery paths remain in place. Audio algorithms, the seven locked engine files, defaults and approved presets are unchanged.
 
-Extract this entire folder. On Windows run `py -m http.server 8000` inside it; otherwise use `python3 -m http.server 8000`. Open `http://localhost:8000/` and keep the terminal running. Use HTTPS for remote microphone access. Do not open index.html directly.
+[Changes](CHANGES-0.36.9.md) · [Test setup](TESTING.md) · [Live 0.36.8 beta](https://westgeorge1.github.io/playbook-vocal-studio/beta/)
 
-[Release notes](CHANGES-0.36.6.md) · [Test setup](TESTING.md) · [GitHub repair PR](https://github.com/Westgeorge1/playbook-vocal-studio/pull/1)
+Run `python3 -m http.server 8000` inside this source folder, then open `http://localhost:8000/`. Use HTTPS for remote microphone access. Keep downloaded project backups.
 
-The runner contains 30 suites. The separate failure-capture control and long-POLISH acceptance are documented in TESTING.md. A companion validation report identifies the exact frozen candidate and its actual results. Historical reports apply only to their named builds.
+The runner contains 33 suites. Release qualification uses one suite at a time; explicit stress runs are recorded separately. Physical Samsung checks and the listening pilot remain owner checks. Historical reports below apply only to their named builds.
 
 ## Previous release documentation
 
