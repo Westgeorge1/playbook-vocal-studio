@@ -1,5 +1,5 @@
 /* Cache only known public app assets. Never cache project or microphone data. */
-const version='0.36.4',scope=new URL(self.registration.scope);
+const version='0.36.5',scope=new URL(self.registration.scope);
 const prefix='pvs-offline:'+scope.pathname+':',name=prefix+version;
 const assets=new Set([
   "breath-find.js",

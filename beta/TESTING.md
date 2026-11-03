@@ -37,3 +37,13 @@ The 0.36.2 phone suite checks real taps with Explain saved on, a test microphone
 The full runner defaults to serial execution. On a host with sufficient memory, PVS_TEST_JOBS=2 runs two suites at a time with disjoint server ports. summary.json records each suite, exit status and duration. A failed suite never silently skips the remaining suites.
 
 For the 0.36.4 long-lane acceptance case, use the same Chromium and Playwright environment as the standard suites. Set PVS_TEST_OUT to an empty existing results directory and run `node tests-0.36.4/long-polish.cjs` after the standard suites finish. It needs several minutes and enough memory for the complete song and its full-length vocal effects. The output includes PCM and downloaded WAV fingerprints, timings, and two screenshots. Set PVS_KEEP_EXPORT=1 to also keep the synthetic mix WAV in the results directory.
+
+## 0.36.5 repair qualification
+
+The current runner has 30 suites, including tests-audit/storage-faults, transport-layout and transport-permission. Recording and phone wrappers require version 0.36.5. Run the complete suite three consecutive times against the same frozen ZIP; retain every invocation, summary and failure. Do not count reruns as replacing earlier failures.
+
+For targeted driver-latency checks, PVS_REPLAY_OBSERVER_DELAY_MS=2200 delays replay observation and PVS_R_DRIVER_DELAY_MS=10000 delays the positive R-key driver. Browser-side observers still require actual output/capture, and the existing 30-second waits are unchanged. The separate permission regression uses a nine-second song and requires cancellation after natural end.
+
+Verify historical reference files against their pinned GitHub blobs. A similarly numbered owner archive may be a different variant; its version string alone is not enough.
+
+These automated checks and hashes do not certify musical quality. Human/professional listening and actual phone hardware acceptance remain outstanding until separately evidenced.
