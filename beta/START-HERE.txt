@@ -1,4 +1,6 @@
-PLAYBOOK VOCAL STUDIO 0.36.2 BETA
+PLAYBOOK VOCAL STUDIO 0.36.3 BETA
+
+Simple guide tuning compares Natural Roots and Gentle Polish. Help can prepare the studio for offline reopening. After a recording interruption, check Interrupted recordings on Song & vocals.
 
 On a phone, open the /beta/ link in your browser. Tap Record and allow microphone access if prompted. Explain controls can stay on. Tap Stop & keep, then Hear this take.
 

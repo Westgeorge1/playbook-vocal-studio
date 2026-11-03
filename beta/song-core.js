@@ -61,7 +61,7 @@ function keyStale(w,t){if(!t.polish||t.polish.bypass)return false;if(w.key==null
 // 0.25 (R6): ONE validated PCM boundary. Every accepted POLISH result and every written WAV goes through
 // acceptPcm; non-finite samples (NaN/Infinity) are rejected. Results are memoised per (immutable) array.
 const FINITE=new WeakMap();
-function pcmFinite(ch){if(!Array.isArray(ch)||!ch.length)return false;const n=ch[0]?.length;for(const c of ch){if(!(c instanceof Float32Array)||c.length!==n)return false;let v=FINITE.get(c);if(v===undefined){v=true;for(let i=0;i<c.length;i++){const x=c[i];if(x-x!==0){v=false;break;}}FINITE.set(c,v);}if(!v)return false;}return true;}
+function pcmFinite(ch){if(!Array.isArray(ch)||!ch.length)return false;const n=ch[0]?.length;for(const c of ch){if((!ArrayBuffer.isView(c)||Object.prototype.toString.call(c)!=='[object Float32Array]')||c.length!==n)return false;let v=FINITE.get(c);if(v===undefined){v=true;for(let i=0;i<c.length;i++){const x=c[i];if(x-x!==0){v=false;break;}}FINITE.set(c,v);}if(!v)return false;}return true;}
 function acceptPcm(ch,what='This audio'){if(!pcmFinite(ch))throw Object.assign(Error(what+' contains invalid samples (not-a-number or infinite values). It was not accepted; your recordings and the last good version are kept.'),{code:'nonfinite'});return ch;}
 // 0.25 (R1): POLISH capacity is a property of ONE lane: only the open editor is resident in the engine;
 // completed lanes keep their final render (saved to browser storage once). plan() runs BEFORE the engine is touched.

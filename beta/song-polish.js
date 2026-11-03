@@ -129,7 +129,7 @@ async function open(id=W()?.activeTrack){
  }catch(e){
   binding=null;S.song=w;
   if(previous&&previousSession){try{await restoreSession(previousSession);binding=previous;}catch(restoreError){lastError='Previous editor could not reopen: '+restoreError.message;}}
-  notify('Could not open POLISH: '+e.message,true);return false;
+  notify('Could not open POLISH: '+e.message+(C.trackEnd(t)>120?' This is a long vocal lane. Back up the project and polish a shorter passage on its own track before retrying.':''),true);return false;
  }finally{S.songApplying=false;switching=false;allowStep=false;if(binding?.id===id&&RC.step==='polish')window.SongStudio?.syncKey?.();persist();SongStudio.render();render();}
 }
 function beforeShow(screen){

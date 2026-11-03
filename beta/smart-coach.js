@@ -52,7 +52,7 @@ const HOW={
 /* ------------------------------------------------------------------ explain a control */
 const EXPLAIN={
  sgPlay:'Play or pause the current mix at the playhead. Mute, Solo and With backing apply.',sgStop:'Stops recording or playback. Use Go to song start to return to the beginning.',sgRecord:'Records the armed vocal track from the playhead (R). Press while playing to punch in.',sgCleanHere:'Opens Manual cleanup at the spot you are hearing, with about one second selected (N). Right-click a recording does the same there.',sgQuickFix:'Records only the selected word or phrase again.',sgJumpVocal:'Scrolls to the armed vocal track.',sgTempo:'Song tempo, time signature and key.',sgClick:'Metronome click while recording (C).',sgMonitor:'HEAR ME: hear your mic in the headphones while you record. Use headphones only.',sgMeter:'Mic level while recording: aim for the upper half on loud lines, never CLIP.',sgMove:'Move parts: drag recordings left or right in time. Shift+drag moves the whole track.',sgMovePart:'Move a part or track by an exact amount (beats or seconds).',sgAddSection:'Adds a label (Verse, Chorus…) across every track. Recordings are not changed.',sgAddTrack:'Adds another vocal track (harmony, double, ad-libs).',sgImport:'Imports an audio file onto the armed track.',sgLoadBeat:'Loads your riddim / instrumental.',
- noiseEnabled:'Turns Studio Spectral noise removal on or off for this vocal.',noiseReduction:'Maximum reduction: how far noise can be pushed down. 6 dB is gentle, 10 balanced, 15 strong. Higher risks a watery voice.',noiseScope:'Everywhere cleans all of the vocal; Pauses only leaves your singing exactly as recorded and cleans only between phrases.',noiseBleed:'Reduces the backing track that leaked into the mic, using the loaded backing as a reference.',noiseAi:'Blends in an AI voice isolator (trained on speech). Start at 25%; listen for a watery or lisping voice.',noiseLearn:'Learns the background from the selected quiet stretch (no singing, words or music).',noiseFind:'Finds the quietest stretch automatically to learn from.',noiseSample:'Plays the selected noise sample so you can check it has no singing in it.',noiseUndo:'Undoes the last cleaning change.',noiseSensitivity:'Noise threshold: raise only if noise remains; lower if quiet vocal detail disappears.',noiseHighpass:'Removes rumble below this frequency. Keep low (60–80 Hz) so low notes keep their body.',noiseHum:'Removes mains hum at 50 or 60 Hz and its harmonics. Only use if you hear a steady hum.',noiseRoomSave:'Saves the learned noise as a room profile to reuse for takes recorded in the same room.',
+ noiseEnabled:'Turns Studio Spectral noise removal on or off for this vocal.',noiseReduction:'Maximum reduction: how far noise can be pushed down. 6 dB is gentle, 10 balanced, 15 strong. Higher risks a watery voice.',noiseScope:'Everywhere cleans all of the vocal; Pauses only protects detected singing and fades the cleaning in between phrases. Listen for quiet word endings.',noiseBleed:'Reduces the backing track that leaked into the mic, using the loaded backing as a reference.',noiseAi:'Blends in an AI voice isolator (trained on speech). Start at 25%; listen for a watery or lisping voice.',noiseLearn:'Learns the background from the selected quiet stretch (no singing, words or music).',noiseFind:'Finds the quietest stretch automatically to learn from.',noiseSample:'Plays the selected noise sample so you can check it has no singing in it.',noiseUndo:'Undoes the last cleaning change.',noiseSensitivity:'Noise threshold: raise only if noise remains; lower if quiet vocal detail disappears.',noiseHighpass:'Removes rumble below this frequency. Keep low (60–80 Hz) so low notes keep their body.',noiseHum:'Removes mains hum at 50 or 60 Hz and its harmonics. Only use if you hear a steady hum.',noiseRoomSave:'Saves the learned noise as a room profile to reuse for takes recorded in the same room.',
  cleanListen:'BEFORE: as recorded · CLEANED: after noise removal · REMOVED NOISE: only what was taken out (should be background only).',abSeg:'What you hear: BEFORE (raw), CLEANED, TUNED (after the note editor) or FINAL (with the vocal chain).',
  presetSeg:'Vocal chain presets: a full starting point for EQ, compression, echo and reverb.',chainOn:'Turns the whole vocal chain on or off (FINAL vs TUNED).',eqCanvas:'EQ: drag a coloured point. Left/right = frequency, up/down = boost/cut. Small moves (±3 dB) usually sound best.',dynKnobs:'Peak control, compression, de-ess and warmth: how steady and smooth the vocal is.',eq2On:'Second EQ: final tone touch after compression. Keep within ±3 dB.',limitOn:'Output limiter keeps peaks under the ceiling. Leave it on with −1 dB.',
  playBtn:'Plays this vocal with its fitted backing (Space).',dawLoop:'Loops the selected region for listening (L).',noteRouteOpen:'Opens the note editor in a large tuning window.',polishSong:'Plays every vocal lane with the backing and song mixer.',polishExportSong:'Exports the song, the vocal mix, stems or this vocal.',
@@ -100,7 +100,7 @@ function rules(){
  if(c==='cleanup'){const a=num($('veA')?.value),b=num($('veB')?.value),db=num($('sepDb')?.value),mode=$('sepMode')?.selectedIndex||0;
   if(a!=null&&b!=null&&b-a>30)add('mc-long','warn',1,'Selection too long for Manual cleanup','Manual cleanup handles up to 30 seconds. For noise across the whole take use POLISH → CLEAN.');
   const v=a!=null&&b!=null&&b>a?voicedShare(a,b):null;
-  if(v!=null&&v>.35&&db>6)add('mc-voice','warn',1,'This selection covers singing','About '+Math.round(v*100)+'% of the selection is sung. Reducing '+db+' dB here will thin the word. Narrow the selection to the gap, or keep the reduction to 3–4 dB and check Hear removed for words.',[act('Set 4 dB',()=>setRange('sepDb',4))]);
+  if(v!=null&&v>.35&&db>4)add('mc-voice','warn',1,'This selection covers singing','About '+Math.round(v*100)+'% of the selection is sung. Reducing '+db+' dB here will thin the word. Narrow the selection to the gap, or keep the reduction to 3–4 dB and check Hear removed for words.',[act('Set 4 dB',()=>setRange('sepDb',4))]);
   else if(v!=null&&v<.1&&b-a<1.5&&mode===0)add('mc-breath','ok',1,'Looks like a breath or gap','This selection looks mostly unvoiced. Try 6 dB and listen to Hear removed. If you hear part of a word, lower the reduction or shorten the selection.');
   if(db>12)add('mc-deep','tip',1,'Reduction is strong','Over 12 dB can leave a hole or a click. Most breaths sound natural lowered 6–10 dB.',[act('Set 8 dB',()=>setRange('sepDb',8))]);
   if(mode===1&&db>8)add('mc-rumble','tip',1,'Rumble under voice','For a gust or thump under a word, 0–100 Hz with about 4 dB is usually enough; more takes the warmth out of low notes.');}
@@ -160,52 +160,12 @@ function recent(ids,ms=60000){const now=Date.now();return log.some(x=>now-x.t<ms
 function setRange(id,v){const e=$(id);if(!e)return;e.value=v;e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true}));}
 function setSel(id,v){const e=$(id);if(!e)return;e.value=v;e.dispatchEvent(new Event('change',{bubbles:true}));}
 function clickSel(s){document.querySelector(s)?.click();}
-// Estimate voicing in 10 ms frames relative to the whole lane. Use the stronger
-// channel in each frame so opposite-polarity stereo audio cannot cancel out.
-function sungFrames(channels,rate){
- const samples=channels[0].length,hop=Math.round(rate*.01),count=Math.ceil(samples/hop);
- const levels=new Float32Array(count),crossings=new Float32Array(count);
- for(let frame=0;frame<count;frame++){
-  const start=frame*hop,end=Math.min(start+hop,samples),length=end-start;
-  let strongest=-1;
-  for(const channel of channels){
-   let energy=0,changes=0;
-   for(let i=start;i<end;i++){
-    energy+=channel[i]*channel[i];
-    if(i>start&&(channel[i]>=0)!==(channel[i-1]>=0))changes++;
-   }
-   if(energy>strongest){strongest=energy;crossings[frame]=changes/length;}
-  }
-  levels[frame]=10*Math.log10(strongest/length+1e-12);
- }
- const sorted=levels.slice().sort(),floor=sorted[Math.floor(.1*(count-1))],loud=sorted[Math.floor(.95*(count-1))];
- // A take can be one sustained note with no quiet opening.
- const threshold=Math.max(-70,Math.min(floor+12,loud-6),loud-30);
- return Uint8Array.from(levels,(level,i)=>level>threshold&&crossings[i]<.12?1:0);
-}
-const frameCache=new WeakMap();
 function voicedShare(a,b){
- const edit=window.Studio?.state(),song=ST()?.song;
- if(!edit||!song)return null;
- const track=SongCore.track(song),region=track?.regions.find(r=>r.id===edit.pid);
- const take=region?.takes.find(t=>t.id===edit.tid);
- if(!take)return null;
- const [lo,hi]=SongCore.takeSpan(song,take);
- if(a<Math.max(region.start,lo/song.rate)||b>Math.min(region.end,hi/song.rate))return null;
- let cache=frameCache.get(song);
- if(!cache||cache.revision!==song.revision||cache.take!==take){
-  const audio=SongCore.renderTrack(song,track,{
-   end:Math.max(region.end,SongCore.trackEnd(track)),override:{regionId:region.id,takeId:take.id}
-  });
-  cache={revision:song.revision,take,frames:sungFrames(audio,song.rate)};
-  frameCache.set(song,cache);
- }
- const hop=Math.round(song.rate*.01)/song.rate;
- const start=Math.max(0,Math.floor(a/hop)),end=Math.min(cache.frames.length,Math.ceil(b/hop));
- if(end<=start)return null;
- let voiced=0;
- for(let i=start;i<end;i++)voiced+=cache.frames[i];
- return voiced/(end-start);
+ const edit=window.Studio?.state(),song=ST()?.song;if(!edit||!song)return null;
+ const track=SongCore.track(song),region=track?.regions.find(r=>r.id===edit.pid),take=region?.takes.find(t=>t.id===edit.tid);
+ if(!take)return null;const [lo,hi]=SongCore.takeSpan(song,take);
+ if(a<Math.max(region.start,lo/song.rate)-1/song.rate||b>Math.min(region.end,hi/song.rate)+1/song.rate)return null;
+ return BreathFind.voicedShare(song.sources[take.source],a-SongCore.origin(take),b-SongCore.origin(take));
 }
 /* ------------------------------------------------------------------ quality outlook */
 const R3=['Good','Fair','At risk'];
@@ -336,9 +296,20 @@ function bindFrame(){const f=$('noteEditorFrame'),d=frameDoc();if(!f||!d||boundD
  const w=frameWin();try{Object.assign(EXPLAIN,{});}catch(_){}
 }
 /* ------------------------------------------------------------------ boot */
-function dock(){const sh=$('guideSheet'),on=!!sh&&!sh.hidden&&innerWidth>=900;if(document.body.classList.contains('coach-docked')!==on){document.body.classList.toggle('coach-docked',on);dispatchEvent(new Event('resize'));}}
+let guideAutoScroll=null;
+function dock(){const open=!!$('guideSheet')&&!$('guideSheet').hidden,b=document.body;
+ const wide=open&&innerWidth>=900,narrow=open&&!wide;
+ if(b.classList.contains('coach-docked')===wide&&b.classList.contains('coach-phone-open')===narrow)return;
+ b.classList.toggle('coach-docked',wide);b.classList.toggle('coach-phone-open',narrow);dispatchEvent(new Event('resize'));
+ if(!narrow&&guideAutoScroll){const {host,before,after}=guideAutoScroll;guideAutoScroll=null;if(Math.abs(host.scrollTop-after)<2)host.scrollTop=before;}
+ if(narrow&&window.RC?.step==='rc')requestAnimationFrame(()=>{
+  const host=$('songStudio'),record=$('sgRecord'),sheet=$('guideSheet');if(!host||!record||sheet.hidden)return;
+  const overlap=record.getBoundingClientRect().bottom-sheet.getBoundingClientRect().top+8;
+  if(overlap>0){const before=host.scrollTop;host.scrollTop+=overlap;guideAutoScroll={host,before,after:host.scrollTop};}
+ });
+}
 function boot(){install();explainHandlers(document,()=>({x:0,y:0}));
- const sh=$('guideSheet');if(sh){new MutationObserver(()=>{dock();if(!sh.hidden)render(true);}).observe(sh,{attributes:true,attributeFilter:['hidden']});addEventListener('resize',()=>{const on=!!sh&&!sh.hidden&&innerWidth>=900;if(document.body.classList.contains('coach-docked')!==on)dock();});}
+ const sh=$('guideSheet');if(sh){new MutationObserver(()=>{dock();if(!sh.hidden)render(true);}).observe(sh,{attributes:true,attributeFilter:['hidden']});addEventListener('resize',dock);}
  setInterval(()=>{bindFrame();visited.add(context());evaluate();},1200);
  for(const s of ['guideBtn'])$(s)?.addEventListener('click',()=>setTimeout(()=>render(true),0));
  evaluate();}

@@ -14,6 +14,15 @@ const db=(a,b)=>10*Math.log10(a/b);
 function wav(x,name){const buf=Buffer.alloc(44+x.length*2);buf.write('RIFF');buf.writeUInt32LE(buf.length-8,4);buf.write('WAVEfmt ',8);buf.writeUInt32LE(16,16);buf.writeUInt16LE(1,20);buf.writeUInt16LE(1,22);buf.writeUInt32LE(R,24);buf.writeUInt32LE(R*2,28);buf.writeUInt16LE(2,32);buf.writeUInt16LE(16,34);buf.write('data',36);buf.writeUInt32LE(x.length*2,40);for(let i=0;i<x.length;i++)buf.writeInt16LE(Math.max(-32768,Math.min(32767,Math.round(x[i]*32767))),44+2*i);return {name,mimeType:'audio/wav',buffer:buf};}
 
 suite('cleaning',14,async({page,check})=>{
+ const NC=require('../noise-core.js'),B=require('../breath-find.js');
+ const inv=Float32Array.from(voice,x=>-x);
+ check('Anti-phase stereo has the same protected voice frames as mono',Buffer.from(P.voiceFrames([voice,inv],R).voice).equals(Buffer.from(P.voiceFrames([voice],R).voice)));
+ const saved={...NC.learn([mic],R,2,2.4),room:true};
+ const short=mic.slice(0,R);const room=NC.process([short],R,{...NC.defaults(),hum:60,profile:saved});
+ check('Saved room spectrum with hum filtering works on a shorter recording',room.channels[0].length===R&&room.channels[0].every(Number.isFinite)&&room.report.reductionDb===null);
+ const sung=Float32Array.from({length:R},(_,i)=>i>R*.2&&i<R*.8?.2*Math.sin(2*Math.PI*180*i/R):0);
+ check('Both guides can measure the same sung selection in source time',B.voicedShare({channels:[sung],rate:R},.3,.6)>.95);
+ check('A periodic learned sample carries a warning',NC.sampleWarning([sung],R,.3,.6).includes('tone'));
  /* ---------- maths ---------- */
  {const r=P.removeBleed([mic],beat,R,1),y=r.channels[0];let eb=0,er=0,vv=0;for(let i=R;i<N-R;i++){eb+=leak[i]**2;er+=(y[i]-voice[i]-breath[i])**2;vv+=voice[i]**2;}
   check('Beat bleed: finds the 9.3 ms leak delay (±0.3 ms)',Math.abs(r.report.lagMs-9.3)<=.3);
@@ -75,6 +84,27 @@ suite('cleaning',14,async({page,check})=>{
  await p.evaluate(()=>NoiseCleaner.mutate({profile:null}));await idle();
  await p.waitForTimeout(700);await p.locator('#noiseRoomList').selectOption('Bedroom booth');await p.locator('#noiseRoomUse').click();await idle();
  check('The saved room profile can be used on a take',await p.evaluate(()=>NoiseCleaner.state().profile?.power?.length>0)&&/Using room profile/.test(await p.locator('#noiseRoomMsg').textContent()));
+ // Check the actual bundled model on a changing pitched signal. A ten-ms wet delay
+ // creates a comb filter at partial blends even when the wet-only level looks fine.
+ const lag=await p.evaluate(async()=>{
+  const r=48000;let phase=0;const x=Float32Array.from({length:r*3},(_,i)=>{
+   const t=i/r,u=t%1,idx=Math.floor(t/.23),f=[113,150,170,240,190,145,130][idx%7]*(1+.007*Math.sin(2*Math.PI*5.2*t));
+   phase+=2*Math.PI*f/r;const env=Math.min(1,u/.016,(1-u)/.04)*(u<.12||u>.80?0:1);
+   return env*(.15*Math.sin(phase)+.04*Math.sin(2*phase)+.028*Math.sin(3*phase)+.015*Math.sin(5*phase));
+  });
+  const y=(await CleanPlus.isolate([x],r,1))[0];let best=-Infinity,shift=0;
+  for(let d=-700;d<=700;d+=2){let xy=0,xx=0,yy=0;for(let j=2400;j<x.length-2400;j+=8){xy+=x[j]*y[j+d];xx+=x[j]**2;yy+=y[j+d]**2;}const corr=xy/Math.sqrt(xx*yy);if(corr>best){best=corr;shift=d;}}
+  return {samples:shift,correlation:best};
+ });
+ console.log('Sung calibration signal, wet-to-dry alignment',lag);
+ check('AI output aligns to the dry vocal before blending',Math.abs(lag.samples)<70&&lag.correlation>.6,lag);
+ // Observe the actual CLEANED PCM for a nontrivial Undo / Redo, including
+ // whether the controls are available as soon as the host finishes processing.
+ await p.evaluate(()=>{const x=NoiseCleaner.debug().baseline;NoiseCleaner.mutate({on:true,scope:'all',ai:0,bleed:0,reduction:6,profile:NoiseCore.learn(x,S.rate,.24,.72)});});await idle();const six=await hashOf();
+ await p.evaluate(()=>NoiseCleaner.mutate({reduction:15}));await idle();const fifteen=await hashOf();
+ await p.locator('#noiseUndo').click();await idle();const back=await hashOf();
+ await p.locator('#noiseRedo').click();await idle();const forward=await hashOf();
+ check('Cleaning Undo and Redo restore distinct six- and fifteen-dB audio exactly',six!==fifteen&&back===six&&forward===fifteen,{six,fifteen,back,forward});
  // AI voice isolation (RNNoise, loaded on demand).
  await p.locator('#noiseScope').selectOption('all');await idle();const h1=await hashOf();
  await p.locator('#noiseAi').selectOption('0.5');await idle();await p.waitForTimeout(400);

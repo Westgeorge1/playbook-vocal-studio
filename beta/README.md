@@ -1,6 +1,8 @@
-# Playbook Vocal Studio 0.36.2 beta
+# Playbook Vocal Studio 0.36.3 beta
 
-[Open the 0.36.2 beta](https://westgeorge1.github.io/playbook-vocal-studio/beta/) · [Open the 0.32.3 main studio](https://westgeorge1.github.io/playbook-vocal-studio/)
+[Open the 0.36.3 beta](https://westgeorge1.github.io/playbook-vocal-studio/beta/) · [Open the 0.32.3 main studio](https://westgeorge1.github.io/playbook-vocal-studio/)
+
+0.36.3 updates guided tuning, noise safety, offline setup and interrupted recording recovery. [Release notes](CHANGES-0.36.3.md).
 
 0.36.2 fixes touch controls and microphone startup on phones. [Read the phone fixes](CHANGES-0.36.2.md).
 

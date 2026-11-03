@@ -4,7 +4,6 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Playbook Note Editor</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <style>
 /* Layout: one studio column. Transport, tools, the piano-roll editor as the hero, overview strip, then note / Smooth / Formant panels. */
 :root{
@@ -549,10 +548,10 @@ html.empty-editor [inert]{opacity:.58}
   <p class="foot">Everything runs on your device; your audio is never uploaded.</p>
 </div>
 
-<script src="project-storage.js?v=0.36.2"></script>
-<script src="note-editor-safety.js?v=0.36.2"></script>
-<script src="natural-tuning.js?v=0.36.2"></script>
-<script src="chord-core.js?v=0.36.2"></script>
+<script src="project-storage.js?v=0.36.3"></script>
+<script src="note-editor-safety.js?v=0.36.3"></script>
+<script src="natural-tuning.js?v=0.36.3"></script>
+<script src="chord-core.js?v=0.36.3"></script>
 <script>
 (() => {
 "use strict";
@@ -2460,6 +2459,7 @@ function applyResearchPreset(kind,opts={}){
   else{S.autoMode="natural";S.centreMode="weighted";S.autoSpeed=P.speed;S.autoFlex=P.flex;S.autoKeepInTune=P.flex>0;S.autoExpression=true;S.autoKeepBlue=P.blue;S.autoDrift=P.drift;S.autoVib=P.vib;S.autoHumanize=P.human;}
   setSmooth(P.amount,false);setSmoothOn(true,false);automaticUI();
   if(!opts.noChange)changed();
+  return true;
 }
 $("presetRoots").onclick=()=>applyResearchPreset("roots");
 $("presetGentle").onclick=()=>applyResearchPreset("gentle");
@@ -3033,6 +3033,10 @@ window.PlaybookNoteEditor={
  },
  undoMarker(){return Hist.undo.at(-1);},
  undoIfCurrent(marker){if(!marker||Hist.undo.at(-1)!==marker||S.busy)return false;undo();return true;},
+ guidePreset(kind,preview=false){
+  return kind==='roots'||kind==='gentle'?!!applyResearchPreset(kind,{quiet:preview,noHist:preview}):
+    (kind==='snap'||kind==='centre')&&!!applyVocalPreset(kind,{quiet:preview,noHist:preview});
+ },
  approvedPreset(kind,preview=false){return !!applyVocalPreset(kind,{quiet:preview,noHist:preview});},
  reviewNext(){const i=S.notes.findIndex((n,i)=>autoReview(n,i)&&i>S.sel),j=i>=0?i:S.notes.findIndex(autoReview);if(j<0)return;selectOnly(j);S.playhead=span(S.notes[j]).oa;S.view.t0=Math.max(0,S.playhead-.3);changed();},
  state:bridgeState,
@@ -3190,6 +3194,6 @@ try { tuningPlusUI(); } catch (e) { console.warn("Tuning additions could not sta
 })();
 })();
 </script>
-<script src="note-editor-ux.js?v=0.36.2"></script>
+<script src="note-editor-ux.js?v=0.36.3"></script>
 
 </html>

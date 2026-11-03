@@ -42,5 +42,11 @@ suite('guide-undo',31,async({page,check})=>{
  await mode('tone');await prepare();await p.locator('#pgKeep').click();await p.waitForFunction(()=>document.getElementById('pgMessage').textContent.includes('Tone kept'),null,{timeout:150000});
  await p.evaluate(()=>{setP('chEq2Gain',2,0);syncControls();});await idle();
  await p.locator('#pgUndo').click();check('A later POLISH edit cannot be popped by the Guide',await p.evaluate(()=>S.P.chEq2Gain===2&&document.getElementById('pgUndo').disabled));
+ await mode('tune');await prepare();await p.locator('#pgKeep').click();await p.waitForFunction(()=>pgMessage.textContent.includes('Preset kept'),null,{timeout:150000});await idle();
+ const later=await p.evaluate(async()=>{const e=await NoteTuner.editor();const frame=document.getElementById('noteEditorFrame').contentWindow;frame.confirm=()=>true;frame.document.getElementById('presetTight').click();return JSON.stringify(e.state().settings);});
+ await idle();await p.locator('#pgUndo').click();check('A later note-editor edit blocks guided tuning Undo',await p.evaluate(async s=>JSON.stringify((await NoteTuner.editor()).state().settings)===s,later)&&await p.locator('#pgUndo').isDisabled());
+ await mode('harmony');await prepare();await p.locator('#pgKeep').click();await p.waitForFunction(()=>pgMessage.textContent.includes('Kept'));await idle();
+ await p.evaluate(()=>SongStudio.edit(w=>{w.title='Later song title';}));await p.locator('#pgUndo').click();
+ check('A later unrelated song edit is not undone by the guide',await p.evaluate(()=>S.song.title==='Later song title'&&pgUndo.disabled));
  await p.context().close();
 });

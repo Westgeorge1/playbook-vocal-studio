@@ -112,6 +112,7 @@ function apply(){
  if(opt){opt.hidden=!on&&mode.value!=='classic';opt.textContent=mode.value==='classic'&&!on?'Classic Smooth (current)':'Classic Smooth';}
  // Blind compare: the original approved presets are classic tools too (not while a test is running).
  const ids=['cmpA','cmpB','cmpC'],run=$('cmpRun');
+ if(!on&&run&&!run.hidden&&ids.some(id=>/^approved/.test($(id)?.value||'')))$('cmpCancel')?.click();
  if(run&&run.hidden)for(const id of ids){const s=$(id);if(!s)continue;for(const o of s.options)if(/^approved/.test(o.value))o.hidden=!on;
   if(!on&&/^approved/.test(s.value)){const pick=['roots','gentle','tight','hard'].find(v=>!ids.some(j=>$(j)?.value===v));if(pick)s.value=pick;}}
 }

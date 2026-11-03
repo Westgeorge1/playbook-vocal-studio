@@ -16,18 +16,37 @@ function learn(ch,rate,start,end,kind='manual'){dimensions(ch,rate);if(!Number.i
 function periodicity(ch,rate,a,b){const step=Math.max(1,Math.round(rate/12000)),sr=rate/step;let c=ch[0];if(ch[1]&&rms([ch[1]],a,b)>rms([c],a,b))c=ch[1];const x=[];for(let i=a;i<b;i+=step)x.push(c[i]);let mean=x.reduce((a,b)=>a+b,0)/x.length;x.forEach((v,i)=>x[i]=v-mean);let best=0;for(let lag=Math.floor(sr/700);lag<=Math.ceil(sr/70);lag++){let dot=0,e1=0,e2=0;for(let i=lag;i<x.length;i++){dot+=x[i]*x[i-lag];e1+=x[i]*x[i];e2+=x[i-lag]*x[i-lag];}best=Math.max(best,dot/Math.sqrt(e1*e2+1e-30));}return best;}
 function auto(ch,rate){dimensions(ch,rate);const step=Math.round(rate*.02),span=Math.ceil(.4*rate/step),levels=[];for(let i=0;i+step<=ch[0].length;i+=step)levels.push(rms(ch,i,i+step));if(levels.length<span+5)return {profile:null,reason:'Too short to identify a noise-only pause. Learn a sample manually.'};const sorted=levels.slice().sort((a,b)=>a-b),voice=sorted[Math.floor(sorted.length*.8)];let best=Infinity,start=-1;for(let i=0;i+span<=levels.length;i++){let p=0,mx=0,mn=Infinity;for(let j=i;j<i+span;j++){p+=levels[j]**2;mx=Math.max(mx,levels[j]);mn=Math.min(mn,levels[j]);}const level=Math.sqrt(p/span);if(level<best&&level>1e-7&&mx<Math.max(mn*5,1e-7)){best=level;start=i*step;}}if(start<0||db(voice/Math.max(best,1e-12))<12)return {profile:null,reason:'No clear noise-only pause found. Choose a sample without singing.'};const end=Math.min(ch[0].length,start+span*step);if(periodicity(ch,rate,start,end)>.55)return {profile:null,reason:'The quietest pause contains a sustained tone. Listen and learn a noise-only sample manually.'};const profile=learn(ch,rate,start/rate,end/rate,'auto');return {profile,reason:'Automatic profile from '+profile.start.toFixed(2)+'–'+profile.end.toFixed(2)+' s. Check it with Listen to sample.'};}
 function filter(ch,rate,settings){const out=ch.map(c=>Float32Array.from(c));function biquad(type,f,q){const w=2*Math.PI*f/rate,cs=Math.cos(w),a=Math.sin(w)/(2*q),a0=1+a,b0=type==='highpass'?(1+cs)/2:1,b1=type==='highpass'?-(1+cs):-2*cs,b2=b0,a1=-2*cs/a0,a2=(1-a)/a0;for(const c of out){let x1=0,x2=0,y1=0,y2=0;for(let i=0;i<c.length;i++){const x=c[i],y=b0/a0*x+b1/a0*x1+b2/a0*x2-a1*y1-a2*y2;c[i]=y;x2=x1;x1=x;y2=y1;y1=y;}}}if(settings.highpass>0)biquad('highpass',settings.highpass,Math.SQRT1_2);if(settings.hum)for(let k=1;k<=5;k++)biquad('notch',settings.hum*k,40);return out;}
+// Apply the current filters to a saved room spectrum without sampling the new
+// performance at the old recording's timestamp. The spectrum is power, not amplitude.
+function filteredRoomPower(profile,rate,cfg){
+ const power=profile.power.slice(),bins=power.length;
+ const filters=cfg.highpass?[[cfg.highpass,Math.SQRT1_2,true]]:[];
+ if(cfg.hum)for(let i=1;i<=5;i++)filters.push([cfg.hum*i,40,false]);
+ for(const [hz,q,hp] of filters){
+  const w0=2*Math.PI*hz/rate,c0=Math.cos(w0),alpha=Math.sin(w0)/(2*q);
+  for(let k=0;k<bins;k++){const w=Math.PI*k/(bins-1),c=Math.cos(w);
+   const numerator=hp?(1+c0)*(c-1):2*(c-c0);
+   power[k]*=numerator**2/Math.max(1e-24,4*((c-c0)**2+(alpha*Math.sin(w))**2));
+  }
+ }
+ return power;
+}
 function process(ch,rate,cfg,progress=()=>{}){dimensions(ch,rate);validate(cfg);if(cfg.mode==='original'||!cfg.on||(!cfg.reduction&&!cfg.highpass&&!cfg.hum))return {channels:ch.map(c=>Float32Array.from(c)),profile:cfg.profile,report:{bypassed:true,reason:'Noise removal bypassed.',reductionDb:0}};
  let p=cfg.profile;if(p&&p.rate!==rate)throw Error('The noise profile sample rate no longer matches this vocal. Learn it again.');let reason='';if(!p){const a=auto(ch,rate);p=a.profile;reason=a.reason;}
  const n=size(rate),hop=n/4,len=ch[0].length,bins=n/2+1,w=windowFor(n),filtered=filter(ch,rate,cfg);let out=filtered;
- if(p&&cfg.reduction>0){let noise=p.power;if(cfg.highpass||cfg.hum)noise=learn(filtered,rate,p.start,p.end,p.kind).power;
+ if(p&&cfg.reduction>0){let noise=p.power;if(cfg.highpass||cfg.hum)noise=p.room||p.end>len/rate?filteredRoomPower(p,rate,cfg):learn(filtered,rate,p.start,p.end,p.kind).power;
   out=ch.map(()=>new Float32Array(len));const norm=new Float32Array(len),last=new Float64Array(bins).fill(1),prevPower=new Float64Array(bins),prevSignal=new Float64Array(bins),floor=10**(-cfg.reduction/20),sensitivity=10**(cfg.sensitivity/10),attack=Math.exp(-hop/(rate*.003)),release=Math.exp(-hop/(rate*(.035+.065*cfg.protect))),radius=Math.round(cfg.smoothing),total=Math.ceil((len+n)/hop);let f=0,previousEnergy=0;
   for(let start=-n+hop;start<len;start+=hop){const s=spectrum(filtered,start,n,w),g=new Float64Array(bins),ratios=new Float64Array(bins),energy=s.power.reduce((a,b)=>a+b,0),onset=energy>previousEnergy*2;previousEnergy=energy;for(let k=0;k<bins;k++){const np=Math.max(1e-20,noise[k]*sensitivity),tracked=onset?s.power[k]:.65*prevPower[k]+.35*s.power[k],ratio=tracked/np;ratios[k]=ratio;const xi=.82*prevSignal[k]/np+.18*Math.max(0,ratio-1.6);let gain=Math.sqrt(xi/(1+xi));if(ratio>8)gain=Math.max(gain,1-(1-.8*cfg.protect)/Math.max(2,ratio));if(onset&&ratio>3)gain=Math.max(gain,.65+.3*cfg.protect);g[k]=Math.max(floor,Math.min(1,gain));prevPower[k]=tracked;}
    for(let k=0;k<bins;k++){let sum=0,weight=0;for(let j=Math.max(0,k-radius);j<=Math.min(bins-1,k+radius);j++){const wt=radius+1-Math.abs(j-k);sum+=g[j]*wt;weight+=wt;}let target=sum/weight;if(ratios[k]>8)target=Math.max(target,g[k]);const a=target>last[k]?attack:release;last[k]=clamp(a*last[k]+(1-a)*target,floor,1);prevSignal[k]=prevPower[k]*last[k]**2;for(let c=0;c<ch.length;c++){s.re[c][k]*=last[k];s.im[c][k]*=last[k];if(k&&k<n/2){s.re[c][n-k]*=last[k];s.im[c][n-k]*=last[k];}}}
    for(let c=0;c<ch.length;c++){fft(s.re[c],s.im[c],true);for(let j=Math.max(0,-start);j<Math.min(n,len-start);j++)out[c][start+j]+=s.re[c][j]*w[j];}for(let j=Math.max(0,-start);j<Math.min(n,len-start);j++)norm[start+j]+=w[j]*w[j];if((++f%100)===0)progress(f/total);
   }for(let c=0;c<ch.length;c++)for(let i=0;i<len;i++)out[c][i]/=norm[i]||1;
  }
- dimensions(out,rate);const removed=ch.map((c,j)=>Float32Array.from(c,(v,i)=>v-out[j][i]));let peak=0;for(const c of out)for(const v of c)peak=Math.max(peak,Math.abs(v));const reduction=p?db(rms(ch,p.start*rate,p.end*rate)/Math.max(1e-12,rms(out,p.start*rate,p.end*rate))):null;
+ dimensions(out,rate);const removed=ch.map((c,j)=>Float32Array.from(c,(v,i)=>v-out[j][i]));let peak=0;for(const c of out)for(const v of c)peak=Math.max(peak,Math.abs(v));const reduction=p&&!p.room&&p.end<=len/rate?db(rms(ch,p.start*rate,p.end*rate)/Math.max(1e-12,rms(out,p.start*rate,p.end*rate))):null;
  return {channels:out,removed,profile:p,report:{bypassed:!p&&!cfg.highpass&&!cfg.hum,reason:reason||(p?'Noise profile applied.':'No profile: spectral reduction bypassed.'),profileKind:p?.kind||null,noiseDb:p?.noiseDb??null,reductionDb:reduction,peakDb:db(peak),samples:len,channels:ch.length}};
 }
-const api={defaults,validate,validProfile,dimensions,size,fft,learn,auto,process,rms};if(typeof module==='object'&&module.exports)module.exports=api;else root.NoiseCore=api;
+function sampleWarning(ch,rate,start,end){
+ const a=Math.round(start*rate),b=Math.min(Math.round(end*rate),a+Math.round(.4*rate));
+ return periodicity(ch,rate,a,b)>.55?'This sample contains a repeating tone. It could be hum, singing or music. Listen to the sample before using it.':'';
+}
+const api={sampleWarning,defaults,validate,validProfile,dimensions,size,fft,learn,auto,process,rms};if(typeof module==='object'&&module.exports)module.exports=api;else root.NoiseCore=api;
 })(typeof self!=='undefined'?self:globalThis);

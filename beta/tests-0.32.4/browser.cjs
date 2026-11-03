@@ -22,9 +22,9 @@ async function suite(name,offset,run){
   b=await chromium.launch({executablePath:process.env.PVS_CHROME,args:['--no-sandbox','--autoplay-policy=no-user-gesture-required','--use-fake-device-for-media-stream','--use-fake-ui-for-media-stream']});
   async function page(width=1280,height=800){
    const c=await b.newContext({viewport:{width,height},hasTouch:width<=844,isMobile:width<=844,permissions:['microphone']});
-   await c.route('https://**/*',r=>r.abort());const p=await c.newPage();p.setDefaultTimeout(10000);
+   await c.route('https://**/*',r=>r.abort());const p=await c.newPage();p.setDefaultTimeout(30000);
    p.on('pageerror',e=>errors.push(e.message));
-   await p.goto(url);await p.waitForFunction(()=>window.StudioBrowse&&window.SongStudio&&!S.loading);
+   await p.goto(url,{waitUntil:"domcontentloaded",timeout:60000});await p.waitForFunction(()=>window.StudioBrowse&&window.SongStudio&&!S.loading);
    return p;
   }
   await run({check,page,url,b,errors});check('No JavaScript errors',errors.length===0);

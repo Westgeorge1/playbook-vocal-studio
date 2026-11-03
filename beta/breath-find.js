@@ -34,7 +34,37 @@ function find(channels,rate,opt={}){
 }
 // Merge two candidate lists (for example the engine's own suggestions and ours), keeping one entry per breath.
 function merge(a,b){const all=[...a,...b].sort((p,q)=>p.start-q.start),out=[];for(const c of all){const last=out[out.length-1];if(last&&c.start<last.end){last.end=Math.max(last.end,c.end);last.score=Math.max(last.score??0,c.score??0);last.db=Math.max(last.db??-120,c.db??-120);}else out.push({...c});}return out;}
-const api={find,merge};root.BreathFind=api;if(typeof module!=='undefined')module.exports=api;
+// Estimate voicing in 10 ms frames relative to the whole lane. Use the stronger
+// channel in each frame so opposite-polarity stereo audio cannot cancel out.
+function sungFrames(channels,rate){
+ const samples=channels[0].length,hop=Math.round(rate*.01),count=Math.ceil(samples/hop);
+ const levels=new Float32Array(count),crossings=new Float32Array(count);
+ for(let frame=0;frame<count;frame++){
+  const start=frame*hop,end=Math.min(start+hop,samples),length=end-start;
+  let strongest=-1;
+  for(const channel of channels){
+   let energy=0,changes=0;
+   for(let i=start;i<end;i++){
+    energy+=channel[i]*channel[i];
+    if(i>start&&(channel[i]>=0)!==(channel[i-1]>=0))changes++;
+   }
+   if(energy>strongest){strongest=energy;crossings[frame]=changes/length;}
+  }
+  levels[frame]=10*Math.log10(strongest/length+1e-12);
+ }
+ const sorted=levels.slice().sort(),floor=sorted[Math.floor(.1*(count-1))],loud=sorted[Math.floor(.95*(count-1))];
+ // A take can be one sustained note with no quiet opening.
+ const threshold=Math.max(-70,Math.min(floor+12,loud-6),loud-30);
+ return Uint8Array.from(levels,(level,i)=>level>threshold&&crossings[i]<.12?1:0);
+}
+const frameCache=new WeakMap();
+function voicedShare(src,a,b){
+ if(!src||!src.channels?.[0]?.length||!(b>a))return null;
+ let frames=frameCache.get(src);if(!frames){frames=sungFrames(src.channels,src.rate);frameCache.set(src,frames);}
+ const hop=Math.round(src.rate*.01)/src.rate,start=Math.max(0,Math.floor(a/hop)),end=Math.min(frames.length,Math.ceil(b/hop));
+ if(end<=start)return null;let count=0;for(let i=start;i<end;i++)count+=frames[i];return count/(end-start);
+}
+const api={find,merge,voicedShare};root.BreathFind=api;if(typeof module!=='undefined')module.exports=api;
 
 /* ---------- WAVE EDIT → Breaths: Find all breaths (browser) ---------- */
 if(!root.document)return;

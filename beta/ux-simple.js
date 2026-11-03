@@ -25,7 +25,7 @@ const body=document.body;
 
 /* ---------------- Classic tools ---------------- */
 function frameDoc(){try{return $('noteEditorFrame')?.contentDocument||null;}catch(_){return null;}}
-function setClassic(on){classic=!!on;write(CLASSIC,classic?'1':'0');apply();}
+function setClassic(on){const changed=classic!==!!on;classic=!!on;write(CLASSIC,classic?'1':'0');apply();if(changed)dispatchEvent(new Event('pvs-classic-change'));}
 // Only a vocal open in POLISH can be "using" the older tuner or cleaner (before that the choices hold defaults).
 function legacyInUse(){const bound=window.RC?.step==='polish'&&!!window.SongPolish?.state?.().binding;return {tuner:bound&&$('tunerChoice')?.value==='original',cleaner:bound&&$('noiseChoice')?.value==='original'};}
 function apply(){
@@ -36,7 +36,7 @@ function apply(){
   help.textContent=classic||use.tuner?help.dataset.uxOld:'Tune in the note editor: pick a preset on its Tune tab, then fix single notes. Cleaning and the vocal chain stay in their own tabs.';}
  const fd=frameDoc();if(fd?.documentElement){fd.documentElement.classList.toggle('pvs-simple',!classic);try{fd.defaultView.PlaybookUX?.apply();}catch(_){}}
 }
-addEventListener('storage',e=>{if(e.key===CLASSIC){classic=e.newValue==='1';apply();}});
+addEventListener('storage',e=>{if(e.key===CLASSIC&&classic!==(e.newValue==='1')){classic=e.newValue==='1';apply();dispatchEvent(new Event('pvs-classic-change'));}});
 function markClassic(el,inUse){if(!el)return;el.classList.add('ux-classic-only');if(inUse)el.dataset.uxUse=inUse;}
 
 /* ---------------- Menus and names ---------------- */

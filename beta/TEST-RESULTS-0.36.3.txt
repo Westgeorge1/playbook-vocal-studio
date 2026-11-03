@@ -1,0 +1,32 @@
+Playbook Vocal Studio beta 0.36.3
+node run-tests.cjs
+26/26 suites passed, 0 skipped.
+
+navigation           134 passed
+storage              10 passed
+layout               61 passed
+timeline-move        41 passed
+cleaning             37 passed
+tuning-plus          32 passed
+regressions          21 passed
+ux                   66 passed
+laptop               34 passed
+coach                45 passed
+phrase-guide         37 passed
+cleanup              18 passed
+editors              74 passed
+tuning               44 passed
+workspace-editor     41 passed
+windows              48 passed
+recording            38 passed
+phone                40 passed
+manual-cleanup       48 passed
+workflow             45 passed
+guide-undo           14 passed
+transport            51 passed
+restore              56 passed
+delete               61 passed
+playback             4 passed
+upgrade              13 passed
+
+The release audit separates host browser checks, measured audio and coverage that still requires physical devices.

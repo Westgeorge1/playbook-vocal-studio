@@ -93,7 +93,11 @@ suite('phrase-guide',20,async({page,check})=>{
  await p.locator('#pgLess').click();await p.waitForFunction(()=>document.querySelector('#pgHear1')?.textContent.includes('→ '+(S.P.chEq2Gain-.75)+' dB'),null,{timeout:150000});
  await p.locator('#pgKeep').click();await p.waitForFunction(()=>document.querySelector('#pgMessage')?.textContent.includes('Tone kept'),null,{timeout:150000});
  check('Keeping the gentler tone suggestion changes exactly the requested HIGH-MID amount',await p.evaluate(()=>S.P.chEq2Gain)===oldMid-.75);
- await mode('tune');await prepare();check('Snap All + Smooth 25% can be previewed before Keep',(await p.locator('#pgHear1').innerText()).includes('Snap All + Smooth'));
+ await p.evaluate(()=>PvsUX.setClassic(false));await mode('tune');await prepare();
+ check('With Classic off the guide previews Natural Roots',(await p.locator('#pgHear1').innerText()).includes('Natural Roots'));
+ const naturalState=await p.evaluate(()=>JSON.stringify(NoteTuner.state().editor));await p.locator('#pgLess').click();await p.waitForFunction(()=>document.querySelector('#pgHear1')?.textContent.includes('Gentle Polish'));
+ check('Gentle Polish is a temporary preview with Classic off',naturalState===await p.evaluate(()=>JSON.stringify(NoteTuner.state().editor)));
+ await p.evaluate(()=>PvsUX.setClassic(true));await mode('tune');await prepare();check('Snap All + Smooth 25% can be previewed before Keep',(await p.locator('#pgHear1').innerText()).includes('Snap All + Smooth'));
  const st=await p.evaluate(()=>JSON.stringify(NoteTuner.state().editor.settings));await p.locator('#pgLess').click();await p.waitForFunction(()=>document.querySelector('#pgHear1')?.textContent.includes('85%'),null,{timeout:150000});check('The lighter tuning preview preserves current note edits',await p.evaluate(()=>JSON.stringify(NoteTuner.state().editor.settings))===st);
  await p.locator('#pgHear1').click();
  await p.waitForFunction(()=>window.lastGuideAudio?.length>0);

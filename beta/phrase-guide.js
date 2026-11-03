@@ -13,7 +13,7 @@ const advice={
  take:'Listen to the same line with the riddim. Which take has the clearest ending, the right timing and the delivery you want?',
  stage:'Switch between the same passage at matched loudness. Where do you first hear the problem?',
  breath:'Hear what would be removed. If there is a consonant or a piece of the next word, shorten the selection or try less. Compare again with the song.',
- tune:'Listen for the slide into the note and the held vowel. Start with Snap All + Smooth 25%. Try less compares the approved 85% preset. Keeping applies the preset to this entire vocal lane.',
+ tune:'Listen for the slide into the note and the held vowel. Keeping applies the preset to this entire vocal lane.',
  tone:'Choose what you actually hear, then compare one chain control on this phrase. Keeping changes that control across the whole vocal.',
  mix:'Listen for the last word against the arrangement. Try a small lift on this phrase or a dip on a separate harmony lane. Only the selected time range changes.'
 };
@@ -186,8 +186,10 @@ function range(){
  return {a:Math.max(a,region.start,span[0]/project.rate),b:Math.min(b,region.end,span[1]/project.rate)};
 }
 function run(fn){Promise.resolve().then(fn).catch(e=>say(e.message));}
+addEventListener('pvs-classic-change',()=>{if(!dialog.open||mode!=='tune')return;invalidate();$('pgPlayers').textContent='';tools();say('Tuning choices changed. Prepare the comparison again.');});
+function tuningPair(){return window.PvsUX?.classic()?[[ 'snap','Snap All + Smooth 25%' ],[ 'centre','85% + Smooth 25%' ]]:[[ 'roots','Natural Roots' ],[ 'gentle','Gentle Polish' ]];}
 function tools(){
- $('pgAdvice').textContent=advice[mode];
+ $('pgAdvice').textContent=advice[mode]+(mode==='tune'?' Compare '+tuningPair()[0][1]+'. Try less compares '+tuningPair()[1][1]+'.':'');
  const el=$('pgTools');if(!el)return;
  const {region,track,take}=recording(project,cue);
  const note=$('pgConcernNote');
@@ -215,9 +217,10 @@ function tools(){
  if(mode==='mix'){
   const harmonies=project.tracks.filter(t=>t.id!==trackId&&t.regions.some(r=>r.selected&&r.start<cue.b&&r.end>cue.a));
   config='<label>Preview one change<select id="pgBalance">'+selectOptions([['lead','Lift this vocal phrase'],...harmonies.map(t=>[t.id,'Lower '+t.name+' during this phrase'])],intent==='harmony'?overlap(cue)?.id:'lead')+'</select></label>';
+  if(intent==='mix'&&!S.beat)config='<p>No backing is loaded. You can compare the vocal lanes here. Add your backing in Song &amp; vocals to judge this change against the beat.</p>'+config;
   if(intent==='harmony'&&!overlap(cue))config='<p>No audible overlapping vocal here. Choose another passage, or compare a small lead lift.</p>'+config;
  }
- if(mode==='tune'&&!NoteTuner.enabled()){el.innerHTML='<p>This vocal uses the original tuner. Switch to the note editor in TUNE to compare the approved presets.</p>';return;}
+ if(mode==='tune'&&!NoteTuner.enabled()){el.innerHTML='<p>This vocal uses the original tuner. Switch to the note editor in TUNE to compare whole-vocal presets.</p>';return;}
  if(mode==='tune')config+='<button id="pgOpenNotes">Open these notes</button>';
  el.innerHTML=config+'<button class="pg-primary" id="pgPrepare">Prepare '+(mode==='stage'?'four stages':'comparison')+'</button><div id="pgPlayers"></div>';
  $('pgPrepare').onclick=()=>run(()=>prepare(false));
@@ -306,7 +309,9 @@ async function prepare(less){
   }else if(kind==='breath'){
    if(track.mute||(project.tracks.some(t=>t.solo)&&!track.solo))throw Error('Make this track audible to compare the breath with the song.');
    const i=Math.max(0,Math.round((a-C.origin(take))*rate)),j=Math.min(src.channels[0].length,Math.round((b-C.origin(take))*rate));
-   const db=less?3:6,settings={db,fade:10,low:0,high:rate/2,start:a,end:b};
+   const share=BreathFind.voicedShare(src,a-C.origin(take),b-C.origin(take));const sung=share!=null&&share>.35;
+   const db=less?3:sung?4:6;if(sung)p.evidence='About '+Math.round(100*share)+'% of this selection appears sung. Narrow the selection or compare this gentler reduction. Listen to Removed for words.';
+   const settings={db,fade:10,low:0,high:rate/2,start:a,end:b};
    const removed=src.channels.map(x=>VocalSeparation.removed(x,i,j,rate,settings));
    const changed=src.channels.map((x,k)=>{const copy=x.slice();for(let n=i;n<j;n++)copy[n]-=removed[k][n-i];return copy;});
    const clone=C.clone(project);
@@ -342,9 +347,9 @@ async function prepare(less){
     const label=param==='chDeEss'?'De-ess':'HIGH-MID';
     p.labels=['Current chain',label+' '+old+' → '+value+' dB'];p.label=p.labels[1]+' (whole vocal)';
    }else{
-    p.preset=less?'centre':'snap';
-    const next=await NoteTuner.previewApproved(p.preset);
-    p.clips=[cut(S.audio[3]),cut(next)];p.labels=['Current tuning',less?'85% + Smooth 25%':'Snap All + Smooth 25%'];
+    const [preset,label]=tuningPair()[less?1:0];p.preset=preset;
+    const next=await NoteTuner.previewGuidePreset(preset);
+    p.clips=[cut(S.audio[3]),cut(next)];p.labels=['Current tuning',label];
     p.label=p.labels[1]+' (whole vocal)';
    }
   }
@@ -420,7 +425,8 @@ async function keep(p){
   if(!bound(recording(project,c).track))throw Error('Open the correct vocal in POLISH first.');
   if(p.kind==='tune'){
    const e=await NoteTuner.editor();if(preview!==p||!isCurrent(p.identity))throw Error('Prepare the tuning comparison again.');
-   if(!e.approvedPreset(p.preset))return;
+   if(!tuningPair().some(([id])=>id===p.preset))throw Error('Classic tools changed. Prepare the comparison again.');
+   if(!e.guidePreset(p.preset))return;
    const marker=e.undoMarker();nativeUndo={valid:()=>e.undoMarker()===marker&&!!marker,apply:()=>e.undoIfCurrent(marker)};
   }else{
    if(S.P[p.param]!==p.prior)throw Error('The chain changed. Prepare the comparison again.');

@@ -1,6 +1,6 @@
 /* Work on copies of the selected samples. Stop and Close terminate the worker. */
 'use strict';
-importScripts('noise-core.js?v=0.36.2','separation.js?v=0.36.2');
+importScripts('noise-core.js?v=0.36.3','separation.js?v=0.36.3');
 function inspect({samples,offset,count,rate,width,height}){
  const pixels=new Uint8ClampedArray(width*height*4),size=1024;
  const re=new Float64Array(size),im=new Float64Array(size);

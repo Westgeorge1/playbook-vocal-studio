@@ -50,3 +50,10 @@
  body.coach-docked{margin-right:min(480px,42vw)}
 }
 body:not(.rc-on) #coachBtn{display:none}
+
+@media (max-width:899px){
+ body.coach-phone-open{--phone-guide-height:38dvh}
+ body.coach-phone-open #guideSheet{box-sizing:border-box;top:auto;bottom:0;height:var(--phone-guide-height);max-height:var(--phone-guide-height);overflow-y:auto;z-index:66}
+ body.coach-phone-open #songStudio:not(.ww-window),body.coach-phone-open .daw{height:calc(100dvh - var(--steps-h) - var(--phone-guide-height));overflow:auto}
+ body.coach-phone-open #guideSheet>.inner>.top{position:sticky;top:-14px;z-index:2;background:var(--rack);padding:5px 0}
+}

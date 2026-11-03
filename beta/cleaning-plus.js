@@ -26,7 +26,14 @@ function periodicity(y,c,sr){const W=Math.round(sr*.04),a=c-(W>>1);if(a<0||a+W+M
 // opt.pitch (default true): treat pitched frames as singing even when quiet. Beat-bleed estimation passes false,
 // because a pitched backing heard in the pauses must count as a pause there.
 function voiceFrames(ch,rate,opt={}){
- const x=mono(ch),hop=Math.max(1,Math.round(rate*.01)),n=Math.ceil(x.length/hop),db=new Float32Array(n);
+ const hop=Math.max(1,Math.round(rate*.01)),n=Math.ceil(ch[0].length/hop),db=new Float32Array(n);
+ // Opposite-polarity channels must not make stereo singing look like a pause.
+ let x=ch[0];if(ch.length===2){x=new Float32Array(ch[0].length);
+  for(let i=0;i<x.length;i+=hop){const end=Math.min(x.length,i+hop);let left=0,right=0;
+   for(let j=i;j<end;j++){left+=ch[0][j]**2;right+=ch[1][j]**2;}
+   x.set(ch[right>left?1:0].subarray(i,end),i);
+  }
+ }
  for(let k=0;k<n;k++){let p=0;const a=k*hop,b=Math.min(x.length,a+hop);for(let i=a;i<b;i++)p+=x[i]*x[i];db[k]=10*Math.log10(p/Math.max(1,b-a)+1e-12);}
  const s=Float32Array.from(db).sort(),floor=s[Math.floor(.1*(n-1))],loud=s[Math.floor(.95*(n-1))],thr=Math.max(floor+12,loud-30);
  let v=new Uint8Array(n);for(let k=0;k<n;k++)v[k]=db[k]>thr?1:0;
@@ -85,14 +92,14 @@ function removeBleed(ch,ref,rate,strength=1,opt={}){
 
 /* ---------- RNNoise (browser only) ---------- */
 let rnLoad=null;
-async function rnnoise(){if(!rnLoad)rnLoad=import('./vendor/rnnoise/rnnoise.js?v=0.36.2').then(m=>m.Rnnoise.load());return rnLoad;}
+async function rnnoise(){if(!rnLoad)rnLoad=import('./vendor/rnnoise/rnnoise.js?v=0.36.3').then(m=>m.Rnnoise.load());return rnLoad;}
 async function resample(ch,from,to){if(from===to)return ch;const len=Math.round(ch[0].length*to/from),ctx=new OfflineAudioContext(ch.length,len,to),buf=new AudioBuffer({numberOfChannels:ch.length,length:ch[0].length,sampleRate:from});ch.forEach((c,i)=>buf.copyToChannel(c,i));const s=ctx.createBufferSource();s.buffer=buf;s.connect(ctx.destination);s.start();const r=await ctx.startRendering();return Array.from({length:ch.length},(_,i)=>r.getChannelData(i).slice());}
 async function isolate(ch,rate,blend){
  const rn=await rnnoise(),x48=await resample(ch,rate,48000),F=rn.frameSize,out=[];
- for(const x of x48){const st=rn.createDenoiseState(),y=new Float32Array(x.length+F),fr=new Float32Array(F);
-  try{for(let o=0;o<x.length+F;o+=F){for(let i=0;i<F;i++)fr[i]=(o+i<x.length?x[o+i]:0)*32768;st.processFrame(fr);for(let i=0;i<F&&o+i<y.length;i++)y[o+i]=fr[i]/32768;}}finally{st.destroy();}
-  // RNNoise delays its output by one frame (480 samples at 48 kHz). Re-align, then trim.
-  out.push(y.subarray(F,F+x.length));}
+ for(const x of x48){const st=rn.createDenoiseState(),delay=2*F,y=new Float32Array(x.length+delay),fr=new Float32Array(F);let sliceStart=performance.now();
+  try{for(let o=0;o<x.length+delay;o+=F){if(performance.now()-sliceStart>=20){await new Promise(done=>setTimeout(done,0));sliceStart=performance.now();}for(let i=0;i<F;i++)fr[i]=(o+i<x.length?x[o+i]:0)*32768;st.processFrame(fr);for(let i=0;i<F&&o+i<y.length;i++)y[o+i]=fr[i]/32768;}}finally{st.destroy();}
+  // The bundled model and analysis/synthesis together delay two frames at 48 kHz.
+  out.push(y.subarray(delay,delay+x.length));}
  const wet=await resample(out,48000,rate);
  return ch.map((c,i)=>{const y=new Float32Array(c.length),w=wet[i];for(let k=0;k<c.length;k++)y[k]=c[k]*(1-blend)+(w[k]||0)*blend;return y;});}
 
@@ -109,7 +116,7 @@ function backing(rate){
 // the page itself if workers are unavailable.
 let bw=null,bwSeq=0;const bwJobs=new Map();
 function bleedJob(ch,ref,rate,strength){return new Promise((resolve,reject)=>{
- if(!bw){try{bw=new Worker('cleaning-plus.js?v=0.36.2');bw.onmessage=({data})=>{const j=bwJobs.get(data.id);if(!j)return;bwJobs.delete(data.id);data.error?j.reject(Error(data.error)):j.resolve({channels:data.channels,report:data.report});};bw.onerror=e=>{e.preventDefault?.();for(const j of bwJobs.values())j.reject(Error(e.message||'Beat-bleed processing stopped.'));bwJobs.clear();bw?.terminate();bw=null;};}
+ if(!bw){try{bw=new Worker('cleaning-plus.js?v=0.36.3');bw.onmessage=({data})=>{const j=bwJobs.get(data.id);if(!j)return;bwJobs.delete(data.id);data.error?j.reject(Error(data.error)):j.resolve({channels:data.channels,report:data.report});};bw.onerror=e=>{e.preventDefault?.();for(const j of bwJobs.values())j.reject(Error(e.message||'Beat-bleed processing stopped.'));bwJobs.clear();bw?.terminate();bw=null;};}
   catch(_){bw=null;try{resolve(removeBleed(ch,ref,rate,strength));}catch(e){reject(e);}return;}}
  const id=++bwSeq,c=ch.map(a=>a.slice()),r=ref.slice();bwJobs.set(id,{resolve,reject});bw.postMessage({id,ch:c,ref:r,rate,strength},[...c.map(a=>a.buffer),r.buffer]);});}
 async function before(ch,rate,s){let x=ch;last={};
@@ -128,7 +135,7 @@ function measure(orig,out,rate=48000){
  const db=(p,q)=>q>0&&p>0?10*Math.log10(p/q):0;
  return {voice:+db(vo,vi).toFixed(2),voiceRemoved:vi>0?+(10*Math.log10(vr/vi+1e-12)).toFixed(1):-120,pauses:+db(po,pi).toFixed(1),hasVoice:vi>0,hasPauses:pi>0};}
 function safetyText(m){if(!m||!m.hasVoice)return '';const warn=m.voice<-1||m.voiceRemoved>-15;
- return (warn?'⚠ ':'')+'Singing changed '+(m.voice>=0?'+':'')+m.voice.toFixed(1)+' dB '+(m.voiceRemoved<-90?'(nothing removed from your singing)':'(removed sound sits '+Math.abs(m.voiceRemoved).toFixed(0)+' dB below your voice)')+' · Pauses cleaned '+Math.abs(m.pauses).toFixed(1)+' dB'+(warn?'. Cleaning is touching your singing: try Gentle, Pauses only, or a lower Maximum reduction.':'.');}
+ return (warn?'⚠ ':'')+'Singing changed '+(m.voice>=0?'+':'')+m.voice.toFixed(1)+' dB '+(m.voiceRemoved<-90?'(removed signal below the meter range)':'(removed sound sits '+Math.abs(m.voiceRemoved).toFixed(0)+' dB below your voice)')+' · Pauses cleaned '+Math.abs(m.pauses).toFixed(1)+' dB'+(warn?'. Cleaning is touching your singing: try Gentle, Pauses only, or a lower Maximum reduction.':'. This is a whole-phrase estimate. Listen to Removed for quiet S, F and word endings.');}
 /* ---------- CLEAN panel controls (browser) ---------- */
 const ROOMS='pvs.roomProfiles.v1';
 function rooms(){try{const v=JSON.parse(localStorage.getItem(ROOMS)||'[]');return Array.isArray(v)?v:[];}catch(_){return [];}}
@@ -150,7 +157,7 @@ function installUI(){const doc=root.document,$=id=>doc.getElementById(id),host=$
   const name=(root.prompt?.('Name this room profile (for example "Bedroom booth")','Room '+new Date().toLocaleDateString())||'').trim().slice(0,40);if(!name)return;
   const list=rooms().filter(r=>r.name!==name);list.unshift({name,savedAt:Date.now(),profile:c.profile});try{localStorage.setItem(ROOMS,JSON.stringify(list.slice(0,6)));}catch(_){ $('noiseRoomMsg').textContent='This browser could not save the profile.';return;}
   $('noiseRoomMsg').textContent='Saved "'+name+'". Use it on other takes recorded in the same room.';sync(true);};
- $('noiseRoomUse').onclick=()=>{const r=rooms().find(x=>x.name===$('noiseRoomList').value);if(!r)return;if(root.NoiseCleaner.mutate({profile:r.profile}))$('noiseRoomMsg').textContent='Using room profile "'+r.name+'". Listen to Removed noise to check it suits this take.';};
+ $('noiseRoomUse').onclick=()=>{const r=rooms().find(x=>x.name===$('noiseRoomList').value);if(!r)return;if(root.NoiseCleaner.mutate({profile:{...r.profile,room:true}}))$('noiseRoomMsg').textContent='Using room profile "'+r.name+'". If the mic gain or room changed, learn a fresh sample. Listen to Removed noise for words.';};
  sync(true);setInterval(sync,500);}
 let shownRooms='';
 function sync(force){const doc=root.document,$=id=>doc.getElementById(id),m=root.NoiseCleaner;if(!m||!$('noiseScope'))return;const c=m.state(),off=m.locked()||!m.active(),r=m.debug().rate||48000;
@@ -158,9 +165,10 @@ function sync(force){const doc=root.document,$=id=>doc.getElementById(id),m=root
  const list=rooms().filter(x=>x.profile?.rate===r),key=list.map(x=>x.name).join('|');if(force||key!==shownRooms){shownRooms=key;$('noiseRoomList').innerHTML=list.length?list.map(x=>'<option>'+x.name.replace(/[<&"]/g,ch=>({'<':'&lt;','&':'&amp;','"':'&quot;'}[ch]))+'</option>').join(''):'<option value="">No saved rooms for this sample rate</option>';}
  $('noiseRoomUse').disabled=off||!list.length;$('noiseRoomSave').disabled=off||!c.profile;$('noiseRoomList').disabled=off||!list.length;
  const res=m.debug().result,p=res?.plus||{},info=[];
+ if(!root.S?.beat&&typeof S!=='undefined'&&!S.beat)info.push('Beat bleed needs the matching backing. Add it on Song & vocals.');
  if(c.bleed>0)info.push(p.bleed?.skipped||(p.bleed?'Beat bleed: backing found '+p.bleed.lagMs+' ms late, match '+Math.round(p.bleed.coherence*100)+'%, removed sound '+p.bleed.bleedDb+' dB relative to the recording.':'Beat bleed: applies when the vocal is processed.'));
  if(c.ai>0)info.push(p.ai?.error||'AI voice isolation (RNNoise) blended at '+Math.round(c.ai*100)+'%. It was trained on speech: listen for a watery or lisping voice and lower the blend if you hear it.');
- if(c.scope==='pauses')info.push('Pauses only: your singing is untouched; cleaning fades in between phrases.');
+ if(c.scope==='pauses')info.push('Pauses only protects detected singing. Listen to quiet consonants and phrase endings.');
  $('noisePlusInfo').textContent=info.join(' ');
  $('noiseSafety').textContent=m.active()&&c.on?safetyText(res?.safety):'';$('noiseSafety').classList.toggle('warn',!!res?.safety&&(res.safety.voice<-1||res.safety.voiceRemoved>-15));}
 if(root.document){const go=()=>{if(root.NoiseCleaner&&root.document.getElementById('studioNoiseControls'))installUI();else setTimeout(go,200);};root.document.readyState==='loading'?root.document.addEventListener('DOMContentLoaded',go):go();}

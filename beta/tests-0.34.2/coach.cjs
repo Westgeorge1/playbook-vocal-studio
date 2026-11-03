@@ -127,7 +127,14 @@ suite('coach-0.34.2',19,async({page,check})=>{
   await q.locator('#veClose').tap();await q.waitForTimeout(150);
   check('Touch: closing cleanup restores the previous playhead',await q.evaluate(()=>Math.abs(S.song.cursor-1)<.001));
   await mobileLane.scrollIntoViewIfNeeded();
-  const drag=await mobileLane.boundingBox(),start=drag.x+drag.width*.25,end=drag.x+drag.width*.45,dy=drag.y+drag.height/2;
+  // A tall, user-resized lane can extend beyond the viewport. Drag through
+  // visible waveform pixels, just as a finger must, including after a sheet closes.
+  const {start,end,dy}=await mobileLane.evaluate(c=>{const r=c.getBoundingClientRect(),start=r.x+r.width*.25,end=r.x+r.width*.45;
+   const top=Math.max(0,r.y),bottom=Math.min(innerHeight,r.bottom),mid=(top+bottom)/2;
+   for(const y of [mid,...Array.from({length:Math.ceil(Math.max(0,bottom-top)/8)},(_,i)=>top+4+i*8)])
+    if(document.elementFromPoint(start,y)===c&&document.elementFromPoint(end,y)===c)return {start,end,dy:y};
+   throw Error('The visible lane has no reachable touch path.');});
+  console.log('Verified touch path',start,end,dy);
   await touch.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:start,y:dy}]});
   await touch.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:end,y:dy}]});
   await q.waitForTimeout(750);

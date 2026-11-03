@@ -31,3 +31,7 @@ The 0.36.0 workflow and guide-undo suites exercise take replay, alternative perf
 The 0.36.1 manual-cleanup suite exercises the two entry points, blocked and oversized selections, focus and gesture state, actual backing offsets, looping, context, stereo PCM, saving, Undo, and late worker responses after Stop or Escape. PVS_CLEANUP_URL can point it at the served beta.
 
 The 0.36.2 phone suite checks real taps with Explain saved on, a test microphone routed through the studio capture worklet, delayed permission, denied permission, page visibility, cancellation, saved audio and playback. Run tests-0.36.2/phone.cjs. PVS_PHONE_URL selects a served build. Phone views and permission timing are emulated in Chromium.
+
+0.36.3 adds checks to the existing 26 suites: Natural/Classic phrase previews, stale decisions, shared singing measurements, saved room filter handling, stereo protection, AI alignment, cleaning history, and crash recovery followed by offline reopening.
+
+The full runner defaults to serial execution. On a host with sufficient memory, PVS_TEST_JOBS=2 runs two suites at a time with disjoint server ports. summary.json records each suite, exit status and duration. A failed suite never silently skips the remaining suites.
