@@ -2147,7 +2147,7 @@ async function restore() {
    for(const [id,src] of Object.entries(last.song.sources||{})){
      const audio=await readSource(src);if(audio)sources[id]=audio;else missingSource=true;
    }
-   if(missingSource){warnings.push('Some saved original recordings are missing. Open your latest project backup to restore all tracks.');last.song=null;}
+   if(missingSource)throw Error('Some saved original recordings are missing. Open your latest project backup to restore all tracks.');
    else last.song={...last.song,tracks,sources,previousMix};
   }
   last.storageWarnings=warnings;restoreStage="opening the saved project";return last;

@@ -90,8 +90,30 @@ suite('transport',27,async({b,page,check,errors})=>{
   await click(lane);await wait(()=>SongStudio.state().playing&&outputPeak()>.025);
   await wait(()=>!SongStudio.state().playing);
   verify('Natural end resets Play on every lane',await p.evaluate(()=>[...document.querySelectorAll('[data-song-play]')].every(e=>e.dataset.transport==='Play')&&S.song.cursor>=1));
-  await click(lane);await wait(()=>SongStudio.state().playing&&outputPeak()>.025);
-  verify('Play at the end restarts the recorded take',await p.evaluate(()=>SongStudio.state().position<S.song.cursor));await click('#sgStop');
+  // Observe the short replay before clicking. A delayed driver response must
+  // not miss the whole take or compare its already-finished cursor afterwards.
+  await p.evaluate(()=>{
+   const firstMeter=outputs.length;
+   window.replayObservation=new Promise((resolve,reject)=>{
+    let poll,timeout;
+    const finish=(value,error)=>{clearInterval(poll);clearTimeout(timeout);error?reject(error):resolve(value);};
+    poll=setInterval(()=>{
+     const state=SongStudio.state();
+     const peak=Math.max(0,...outputs.slice(firstMeter).map(m=>{const samples=new Float32Array(m.fftSize);m.getFloatTimeDomainData(samples);return samples.reduce((v,x)=>Math.max(v,Math.abs(x)),0);}));
+     if(state.playing&&peak>.025)finish({playing:true,position:state.position,cursor:S.song.cursor,peak,observedAt:Date.now()});
+    },20);
+    timeout=setTimeout(()=>finish(null,Error('No audible replay observed within 30 seconds; '+JSON.stringify(SongStudio.state()))),30000);
+   });
+   replayObservation.catch(()=>{});
+  });
+  await click(lane);
+  // Optional driver-latency regression, never changes the product or timeout.
+  if(process.env.PVS_REPLAY_OBSERVER_DELAY_MS)await new Promise(r=>setTimeout(r,Number(process.env.PVS_REPLAY_OBSERVER_DELAY_MS)));
+  const replay=await p.evaluate(()=>replayObservation);
+  console.log('INFO replay observation',width,JSON.stringify(replay));
+  verify('Play at the end restarts the recorded take',replay.playing&&replay.peak>.025&&replay.position<replay.cursor);
+  // Let the brief replay finish before the next independent action.
+  await wait(()=>!SongStudio.state().playing);
   const stable=await p.evaluate(()=>{
    const play=document.querySelector('[data-song-play]'),wave=document.querySelector('.sg-lane.active canvas');
    SongStudio.edit(w=>{SongCore.addSection(w,'Verse',0,9);w.cursor=0;},'Test nine-second timeline');
