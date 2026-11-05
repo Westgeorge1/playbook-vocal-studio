@@ -405,7 +405,14 @@ function wire(c){const ctx=c.ctx;
  c.promise=new Promise(resolve=>c.resolve=resolve);UI.lastCapture={first:c.first,last:c.last,rate:c.rate,a:c.a,b:c.b,latency:c.latency,when:c.playback.when,start:c.playback.start,punch:!!c.punch,loop:c.loop||null};
 }
 function unwire(c){try{window.LivePitch?.detach();}catch(_){}for(const tr of c.stream?.getTracks()||[]){tr.onended=null;tr.stop();}for(const n of [c.src,c.gain,c.node,c.keep,c.mon])try{n?.disconnect();}catch(e){}}
-function captureBase(w,t,extra){return {w,trackId:t.id,regionId:null,handle:.15,bounded:false,repeat:false,chunks:[],frames:0,peak:0,clipped:false,finished:false,stopping:false,reason:'',resolve:null,timer:null,...extra};}
+function watchCapture(c){
+ c.watchdog=CaptureWatchdog.start({first:c.first,last:c.last,rate:c.rate,
+  audioTime:()=>c.ctx.currentTime,frames:()=>c.frames,
+  onEnd:()=>{if(UI.capture===c&&!c.stopping)stopRecording(c.bounded&&!c.loop?'':'Recording reached its time or storage limit.');},
+  onStall:()=>{if(UI.capture===c&&!c.stopping)stopRecording('The microphone stopped advancing. Captured audio is kept for review.');}
+ });
+}
+function captureBase(w,t,extra){return {w,trackId:t.id,regionId:null,handle:.15,bounded:false,repeat:false,chunks:[],frames:0,peak:0,clipped:false,finished:false,stopping:false,reason:'',resolve:null,watchdog:null,...extra};}
 async function record(bounded=false,repeat=false,exactRegion=null){
  if(UI.capture){await stopRecording();return;}if(UI.opening){cancelMicSetup();return;}
  if(UI.play?.holdCursor)stopPlay();
@@ -439,7 +446,7 @@ async function record(bounded=false,repeat=false,exactRegion=null){
    c=captureBase(w,t,{regionId:r?.id||null,a,b,origin,handle,bounded,repeat,rate,first,last,latency,stream,ctx,playback});
   }
   c.part=partId;wire(c);
-  c.timer=setTimeout(()=>stopRecording('Recording reached its time or storage limit.'),((c.last-c.first)/c.rate+lead+2)*1000);
+  watchCapture(c);
   UI.capture=c;UI.opening=false;render();
   message(loopMode?'Loop recording '+clock(a)+'–'+clock(b)+' on '+t.name+'. Sing every pass; each pass becomes an attempt. Press Stop when you are done.':(a>Math.max(-20,a-lead)?(pr.countIn?'Count-in: '+pr.countIn+' bar'+(pr.countIn>1?'s':'')+', then sing. ':'Listen to the lead-in, then sing. '):'')+'Recording '+t.name+(range?' from '+clock(a)+' to '+clock(b)+'.':' until you press Stop.'));
  }catch(e){if(c)unwire(c);else for(const tr of stream?.getTracks()||[])tr.stop();if(!ownsMicSetup(setup))return;UI.opening=false;S.songWorking=false;stopPlay(false);render();recordProblem(e.message);window.StudioBrowse?.cancelRecording();}
@@ -459,14 +466,14 @@ async function punchIn(){
   c=captureBase(w,t,{a,b,origin:a,handle:0,punch:true,rate,first:Math.round((ctxAt(p,a)+latency)*rate),last:Math.round((ctxAt(p,b)+latency)*rate),latency,stream,ctx,playback:p});
   wire(c);UI.capture=c;UI.opening=false;
   const v=p.voices.find(v=>v.id===t.id),at=Math.max(ctx.currentTime,ctxAt(p,a));if(v)for(const g of [v.left,v.right]){g.gain.cancelScheduledValues(at);g.gain.setTargetAtTime(0,at,.005);}
-  c.timer=setTimeout(()=>stopRecording('Recording reached its time or storage limit.'),(b-a+2)*1000);
+  watchCapture(c);
   render();message('Punched in at '+clock(a)+' on '+t.name+'. Press R to punch out; the song keeps playing.');
  }catch(e){if(c)unwire(c);else for(const tr of stream?.getTracks()||[])tr.stop();if(!ownsMicSetup(setup))return;UI.capture=null;UI.opening=false;S.songWorking=false;render();recordProblem(e.message);window.StudioBrowse?.cancelRecording();}
 }
 async function stopRecording(reason='',{cancel=false}={}){
  UI.repeat=false;$('sgRepeat').checked=false;
  if(UI.opening){cancelMicSetup();return;}
- const c=UI.capture;if(!c||c.stopping)return c?.promise;c.stopping=true;c.reason=reason;c.cancelled=cancel;
+ const c=UI.capture;if(!c||c.stopping)return c?.promise;c.stopping=true;c.watchdog?.stop();c.reason=reason;c.cancelled=cancel;
  if(!c.bounded)c.stopEnd=C.clamp(current(),c.a,c.b);
  const stopAt=Math.min(c.last,Math.max(c.first,Math.round((c.ctx.currentTime+c.latency+c.handle)*c.rate)));
  c.node.port.postMessage({stopAt});c.last=stopAt;
@@ -475,7 +482,7 @@ async function stopRecording(reason='',{cancel=false}={}){
  renderTransport();message(cancel?'Cancelling the recording…':'Keeping the recording…');return c.promise;
 }
 async function finishCapture(c,last){
- if(c.finished)return;c.finished=true;clearTimeout(c.timer);clearTimeout(c.fallback);if(!c.punch||c.cancelled)stopPlay(false);unwire(c);
+ if(c.finished)return;c.finished=true;c.watchdog?.stop();clearTimeout(c.fallback);if(!c.punch||c.cancelled)stopPlay(false);unwire(c);
  UI.capture=null;UI.busy=true;UI.opening=false;S.songWorking=true;syncLiveMix();
  try{
   if(c.cancelled){message('Recording cancelled. Nothing was added; your song is unchanged.');return;}

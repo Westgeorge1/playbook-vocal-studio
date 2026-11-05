@@ -1,0 +1,15 @@
+Playbook Vocal Studio 0.37.1 beta — test results
+Date: 2026-11-04. Chromium (Playwright), serial (run-some, same harness as run-tests.cjs), same references as 0.37.0.
+
+0.37.1 changes only Measure's hum detection (noise-core.js) and version marks. The suites that touch those were re-run:
+  clean-vocal: PASS 31/31
+  cleaning: PASS 39/39
+  coach: PASS 45/45
+  navigation: PASS 134/134
+  phone: PASS 40/40
+  playback: PASS 
+  recording: PASS 
+  ux: PASS 66/66
+
+All 8 re-run suites pass. The other 24 suites passed on 0.37.0 (TEST-RESULTS-0.37.0.txt) and do not load the changed code path.
+ENGINE-SHA256.txt verifies.

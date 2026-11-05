@@ -59,7 +59,8 @@ body.pvs-simple.pvs-legacy-cleaner .ux-classic-only[data-ux-use="cleaner"]{displ
  body.ux-034 #workspaceTools{flex:0 1 auto;width:auto;margin:0;padding:0;border:0}
  body.ux-034 #trackPolishBar{padding:4px 10px;gap:6px}
  body.ux-034 #trackPolishBar #polishControls{display:none}
- body.ux-034 #trackPolishBar #polishTrackStatus,body.ux-034 #trackPolishBar #polishReady{flex:0 1 auto;min-width:0;max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12px}
+ /* Share spare space between the status messages so their full text does not push a button onto another row. */
+ body.ux-034 #trackPolishBar #polishTrackStatus,body.ux-034 #trackPolishBar #polishReady{flex:1 1 8em;min-width:0;max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12px}
  body.ux-034 #trackPolishBar #polishPreview{display:none}
  body.ux-034 #trackPolishBar #polishTrackStatus{max-width:120px}
  body.ux-034 #trackPolishBar #polishReady{max-width:150px}

@@ -104,7 +104,7 @@ function arrangeClean(){
  const learnH=[...host.querySelectorAll(':scope > h3')].find(h=>/Learn the background/i.test(h.textContent));
  if(learnH){let el=learnH;const take=[];while(el&&el!==more.box){take.push(el);if(el.tagName==='P'&&/0\.2.?10 seconds/.test(el.textContent))break;el=el.nextElementSibling;}
   for(const x of take)if(x!==reduction&&x!==undo&&x!==$('noiseMeasured'))more.body.append(x);}
- if(aiField){const h=document.createElement('h3');h.textContent='AI voice isolation';more.body.append(h,aiField);}
+ if(aiField){const h=document.createElement('h3');h.textContent='Older AI isolation (RNNoise)';h.dataset.uxAiHead='1';more.body.append(h,aiField);}
  const det=host.querySelector(':scope > details');if(det){det.open=true;const h=document.createElement('h3');h.textContent='Vocal protection & filters';const s=det.querySelector('summary');if(s)s.hidden=true;more.body.append(h,det);}
  const vd=oldRack?.querySelector('[data-open-detail]');if(vd){vd.classList.add('ux-wide');more.body.append(vd);}
  if(oldRack&&!oldRack.querySelector('.big,.verdict,button'))oldRack.classList.add('ux-empty');

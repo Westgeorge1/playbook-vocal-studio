@@ -65,6 +65,8 @@ async function suite(name,offset,run){
        selectedRegions:read(()=>S.song?.tracks.reduce((n,t)=>n+t.regions.filter(r=>r.selected).length,0)??0),
        route:read(()=>({step:RC.step,tab:DAW.tab,dock:DAW.dock,workspace:WorkWindows.state()})),
        studio:read(()=>S.song?SongStudio.state():null),polish:read(()=>SongPolish.state()),
+       touch:read(()=>({cleanup:window.Studio?.state(),range:S.song?.range||null,cursor:S.song?.cursor,hand:document.getElementById('sgHand')?.checked,move:document.getElementById('sgMove')?.checked,events:(window.__touchDiagnostic||[]).slice(-240)})),
+       recordingReceipt:read(()=>({label:text('sgRecentLabel'),useHidden:document.getElementById('sgUseRecent')?.hidden,useDisabled:document.getElementById('sgUseRecent')?.disabled,regions:S.song?.tracks.flatMap(t=>t.regions).slice(0,128).map(r=>({id:r.id,start:r.start,end:r.end,selected:r.selected,takes:r.takes.map(t=>({id:t.id,source:t.source,covers:SongCore.covers(S.song,t,r)}))}))})),
        tuner:read(()=>({pending:NoteTuner.pending(),failed:NoteTuner.failed(),processing:NoteTuner.debug().processing,error:NoteTuner.debug().error})),
        noise:read(()=>({locked:NoiseCleaner.locked(),failed:NoiseCleaner.failed(),error:NoiseCleaner.debug().error})),
        engine:read(()=>({error:engineFailure?.message||null,jobs:bounded(Object.values(pending),32,j=>({type:j.type,update:j.update,ageMs:Date.now()-j.started}))})),

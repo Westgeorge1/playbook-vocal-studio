@@ -82,14 +82,19 @@ function pcmChannelsOk(w,t){const p=t.polish;if(!p)return false;const want=polis
 const POLISH_PREFS=['bypass','ownKey','key','scale'];
 function polishPrefs(p){const o={};for(const k of POLISH_PREFS)if(p&&p[k]!==undefined)o[k]=p[k];return o;}
 function validPrefs(o){return !!o&&typeof o==='object'&&Object.entries(o).every(([k,v])=>POLISH_PREFS.includes(k)&&(['key','scale'].includes(k)?Number.isInteger(v)&&v>=0&&v<=11:typeof v==='boolean'));}
-function polishValid(w,t){return !!(t.polish&&!t.polish.recoveryMissing&&t.polish.sourceSig===trackSignature(w,t)&&t.polish.rate===w.rate&&t.polish.channels?.length&&pcmChannelsOk(w,t)&&pcmFinite(t.polish.channels));}
+// Early Clean vocal projects could save Step 7 off while their rendered audio still used de-reverb.
+function savedEchoConflict(session){
+ const cleaner=session?.noteTuner?.cleaner;
+ return !!(cleaner?.stepsOff?.includes('gaps') && session.P?.chRoomReduceOn > .5);
+}
+function polishValid(w,t){return !!(t.polish&&!t.polish.recoveryMissing&&!savedEchoConflict(t.polish.session)&&t.polish.sourceSig===trackSignature(w,t)&&t.polish.rate===w.rate&&t.polish.channels?.length&&pcmChannelsOk(w,t)&&pcmFinite(t.polish.channels));}
 // 0.25 (UX 1): full-song readiness, one line per vocal lane.
 function readiness(w){const lanes=w.tracks.filter(t=>t.regions.some(r=>r.selected)).map(t=>{const pl=polishPlan(w,t);let state,text;
   if(t.polish?.bypass){state='dry';text='dry vocal (your choice)';}
   else if(polishValid(w,t)&&!keyStale(w,t)){state='ready';text='polished';}
   else if(!pl.ok){state='blocked';text=pl.reason;}
   else if(t.polish&&polishValid(w,t)){state='key';text='key update needed';}
-  else if(t.polish){state='update';text='needs update';}
+  else if(t.polish){state='update';text=savedEchoConflict(t.polish.session)?'reopen POLISH to apply Step 7 off':'needs update';}
   else {state='todo';text='not polished yet';}
   return {id:t.id,name:t.name,state,text,ok:pl.ok};});
  const todo=lanes.filter(l=>['todo','update','key'].includes(l.state)).length,blocked=lanes.filter(l=>l.state==='blocked').length;
@@ -281,6 +286,6 @@ function moveRegions(w,trackId,ids,delta){const t=track(w,trackId);if(!t)throw E
  return d;}
 function moveOverlaps(w,t,ids){const set=new Set(ids),mv=t.regions.filter(r=>set.has(r.id));return t.regions.filter(r=>!set.has(r.id)&&r.kind!=='legacy-base'&&mv.some(m=>r.start<m.end-1e-6&&r.end>m.start+1e-6));}
 function setReference(w,t,regs,regionId,takeId){for(const x of regs)x.reference=null;if(!takeId)return;const r=t.regions.find(x=>x.id===regionId);if(!r||!r.takes.some(a=>a.id===takeId))throw Error('That attempt is not here.');r.reference=takeId;}
-const api={LIMITS,moveRegions,moveLimits,moveOverlaps,validateMoves,levelDbAt,setLevelMove,applyLevelMoves,splitRegion,setReference,takeSpan,partRegions,partTakes,choosePart,growSection,takeAudio,toPhrases,laneCount,clamp,label,id,empty,clone,range,usage,track,region,origin,covers,duration,validate,checkAudio,addTrack,addSection,findRange,addTake,choose,gc,selectedCount,trackEnd,trackSignature,layoutSig,hashPcm,normalizeSigs,samePcm,renderTrackLegacy23,migrationProof,polishKey,songKeyOf,wantedKey,keyStale,monoMix,pcmFinite,acceptPcm,POLISH_PREFS,polishPrefs,validPrefs,ENGINE,polishPlan,readiness,roomSeconds,polishValid,renderTrack,renderVoice,panGains,mix,signature,peak,migrate,METERS,prefs,beatSec,barBeat,snapTime,beatsIn,countInWindow,loopPasses};
+const api={LIMITS,moveRegions,moveLimits,moveOverlaps,validateMoves,levelDbAt,setLevelMove,applyLevelMoves,splitRegion,setReference,takeSpan,partRegions,partTakes,choosePart,growSection,takeAudio,toPhrases,laneCount,clamp,label,id,empty,clone,range,usage,track,region,origin,covers,duration,validate,checkAudio,addTrack,addSection,findRange,addTake,choose,gc,selectedCount,trackEnd,trackSignature,layoutSig,hashPcm,normalizeSigs,samePcm,renderTrackLegacy23,migrationProof,polishKey,songKeyOf,wantedKey,keyStale,monoMix,pcmFinite,acceptPcm,POLISH_PREFS,polishPrefs,validPrefs,ENGINE,polishPlan,readiness,roomSeconds,savedEchoConflict,polishValid,renderTrack,renderVoice,panGains,mix,signature,peak,migrate,METERS,prefs,beatSec,barBeat,snapTime,beatsIn,countInWindow,loopPasses};
 root.SongCore=api;if(typeof module!=='undefined')module.exports=api;
 })(globalThis);

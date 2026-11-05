@@ -146,8 +146,8 @@ const songSeconds = () => S.original ? S.original.length / S.rate : 0;
 
 // ---------------------------------------------------------------- engine (worker)
 // 0.17.2: the app and the audio engine have separate version numbers
-var APP_VERSION="0.36.8",ENGINE_VERSION="0.12.1";
-const worker = new Worker("worker.js?v=0.36.8");
+var APP_VERSION="0.37.4",ENGINE_VERSION="0.12.1";
+const worker = new Worker("worker.js?v=0.37.0");
 let reqId = 0, engineFailure = null; const pending = {};
 var ENGINE_WAIT_MS = 120000;
 let engineSeconds=0;
@@ -2161,6 +2161,12 @@ async function restore() {
  }finally{try{db?.close();}catch(_){}}
 }
 function restoreSession(last) {
+  if(SongCore.savedEchoConflict(last)){
+    const cleaner=last.noteTuner.cleaner;
+    // Keep the old on/off choice for re-enable, but bypass echo before the first render.
+    last={...last, P:{...last.P, chRoomReduceOn:0},
+      noteTuner:{...last.noteTuner, cleaner:{...cleaner, echoMemo:cleaner.echoMemo ?? 1}}};
+  }
   if(last.noteTuner)NoteTuner.validate(last.noteTuner);
   NoteTuner.begin(last.noteTuner,false,last.name);
   if(window.SongPolish && !S.songApplying)SongPolish.detach();
@@ -2252,6 +2258,9 @@ DETAIL_NAMES.forEach((name,g)=>{
 });
 function syncDetail(){
  if(!S.detailUiReady)return;
+ const echoSwitch=detailSwitches.chRoomReduceOn;
+ echoSwitch.disabled=NoiseCleaner.stepOff('gaps');
+ echoSwitch.title=echoSwitch.disabled?'Turn Step 7 on in Clean vocal to enable de-reverb.':'';
  for(const f of DETAIL_PARAMS){const value=S.P[f.id]==null?f.initial:S.P[f.id];if(f.toggle)detailSwitches[f.id].checked=value>.5;else detailKnobs[f.id].setQuiet(value);}
  const g=+$("detailEffect").value,ready=!S.busy&&!S.dirty&&S.st&&S.st.rendered&&(g<2||S.P.chainOn>.5),prepared=ready&&S.detail&&S.detail.group===g;
  $("detailPrepare").disabled=!ready;for(const id of ["detailA","detailB","detailRemoved","detailMono"])$(id).disabled=!prepared;

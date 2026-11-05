@@ -1,0 +1,42 @@
+Playbook Vocal Studio 0.37.3 beta — test results
+Date: 2026-11-04. One full serial qualification run: node run-tests.cjs with PVS_TEST_MODE=qualification, PVS_TEST_JOBS=1. Chromium (Playwright). References: 0.32.3 main, 0.32.2 beta, 0.14 main.
+
+Result: 34 of 34 suites passed, exit code 0. ENGINE-SHA256.txt verifies.
+
+Per suite (checks passed / checks where the suite prints a count; others report pass/fail only):
+  clean-vocal 34/34
+  cleaning 39/39
+  cleanup PASS
+  coach 45/45
+  delete PASS
+  editors PASS
+  guide-undo 14/14
+  laptop 35/35
+  layout 61/61
+  manual-cleanup 48/48
+  navigation 134/134
+  phone 40/40
+  phrase-guide 37/37
+  playback PASS
+  recording PASS
+  regressions 21/21
+  restore PASS
+  storage 10/10
+  storage-faults PASS
+  storage-keep 16/16
+  timeline-move 41/41
+  transport 54/54
+  transport-layout 13/13
+  transport-permission 8/8
+  transport-touch 21/21
+  tuning PASS
+  tuning-plus 32/32
+  upgrade PASS
+  ux 66/66
+  watchdog-browser 8/8
+  watchdog-clock PASS
+  windows PASS
+  workflow 45/45
+  workspace-editor PASS
+
+This is one run. The qualification standard asks for three consecutive serial runs of the same frozen ZIP, plus the long-song POLISH test and the physical Samsung test; those are for the reviewing agent.

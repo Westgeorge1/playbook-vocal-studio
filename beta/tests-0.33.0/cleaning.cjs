@@ -107,10 +107,13 @@ suite('cleaning',14,async({page,check})=>{
  check('Cleaning Undo and Redo restore distinct six- and fifteen-dB audio exactly',six!==fifteen&&back===six&&forward===fifteen,{six,fifteen,back,forward});
  // AI voice isolation (RNNoise, loaded on demand).
  await p.locator('#noiseScope').selectOption('all');await idle();const h1=await hashOf();
- await p.locator('#noiseAi').selectOption('0.5');await idle();await p.waitForTimeout(400);
+ // 0.37.0: the RNNoise selector is shown only for projects that already use it, as here once ai is set.
+ await p.evaluate(()=>NoiseCleaner.mutate({ai:.5}));await idle();await p.waitForTimeout(400);
+ check('The older AI isolation selector appears for a project that uses it',await p.locator('#noiseAi').isVisible());
  const ai=await p.evaluate(()=>{const d=NoiseCleaner.debug(),o=d.result.channels[0];let bad=0;for(const v of o)if(!Number.isFinite(v))bad++;return {plus:d.result.plus,len:o.length,base:d.baseline[0].length,bad};});
  check('AI voice isolation runs in the browser and blends with the vocal',!ai.plus?.ai?.error&&ai.plus?.ai?.blend===.5&&ai.len===ai.base&&!ai.bad&&await hashOf()!==h1,ai);
- await p.locator('#noiseAi').selectOption('0');await p.evaluate(()=>NoiseCleaner.mutate({bleed:1,reduction:6,sensitivity:0}));await idle();
+ await p.locator('#noiseAi').selectOption('0');await p.evaluate(()=>NoiseCleaner.mutate({bleed:1,reduction:6,sensitivity:0}));await p.waitForTimeout(700);
+ check('Turning the older AI isolation off hides it again',!(await p.locator('#noiseAi').isVisible()));await idle();
  // Find all breaths in WAVE EDIT.
  await p.locator('[data-dock="wave"]').click();await p.waitForTimeout(300);
  await p.locator('#breathFindAll').click();await p.waitForTimeout(300);

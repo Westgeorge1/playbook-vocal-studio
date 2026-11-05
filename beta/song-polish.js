@@ -118,7 +118,9 @@ async function open(id=W()?.activeTrack){
  const sig=C.trackSignature(w,t),old=t.polish,valid=C.polishValid(w,t),laneKey=C.wantedKey(w,t);
  const restoreLane=session=>restoreSession({...session,P:{...session.P,...laneKey},name:w.title+' — '+t.name});
  if(bindingMatches(w,t)&&valid&&S.P.key===laneKey.key&&S.P.scale===laneKey.scale){setMode('final');allowStep=true;RC.go('polish');window.SongStudio?.syncKey?.();allowStep=false;render();return true;}
- let plan=null;const rebuildSaved=old?.recoveryMissing&&old.sourceSig===sig&&Array.isArray(old.session?.pcm)&&old.session.pcm.length===pl.inputChannels;const modeChange=old&&old.sourceSig===sig&&old.session?.pcm?.length!==pl.inputChannels&&!old.recoveryMissing;
+ let plan=null;
+ const rebuildSaved=(old?.recoveryMissing || C.savedEchoConflict(old?.session))
+   && old.sourceSig===sig && Array.isArray(old.session?.pcm) && old.session.pcm.length===pl.inputChannels;const modeChange=old&&old.sourceSig===sig&&old.session?.pcm?.length!==pl.inputChannels&&!old.recoveryMissing;
  if(old&&!valid&&!modeChange&&!rebuildSaved){
   plan=planKeep(w,t,old);const c=(n,s)=>n+' '+s+(n===1?'':'s'),pl=plan;
   // 0.33: after a timeline move the edits were moved with the audio, so the input is identical and nothing is reset.

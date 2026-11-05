@@ -1,0 +1,7 @@
+Playbook Vocal Studio 0.37.4 | Focused evidence before freezing
+
+Step 7 import, cached audio, export and autosave regression: 11/11.
+Inspector height 492 px at 1280 x 800, versus 454 px on 0.37.3. Original UX threshold: 470 px.
+Unchanged UX suite: 66/66. Short-laptop suite: 35/35.
+
+The separate qualification evidence belongs to the final ZIP SHA-256. Full-suite, long-song, listening and Samsung results are not asserted by this pre-freeze note.
