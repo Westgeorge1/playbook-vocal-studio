@@ -1,0 +1,42 @@
+Playbook Vocal Studio 0.37.0 beta — test results
+Date: 2026-11-03. Chromium (Playwright), serial runner (node run-tests.cjs), references: 0.32.3 main, 0.32.2 beta, 0.14 main.
+
+Full serial run: 30 of 32 suites passed. The two failures were older suites that clicked the RNNoise selector, now hidden unless a project uses it.
+Both suites were updated (see CHANGES-0.37.0.md, Tests) and re-run: both pass.
+Result: 32 of 32 suites pass. ENGINE-SHA256.txt verifies (7 files OK).
+
+Per suite (checks passed / checks, where the suite prints a count):
+clean-vocal 30/30
+cleaning 39/39
+cleanup passed (no count printed)
+coach 45/45
+delete passed (no count printed)
+editors passed (no count printed)
+guide-undo 14/14
+laptop 35/35
+layout 61/61
+manual-cleanup 48/48
+navigation 134/134
+phone 40/40
+phrase-guide 37/37
+playback passed (no count printed)
+recording passed (no count printed)
+regressions 21/21
+restore passed (no count printed)
+storage 10/10
+storage-faults passed (no count printed)
+storage-keep 16/16
+timeline-move 41/41
+transport 54/54
+transport-layout 13/13
+transport-permission 8/8
+transport-touch 21/21
+tuning passed (no count printed)
+tuning-plus 32/32
+upgrade passed (no count printed)
+ux 66/66
+windows passed (no count printed)
+workflow 45/45
+workspace-editor passed (no count printed)
+
+Counted checks: 810 of 810. New suite tests-0.37.0/clean-vocal: 30 of 30.

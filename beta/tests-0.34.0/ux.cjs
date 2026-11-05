@@ -46,7 +46,8 @@ suite('ux-0.34.0',17,async({page,check})=>{
  const listenTop=await p.evaluate(()=>{const s=document.querySelector('#page-clean > .ux-listen'),b=document.querySelector('.ibody').getBoundingClientRect();return s&&s.contains(document.getElementById('cleanListen'))?s.getBoundingClientRect().top-b.top:null;});
  check('CLEAN: BEFORE / CLEANED / REMOVED sit at the top of the tab',listenTop!==null&&listenTop<4,listenTop);
  await p.locator('#uxCleanMore .ux-more-btn').click();
- check('More cleaning controls opens learn, rooms, AI and filters',await seen(p,'#noiseLearn')&&await seen(p,'#noiseRoomSave')&&await seen(p,'#noiseAi')&&await seen(p,'#noiseHum'));
+ // 0.37.0: AI clean (DeepFilterNet3) lives in the Clean vocal panel; the older RNNoise selector shows only for projects that use it.
+ check('More cleaning controls opens learn, rooms and filters; AI clean is in Clean vocal',await seen(p,'#noiseLearn')&&await seen(p,'#noiseRoomSave')&&await seen(p,'#cv-dfn')&&await seen(p,'#noiseHum')&&!(await seen(p,'#noiseAi')));
  await p.locator('.ibody').evaluate(e=>e.scrollTop=e.scrollHeight);await p.waitForTimeout(200);
  const pinned=await p.evaluate(()=>{const s=document.querySelector('#page-clean > .ux-listen').getBoundingClientRect(),b=document.querySelector('.ibody').getBoundingClientRect();return s.top-b.top;});
  check('CLEAN: the listen strip stays pinned while scrolling the settings',Math.abs(pinned)<12,pinned);

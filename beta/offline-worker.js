@@ -1,14 +1,18 @@
 /* Cache only known public app assets. Never cache project or microphone data. */
-const version='0.36.8',scope=new URL(self.registration.scope);
+const version='0.37.4',scope=new URL(self.registration.scope);
 const prefix='pvs-offline:'+scope.pathname+':',name=prefix+version;
 const assets=new Set([
   "breath-find.js",
   "chord-core.js",
   "capture-drafts.js",
+  "capture-watchdog.js",
   "cleaning-plus.js",
+  "clean-vocal.js",
   "cleanup-worker.js",
   "daw.css",
   "daw.js",
+  "dfn-core.js",
+  "dfn-worker.js",
   "edit-core.js",
   "engine-wasm.js",
   "engine-wasm.wasm",
@@ -69,6 +73,9 @@ const assets=new Set([
   "vendor/ort/ort-wasm-simd-threaded.mjs",
   "vendor/ort/ort-wasm-simd-threaded.wasm",
   "vendor/ort/ort.wasm.min.js",
+  "vendor/dfn3/df_dec.onnx",
+  "vendor/dfn3/enc.onnx",
+  "vendor/dfn3/erb_dec.onnx",
   "vendor/rnnoise/rnnoise.js",
   "vendor/swiftf0/model.onnx",
   "work-windows.css",

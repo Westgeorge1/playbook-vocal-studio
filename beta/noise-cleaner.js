@@ -6,12 +6,14 @@ let cfg={...NoiseCore.defaults(),mode:'original'},client=null,seq=0,generation=0
 function active(){return cfg.mode==='studio'&&window.NoteTuner?.enabled();}
 function state(){return clone(cfg);}
 function begin(saved,fresh){generation++;cfg=saved?clone(NoiseCore.validate(saved)):{...NoiseCore.defaults(),mode:fresh?'studio':'original'};client?.terminate();client=null;for(const j of jobs.values()){clearTimeout(j.timer);j.reject(Error('Vocal changed.'));}jobs.clear();bypassed=false;busy=false;error='';notice='';cache=null;baseline=null;sourceAudio=null;undo=[];redo=[];ui();}
-function worker(msg){if(!client){client=new Worker('noise-worker.js?v=0.36.3');client.onmessage=({data:m})=>{if(m.type==='progress'){$('noiseStatus').textContent='Reducing noise… '+Math.min(99,Math.round(m.value*100))+'%';return;}const j=jobs.get(m.id);if(!j)return;clearTimeout(j.timer);jobs.delete(m.id);m.error?j.reject(Error(m.error)):j.resolve(m);};client.onerror=e=>{for(const j of jobs.values()){clearTimeout(j.timer);j.reject(Error(e.message||'Noise processing stopped.'));}jobs.clear();client?.terminate();client=null;};}return new Promise((resolve,reject)=>{const id=++seq,timer=setTimeout(()=>{jobs.delete(id);client?.terminate();client=null;reject(Error('Noise processing took too long. Restore the original cleaner to continue.'));},240000);jobs.set(id,{resolve,reject,timer});client.postMessage({...msg,id});});}
+function worker(msg){if(!client){client=new Worker('noise-worker.js?v=0.37.3');client.onmessage=({data:m})=>{if(m.type==='progress'){$('noiseStatus').textContent='Reducing noise… '+Math.min(99,Math.round(m.value*100))+'%';return;}const j=jobs.get(m.id);if(!j)return;clearTimeout(j.timer);jobs.delete(m.id);m.error?j.reject(Error(m.error)):j.resolve(m);};client.onerror=e=>{for(const j of jobs.values()){clearTimeout(j.timer);j.reject(Error(e.message||'Noise processing stopped.'));}jobs.clear();client?.terminate();client=null;};}return new Promise((resolve,reject)=>{const id=++seq,timer=setTimeout(()=>{jobs.delete(id);client?.terminate();client=null;reject(Error('Noise processing took too long. Restore the original cleaner to continue.'));},240000);jobs.set(id,{resolve,reject,timer});client.postMessage({...msg,id});});}
 function wrap(r){if(r.state)r={...r,state:{...r.state,params:{...r.state.params,cleanOn:cfg.legacyOn}}};return r;}
-async function render(ch,settings=cfg){const key=rate+':'+SongCore.hashPcm(ch)+':'+JSON.stringify(settings)+(window.CleanPlus?.cacheTag?.(settings)||'');if(cache?.key===key)return cache.result;
+// 0.37.0: which knobs the singer moved (Clean vocal keeps them) does not change the sound, so it is not part of the cache key.
+const keyOf=s=>JSON.stringify(s,(k,v)=>k==='touched'?undefined:v);
+async function render(ch,settings=cfg){settings=NoiseCore.effective(settings);const key=rate+':'+SongCore.hashPcm(ch)+':'+keyOf(settings)+(window.CleanPlus?.cacheTag?.(settings)||'');if(cache?.key===key)return cache.result;
  // 0.33: beat bleed, AI isolation and Pauses only (cleaning-plus.js). Off by default; when off, the worker gets exactly the 0.32 settings and input.
  const P=window.CleanPlus,plus=!!P?.wants(settings),pre=plus?await P.before(ch,rate,settings):ch;
- const r=await worker({type:'process',channels:pre,rate,settings:P?P.strip(settings):settings});NoteEditorSafety.audio(r.channels,rate);
+ const ref=plus&&settings.dfn>0?P.aiRef?.():null,r=await worker({type:'process',channels:pre,rate,settings:P?P.strip(settings):settings,ref});NoteEditorSafety.audio(r.channels,rate);
  let out={ ...r,_key:key};if(plus){out=P.after(ch,out,rate,settings,pre);NoteEditorSafety.audio(out.channels,rate);}
  try{out.safety=P?.measure(ch,out,rate)||null;}catch(_){out.safety=null;}return out;}
 async function dispatch(msg,transfer,raw){
@@ -26,7 +28,13 @@ async function dispatch(msg,transfer,raw){
    if(bypassed)await raw({type:'run',steps:[['set','cleanOn',cfg.legacyOn]],update:false});
    const requested=await raw({...msg,update:false,want:[]},transfer);cfg.legacyOn=requested.state.params.cleanOn;
    const want=Array.from(new Set([...(msg.want||[]),...(msg.update?[0,1,2,5]:[])]));
-   const r=await raw({type:'run',steps:[['set','cleanOn',0]],update:!!msg.update,want});bypassed=true;
+   const bypassSteps=[['set','cleanOn',0]];
+   // Undo or a preset can restore an engine setting while its parent step is off.
+   if(cfg.stepsOff?.includes('gaps') && requested.state.params.chRoomReduceOn > .5){
+     cfg.echoMemo=1;
+     bypassSteps.push(['set','chRoomReduceOn',0]);
+   }
+   const r=await raw({type:'run',steps:bypassSteps,update:!!msg.update,want});bypassed=true;
    return msg.update||r.audio?.[1]?await finish(wrap(r)):wrap(r);
   }
   if(msg.type==='open'){
@@ -57,7 +65,7 @@ async function finish(r){if(!r.audio?.[1])return r;busy=true;ui();rate=r.state.r
  if(cfg.source&&cfg.source!==id){cfg.profile=null;notice='The source or timing changed. The previous noise profile was cleared; check the new sample.';undo=[];redo=[];}cfg.source=id;
  window.SongPolish?.progress('Checking Studio Spectral noise removal');
  const result=await render(baseline);if(!cfg.profile&&result.profile){cfg.profile=result.profile;notice=result.report.reason;}
- cache={key:rate+':'+SongCore.hashPcm(baseline)+':'+JSON.stringify(cfg)+(window.CleanPlus?.cacheTag?.(cfg)||''),result};error='';
+ {const eff=NoiseCore.effective(cfg);cache={key:rate+':'+SongCore.hashPcm(baseline)+':'+keyOf(eff)+(window.CleanPlus?.cacheTag?.(eff)||''),result};}error='';
  const removed=result.removed||baseline.map(c=>new Float32Array(c.length));return {...r,mask:(r.mask||0)|2,audio:{...r.audio,1:result.channels,2:removed}};
 }
 function mutate(patch,history=true){if(busy||typeof S==='undefined'||S.busy||S.loading)return false;const next=NoiseCore.validate({...clone(cfg),...patch});if(history){undo.push(state());if(undo.length>30)undo.shift();redo=[];}cfg=next;error='';cache=null;endLoop();stopPlayback();NoteTuner.refreshNoise();ui();return true;}
@@ -96,5 +104,7 @@ function install(){const page=$('page-clean'),legacy=$('modeSeg').closest('.rack
  const presets={gentle:{reduction:6,sensitivity:0,smoothing:2,protect:.85},balanced:{reduction:10,sensitivity:0,smoothing:3,protect:.85},strong:{reduction:15,sensitivity:1,smoothing:4,protect:.9}};for(const b of document.querySelectorAll('[data-noise-preset]'))b.onclick=()=>mutate({...presets[b.dataset.noisePreset],on:true});
  $('noiseLearn').onclick=learn;$('noiseFind').onclick=find;$('noiseSample').onclick=sample;$('noiseStop').onclick=()=>{endLoop();stopPlayback();};$('noiseClear').onclick=()=>mutate({profile:null});$('noiseAtPlayhead').onclick=()=>{const a=Math.max(0,currentPos());$('noiseStart').value=a.toFixed(2);$('noiseEnd').value=Math.min(a+.4,baseline?.[0]?.length/rate||a+.4).toFixed(2);};$('noiseUndo').onclick=()=>history(-1);$('noiseRedo').onclick=()=>history(1);ui();
 }
-window.NoiseCleaner={begin,state,validate:NoiseCore.validate,active,dispatch,mutate,learn,find,history,ui,failed:()=>!!error,locked:()=>busy,debug:()=>({baseline,result:cache?.result,error,bypassed,rate})};install();setInterval(ui,350);
+function touch(keys){const t=new Set(cfg.touched||[]);for(const k of keys)t.add(k);if(t.size>40)return;cfg={...cfg,touched:[...t]};if(typeof persist==='function')try{persist();}catch(_){}}
+function measure(){if(!baseline||busy)return Promise.resolve(null);return worker({type:'measure',channels:baseline,rate}).then(r=>r.measure);}
+window.NoiseCleaner={touch,measure,begin,state,stepOff:step=>active()&&!!cfg.stepsOff?.includes(step),validate:NoiseCore.validate,active,dispatch,mutate,learn,find,history,ui,failed:()=>!!error,locked:()=>busy,debug:()=>({baseline,result:cache?.result,error,bypassed,rate})};install();setInterval(ui,350);
 })();

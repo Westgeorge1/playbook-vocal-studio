@@ -1,0 +1,14 @@
+Playbook Vocal Studio 0.37.2 beta — test results
+Date: 2026-11-04. Chromium (Playwright), serial, same references as 0.37.0.
+
+Changed code: noise-core.js (pops under the voice), clean-vocal.js, smart-coach.js, version marks. Re-run suites:
+  clean-vocal: PASS 32/32 (re-run after the new pop check was corrected to measure the thump at its own frequency)
+  cleaning: PASS 39/39
+  coach: PASS 45/45
+  navigation: PASS 134/134
+  phone: PASS 40/40
+  playback: PASS 
+  recording: PASS 
+  ux: PASS 66/66
+
+All 8 re-run suites pass. The other 24 passed on 0.37.0 and do not load the changed code paths. ENGINE-SHA256.txt verifies.

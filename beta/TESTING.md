@@ -54,3 +54,12 @@ The navigation assertion and its 60-second deadline are unchanged. Shared browse
 Before qualification, run `node tests-audit/failure-capture.cjs` with the same environment. Its child deliberately fails; the outer check succeeds only if the failed exit, original assertion and bounded state evidence are retained. This control is separate from the 31 product suites.
 
 Keep three full qualification runs consecutive, against one frozen archive, and preserve every failure. Stop before starting another full run if a run fails. Run the five-minute long-POLISH acceptance separately after standard qualification. A new package or code change starts a new candidate record; prior failures remain evidence.
+
+
+## 0.37.3 candidate qualification
+
+The runner has 34 suites: the 0.36.9 audio-clock watchdog suites (from draft PR #2), the 0.37.0 Clean vocal suite, and the earlier suites. Recording and phone wrappers require 0.37.3. Release qualification is serial: set PVS_TEST_MODE=qualification and PVS_TEST_JOBS=1; the runner refuses concurrent qualification. Use PVS_TEST_MODE=stress with PVS_TEST_JOBS=2 only for separately labelled load tests. Run the complete suite three consecutive times against the same frozen ZIP and keep every result.
+
+## 0.37.4 candidate qualification
+
+The runner now has 35 suites. The added tests-0.37.4/echo-restore.cjs opens a real synthetic project saved by 0.37.2. It checks both an unrendered lane and an open editor, ordinary backup import, Step 7 off/on, a recalled engine switch, manual render equivalence, autosave and a second backup in a fresh browser. The fixture contains no artist recording. The original UX suite retains its 470 px acceptance threshold at 1280 × 800. Run the failure-capture control before three consecutive serial qualification runs on the verified ZIP. Preserve every failed attempt and stop the consecutive sequence on a failed full run. Run long-POLISH separately.

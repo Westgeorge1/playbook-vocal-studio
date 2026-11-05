@@ -103,9 +103,19 @@ async function isolate(ch,rate,blend){
  const wet=await resample(out,48000,rate);
  return ch.map((c,i)=>{const y=new Float32Array(c.length),w=wet[i];for(let k=0;k<c.length;k++)y[k]=c[k]*(1-blend)+(w[k]||0)*blend;return y;});}
 
+/* ---------- 0.37.0 AI clean: DeepFilterNet3 in dfn-worker.js (browser only) ---------- */
+let dw=null,dwSeq=0,aiRef=null;const dwJobs=new Map();
+function dfnJob(ch){return new Promise((resolve,reject)=>{
+ if(!dw){dw=new Worker('dfn-worker.js?v=0.37.0');dw.onmessage=({data})=>{const j=dwJobs.get(data.id);if(!j)return;if(data.type==='progress'){j.progress?.(data.value);return;}dwJobs.delete(data.id);data.error?j.reject(Error(data.error)):j.resolve(data.channels);};
+  dw.onerror=e=>{e.preventDefault?.();for(const j of dwJobs.values())j.reject(Error(e.message||'AI clean stopped.'));dwJobs.clear();dw?.terminate();dw=null;};}
+ const id=++dwSeq,c=ch.map(a=>Float32Array.from(a));dwJobs.set(id,{resolve,reject,progress:v=>{const el=root.document?.getElementById('noiseStatus');if(el)el.textContent='AI clean… '+Math.min(99,Math.round(v*100))+'%';}});dw.postMessage({id,channels:c},c.map(a=>a.buffer));});}
+async function aiClean(ch,rate,amount){
+ const x48=await resample(ch,rate,48000),y48=await dfnJob(x48),wet=await resample(y48,48000,rate);
+ return ch.map((c,i)=>{const y=new Float32Array(c.length),w=wet[i];for(let k=0;k<c.length;k++)y[k]=c[k]*(1-amount)+(w[k]||0)*amount;return y;});}
+
 /* ---------- glue for NoiseCleaner ---------- */
-const FIELDS=['scope','bleed','ai'];
-function wants(s){return !!s&&(s.scope==='pauses'||s.bleed>0||s.ai>0);}
+const FIELDS=['scope','bleed','ai','dfn','gap','touched'];
+function wants(s){return !!s&&(s.scope==='pauses'||s.bleed>0||s.ai>0||s.dfn>0||s.gap>0);}
 function strip(s){const o={...s};for(const k of FIELDS)delete o[k];return o;}
 let last={};
 function backing(rate){
@@ -116,16 +126,20 @@ function backing(rate){
 // the page itself if workers are unavailable.
 let bw=null,bwSeq=0;const bwJobs=new Map();
 function bleedJob(ch,ref,rate,strength){return new Promise((resolve,reject)=>{
- if(!bw){try{bw=new Worker('cleaning-plus.js?v=0.36.3');bw.onmessage=({data})=>{const j=bwJobs.get(data.id);if(!j)return;bwJobs.delete(data.id);data.error?j.reject(Error(data.error)):j.resolve({channels:data.channels,report:data.report});};bw.onerror=e=>{e.preventDefault?.();for(const j of bwJobs.values())j.reject(Error(e.message||'Beat-bleed processing stopped.'));bwJobs.clear();bw?.terminate();bw=null;};}
+ if(!bw){try{bw=new Worker('cleaning-plus.js?v=0.37.0');bw.onmessage=({data})=>{const j=bwJobs.get(data.id);if(!j)return;bwJobs.delete(data.id);data.error?j.reject(Error(data.error)):j.resolve({channels:data.channels,report:data.report});};bw.onerror=e=>{e.preventDefault?.();for(const j of bwJobs.values())j.reject(Error(e.message||'Beat-bleed processing stopped.'));bwJobs.clear();bw?.terminate();bw=null;};}
   catch(_){bw=null;try{resolve(removeBleed(ch,ref,rate,strength));}catch(e){reject(e);}return;}}
  const id=++bwSeq,c=ch.map(a=>a.slice()),r=ref.slice();bwJobs.set(id,{resolve,reject});bw.postMessage({id,ch:c,ref:r,rate,strength},[...c.map(a=>a.buffer),r.buffer]);});}
-async function before(ch,rate,s){let x=ch;last={};
+async function before(ch,rate,s){let x=ch;last={};aiRef=null;
  if(s.bleed>0){const b=backing(rate);if(!b)last.bleed={skipped:'Load the backing in Song & vocals to remove beat bleed.'};else{const ref=b.rate===rate?b.data:(await resample([b.data],b.rate,rate))[0];const r=await bleedJob(x,ref,rate,s.bleed);x=r.channels;last.bleed=r.report;}}
  if(s.ai>0){try{x=await isolate(x,rate,s.ai);last.ai={blend:s.ai};}catch(e){last.ai={error:'AI voice isolation could not start: '+e.message};}}
+ // AI clean keeps the vocal as it was before the AI, so held-note protection can restore harmonics from it.
+ if(s.dfn>0){try{const r=x;x=await aiClean(x,rate,s.dfn);aiRef=r;last.dfn={amount:s.dfn};}catch(e){last.dfn={error:'AI clean could not start: '+e.message};}}
  return x;}
 function after(orig,r,rate,s,pre=orig){let ch=r.channels;
  // Pauses are judged on the vocal after bleed removal, so a backing heard in the mic is not mistaken for singing.
  if(s.scope==='pauses'){const g=pauseGain(pre,rate);ch=orig.map((o,c)=>{const y=new Float32Array(o.length),p=ch[c];for(let i=0;i<o.length;i++){const k=g.at(i);y[i]=o[i]+k*(p[i]-o[i]);}return y;});}
+ // 0.37.0 Gap cleaning: lower whatever is left between lines by up to `gap` dB, with the same soft 50 ms fades.
+ if(s.gap>0){const g=pauseGain(pre,rate),depth=1-10**(-s.gap/20);ch=ch.map(p=>{const y=new Float32Array(p.length);for(let i=0;i<p.length;i++)y[i]=p[i]*(1-depth*g.at(i));return y;});last.gap={db:s.gap};}
  const removed=orig.map((o,c)=>{const d=new Float32Array(o.length);for(let i=0;i<o.length;i++)d[i]=o[i]-ch[c][i];return d;});
  return {...r,channels:ch,removed,plus:{...last}};}
 // Voice-safety meter: level change and removed energy, singing vs pauses.
@@ -133,9 +147,14 @@ function measure(orig,out,rate=48000){
  const ch=out.channels;if(!ch||!orig||ch.length!==orig.length)return null;const vf=voiceFrames(orig,rate);
  let vi=0,vo=0,vr=0,pi=0,po=0;for(let c=0;c<orig.length;c++){const a=orig[c],b=ch[c];for(let i=0;i<a.length;i+=3){const v=vf.voice[Math.min(vf.voice.length-1,Math.floor(i/vf.hop))],d=a[i]-b[i];if(v){vi+=a[i]*a[i];vo+=b[i]*b[i];vr+=d*d;}else{pi+=a[i]*a[i];po+=b[i]*b[i];}}}
  const db=(p,q)=>q>0&&p>0?10*Math.log10(p/q):0;
- return {voice:+db(vo,vi).toFixed(2),voiceRemoved:vi>0?+(10*Math.log10(vr/vi+1e-12)).toFixed(1):-120,pauses:+db(po,pi).toFixed(1),hasVoice:vi>0,hasPauses:pi>0};}
-function safetyText(m){if(!m||!m.hasVoice)return '';const warn=m.voice<-1||m.voiceRemoved>-15;
- return (warn?'⚠ ':'')+'Singing changed '+(m.voice>=0?'+':'')+m.voice.toFixed(1)+' dB '+(m.voiceRemoved<-90?'(removed signal below the meter range)':'(removed sound sits '+Math.abs(m.voiceRemoved).toFixed(0)+' dB below your voice)')+' · Pauses cleaned '+Math.abs(m.pauses).toFixed(1)+' dB'+(warn?'. Cleaning is touching your singing: try Gentle, Pauses only, or a lower Maximum reduction.':'. This is a whole-phrase estimate. Listen to Removed for quiet S, F and word endings.');}
+ // 0.37.0: top-end change (4-10 kHz) on sung frames, where over-cleaning first shows as dullness.
+ const N=2048,lo=Math.round(4000*N/rate),hi=Math.min(N/2,Math.round(10000*N/rate)),win=new Float64Array(N);for(let i=0;i<N;i++)win[i]=.5-.5*Math.cos(2*Math.PI*i/N);
+ let ha=0,hb=0,seen=0;const step=Math.max(1,Math.round(.1*rate/vf.hop));
+ for(let k=0;k<vf.voice.length&&seen<600;k+=step){if(!vf.voice[k])continue;const s0=k*vf.hop;if(s0+N>orig[0].length)break;seen++;for(let c=0;c<orig.length;c++)for(const [x,o] of [[orig[c],0],[ch[c],1]]){const re=new Float64Array(N),im=new Float64Array(N);for(let i=0;i<N;i++)re[i]=x[s0+i]*win[i];fft(re,im);let p=0;for(let j=lo;j<hi;j++)p+=re[j]*re[j]+im[j]*im[j];if(o)hb+=p;else ha+=p;}}
+ return {hf:seen?+db(hb,ha).toFixed(2):0,voice:+db(vo,vi).toFixed(2),voiceRemoved:vi>0?+(10*Math.log10(vr/vi+1e-12)).toFixed(1):-120,pauses:+db(po,pi).toFixed(1),hasVoice:vi>0,hasPauses:pi>0};}
+function safetyWarn(m){return !!m&&m.hasVoice&&(m.voice<-1||m.voiceRemoved>-15||(m.hf??0)<-1.5);}
+function safetyText(m){if(!m||!m.hasVoice)return '';const warn=safetyWarn(m);
+ return (warn?'⚠ ':'')+'Singing changed '+(m.voice>=0?'+':'')+m.voice.toFixed(1)+' dB '+(m.voiceRemoved<-90?'(removed signal below the meter range)':'(removed sound sits '+Math.abs(m.voiceRemoved).toFixed(0)+' dB below your voice)')+' · Top end (4–10 kHz) '+((m.hf??0)>=0?'+':'')+(m.hf??0).toFixed(1)+' dB · Pauses cleaned '+Math.abs(m.pauses).toFixed(1)+' dB'+(warn?'. Cleaning is touching your singing: try Gentle, Pauses only, or a lower Maximum reduction.':'. This is a whole-phrase estimate. Listen to Removed for quiet S, F and word endings.');}
 /* ---------- CLEAN panel controls (browser) ---------- */
 const ROOMS='pvs.roomProfiles.v1';
 function rooms(){try{const v=JSON.parse(localStorage.getItem(ROOMS)||'[]');return Array.isArray(v)?v:[];}catch(_){return [];}}
@@ -143,7 +162,7 @@ function installUI(){const doc=root.document,$=id=>doc.getElementById(id),host=$
  const presets=host.querySelector('.noise-presets'),note=presets?.nextElementSibling;const box=doc.createElement('div');box.className='noise-plus';
  box.innerHTML='<label class="field"><span>WHERE TO CLEAN</span><select id="noiseScope"><option value="all">Everywhere</option><option value="pauses">Pauses only: singing left exactly as recorded</option></select></label>'
   +'<label class="field"><span>BEAT BLEED (backing heard in the mic)</span><select id="noiseBleed"><option value="0">Off</option><option value="0.5">Gentle</option><option value="1">Strong</option></select></label>'
-  +'<label class="field"><span>AI VOICE ISOLATION (optional)</span><select id="noiseAi"><option value="0">Off</option><option value="0.25">Blend 25%</option><option value="0.5">Blend 50%</option><option value="1">Full</option></select></label>'
+  +'<label class="field"><span>OLDER AI ISOLATION (RNNoise, kept for older projects)</span><select id="noiseAi"><option value="0">Off</option><option value="0.25">Blend 25%</option><option value="0.5">Blend 50%</option><option value="1">Full</option></select></label>'
   +'<p class="note" id="noisePlusInfo"></p><p class="note noise-safety" id="noiseSafety" role="status" aria-live="polite"></p>';
  (note||presets||host.firstChild).after(box);
  const set=(k,v)=>{const m=root.NoiseCleaner;if(!m.mutate({[k]:v}))sync();};
@@ -167,15 +186,18 @@ function sync(force){const doc=root.document,$=id=>doc.getElementById(id),m=root
  const res=m.debug().result,p=res?.plus||{},info=[];
  if(!root.S?.beat&&typeof S!=='undefined'&&!S.beat)info.push('Beat bleed needs the matching backing. Add it on Song & vocals.');
  if(c.bleed>0)info.push(p.bleed?.skipped||(p.bleed?'Beat bleed: backing found '+p.bleed.lagMs+' ms late, match '+Math.round(p.bleed.coherence*100)+'%, removed sound '+p.bleed.bleedDb+' dB relative to the recording.':'Beat bleed: applies when the vocal is processed.'));
+ if(c.dfn>0)info.push(p.dfn?.error||'AI clean (DeepFilterNet3) at '+Math.round(c.dfn*100)+'%. It was trained on speech: keep Protect held notes on, and listen to Removed for parts of your voice.');
  if(c.ai>0)info.push(p.ai?.error||'AI voice isolation (RNNoise) blended at '+Math.round(c.ai*100)+'%. It was trained on speech: listen for a watery or lisping voice and lower the blend if you hear it.');
  if(c.scope==='pauses')info.push('Pauses only protects detected singing. Listen to quiet consonants and phrase endings.');
  $('noisePlusInfo').textContent=info.join(' ');
- $('noiseSafety').textContent=m.active()&&c.on?safetyText(res?.safety):'';$('noiseSafety').classList.toggle('warn',!!res?.safety&&(res.safety.voice<-1||res.safety.voiceRemoved>-15));}
+ $('noiseSafety').textContent=m.active()&&c.on?safetyText(res?.safety):'';$('noiseSafety').classList.toggle('warn',safetyWarn(res?.safety));
+ // RNNoise stays only so older projects that used it sound the same; new work uses AI clean (DeepFilterNet3).
+ {const f=$('noiseAi').closest('.field');f.hidden=!(c.ai>0);const h=doc.querySelector('[data-ux-ai-head]');if(h)h.hidden=f.hidden;}}
 if(root.document){const go=()=>{if(root.NoiseCleaner&&root.document.getElementById('studioNoiseControls'))installUI();else setTimeout(go,200);};root.document.readyState==='loading'?root.document.addEventListener('DOMContentLoaded',go):go();}
 
 // Beat-bleed results depend on the backing too: a replaced backing must not reuse a cached result.
 function cacheTag(s){if(!(s?.bleed>0)||typeof S==='undefined'||!S.beat)return '';const b=S.beat,d=b.getChannelData(0),n=d.length;let h=0;for(let i=0;i<64;i++){h=(h*31+Math.round((d[Math.floor(i*n/64)]||0)*1e6))|0;}return '|beat:'+b.sampleRate+':'+n+':'+h;}
-const api={cacheTag,fft,voiceFrames,pauseGain,bestLag,removeBleed,isolate,wants,strip,before,after,measure,safetyText,FIELDS,last:()=>last};
+const api={cacheTag,fft,voiceFrames,pauseGain,bestLag,removeBleed,isolate,aiClean,wants,strip,before,after,measure,safetyText,safetyWarn,FIELDS,last:()=>last,aiRef:()=>aiRef};
 root.CleanPlus=api;if(typeof module!=='undefined')module.exports=api;
 if(typeof WorkerGlobalScope!=='undefined'&&root instanceof WorkerGlobalScope)root.onmessage=({data:m})=>{try{const r=removeBleed(m.ch,m.ref,m.rate,m.strength);root.postMessage({id:m.id,channels:r.channels,report:r.report},r.channels.map(c=>c.buffer));}catch(e){root.postMessage({id:m.id,error:e.message});}};
 })(typeof window!=='undefined'?window:globalThis);

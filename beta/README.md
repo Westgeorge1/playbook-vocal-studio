@@ -1,20 +1,22 @@
-# Playbook Vocal Studio 0.36.8 beta candidate
+# Playbook Vocal Studio 0.37.4 beta candidate
 
-This candidate combines the saved-source protection, recording-toolbar stability fix and the cautious Smart Guide wording from the two different 0.36.5 packages. It is on hold pending full release qualification; it does not certify release-quality sound.
+0.37.4 fixes de-reverb on older saved projects whose Step 7 was off. It also gives the laptop settings panel more room by fitting the POLISH controls onto one row at 1280 × 800. See [0.37.4 release notes](CHANGES-0.37.4.md).
 
-The audio algorithms, engine binaries, defaults and approved presets are unchanged. Missing-original recovery protects surviving saved recordings but cannot recreate lost bytes. Keep downloaded project backups.
+0.37.3 merges the audio-clock recording watchdog from draft PR #2 and makes Clean vocal's step 7 switch also control room-echo reduction ([CHANGES-0.37.3.md](CHANGES-0.37.3.md)). 0.37.2 added Pops and rumble under the voice to Clean vocal step 2, off by default ([CHANGES-0.37.2.md](CHANGES-0.37.2.md)). 0.37.1 fixed hum detection in Clean vocal's Measure step ([CHANGES-0.37.1.md](CHANGES-0.37.1.md)). 0.37.0 added **Clean vocal** at the top of POLISH > CLEAN: one button measures the take and sets eight cleaning steps in order (measure, hum and rumble, clicks and pops, beat leak, AI clean plus the noise remover, held-note protection, gaps/breaths/echo, safety check). Every step keeps manual controls and an on/off switch. New in the sound path: an adaptive noise remover that follows changing noise, held-note protection, and AI clean with DeepFilterNet3 running on the device. With Clean vocal unused, earlier projects sound exactly as before. See [CHANGES-0.37.0.md](CHANGES-0.37.0.md).
+
+Built on 0.36.8. Engine binaries and approved tuning presets are unchanged. Keep downloaded project backups.
 
 Extract this entire folder. On Windows run `py -m http.server 8000` inside it; otherwise use `python3 -m http.server 8000`. Open `http://localhost:8000/` and keep the terminal running. Use HTTPS for remote microphone access. Do not open index.html directly.
 
-[Release notes](CHANGES-0.36.6.md) · [Test setup](TESTING.md) · [GitHub repair PR](https://github.com/Westgeorge1/playbook-vocal-studio/pull/1)
+[Release notes](CHANGES-0.37.4.md) · [Test setup](TESTING.md) · [GitHub repair PR](https://github.com/Westgeorge1/playbook-vocal-studio/pull/1)
 
-The runner contains 30 suites. The separate failure-capture control and long-POLISH acceptance are documented in TESTING.md. A companion validation report identifies the exact frozen candidate and its actual results. Historical reports apply only to their named builds.
+The runner contains 35 suites. Release qualification is serial (PVS_TEST_MODE=qualification, PVS_TEST_JOBS=1). The separate failure-capture control and long-POLISH acceptance are documented in TESTING.md. A companion validation report identifies the exact frozen candidate and its actual results. Historical reports apply only to their named builds.
 
 ## Previous release documentation
 
 # Playbook Vocal Studio 0.36.3 beta
 
-[Open the 0.36.8 beta](https://westgeorge1.github.io/playbook-vocal-studio/beta/) · [Open the 0.32.3 main studio](https://westgeorge1.github.io/playbook-vocal-studio/)
+[Open the published beta](https://westgeorge1.github.io/playbook-vocal-studio/beta/) · [Open the 0.32.3 main studio](https://westgeorge1.github.io/playbook-vocal-studio/)
 
 0.36.3 updates guided tuning, noise safety, offline setup and interrupted recording recovery. [Release notes](CHANGES-0.36.3.md).
 
