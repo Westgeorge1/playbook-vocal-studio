@@ -1,4 +1,6 @@
-# Playbook Vocal Studio 0.37.4 beta candidate
+# Playbook Vocal Studio 0.37.5 beta candidate
+
+0.37.5 makes the Clean vocal panel state when click repair and de-reverb really run, and starts Roots Reggae with word leveling 25 % and compression 45 %. Saved projects keep their values. See [0.37.5 release notes](CHANGES-0.37.5.md).
 
 0.37.4 fixes de-reverb on older saved projects whose Step 7 was off. It also gives the laptop settings panel more room by fitting the POLISH controls onto one row at 1280 × 800. See [0.37.4 release notes](CHANGES-0.37.4.md).
 

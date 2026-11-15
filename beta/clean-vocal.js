@@ -1,9 +1,11 @@
-/* 0.37.0 Clean vocal: the eight cleaning steps in order, in one panel at the top of POLISH > CLEAN.
+/* 0.37.0 Clean vocal: the eight cleaning steps, in one panel at the top of POLISH > CLEAN.
  * The Clean vocal button measures the recording and sets starting values for every step. Every value stays a manual
  * control: a knob the singer moves is remembered (NoiseCleaner touched list) and the button never changes it again;
  * Reset clears that list and returns every step to the button's values. Each step has an on/off switch that keeps
  * its values. Nothing changes unless the singer presses a button or moves a control.
- * Steps 3 (clicks) and 7 (echo) drive the existing Vocal Detail engine settings; the rest are NoiseCleaner settings. */
+ * Steps 3 (clicks) and 7 (echo) drive the existing Vocal Detail engine settings; the rest are NoiseCleaner settings.
+ * 0.37.5: the engine runs those two before NoiseCleaner, so the real order is 3, de-reverb, 4, 2, 5a, 5b, 6, gap cleaning.
+ * The notes on steps 3 and 7 now say so. The processing order itself is unchanged. */
 (function(){'use strict';
 const $=id=>document.getElementById(id),NC=()=>window.NoiseCleaner;
 const ENGINE={clicks:'chRepairOn',clickAmt:'chRepairClicks',plosive:'chRepairPlosives',echo:'chRoomReduceOn',echoAmt:'chRoomReduce'};
@@ -17,14 +19,14 @@ function plan(m){const clean=m.snrDb>=50;
   follow:clean?2:3,sensitivity:clean?0:3,smooth:.5,scope:'all',harmonic:1,gap:0,clicks:1,clickAmt:25,plosive:30,echo:0,echoAmt:30};}
 const STEPS=[
  {id:'hum',n:'2',title:'Hum, rumble and pops',items:[{k:'hum',type:'select',label:'HUM',opts:[[0,'Off'],[50,'50 Hz + harmonics'],[60,'60 Hz + harmonics']]},{k:'highpass',type:'range',label:'Rumble cut-off (fixed)',unit:' Hz',min:0,max:120,step:5},{k:'under',type:'range',label:'Pops and rumble under the voice',unit:' dB',min:0,max:24,step:1}],note:()=>'Pops and rumble under the voice follows your sung note and removes low thumps below it (breath pops, mic handling). Clean vocal leaves it at 0: turn it up (18 dB is strong) when you hear thumps at the starts of lines. It needs the Adaptive engine.'},
- {id:'clicks',n:'3',title:'Clicks and pops',engine:'clicks',items:[{k:'clickAmt',type:'range',label:'Click sensitivity',unit:'%',min:0,max:100,step:1},{k:'plosive',type:'range',label:'Pop (plosive) reduction',unit:'%',min:0,max:100,step:1}]},
+ {id:'clicks',n:'3',title:'Clicks and pops',engine:'clicks',items:[{k:'clickAmt',type:'range',label:'Click sensitivity',unit:'%',min:0,max:100,step:1},{k:'plosive',type:'range',label:'Pop (plosive) reduction',unit:'%',min:0,max:100,step:1}],note:()=>'Runs first, on the raw recording, before steps 2 and 4 to 7.'},
  {id:'bleed',n:'4',title:'Beat leak',items:[{k:'bleed',type:'select',label:'AMOUNT',opts:[[0,'Off'],[.5,'Gentle'],[1,'Strong']]}],note:()=>hasBeat()?'Removes the beat that leaked from your headphones, using the beat loaded in Song & vocals.':'Needs the matching beat: load it in Song & vocals first.'},
  {id:'ai',n:'5a',title:'AI clean',items:[{k:'dfn',type:'range',label:'Amount',unit:'%',scale:100,min:0,max:100,step:5}],note:()=>'DeepFilterNet3, run on this device; nothing is uploaded. It was trained on speech, so keep step 6 on. It is left off when music is heard behind your voice.'},
  {id:'noise',n:'5b',title:'Noise remover',items:[{k:'engine',type:'select',label:'ENGINE',opts:[['adaptive','Adaptive: follows changing noise'],['classic','Classic: fixed noise print']]},{k:'reduction',type:'range',label:'Amount',unit:' dB',min:0,max:18,step:.5},
   {k:'follow',type:'select',label:'FOLLOW SPEED',opts:[[0,'Off: use the noise print'],[1,'Slow (1.5 s)'],[2,'Medium (0.6 s)'],[3,'Fast (0.35 s)']]},{k:'smooth',type:'range',label:'Smoothness',unit:'%',scale:100,min:0,max:100,step:5},
   {k:'scope',type:'select',label:'WHERE',opts:[['all','Everywhere'],['pauses','Only between lines (singing untouched)']]}],note:()=>(NC()?.state().engine||'classic')==='classic'?'Follow speed, Smoothness and step 6 need the Adaptive engine.':'Higher Smoothness leaves a little more noise but fewer watery sounds.'},
  {id:'protect',n:'6',title:'Protect held notes',items:[{k:'harmonic',type:'range',label:'Protection',unit:'%',scale:100,min:0,max:100,step:5}],note:()=>'Finds the note you sing in every moment and keeps its harmonics, cleaning only between them. After AI clean it puts back any harmonics the AI took.'},
- {id:'gaps',n:'7',title:'Gaps, breaths, echo',items:[{k:'gap',type:'range',label:'Gap cleaning (between lines)',unit:' dB',min:0,max:24,step:1},{k:'echo',type:'check',label:'Gentle de-reverb (room echo)'},{k:'echoAmt',type:'range',label:'Echo reduction',unit:'%',min:0,max:100,step:1}],extra:'<button class="btn" id="cvBreaths" type="button">Find breaths</button>',note:()=>'Breaths: Find breaths opens the breath finder, where you hear each one and choose how much to lower it.'}];
+ {id:'gaps',n:'7',title:'Gaps, breaths, echo',items:[{k:'gap',type:'range',label:'Gap cleaning (between lines)',unit:' dB',min:0,max:24,step:1},{k:'echo',type:'check',label:'Gentle de-reverb (room echo)'},{k:'echoAmt',type:'range',label:'Echo reduction',unit:'%',min:0,max:100,step:1}],extra:'<button class="btn" id="cvBreaths" type="button">Find breaths</button>',note:()=>'Gap cleaning runs last. De-reverb runs early, together with step 3, before the noise remover: it is not applied after the noise is removed. Breaths: Find breaths opens the breath finder, where you hear each one and choose how much to lower it.'}];
 const isEngine=k=>Object.hasOwn(ENGINE,k);
 function value(k){if(isEngine(k))return typeof S!=='undefined'&&S.P?S.P[ENGINE[k]]:undefined;const c=NC()?.state()||{};
  return k==='engine'?(c.engine||'classic'):k==='follow'?(c.follow??2):k==='smooth'?(c.smooth??.5):k==='harmonic'?(c.harmonic??0):k==='dfn'?(c.dfn||0):k==='scope'?(c.scope||'all'):k==='gap'?(c.gap||0):k==='under'?(c.under||0):k==='bleed'?(c.bleed||0):c[k];}

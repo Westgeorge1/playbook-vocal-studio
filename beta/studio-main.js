@@ -146,7 +146,7 @@ const songSeconds = () => S.original ? S.original.length / S.rate : 0;
 
 // ---------------------------------------------------------------- engine (worker)
 // 0.17.2: the app and the audio engine have separate version numbers
-var APP_VERSION="0.37.4",ENGINE_VERSION="0.12.1";
+var APP_VERSION="0.37.5",ENGINE_VERSION="0.12.1";
 const worker = new Worker("worker.js?v=0.37.0");
 let reqId = 0, engineFailure = null; const pending = {};
 var ENGINE_WAIT_MS = 120000;
@@ -323,6 +323,7 @@ function openVocal(samples, rate, name, isSample, importKind=0, laneKey=null) {
       S.edit.sel = null; S.edit.chosen = -1; S.edit.src = null; S.edit.take = 1; S.edit.view = { start: 0, secs: 0 }; S.ovTakes = {};
       absorb(r);
       if (!importKind && !r.initialCleaningApplied) { r = await engine({type:"run", steps:FinishPolicy.steps(FinishPolicy.cleaning(S.st.report)), update:true}); absorb(r); }
+      if (!importKind && reggaeFactory(S.P)) { r = await engine({ type: "run", steps: REGGAE_START, update: true }); absorb(r); } // 0.37.5
       r = await engine({ type: "run", steps: guidePrefSteps(), update: false }); absorb(r);
       fitPitch(); view.start = S.notes.length ? Math.max(0, S.notes[0].start - 0.5) : 0; view.secs = Math.min(12, Math.max(3, songSeconds()));
       if(typeof phraseReset==="function"&&!S.phraseApplying)phraseReset();
@@ -1208,6 +1209,11 @@ const PRESET_HELP = ["Warm body, clear words, a dub-style echo and a short room.
   "Clean, dry vocal for mixing in FL Studio: EQ, de-ess and compression only, no echo or reverb.",
   "A conservative starting point: no tonal EQ, compression or added space; tuning off. Cleaning is bypassed for a low or unavailable noise estimate, otherwise Gentle spectral starts at 6 dB. Note Editor and Studio Spectral choices stay as you set them. Existing breath edits stay as you chose them. The limiter uses −1.6 dB headroom. Compare before keeping these settings."];
 const PRESET_NAMES = ["Roots Reggae", "Modern Pop", "Warm & Intimate", "Dry Stem", "Clean & Natural"];
+// 0.37.5: Roots Reggae starts with word leveling sharing the work with a lighter compressor. The compiled engine still
+// holds 0 % and 55 %, so these two values follow every place that applies the preset from its starting settings.
+// Saved projects and autosaves restore their own values and are not changed.
+const REGGAE_START = [["set", "chLevelRide", 0.25], ["set", "chCompress", 0.45]];
+const reggaeFactory = P => !!P && Math.round(P.chainPreset || 0) === 0 && Math.abs(P.chLevelRide) < 1e-6 && Math.abs(P.chCompress - 0.55) < 1e-4;
 // 0.31.0 starting point for audition; not an approved universal vocal preset.
 function cleanNaturalSteps() {
   const steps = [["pushUndo"], ["preset", 4], ...FinishPolicy.steps(FinishPolicy.cleaning(S.st?.report,S.P.importKind>.5))];
@@ -1341,7 +1347,7 @@ function syncChainText() {
 for (const b of document.querySelectorAll("#presetSeg button")) b.onclick = () => {
   const p = +b.dataset.preset; chainEdited = false; S.P.chainPreset = p;
   if (p === 4) { change(cleanNaturalSteps(), 30); setStatus(NoteTuner.enabled()?"Clean & Natural: conservative effects. Your noise-removal and note-editor choices are kept.":"Clean & Natural: conservative cleaning, automatic tuning off, existing breath edits kept.", "busy"); syncControls(); }
-  else change([["preset", p]], 30);
+  else change(p === 0 ? [["preset", 0], ...REGGAE_START] : [["preset", p]], 30);
   syncChain(); };
 $("chainOn").onchange = () => { setP("chainOn", $("chainOn").checked ? 1 : 0); syncChain(); };
 for (const b of document.querySelectorAll(".tempo [data-div]")) b.onclick = () => {
@@ -1638,13 +1644,13 @@ function whereSaved() {
 function savedToast(name) { toast("Saved: " + name, whereSaved(), 9000); }
 $("resetPreset").onclick = () => {
   const p = Math.round(S.P.chainPreset || 0), withFinishing = $("resetFinishing").checked; chainEdited = false;
-  run(async () => { await exec([["resetPreset", withFinishing]], true); toast("Reset done", PRESET_NAMES[p] + " is back to its starting settings" + (withFinishing ? ", Second EQ and limiter too." : ".") + " Undo brings your version back."); });
+  run(async () => { await exec(p === 0 ? [["resetPreset", withFinishing], ...REGGAE_START] : [["resetPreset", withFinishing]], true); toast("Reset done", PRESET_NAMES[p] + " is back to its starting settings" + (withFinishing ? ", Second EQ and limiter too." : ".") + " Undo brings your version back."); });
 };
 $("resetSettings").onclick = () => { $("resetConfirm").hidden = false; $("resetYes").focus(); };
 $("resetNo").onclick = () => { $("resetConfirm").hidden = true; };
 $("resetYes").onclick = () => {
   $("resetConfirm").hidden = true; endLoop(); chainEdited = false;
-  run(async () => { await exec([["resetSettings"], ...FinishPolicy.steps(FinishPolicy.cleaning(S.st?.report,S.P.importKind>.5))], true); S.mix.fit = S.P.chMixFit > .5; S.mix.over = +S.P.chMixOver; S.mix.room = +S.P.chMixRoom; syncMix(); scheduleFit(50); persist(); toast("Reset done", "Original cleaner, original tuner and vocal-chain settings are back to their starting values. Studio Spectral and note-editor settings are kept. Your recordings, takes and note edits are kept. Undo brings your settings back.", 9000); });
+  run(async () => { await exec([["resetSettings"], ...REGGAE_START, ...FinishPolicy.steps(FinishPolicy.cleaning(S.st?.report,S.P.importKind>.5))], true); S.mix.fit = S.P.chMixFit > .5; S.mix.over = +S.P.chMixOver; S.mix.room = +S.P.chMixRoom; syncMix(); scheduleFit(50); persist(); toast("Reset done", "Original cleaner, original tuner and vocal-chain settings are back to their starting values. Studio Spectral and note-editor settings are kept. Your recordings, takes and note edits are kept. Undo brings your settings back.", 9000); });
 };
 function updateSettingsText() {
   const P = S.P; if (P.cleanMode == null) return;

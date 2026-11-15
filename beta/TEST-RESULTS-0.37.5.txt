@@ -1,0 +1,27 @@
+Playbook Vocal Studio 0.37.5 | Evidence before freezing
+Run on 2026-11-15, Linux, Google Chrome for Testing 153, playwright-core, serial (PVS_TEST_JOBS=1).
+
+Runner: node run-tests.cjs, 36 suites.
+First run: 34/36 passed.
+- tests-0.32.3/playback failed as expected: final PCM of a new vocal no longer matched the 0.32.3 reference,
+  because the new vocal used the 0.37.5 Roots Reggae starting values. Tuned PCM matched.
+  The test now confirms the new values, restores 0 % / 55 %, and compares. Rerun alone: pass, bit-identical
+  tuned and final PCM for none, presetSnapSmooth and presetCenterSmooth.
+- tests-0.32.3/upgrade failed with a 30 s timeout at upgrade.cjs:100. This run did not have the owner's
+  Playbook-Vocal-Studio-Beta-0.32.2.zip; the 0.32.3 beta folder was used for PVS_OLD_BETA instead.
+  The unchanged 0.37.4 build fails this suite the same way with that stand-in. It still has to be run
+  with the real 0.32.2 reference.
+
+New suite tests-0.37.5/starting-values: 12/12.
+Step 7 restore suite tests-0.37.4/echo-restore, Clean vocal suite tests-0.37.0/clean-vocal, UX, laptop and coach
+suites: pass in the runner.
+
+Engine measurement (Node, unchanged engine-wasm.wasm, synthetic vocal with phrases 10.1 dB apart):
+  0 % leveling, 55 % compression: compressor 1.38 dB average, 3.02 dB maximum, loud-to-quiet gap 7.5 dB.
+  25 % leveling, 45 % compression: compressor 0.99 dB average, 2.53 dB maximum, loud-to-quiet gap 5.9 dB.
+
+PVS_OLD_MAIN: repository root at 3fd7da830a7de894c2b5430b2368f8a78790ab26.
+PVS_REFERENCE_DIR: repository root at 7cddbe77b6effceeccc040b1c0da69e5ae884924.
+
+Not done: the full runner was not repeated after the playback test edit (playback was rerun alone), the
+long-song case, any listening comparison on a real vocal, and a physical phone test.
