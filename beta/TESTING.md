@@ -63,3 +63,7 @@ The runner has 34 suites: the 0.36.9 audio-clock watchdog suites (from draft PR 
 ## 0.37.4 candidate qualification
 
 The runner now has 35 suites. The added tests-0.37.4/echo-restore.cjs opens a real synthetic project saved by 0.37.2. It checks both an unrendered lane and an open editor, ordinary backup import, Step 7 off/on, a recalled engine switch, manual render equivalence, autosave and a second backup in a fresh browser. The fixture contains no artist recording. The original UX suite retains its 470 px acceptance threshold at 1280 × 800. Run the failure-capture control before three consecutive serial qualification runs on the verified ZIP. Preserve every failed attempt and stop the consecutive sequence on a failed full run. Run long-POLISH separately.
+
+## 0.37.5 candidate qualification
+
+The runner now has 36 suites. The added tests-0.37.5/starting-values.cjs loads a new synthetic vocal and checks the Roots Reggae starting values (word leveling 25 %, compression 45 %) on a new vocal, the preset button, Reset preset and Reset all settings, that manual changes are kept, that the 0.37.2 fixture project opens with its saved 0 % and 55 %, and the two Clean vocal order notes. Recording and phone wrappers require 0.37.5. Listening comparison of the old and new starting values on a real vocal remains the owner's check.

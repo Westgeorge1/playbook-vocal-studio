@@ -33,6 +33,14 @@ async function render(route) {
   },raw);
   const idle=()=>p.waitForFunction(()=>!S.busy&&!S.dirty&&!NoteTuner.locked()&&!NoiseCleaner.locked(),null,{timeout:120000});
   await p.evaluate(()=>SongPolish.open(S.song.activeTrack));await idle();
+  // 0.37.5: Roots Reggae now starts with word leveling 25 % and compression 45 %. The engine is unchanged, so the
+  // candidate must still match the reference bit for bit once the 0.37.4 starting values are put back.
+  if(route==='candidate'){
+    const start=await p.evaluate(()=>[S.P.chLevelRide,S.P.chCompress]);
+    assert.ok(Math.abs(start[0]-.25)<1e-4&&Math.abs(start[1]-.45)<1e-4,'0.37.5 Roots Reggae starting values on a new vocal');
+    console.log('PASS new vocal starts with word leveling 25 % and compression 45 %');
+    await p.evaluate(()=>{setP('chLevelRide',0);setP('chCompress',.55);});await p.waitForTimeout(500);await idle();
+  }
   await p.evaluate(()=>showPage('tune'));
   const fr = p.frames().find(f=>f.url().includes('note-editor.html'));
   await fr.evaluate(()=>{

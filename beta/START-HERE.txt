@@ -1,6 +1,6 @@
-PLAYBOOK VOCAL STUDIO 0.37.4 BETA CANDIDATE
+PLAYBOOK VOCAL STUDIO 0.37.5 BETA CANDIDATE
 
-Extract this folder, run python -m http.server 8000 in the directory containing index.html, then open http://localhost:8000/. See CHANGES-0.37.4.md for the two repairs and TESTING.md for qualification.
+Extract this folder, run python -m http.server 8000 in the directory containing index.html, then open http://localhost:8000/. See CHANGES-0.37.5.md for the newest changes, CHANGES-0.37.4.md for the two repairs and TESTING.md for qualification.
 
 PLAYBOOK VOCAL STUDIO 0.36.8 BETA
 
